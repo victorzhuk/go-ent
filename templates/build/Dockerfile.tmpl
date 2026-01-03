@@ -30,9 +30,9 @@ WORKDIR /app
 COPY --from=builder /bin/bash-static /usr/bin/bash
 
 # Copy binary
-COPY --from=builder /app/bin/{{PROJECT_NAME}} /{{PROJECT_NAME}}
+COPY --from=builder /app/bin/{{.ProjectName}} /{{.ProjectName}}
 
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/bin/bash"]
-CMD ["-c", "/{{PROJECT_NAME}} serve"]
+CMD ["-c", "/{{.ProjectName}} serve"]

@@ -9,7 +9,7 @@ const Version = "1.0.0"
 func New() *mcp.Server {
 	s := mcp.NewServer(
 		&mcp.Implementation{
-			Name:    "{{PROJECT_NAME}}",
+			Name:    "{{.ProjectName}}",
 			Version: Version,
 		},
 		nil,

@@ -10,4 +10,7 @@ func Register(s *mcp.Server) {
 	registerRegistry(s)
 	registerWorkflow(s)
 	registerLoop(s)
+	registerGenerate(s)
+	registerValidate(s)
+	registerArchive(s)
 }

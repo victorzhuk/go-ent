@@ -8,8 +8,10 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 prepare-templates: ## Copy templates to cmd/goent for embedding
-	@rm -rf cmd/goent/templates
-	@cp -r templates cmd/goent/templates
+	@mkdir -p cmd/goent/templates
+	@find cmd/goent/templates -name "*.tmpl" -delete 2>/dev/null || true
+	@rm -rf cmd/goent/templates/mcp cmd/goent/templates/build cmd/goent/templates/cmd cmd/goent/templates/deploy cmd/goent/templates/internal 2>/dev/null || true
+	@cp -r templates/* cmd/goent/templates/
 	@echo "Templates prepared for embedding"
 
 build: prepare-templates ## Build CLI binary to dist/goent

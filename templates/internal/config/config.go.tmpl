@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name      string `env:"APP_NAME" envDefault:"{{PROJECT_NAME}}"`
+	Name      string `env:"APP_NAME" envDefault:"{{.ProjectName}}"`
 	Env       string `env:"APP_ENV" envDefault:"development"`
 	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
 	LogFormat string `env:"LOG_FORMAT" envDefault:"text"`
@@ -26,7 +26,7 @@ type HTTPConfig struct {
 type DatabaseConfig struct {
 	Host     string `env:"DB_HOST" envDefault:"localhost"`
 	Port     int    `env:"DB_PORT" envDefault:"5432"`
-	Database string `env:"DB_NAME" envDefault:"{{PROJECT_NAME}}"`
+	Database string `env:"DB_NAME" envDefault:"{{.ProjectName}}"`
 	User     string `env:"DB_USER" envDefault:"postgres"`
 	Password string `env:"DB_PASSWORD" envDefault:"postgres"`
 	SSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
