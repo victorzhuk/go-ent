@@ -25,7 +25,7 @@
     "claude-code": ">=1.0.0"
   },
   "mcp": {
-    "command": "/home/zhuk/Projects/own/go-ent/dist/goent",
+    "command": "./dist/goent",
     "args": []
   }
 }
