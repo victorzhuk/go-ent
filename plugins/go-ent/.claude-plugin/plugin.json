@@ -1,0 +1,31 @@
+{
+  "name": "goent",
+  "version": "1.0.0",
+  "description": "Enterprise Go development toolkit with spec-driven workflows",
+  "author": {
+    "name": "Victor Zhuk",
+    "url": "https://github.com/victorzhuk"
+  },
+  "homepage": "https://github.com/victorzhuk/go-ent",
+  "repository": "https://github.com/victorzhuk/go-ent",
+  "license": "MIT",
+  "keywords": [
+    "go",
+    "golang",
+    "enterprise",
+    "clean-architecture",
+    "ddd",
+    "solid",
+    "microservices",
+    "testing",
+    "code-review",
+    "spec-driven"
+  ],
+  "engines": {
+    "claude-code": ">=1.0.0"
+  },
+  "mcp": {
+    "command": "/home/zhuk/Projects/own/go-ent/dist/goent",
+    "args": []
+  }
+}

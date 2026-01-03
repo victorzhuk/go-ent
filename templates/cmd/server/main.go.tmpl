@@ -1,0 +1,78 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"{{MODULE_PATH}}/internal/app"
+	"{{MODULE_PATH}}/internal/config"
+)
+
+func main() {
+	if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
+		slog.Error("startup failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writer) error {
+	cfg, err := config.LoadFromEnv(getenv)
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	logger := setupLogger(cfg.App.LogLevel, cfg.App.LogFormat, stdout)
+	slog.SetDefault(logger)
+
+	application, err := app.New(logger, cfg)
+	if err != nil {
+		return fmt.Errorf("create app: %w", err)
+	}
+
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
+
+	errCh := make(chan error, 1)
+	go func() { errCh <- application.Start(ctx) }()
+
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server: %w", err)
+	case <-ctx.Done():
+		logger.Info("shutdown signal received")
+	}
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	return application.Shutdown(shutdownCtx)
+}
+
+func setupLogger(level, format string, w io.Writer) *slog.Logger {
+	var lvl slog.Level
+	switch level {
+	case "debug":
+		lvl = slog.LevelDebug
+	case "warn":
+		lvl = slog.LevelWarn
+	case "error":
+		lvl = slog.LevelError
+	default:
+		lvl = slog.LevelInfo
+	}
+
+	opts := &slog.HandlerOptions{Level: lvl}
+	var handler slog.Handler
+	if format == "json" {
+		handler = slog.NewJSONHandler(w, opts)
+	} else {
+		handler = slog.NewTextHandler(w, opts)
+	}
+	return slog.New(handler)
+}

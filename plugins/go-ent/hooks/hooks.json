@@ -1,0 +1,37 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'read INPUT; CMD=$(echo \"$INPUT\" | jq -r \".tool_input.command // empty\"); for p in \"rm -rf /\" \"chmod 777\" \"dd if=/dev\"; do [[ \"$CMD\" == *\"$p\"* ]] && echo \"Blocked: $p\" >&2 && exit 2; done; exit 0'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'read INPUT; FILE=$(echo \"$INPUT\" | jq -r \".tool_input.file_path // empty\"); [[ \"$FILE\" == *.go ]] && command -v goimports &>/dev/null && goimports -w \"$FILE\" 2>/dev/null; exit 0'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'MODIFIED=$(git diff --name-only HEAD 2>/dev/null | grep \"\\.go$\" | grep -v \"_test.go\" | head -5); [[ -n \"$MODIFIED\" ]] && echo \"\" && echo \"📝 Modified Go files:\" && echo \"$MODIFIED\" && echo \"\" && echo \"💡 Next: go test ./... | golangci-lint run\"; exit 0'"
+          }
+        ]
+      }
+    ]
+  }
+}

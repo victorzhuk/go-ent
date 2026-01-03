@@ -1,0 +1,97 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate marketplace.json
+        run: |
+          if ! jq empty .claude-plugin/marketplace.json 2>/dev/null; then
+            echo "❌ Invalid JSON in marketplace.json"
+            exit 1
+          fi
+          echo "✅ marketplace.json is valid JSON"
+
+      - name: Validate plugin.json
+        run: |
+          for f in plugins/*/.claude-plugin/plugin.json; do
+            if [ -f "$f" ]; then
+              if ! jq empty "$f" 2>/dev/null; then
+                echo "❌ Invalid JSON in $f"
+                exit 1
+              fi
+              echo "✅ $f is valid JSON"
+            fi
+          done
+
+      - name: Check required files
+        run: |
+          required_files=(
+            ".claude-plugin/marketplace.json"
+            "README.md"
+          )
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "❌ Missing required file: $f"
+              exit 1
+            fi
+            echo "✅ Found: $f"
+          done
+
+      - name: Validate skills
+        run: |
+          for skill in plugins/*/skills/*/SKILL.md; do
+            if [ -f "$skill" ]; then
+              # Check for required frontmatter
+              if ! head -1 "$skill" | grep -q "^---$"; then
+                echo "❌ $skill missing frontmatter"
+                exit 1
+              fi
+              echo "✅ $skill has valid structure"
+            fi
+          done
+
+      - name: Validate commands
+        run: |
+          for cmd in plugins/*/commands/*.md; do
+            if [ -f "$cmd" ]; then
+              # Check for required frontmatter
+              if ! head -1 "$cmd" | grep -q "^---$"; then
+                echo "❌ $cmd missing frontmatter"
+                exit 1
+              fi
+              echo "✅ $cmd has valid structure"
+            fi
+          done
+
+  go-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Prepare templates
+        run: make prepare-templates
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -race -cover ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest

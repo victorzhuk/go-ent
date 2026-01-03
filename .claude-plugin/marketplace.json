@@ -1,0 +1,29 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "go-ent",
+  "owner": {
+    "name": "Victor Zhuk"
+  },
+  "metadata": {
+    "description": "Enterprise Go development toolkit with Clean Architecture, SOLID principles, and production-ready patterns",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "go-ent",
+      "source": "./plugins/go-ent",
+      "description": "Complete Go enterprise development toolkit with Clean Architecture skills, code review agents, testing patterns, and project scaffolding",
+      "version": "1.0.0",
+      "author": {
+        "name": "Victor Zhuk",
+        "url": "https://github.com/victorzhuk"
+      },
+      "homepage": "https://github.com/victorzhuk/go-ent",
+      "repository": "https://github.com/victorzhuk/go-ent",
+      "license": "MIT",
+      "keywords": ["go", "golang", "backend", "microservices", "clean-architecture", "testing", "code-review"],
+      "category": "development",
+      "tags": ["go", "enterprise", "clean-architecture", "ddd", "solid"]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+package server
+
+import (
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+
+const Version = "1.0.0"
+
+func New() *mcp.Server {
+	s := mcp.NewServer(
+		&mcp.Implementation{
+			Name:    "{{PROJECT_NAME}}",
+			Version: Version,
+		},
+		nil,
+	)
+
+	registerTools(s)
+
+	return s
+}
+
+func registerTools(s *mcp.Server) {
+	s.AddTool(
+		&mcp.Tool{
+			Name:        "example_tool",
+			Description: "An example MCP tool",
+			InputSchema: mcp.ToolInputSchema{
+				Type: "object",
+				Properties: map[string]interface{}{
+					"message": map[string]interface{}{
+						"type":        "string",
+						"description": "A message to process",
+					},
+				},
+				Required: []string{"message"},
+			},
+		},
+		func(args map[string]interface{}) (*mcp.CallToolResult, error) {
+			message := args["message"].(string)
+
+			return mcp.NewToolResultText("Processed: " + message), nil
+		},
+	)
+}

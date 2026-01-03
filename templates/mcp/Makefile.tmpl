@@ -1,0 +1,49 @@
+.PHONY: build run test lint fmt clean docker help
+
+APP_NAME := {{PROJECT_NAME}}
+MODULE := {{MODULE_PATH}}
+BUILD_DIR := ./bin
+MAIN := ./cmd/server
+
+# Go
+GOCMD := go
+GOBUILD := $(GOCMD) build
+GOTEST := $(GOCMD) test
+GOMOD := $(GOCMD) mod
+GOFMT := goimports
+
+# Build
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.vcsRef=$(VCS_REF)"
+
+help: ## Show help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+build: ## Build binary
+	@mkdir -p $(BUILD_DIR)
+	$(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(APP_NAME) $(MAIN)
+
+run: ## Run locally
+	$(GOCMD) run $(MAIN)
+
+test: ## Run tests
+	$(GOTEST) -race -cover ./...
+
+lint: ## Run linter
+	golangci-lint run --timeout 5m
+
+fmt: ## Format code
+	$(GOFMT) -w .
+
+tidy: ## Tidy modules
+	$(GOMOD) tidy
+
+clean: ## Clean build
+	rm -rf $(BUILD_DIR)
+
+docker: ## Build Docker image
+	docker build --build-arg VERSION=$(VERSION) --build-arg VCS_REF=$(VCS_REF) -t $(APP_NAME):$(VERSION) -f build/Dockerfile .
+
+generate: ## Run go generate
+	$(GOCMD) generate ./...

@@ -1,0 +1,75 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"{{MODULE_PATH}}/internal/config"
+)
+
+type app struct {
+	logger *slog.Logger
+	config *config.Config
+	server *http.Server
+}
+
+func New(logger *slog.Logger, cfg *config.Config) (*app, error) {
+	a := &app{
+		logger: logger,
+		config: cfg,
+	}
+
+	if err := a.setupServer(); err != nil {
+		return nil, fmt.Errorf("setup server: %w", err)
+	}
+
+	return a, nil
+}
+
+func (a *app) setupServer() error {
+	mux := http.NewServeMux()
+
+	// Health endpoints
+	mux.HandleFunc("GET /healthz", a.handleLiveness)
+	mux.HandleFunc("GET /readyz", a.handleReadiness)
+
+	// API routes
+	// TODO: Add your routes here
+
+	a.server = &http.Server{
+		Addr:         fmt.Sprintf(":%d", a.config.HTTP.Port),
+		Handler:      mux,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	return nil
+}
+
+func (a *app) Start(ctx context.Context) error {
+	a.logger.Info("starting server", "addr", a.server.Addr)
+	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("listen: %w", err)
+	}
+	return nil
+}
+
+func (a *app) Shutdown(ctx context.Context) error {
+	a.logger.Info("shutting down server")
+	return a.server.Shutdown(ctx)
+}
+
+func (a *app) handleLiveness(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
+func (a *app) handleReadiness(w http.ResponseWriter, r *http.Request) {
+	// TODO: Add dependency health checks
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}

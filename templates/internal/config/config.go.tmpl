@@ -1,0 +1,70 @@
+package config
+
+import (
+	"fmt"
+
+	"github.com/caarlos0/env/v11"
+)
+
+type Config struct {
+	App      AppConfig
+	HTTP     HTTPConfig
+	Database DatabaseConfig
+}
+
+type AppConfig struct {
+	Name      string `env:"APP_NAME" envDefault:"{{PROJECT_NAME}}"`
+	Env       string `env:"APP_ENV" envDefault:"development"`
+	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
+	LogFormat string `env:"LOG_FORMAT" envDefault:"text"`
+}
+
+type HTTPConfig struct {
+	Port int `env:"HTTP_PORT" envDefault:"8080"`
+}
+
+type DatabaseConfig struct {
+	Host     string `env:"DB_HOST" envDefault:"localhost"`
+	Port     int    `env:"DB_PORT" envDefault:"5432"`
+	Database string `env:"DB_NAME" envDefault:"{{PROJECT_NAME}}"`
+	User     string `env:"DB_USER" envDefault:"postgres"`
+	Password string `env:"DB_PASSWORD" envDefault:"postgres"`
+	SSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
+}
+
+func (c *DatabaseConfig) DSN() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		c.User, c.Password, c.Host, c.Port, c.Database, c.SSLMode)
+}
+
+func LoadFromEnv(getenv func(string) string) (*Config, error) {
+	var cfg Config
+	opts := env.Options{}
+	if getenv != nil {
+		opts.Environment = envMapFromFunc(getenv)
+	}
+	if err := env.ParseWithOptions(&cfg, opts); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+	return &cfg, nil
+}
+
+func Load() (*Config, error) {
+	return LoadFromEnv(nil)
+}
+
+func envMapFromFunc(getenv func(string) string) map[string]string {
+	// This is a simplified version; in production use os.Environ()
+	keys := []string{
+		"APP_NAME", "APP_ENV", "LOG_LEVEL", "LOG_FORMAT",
+		"HTTP_PORT",
+		"DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_SSL_MODE",
+	}
+	m := make(map[string]string)
+	for _, k := range keys {
+		if v := getenv(k); v != "" {
+			m[k] = v
+		}
+	}
+	return m
+}

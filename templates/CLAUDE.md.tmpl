@@ -1,0 +1,64 @@
+# {{PROJECT_NAME}} - Go Enterprise Project
+
+## Code Philosophy
+
+- Clear naming over comments (comments = naming failure)
+- Start simple, add complexity only when forced
+- Prefer stdlib over external deps
+- **Work → Right → Fast | Simple > Complex**
+
+## Absolute Rules
+
+### ZERO COMMENTS (Unless WHY)
+```go
+// ❌ NEVER: // Create a new user
+// ✅ ACCEPTABLE: // Required by legacy API
+```
+
+### NO AI-STYLE CODE
+```go
+// ❌ applicationConfiguration := config.Load()
+// ✅ cfg := config.Load()
+```
+
+## Layer Dependencies (Inward Only)
+
+```
+Transport → UseCase → Domain ← Repository ← Infrastructure
+```
+
+| Layer | Location | Rules |
+|-------|----------|-------|
+| Domain | `/internal/domain/` | ZERO external deps, NO struct tags |
+| Repository | `/internal/repository/` | Private models, mappers |
+| UseCase | `/internal/usecase/` | Business orchestration |
+| Transport | `/internal/transport/` | Private DTOs, validation |
+
+## Naming
+
+- Variables: `cfg`, `repo`, `srv`, `pool`, `ctx`, `req`, `resp`, `err`
+- Constructors: `New()` public, `new*()` private
+- Structs: private by default
+- Receivers: short (`s`, `u`, `r`)
+
+## Error Handling
+
+```go
+// ✅ return fmt.Errorf("query user %s: %w", id, err)
+// ❌ return fmt.Errorf("Failed to query: %w", err)
+```
+
+## Commands
+
+```bash
+make lint    # golangci-lint
+make test    # all tests
+make build   # build binary
+make docker  # docker image
+make run     # run locally
+```
+
+## Git Conventions
+
+- Commits: `<type>(<scope>): <description>`
+- Types: feat, fix, refactor, test, docs, chore
