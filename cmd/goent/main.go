@@ -12,9 +12,20 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	internalserver "github.com/victorzhuk/go-ent/cmd/goent/internal/server"
+	"github.com/victorzhuk/go-ent/cmd/goent/internal/version"
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "version", "--version", "-v":
+			v := version.Get()
+			fmt.Printf("goent %s\n", version.String())
+			fmt.Printf("  go: %s\n", v.GoVersion)
+			os.Exit(0)
+		}
+	}
+
 	if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
 		slog.Error("startup failed", "error", err)
 		os.Exit(1)
