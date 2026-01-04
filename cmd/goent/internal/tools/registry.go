@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type RegistryListInput struct {
@@ -55,36 +55,96 @@ func registerRegistry(s *mcp.Server) {
 	listTool := &mcp.Tool{
 		Name:        "goent_registry_list",
 		Description: "List tasks from the OpenSpec registry with optional filters. Shows aggregated view across all changes.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":      map[string]any{"type": "string", "description": "Path to project directory"},
+				"change_id": map[string]any{"type": "string", "description": "Filter by change ID"},
+				"status":    map[string]any{"type": "string", "description": "Filter by status (pending, in_progress, completed)"},
+				"priority":  map[string]any{"type": "string", "description": "Filter by priority (critical, high, medium, low)"},
+				"assignee":  map[string]any{"type": "string", "description": "Filter by assignee"},
+				"unblocked": map[string]any{"type": "boolean", "description": "Show only unblocked tasks"},
+				"limit":     map[string]any{"type": "integer", "description": "Maximum number of tasks to return"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, listTool, registryListHandler)
 
 	nextTool := &mcp.Tool{
 		Name:        "goent_registry_next",
 		Description: "Get the next recommended task(s) based on priority, dependencies, and status. Returns unblocked, highest priority pending tasks.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":      map[string]any{"type": "string", "description": "Path to project directory"},
+				"change_id": map[string]any{"type": "string", "description": "Filter by change ID"},
+				"count":     map[string]any{"type": "integer", "description": "Number of tasks to return", "default": 1},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, nextTool, registryNextHandler)
 
 	updateTool := &mcp.Tool{
 		Name:        "goent_registry_update",
 		Description: "Update task status, priority, or assignment in the registry. Automatically updates blocked_by for dependent tasks.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":     map[string]any{"type": "string", "description": "Path to project directory"},
+				"task_id":  map[string]any{"type": "string", "description": "Task ID to update"},
+				"status":   map[string]any{"type": "string", "description": "New status", "enum": []string{"pending", "in_progress", "completed"}},
+				"priority": map[string]any{"type": "string", "description": "New priority", "enum": []string{"critical", "high", "medium", "low"}},
+				"assignee": map[string]any{"type": "string", "description": "New assignee"},
+				"notes":    map[string]any{"type": "string", "description": "Additional notes"},
+			},
+			"required": []string{"path", "task_id"},
+		},
 	}
 	mcp.AddTool(s, updateTool, registryUpdateHandler)
 
 	depsTool := &mcp.Tool{
 		Name:        "goent_registry_deps",
 		Description: "Manage task dependencies. Supports cross-change dependencies. Detects cycles.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":       map[string]any{"type": "string", "description": "Path to project directory"},
+				"task_id":    map[string]any{"type": "string", "description": "Task ID"},
+				"operation":  map[string]any{"type": "string", "description": "Operation to perform", "enum": []string{"add", "remove", "list"}},
+				"depends_on": map[string]any{"type": "string", "description": "Dependency task ID (required for add/remove)"},
+			},
+			"required": []string{"path", "task_id", "operation"},
+		},
 	}
 	mcp.AddTool(s, depsTool, registryDepsHandler)
 
 	syncTool := &mcp.Tool{
 		Name:        "goent_registry_sync",
 		Description: "Synchronize registry from tasks.md files. Rebuilds registry from source change proposals.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":    map[string]any{"type": "string", "description": "Path to project directory"},
+				"dry_run": map[string]any{"type": "boolean", "description": "Preview changes without saving", "default": false},
+				"force":   map[string]any{"type": "boolean", "description": "Force sync even if registry has local changes", "default": false},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, syncTool, registrySyncHandler)
 
 	initTool := &mcp.Tool{
 		Name:        "goent_registry_init",
 		Description: "Initialize an empty registry.yaml file. Use this before first sync or to reset the registry.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{"type": "string", "description": "Path to project directory"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, initTool, registryInitHandler)
 }

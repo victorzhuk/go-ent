@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type LoopGetInput struct {
@@ -14,13 +14,13 @@ type LoopGetInput struct {
 }
 
 type LoopSetInput struct {
-	Path        string   `json:"path"`
-	Task        string   `json:"task,omitempty"`
-	Iteration   *int     `json:"iteration,omitempty"`
-	MaxIter     *int     `json:"max_iterations,omitempty"`
-	LastError   string   `json:"last_error,omitempty"`
-	Adjustment  string   `json:"adjustment,omitempty"`
-	Status      string   `json:"status,omitempty"`
+	Path       string `json:"path"`
+	Task       string `json:"task,omitempty"`
+	Iteration  *int   `json:"iteration,omitempty"`
+	MaxIter    *int   `json:"max_iterations,omitempty"`
+	LastError  string `json:"last_error,omitempty"`
+	Adjustment string `json:"adjustment,omitempty"`
+	Status     string `json:"status,omitempty"`
 }
 
 type LoopStartInput struct {
@@ -37,24 +37,60 @@ func registerLoop(s *mcp.Server) {
 	startTool := &mcp.Tool{
 		Name:        "goent_loop_start",
 		Description: "Start autonomous loop with self-correction",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":           map[string]any{"type": "string", "description": "Path to project directory"},
+				"task":           map[string]any{"type": "string", "description": "Task to work on"},
+				"max_iterations": map[string]any{"type": "integer", "description": "Maximum number of iterations", "default": 10},
+			},
+			"required": []string{"path", "task"},
+		},
 	}
 	mcp.AddTool(s, startTool, loopStartHandler)
 
 	getTool := &mcp.Tool{
 		Name:        "goent_loop_get",
 		Description: "Get current loop state",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{"type": "string", "description": "Path to project directory"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, getTool, loopGetHandler)
 
 	setTool := &mcp.Tool{
 		Name:        "goent_loop_set",
 		Description: "Update loop state (iteration, error, adjustment, status)",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":           map[string]any{"type": "string", "description": "Path to project directory"},
+				"task":           map[string]any{"type": "string", "description": "Current task"},
+				"iteration":      map[string]any{"type": "integer", "description": "Current iteration number"},
+				"max_iterations": map[string]any{"type": "integer", "description": "Maximum iterations"},
+				"last_error":     map[string]any{"type": "string", "description": "Last error encountered"},
+				"adjustment":     map[string]any{"type": "string", "description": "Adjustment to make"},
+				"status":         map[string]any{"type": "string", "description": "Loop status", "enum": []string{"running", "completed", "failed", "cancelled"}},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, setTool, loopSetHandler)
 
 	cancelTool := &mcp.Tool{
 		Name:        "goent_loop_cancel",
 		Description: "Cancel running loop",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{"type": "string", "description": "Path to project directory"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, cancelTool, loopCancelHandler)
 }

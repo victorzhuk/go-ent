@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type SpecInitInput struct {
@@ -20,6 +20,35 @@ func registerInit(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_spec_init",
 		Description: "Initialize openspec folder in a project directory",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the project directory where openspec folder will be created",
+				},
+				"name": map[string]any{
+					"type":        "string",
+					"description": "Project name",
+				},
+				"module": map[string]any{
+					"type":        "string",
+					"description": "Go module path",
+				},
+				"description": map[string]any{
+					"type":        "string",
+					"description": "Project description",
+				},
+				"conventions": map[string]any{
+					"type":        "object",
+					"description": "Project-specific conventions (key-value pairs)",
+					"additionalProperties": map[string]any{
+						"type": "string",
+					},
+				},
+			},
+			"required": []string{"path"},
+		},
 	}
 
 	mcp.AddTool(s, tool, specInitHandler)

@@ -1,4 +1,4 @@
-# Go Ent v2.0 - Spec-Driven Development for Go
+<# Go Ent v2.0 - Spec-Driven Development for Go
 
 Enterprise Go development toolkit for Claude Code with Clean Architecture, SOLID principles, and spec-driven development via MCP.
 
@@ -55,7 +55,8 @@ go-ent/
 │       ├── server/         # MCP setup
 │       ├── tools/          # Tool handlers
 │       └── spec/           # Domain logic
-├── templates/              # Reference patterns (not generators)
+├── internal/
+│   └── templates/          # Reference patterns (embedded)
 └── plugins/go-ent/
     └── .claude-plugin/
         └── plugin.json     # MCP configuration
@@ -199,7 +200,7 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 ## How It Works (v2.0)
 
 1. **Specs First**: Create specs in `.spec/specs/`
-2. **LLM Reads Templates**: Uses `templates/` as reference patterns
+2. **LLM Reads Templates**: Uses `internal/templates/` as reference patterns
 3. **LLM Generates Code**: Writes code adapted to your project context
 4. **Track Progress**: Manages tasks in `.spec/changes/` and `.spec/tasks/`
 

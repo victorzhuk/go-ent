@@ -82,9 +82,6 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Prepare templates
-        run: make prepare-templates
-
       - name: Build
         run: go build -v ./...
 

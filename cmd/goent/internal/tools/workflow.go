@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type WorkflowStartInput struct {
@@ -28,18 +28,42 @@ func registerWorkflow(s *mcp.Server) {
 	startTool := &mcp.Tool{
 		Name:        "goent_workflow_start",
 		Description: "Start a guided workflow with state tracking and wait points",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":      map[string]any{"type": "string", "description": "Path to project directory"},
+				"change_id": map[string]any{"type": "string", "description": "Change ID to work on"},
+				"phase":     map[string]any{"type": "string", "description": "Workflow phase to execute"},
+				"context":   map[string]any{"type": "object", "description": "Additional context for the workflow"},
+			},
+			"required": []string{"path", "change_id", "phase"},
+		},
 	}
 	mcp.AddTool(s, startTool, workflowStartHandler)
 
 	approveTool := &mcp.Tool{
 		Name:        "goent_workflow_approve",
 		Description: "Approve the current wait point and continue workflow",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{"type": "string", "description": "Path to project directory"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, approveTool, workflowApproveHandler)
 
 	statusTool := &mcp.Tool{
 		Name:        "goent_workflow_status",
 		Description: "Check current workflow status and wait points",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{"type": "string", "description": "Path to project directory"},
+			},
+			"required": []string{"path"},
+		},
 	}
 	mcp.AddTool(s, statusTool, workflowStatusHandler)
 }

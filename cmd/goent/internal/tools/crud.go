@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type SpecCreateInput struct {
@@ -30,18 +30,71 @@ func registerCRUD(s *mcp.Server) {
 	createTool := &mcp.Tool{
 		Name:        "goent_spec_create",
 		Description: "Create a new spec, change, or task",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"type": map[string]any{
+					"type":        "string",
+					"description": "Type of item to create: 'spec', 'change', or 'task'",
+					"enum":        []string{"spec", "change", "task"},
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "Identifier for the item",
+				},
+				"content": map[string]any{
+					"type":        "string",
+					"description": "Content of the item (markdown)",
+				},
+			},
+			"required": []string{"type", "id", "content"},
+		},
 	}
 	mcp.AddTool(s, createTool, specCreateHandler)
 
 	updateTool := &mcp.Tool{
 		Name:        "goent_spec_update",
 		Description: "Update an existing spec, change, or task",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"type": map[string]any{
+					"type":        "string",
+					"description": "Type of item to update: 'spec', 'change', or 'task'",
+					"enum":        []string{"spec", "change", "task"},
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "Identifier of the item to update",
+				},
+				"content": map[string]any{
+					"type":        "string",
+					"description": "New content for the item (markdown)",
+				},
+			},
+			"required": []string{"type", "id", "content"},
+		},
 	}
 	mcp.AddTool(s, updateTool, specUpdateHandler)
 
 	deleteTool := &mcp.Tool{
 		Name:        "goent_spec_delete",
 		Description: "Delete a spec, change, or task",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"type": map[string]any{
+					"type":        "string",
+					"description": "Type of item to delete: 'spec', 'change', or 'task'",
+					"enum":        []string{"spec", "change", "task"},
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "Identifier of the item to delete",
+				},
+			},
+			"required": []string{"type", "id"},
+		},
 	}
 	mcp.AddTool(s, deleteTool, specDeleteHandler)
 }

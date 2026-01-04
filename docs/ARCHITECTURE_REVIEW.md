@@ -75,7 +75,7 @@ Cross-change dependency tracking and priority-based task recommendation (`/gt:re
 The `/goent:loop` command with retry logic and error categorization represents cutting-edge agentic patterns.
 
 #### ✅ **7. Clean Separation of Concerns**
-- Domain logic in `cmd/goent/internal/spec/`
+- Domain logic in `internal/spec/`, `internal/template/`, `internal/generation/`
 - Tool handlers in `cmd/goent/internal/tools/`
 - Templates as reference patterns (not runtime dependencies)
 

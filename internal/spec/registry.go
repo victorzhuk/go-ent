@@ -73,8 +73,8 @@ type Registry struct {
 }
 
 type NextTaskResult struct {
-	Recommended *RegistryTask   `json:"recommended,omitempty"`
-	Reason      string          `json:"reason,omitempty"`
+	Recommended  *RegistryTask  `json:"recommended,omitempty"`
+	Reason       string         `json:"reason,omitempty"`
 	Alternatives []RegistryTask `json:"alternatives,omitempty"`
 	BlockedCount int            `json:"blocked_count"`
 }
@@ -96,26 +96,26 @@ type TaskUpdate struct {
 }
 
 type SyncResult struct {
-	SyncedChanges []string        `json:"synced_changes"`
-	Added         []TaskID        `json:"added"`
-	Updated       []TaskID        `json:"updated"`
-	Removed       []TaskID        `json:"removed"`
-	Conflicts     []SyncConflict  `json:"conflicts"`
+	SyncedChanges []string       `json:"synced_changes"`
+	Added         []TaskID       `json:"added"`
+	Updated       []TaskID       `json:"updated"`
+	Removed       []TaskID       `json:"removed"`
+	Conflicts     []SyncConflict `json:"conflicts"`
 }
 
 type SyncConflict struct {
-	TaskID       TaskID `json:"task_id"`
-	Field        string `json:"field"`
-	SourceValue  string `json:"source_value"`
-	RegistryVal  string `json:"registry_value"`
-	Resolution   string `json:"resolution"`
+	TaskID      TaskID `json:"task_id"`
+	Field       string `json:"field"`
+	SourceValue string `json:"source_value"`
+	RegistryVal string `json:"registry_value"`
+	Resolution  string `json:"resolution"`
 }
 
 type DependencyGraph struct {
-	TaskID       TaskID                `json:"task_id"`
-	DependsOn    []TaskDependencyInfo  `json:"depends_on"`
-	DependedBy   []TaskDependencyInfo  `json:"depended_by"`
-	IsBlocked    bool                  `json:"is_blocked"`
+	TaskID        TaskID               `json:"task_id"`
+	DependsOn     []TaskDependencyInfo `json:"depends_on"`
+	DependedBy    []TaskDependencyInfo `json:"depended_by"`
+	IsBlocked     bool                 `json:"is_blocked"`
 	BlockingTasks []TaskID             `json:"blocking_tasks,omitempty"`
 }
 
@@ -126,10 +126,10 @@ type TaskDependencyInfo struct {
 }
 
 type RegistryStats struct {
-	TotalTasks   int                        `json:"total_tasks"`
-	ByStatus     map[string]int             `json:"by_status"`
-	ByPriority   map[string]int             `json:"by_priority"`
-	ByChange     map[string]int             `json:"by_change"`
-	BlockedCount int                        `json:"blocked_count"`
-	NextTask     *RegistryTask              `json:"next_task,omitempty"`
+	TotalTasks   int            `json:"total_tasks"`
+	ByStatus     map[string]int `json:"by_status"`
+	ByPriority   map[string]int `json:"by_priority"`
+	ByChange     map[string]int `json:"by_change"`
+	BlockedCount int            `json:"blocked_count"`
+	NextTask     *RegistryTask  `json:"next_task,omitempty"`
 }

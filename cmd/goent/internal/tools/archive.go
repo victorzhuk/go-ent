@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type ArchiveInput struct {
@@ -20,6 +20,30 @@ func registerArchive(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_spec_archive",
 		Description: "Archive a completed change and optionally merge deltas into specs. Use dry_run to preview changes.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the project directory containing openspec folder",
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "ID of the change to archive",
+				},
+				"skip_specs": map[string]any{
+					"type":        "boolean",
+					"description": "Skip merging delta specs into main specs (useful for tooling-only changes)",
+					"default":     false,
+				},
+				"dry_run": map[string]any{
+					"type":        "boolean",
+					"description": "Preview changes without actually archiving",
+					"default":     false,
+				},
+			},
+			"required": []string{"path", "id"},
+		},
 	}
 
 	mcp.AddTool(s, tool, archiveHandler)

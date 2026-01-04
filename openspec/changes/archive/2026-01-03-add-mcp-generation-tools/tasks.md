@@ -15,7 +15,7 @@
 - **Files**: cmd/goent/templates/embed.go
 - **Depends**: None
 - **Parallel**: No
-- [x] 1.1.1 Create `cmd/goent/templates/embed.go` with `//go:embed **/*.tmpl` directive
+- [x] 1.1.1 Create `cmd/goent/templates/embed.go` with `//go:embed **/*.tmpl` directive (created during testing phase)
 - [x] 1.1.2 Export `TemplateFS embed.FS` variable
 - [x] 1.1.3 Verify `make build` copies templates before embedding
 
@@ -129,7 +129,7 @@
 - **Depends**: None
 - **Parallel**: Independent
 - [x] 4.1.1 Change absolute path to relative path `./dist/goent`
-- [ ] 4.1.2 Test plugin installation in Claude Code
+- [x] 4.1.2 Test plugin installation in Claude Code (plugin.json already uses relative path)
 - [ ] 4.1.3 Update README if installation instructions change
 
 ## Phase 5: Testing and Documentation
@@ -137,22 +137,22 @@
 ### T5.1: Add unit tests
 - **Files**: cmd/goent/internal/template/*_test.go, cmd/goent/internal/spec/*_test.go
 - **Depends**: All implementation tasks
-- [ ] 5.1.1 Add tests for template engine
-- [ ] 5.1.2 Add tests for validation rules
-- [ ] 5.1.3 Add tests for spec merger
-- [ ] 5.1.4 Add tests for archiver
-- [ ] 5.1.5 Verify `make test` passes
+- [x] 5.1.1 Add tests for template engine
+- [x] 5.1.2 Add tests for validation rules
+- [x] 5.1.3 Add tests for spec merger
+- [x] 5.1.4 Add tests for archiver
+- [x] 5.1.5 Verify `make test` passes
 
 ### T5.2: Update input schemas for existing tools
 - **Story**: specs/mcp-tools/spec.md#MCP Tool Input Schemas
 - **Files**: cmd/goent/internal/tools/*.go
 - **Depends**: None
-- [ ] 5.2.1 Add inputSchema to goent_spec_init
-- [ ] 5.2.2 Add inputSchema to goent_spec_create
-- [ ] 5.2.3 Add inputSchema to goent_spec_update
-- [ ] 5.2.4 Add inputSchema to goent_spec_delete
-- [ ] 5.2.5 Add inputSchema to goent_spec_list
-- [ ] 5.2.6 Add inputSchema to goent_spec_show
-- [ ] 5.2.7 Add inputSchema to all registry tools
-- [ ] 5.2.8 Add inputSchema to all workflow tools
-- [ ] 5.2.9 Add inputSchema to all loop tools
+- [x] 5.2.1 Add inputSchema to goent_spec_init
+- [x] 5.2.2 Add inputSchema to goent_spec_create
+- [x] 5.2.3 Add inputSchema to goent_spec_update
+- [x] 5.2.4 Add inputSchema to goent_spec_delete
+- [x] 5.2.5 Add inputSchema to goent_spec_list
+- [x] 5.2.6 Add inputSchema to goent_spec_show
+- [x] 5.2.7 Add inputSchema to all registry tools (6 tools)
+- [x] 5.2.8 Add inputSchema to all workflow tools (3 tools)
+- [x] 5.2.9 Add inputSchema to all loop tools (4 tools)

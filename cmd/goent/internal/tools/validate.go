@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type ValidateInput struct {
@@ -21,6 +21,31 @@ func registerValidate(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_spec_validate",
 		Description: "Validate OpenSpec files. Type can be 'spec', 'change', or 'all'. Use strict mode for comprehensive validation.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the project directory containing openspec folder",
+				},
+				"type": map[string]any{
+					"type":        "string",
+					"description": "What to validate: 'spec' (single spec), 'change' (single change), or 'all' (all specs and changes)",
+					"enum":        []string{"spec", "change", "all"},
+					"default":     "all",
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "ID of the spec or change to validate (required when type is 'spec' or 'change')",
+				},
+				"strict": map[string]any{
+					"type":        "boolean",
+					"description": "Enable strict mode (warnings become errors)",
+					"default":     false,
+				},
+			},
+			"required": []string{"path"},
+		},
 	}
 
 	mcp.AddTool(s, tool, validateHandler)

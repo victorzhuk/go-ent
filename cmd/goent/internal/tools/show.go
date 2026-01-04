@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type SpecShowInput struct {
@@ -18,6 +18,21 @@ func registerShow(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_spec_show",
 		Description: "Show detailed content of a spec, change, or task",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"type": map[string]any{
+					"type":        "string",
+					"description": "Type of item to show: 'spec', 'change', or 'task'",
+					"enum":        []string{"spec", "change", "task"},
+				},
+				"id": map[string]any{
+					"type":        "string",
+					"description": "Identifier of the item to show",
+				},
+			},
+			"required": []string{"type", "id"},
+		},
 	}
 
 	mcp.AddTool(s, tool, specShowHandler)

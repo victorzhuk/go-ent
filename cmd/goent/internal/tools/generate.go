@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/template"
-	"github.com/victorzhuk/go-ent/cmd/goent/templates"
+	"github.com/victorzhuk/go-ent/internal/template"
+	"github.com/victorzhuk/go-ent/internal/templates"
 )
 
 type GenerateInput struct {
@@ -25,6 +25,34 @@ func registerGenerate(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_generate",
 		Description: "Generate a new Go project from templates. Supports 'standard' (web service) and 'mcp' (MCP server) project types.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Target directory path for the new project",
+				},
+				"module_path": map[string]any{
+					"type":        "string",
+					"description": "Go module path (e.g., 'github.com/user/project')",
+				},
+				"project_name": map[string]any{
+					"type":        "string",
+					"description": "Project name (defaults to last segment of module_path if omitted)",
+				},
+				"project_type": map[string]any{
+					"type":        "string",
+					"description": "Project type: 'standard' (web service) or 'mcp' (MCP server)",
+					"enum":        []string{"standard", "mcp"},
+					"default":     "standard",
+				},
+				"go_version": map[string]any{
+					"type":        "string",
+					"description": "Go version (e.g., '1.24'). Defaults to current runtime version if omitted",
+				},
+			},
+			"required": []string{"path", "module_path"},
+		},
 	}
 
 	mcp.AddTool(s, tool, generateHandler)

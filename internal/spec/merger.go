@@ -16,10 +16,10 @@ type DeltaSpec struct {
 
 // Requirement represents a parsed requirement with its content.
 type Requirement struct {
-	Name     string
-	Content  string
-	Line     int
-	EndLine  int
+	Name    string
+	Content string
+	Line    int
+	EndLine int
 }
 
 // RemovedRequirement represents a requirement to be removed.

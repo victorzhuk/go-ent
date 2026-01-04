@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/goent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 type SpecListInput struct {
@@ -19,6 +19,21 @@ func registerList(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "goent_spec_list",
 		Description: "List specs, changes, or tasks",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"type": map[string]any{
+					"type":        "string",
+					"description": "Type of items to list: 'spec', 'change', or 'task'",
+					"enum":        []string{"spec", "change", "task"},
+				},
+				"status": map[string]any{
+					"type":        "string",
+					"description": "Filter by status (for changes: 'active' or 'archived')",
+				},
+			},
+			"required": []string{"type"},
+		},
 	}
 
 	mcp.AddTool(s, tool, specListHandler)

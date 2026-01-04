@@ -13,4 +13,7 @@ func Register(s *mcp.Server) {
 	registerGenerate(s)
 	registerValidate(s)
 	registerArchive(s)
+	registerListArchetypes(s)
+	registerGenerateComponent(s)
+	registerGenerateFromSpec(s)
 }

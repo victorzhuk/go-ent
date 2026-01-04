@@ -1,4 +1,4 @@
-.PHONY: build test lint fmt clean validate-plugin prepare-templates help
+.PHONY: build test lint fmt clean validate-plugin help
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -7,14 +7,7 @@ LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.vcsRef=$(VCS_REF)"
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-prepare-templates: ## Copy templates to cmd/goent for embedding
-	@mkdir -p cmd/goent/templates
-	@find cmd/goent/templates -name "*.tmpl" -delete 2>/dev/null || true
-	@rm -rf cmd/goent/templates/mcp cmd/goent/templates/build cmd/goent/templates/cmd cmd/goent/templates/deploy cmd/goent/templates/internal 2>/dev/null || true
-	@cp -r templates/* cmd/goent/templates/
-	@echo "Templates prepared for embedding"
-
-build: prepare-templates ## Build CLI binary to dist/goent
+build: ## Build CLI binary to dist/goent
 	@mkdir -p dist
 	@go build $(LDFLAGS) -o dist/goent ./cmd/goent
 	@echo "Build complete: dist/goent"
@@ -30,7 +23,6 @@ fmt: ## Format code with goimports
 
 clean: ## Remove dist/ and build artifacts
 	@rm -rf dist/
-	@rm -rf cmd/goent/templates
 	@rm -f goent
 	@echo "Clean complete"
 
