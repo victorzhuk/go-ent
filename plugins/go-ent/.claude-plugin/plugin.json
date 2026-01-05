@@ -20,12 +20,5 @@
     "testing",
     "code-review",
     "spec-driven"
-  ],
-  "engines": {
-    "claude-code": ">=1.0.0"
-  },
-  "mcp": {
-    "command": "../../dist/go-ent",
-    "args": []
-  }
+  ]
 }
