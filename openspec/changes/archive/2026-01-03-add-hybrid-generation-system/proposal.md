@@ -31,9 +31,9 @@ openspec/
 
 | Tool | Purpose |
 |------|---------|
-| `goent_generate_component` | Generate a component from spec + templates |
-| `goent_generate_from_spec` | Analyze spec and generate matching code |
-| `goent_list_archetypes` | List available project archetypes |
+| `go_ent_generate_component` | Generate a component from spec + templates |
+| `go_ent_generate_from_spec` | Analyze spec and generate matching code |
+| `go_ent_list_archetypes` | List available project archetypes |
 
 ### 3. Spec-to-Template Mapping
 
@@ -56,14 +56,14 @@ Create prompt templates in `prompts/` directory:
 - **New OpenSpec file**: `generation.yaml` (optional)
 - **New directory**: `prompts/` for AI prompt templates
 - **Affected code**:
-  - `cmd/goent/internal/tools/` - new tool handlers
-  - `cmd/goent/internal/generation/` - new package
+  - `cmd/go-ent/internal/tools/` - new tool handlers
+  - `cmd/go-ent/internal/generation/` - new package
 - **Breaking changes**: None (additive only)
 - **Dependencies**: Requires `add-mcp-generation-tools` to be completed first
 
 ## Success Criteria
 
-1. `goent_generate_component` creates component scaffold from spec
+1. `go_ent_generate_component` creates component scaffold from spec
 2. `generation.yaml` allows project-specific generation config
 3. AI prompts fill in business logic after template generation
 4. Generated code follows enterprise patterns from skills

@@ -17,7 +17,7 @@ This document outlines the migration strategy to transform **go-ent** from a sim
 
 ```
 go-ent/
-├── cmd/goent/              # MCP server (spec management only)
+├── cmd/go-ent/              # MCP server (spec management only)
 ├── openspec/               # Local OpenSpec integration
 ├── plugins/go-ent/         # Claude Code plugin config
 ├── templates/              # Code patterns (unused by MCP)
@@ -103,7 +103,7 @@ Create the new directory structure while preserving existing functionality:
 
 ```bash
 # Create new directories
-mkdir -p cmd/goent-worker
+mkdir -p cmd/go-ent-worker
 mkdir -p internal/{domain,spec,agent,execution,mcp,config}
 mkdir -p agents/{prompts,roles}
 mkdir -p skills/{review,patterns,testing,architecture}
@@ -113,7 +113,7 @@ mkdir -p market/{agents,skills,rules}
 mkdir -p pkg/{openspec,runtime}
 
 # Move existing code
-mv cmd/goent/internal/* internal/
+mv cmd/go-ent/internal/* internal/
 mv openspec/ pkg/openspec/templates/
 mv templates/ pkg/templates/
 mv .claude/ plugins/claude-code/commands/
@@ -1303,7 +1303,7 @@ func (s *Server) handleAgentExecute(args map[string]any) (*mcp.CallToolResult, e
 ### 6.2 CLI Commands
 
 ```go
-// cmd/goent/main.go
+// cmd/go-ent/main.go
 package main
 
 import (
@@ -1516,7 +1516,7 @@ category: planning
 license: MIT
 
 requires:
-  goent: ">=3.0.0"
+  go-ent: ">=3.0.0"
 
 dependencies:
   skills:
@@ -1549,7 +1549,7 @@ category: patterns
 license: MIT
 
 requires:
-  goent: ">=3.0.0"
+  go-ent: ">=3.0.0"
 
 templates:
   aggregate_root: |

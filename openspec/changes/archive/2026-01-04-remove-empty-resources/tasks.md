@@ -10,7 +10,7 @@
 - **Files**: None
 - **Depends**: None
 - **Parallel**: No
-- [x] 1.1.1 Confirm `/cmd/goent/internal/resources/` contains zero files
+- [x] 1.1.1 Confirm `/cmd/go-ent/internal/resources/` contains zero files
 - [x] 1.1.2 Search codebase for `import.*resources` - expect zero results
 - [x] 1.1.3 Search for string "resources" in go files - verify no package references
 - [x] 1.1.4 Check documentation for mentions
@@ -19,10 +19,10 @@
 
 ### T2.1: Remove directory
 - **Story**: proposal.md#Directory Removal
-- **Files**: `/cmd/goent/internal/resources/`
+- **Files**: `/cmd/go-ent/internal/resources/`
 - **Depends**: T1.1
 - **Parallel**: No
-- [x] 2.1.1 Delete `/cmd/goent/internal/resources/` directory
+- [x] 2.1.1 Delete `/cmd/go-ent/internal/resources/` directory
 - [x] 2.1.2 Verify directory no longer exists
 
 ## Phase 3: Validation
@@ -35,7 +35,7 @@
 - [x] 3.1.1 Run `make build` - verify success
 - [x] 3.1.2 Run `make test` - verify all tests pass
 - [x] 3.1.3 Run `make lint` - verify no warnings
-- [x] 3.1.4 Verify binary executes: `./dist/goent version`
+- [x] 3.1.4 Verify binary executes: `./dist/go-ent version`
 
 ## Summary
 

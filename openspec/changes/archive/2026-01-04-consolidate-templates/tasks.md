@@ -40,7 +40,7 @@
 - **Files**: `/internal/templates/embed.go`
 - **Depends**: T1.2
 - **Parallel**: No
-- [x] 1.3.1 Move `/cmd/goent/templates/embed.go` to `/internal/templates/embed.go`
+- [x] 1.3.1 Move `/cmd/go-ent/templates/embed.go` to `/internal/templates/embed.go`
 - [x] 1.3.2 Replace old `//go:embed **/*.tmpl` pattern
 - [x] 1.3.3 Add explicit `//go:embed *.tmpl` for root-level templates
 - [x] 1.3.4 Add explicit `//go:embed .gitignore.tmpl .golangci.yml.tmpl` for dotfiles
@@ -58,8 +58,8 @@
 - **Files**: tools package files
 - **Depends**: None
 - **Parallel**: Yes (with T1.x - can start immediately)
-- [x] 2.1.1 Update import in `/cmd/goent/internal/tools/generate.go`
-- [x] 2.1.2 Update import in `/cmd/goent/internal/tools/generate_from_spec.go`
+- [x] 2.1.1 Update import in `/cmd/go-ent/internal/tools/generate.go`
+- [x] 2.1.2 Update import in `/cmd/go-ent/internal/tools/generate_from_spec.go`
 - [x] 2.1.3 Verify both files import `github.com/victorzhuk/go-ent/internal/templates`
 
 ### T2.2: Update Makefile
@@ -69,7 +69,7 @@
 - **Parallel**: Yes (with T1.x - can start immediately)
 - [x] 2.2.1 Remove `prepare-templates` target (lines 10-15)
 - [x] 2.2.2 Update `build` target to not depend on `prepare-templates`
-- [x] 2.2.3 Update `clean` target to not remove `cmd/goent/templates`
+- [x] 2.2.3 Update `clean` target to not remove `cmd/go-ent/templates`
 - [x] 2.2.4 Verify Makefile syntax is valid
 
 ## Phase 3: Cleanup and Verification
@@ -80,9 +80,9 @@
 - **Depends**: T1.3, T2.1, T2.2
 - **Parallel**: No
 - [x] 3.1.1 Remove `/templates/` directory (now empty)
-- [x] 3.1.2 Remove `/cmd/goent/templates/` directory (no longer needed)
+- [x] 3.1.2 Remove `/cmd/go-ent/templates/` directory (no longer needed)
 - [x] 3.1.3 Verify directories no longer exist
-- [x] 3.1.4 Verify `.gitignore` still ignores `cmd/goent/templates/` (harmless)
+- [x] 3.1.4 Verify `.gitignore` still ignores `cmd/go-ent/templates/` (harmless)
 
 ### T3.2: Build and embed verification
 - **Story**: proposal.md#Success Criteria
@@ -91,7 +91,7 @@
 - **Parallel**: No
 - [x] 3.2.1 Run `go mod tidy`
 - [x] 3.2.2 Run `make build` (should work without prepare-templates)
-- [x] 3.2.3 Verify binary created at `dist/goent`
+- [x] 3.2.3 Verify binary created at `dist/go-ent`
 - [x] 3.2.4 Check embed worked: `go list -f '{{.EmbedFiles}}' ./internal/templates`
 - [x] 3.2.5 Verify dotfiles listed in embed output (`.gitignore.tmpl`, `.golangci.yml.tmpl`)
 - [x] 3.2.6 Run `make test` - verify all tests pass
@@ -102,7 +102,7 @@
 - **Files**: Generated project test
 - **Depends**: T3.2
 - **Parallel**: No
-- [x] 3.3.1 Test: Run `goent_generate` to create a test project
+- [x] 3.3.1 Test: Run `go_ent_generate` to create a test project
 - [x] 3.3.2 Verify generated project includes `.gitignore` file
 - [x] 3.3.3 Verify generated project includes `.golangci.yml` file
 - [x] 3.3.4 Verify all other expected files generated correctly

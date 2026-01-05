@@ -23,9 +23,9 @@ Without these tools, go-ent cannot:
 
 | Tool | Purpose |
 |------|---------|
-| `goent_generate` | Generate Go project files from embedded templates |
-| `goent_spec_validate` | Validate specs, changes, and proposals |
-| `goent_spec_archive` | Archive completed changes and update specs |
+| `go_ent_generate` | Generate Go project files from embedded templates |
+| `go_ent_spec_validate` | Validate specs, changes, and proposals |
+| `go_ent_spec_archive` | Archive completed changes and update specs |
 
 ### Template System
 
@@ -43,14 +43,14 @@ Without these tools, go-ent cannot:
 - **Affected specs**: `cli-build` (implements existing requirements)
 - **New spec**: `mcp-tools` (new capability for MCP tools)
 - **Affected code**:
-  - `cmd/goent/internal/tools/` - new tool handlers
-  - `cmd/goent/templates/` - embed directive
+  - `cmd/go-ent/internal/tools/` - new tool handlers
+  - `cmd/go-ent/templates/` - embed directive
   - `plugins/go-ent/.claude-plugin/plugin.json` - path fix
 - **Breaking changes**: None (additive only)
 
 ## Success Criteria
 
-1. `goent_generate` creates working Go project from templates
-2. `goent_spec_validate` catches common spec errors
-3. `goent_spec_archive` moves changes to archive and updates specs
+1. `go_ent_generate` creates working Go project from templates
+2. `go_ent_spec_validate` catches common spec errors
+3. `go_ent_spec_archive` moves changes to archive and updates specs
 4. Plugin works when installed via Claude Code marketplace

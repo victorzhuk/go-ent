@@ -64,7 +64,7 @@ The CLI SHALL be built with Go 1.25.5.
 - **GIVEN** CLI source code
 - **WHEN** running `make build`
 - **THEN** build SHALL succeed using Go 1.25.5 toolchain
-- **AND** binary SHALL be created in `dist/goent`
+- **AND** binary SHALL be created in `dist/go-ent`
 
 ### Requirement: Build Metadata for CLI
 The CLI SHALL include VERSION and VCS_REF in build metadata.

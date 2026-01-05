@@ -136,7 +136,7 @@ goent:tdd
 ## Impact Analysis
 
 ### Breaking Changes
-- **User-facing:** Command invocations change from `/init` to `/goent:init`
+- **User-facing:** Command invocations change from `/init` to `/go-ent:init`
 - **Orchestration:** Internal calls in `plan-full.md` must update to new names
 - **Documentation:** All references need update
 

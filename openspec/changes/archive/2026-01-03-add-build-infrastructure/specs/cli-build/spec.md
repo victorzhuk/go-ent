@@ -7,11 +7,11 @@ The CLI tool SHALL build successfully from the project root using Go build tools
 
 #### Scenario: Build from root succeeds
 - **WHEN** running `make build` from project root
-- **THEN** CLI binary is created at `dist/goent`
+- **THEN** CLI binary is created at `dist/go-ent`
 - **AND** binary is executable
 
 #### Scenario: Direct Go build succeeds
-- **WHEN** running `go build ./cmd/goent`
+- **WHEN** running `go build ./cmd/go-ent`
 - **THEN** binary is created successfully
 - **AND** no build errors occur
 
@@ -60,7 +60,7 @@ The CLI SHALL be part of the root Go module to enable template embedding.
 #### Scenario: Root module exists
 - **WHEN** checking module structure
 - **THEN** root `go.mod` exists with module `github.com/victorzhuk/go-ent`
-- **AND** CLI source is located at `cmd/goent/main.go`
+- **AND** CLI source is located at `cmd/go-ent/main.go`
 
 #### Scenario: Template path resolution
 - **WHEN** Go embed directive processes `//go:embed ../../templates/*`
@@ -76,7 +76,7 @@ A Makefile SHALL provide standard build targets for CLI development.
 
 #### Scenario: Build target
 - **WHEN** running `make build`
-- **THEN** CLI is compiled and output to `dist/goent`
+- **THEN** CLI is compiled and output to `dist/go-ent`
 
 #### Scenario: Clean target
 - **WHEN** running `make clean`
@@ -105,6 +105,6 @@ CLI code SHALL have test coverage with race detection enabled.
 - **AND** test results are reported
 
 #### Scenario: Test files exist
-- **WHEN** checking `cmd/goent/` directory
+- **WHEN** checking `cmd/go-ent/` directory
 - **THEN** `main_test.go` file exists
 - **AND** test cases cover core functionality

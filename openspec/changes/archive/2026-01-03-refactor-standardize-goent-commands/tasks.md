@@ -32,26 +32,26 @@
 **Objective:** Standardize utility commands to goent:* prefix
 
 - [x] **T003** Rename init.md to goent:init.md
-  - `mv plugins/go-ent/commands/init.md plugins/go-ent/commands/goent:init.md`
+  - `mv plugins/go-ent/commands/init.md plugins/go-ent/commands/go-ent:init.md`
   - Update YAML frontmatter `name:` field to `goent:init`
   - Update `description:` if it references command name
-  - **Validation:** Execute `/goent:init --help` successfully
+  - **Validation:** Execute `/go-ent:init --help` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
 - [x] **T004** Rename scaffold.md to goent:scaffold.md
-  - `mv plugins/go-ent/commands/scaffold.md plugins/go-ent/commands/goent:scaffold.md`
+  - `mv plugins/go-ent/commands/scaffold.md plugins/go-ent/commands/go-ent:scaffold.md`
   - Update YAML frontmatter `name:` field to `goent:scaffold`
   - Update `description:` if it references command name
-  - **Validation:** Execute `/goent:scaffold --help` successfully
+  - **Validation:** Execute `/go-ent:scaffold --help` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
 - [x] **T005** Rename lint.md to goent:lint.md
-  - `mv plugins/go-ent/commands/lint.md plugins/go-ent/commands/goent:lint.md`
+  - `mv plugins/go-ent/commands/lint.md plugins/go-ent/commands/go-ent:lint.md`
   - Update YAML frontmatter `name:` field to `goent:lint`
   - Update `description:` if it references command name
-  - **Validation:** Execute `/goent:lint --help` successfully
+  - **Validation:** Execute `/go-ent:lint --help` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
@@ -66,30 +66,30 @@
 ### Sub-phase 3a: Rename Planning Sub-Commands
 
 - [x] **T006** Rename clarify.md to goent:clarify.md
-  - `mv plugins/go-ent/commands/clarify.md plugins/go-ent/commands/goent:clarify.md`
+  - `mv plugins/go-ent/commands/clarify.md plugins/go-ent/commands/go-ent:clarify.md`
   - Update YAML frontmatter `name:` field to `goent:clarify`
-  - **Validation:** Execute `/goent:clarify <change-id>` successfully
+  - **Validation:** Execute `/go-ent:clarify <change-id>` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
 - [x] **T007** Rename research.md to goent:research.md
-  - `mv plugins/go-ent/commands/research.md plugins/go-ent/commands/goent:research.md`
+  - `mv plugins/go-ent/commands/research.md plugins/go-ent/commands/go-ent:research.md`
   - Update YAML frontmatter `name:` field to `goent:research`
-  - **Validation:** Execute `/goent:research <change-id>` successfully
+  - **Validation:** Execute `/go-ent:research <change-id>` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
 - [x] **T008** Rename decompose.md to goent:decompose.md
-  - `mv plugins/go-ent/commands/decompose.md plugins/go-ent/commands/goent:decompose.md`
+  - `mv plugins/go-ent/commands/decompose.md plugins/go-ent/commands/go-ent:decompose.md`
   - Update YAML frontmatter `name:` field to `goent:decompose`
-  - **Validation:** Execute `/goent:decompose <change-id>` successfully
+  - **Validation:** Execute `/go-ent:decompose <change-id>` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
 - [x] **T009** Rename analyze.md to goent:analyze.md
-  - `mv plugins/go-ent/commands/analyze.md plugins/go-ent/commands/goent:analyze.md`
+  - `mv plugins/go-ent/commands/analyze.md plugins/go-ent/commands/go-ent:analyze.md`
   - Update YAML frontmatter `name:` field to `goent:analyze`
-  - **Validation:** Execute `/goent:analyze <change-id>` successfully
+  - **Validation:** Execute `/go-ent:analyze <change-id>` successfully
   - **Est:** 10min
   - **Depends on:** T001
 
@@ -98,17 +98,17 @@
 - [x] **T010** Update plan-full.md orchestration calls
   - Open `plugins/go-ent/commands/plan-full.md`
   - Find all internal command calls: `/clarify`, `/research`, `/decompose`, `/analyze`
-  - Replace with: `/goent:clarify`, `/goent:research`, `/goent:decompose`, `/goent:analyze`
+  - Replace with: `/go-ent:clarify`, `/go-ent:research`, `/go-ent:decompose`, `/go-ent:analyze`
   - Remove `/checklist` call (deleted in T001)
   - **Validation:** All command calls use `goent:` prefix
   - **Est:** 20min
   - **Depends on:** T006, T007, T008, T009
 
 - [x] **T011** Rename plan-full.md to goent:plan.md
-  - `mv plugins/go-ent/commands/plan-full.md plugins/go-ent/commands/goent:plan.md`
+  - `mv plugins/go-ent/commands/plan-full.md plugins/go-ent/commands/go-ent:plan.md`
   - Update YAML frontmatter `name:` field to `goent:plan`
   - Update `description:` to reflect this is the primary planning command
-  - **Validation:** Execute `/goent:plan "test feature"` successfully
+  - **Validation:** Execute `/go-ent:plan "test feature"` successfully
   - **Est:** 10min
   - **Depends on:** T010
 
@@ -128,10 +128,10 @@
 **Objective:** Update all documentation to reference new command names
 
 - [x] **T013** Update README.md command references
-  - Replace all `/init` with `/goent:init`
-  - Replace all `/scaffold` with `/goent:scaffold`
-  - Replace all `/lint` with `/goent:lint`
-  - Replace all `/plan` or `/plan-full` with `/goent:plan`
+  - Replace all `/init` with `/go-ent:init`
+  - Replace all `/scaffold` with `/go-ent:scaffold`
+  - Replace all `/lint` with `/go-ent:lint`
+  - Replace all `/plan` or `/plan-full` with `/go-ent:plan`
   - Update command table/list with all 15 goent:* commands
   - **Validation:** `grep -E "/(init|scaffold|lint|plan|plan-full|clarify|research|decompose|analyze)\b" README.md` returns no matches
   - **Est:** 30min
@@ -177,7 +177,7 @@
 **Objective:** Comprehensive testing of refactored command structure
 
 - [x] **T018** Execute full command inventory test
-  - List all 15 commands: `ls plugins/go-ent/commands/goent:*.md`
+  - List all 15 commands: `ls plugins/go-ent/commands/go-ent:*.md`
   - Execute each command with `--help` or minimal args
   - Verify no errors
   - **Validation:** All 15 commands execute successfully
@@ -185,11 +185,11 @@
   - **Depends on:** T013, T014, T015, T016, T017
 
 - [x] **T019** Execute end-to-end workflow test
-  - Create test project: `/goent:init test-refactor-validation`
-  - Create test plan: `/goent:plan "Add test feature"`
+  - Create test project: `/go-ent:init test-refactor-validation`
+  - Create test plan: `/go-ent:plan "Add test feature"`
   - Verify planning workflow: clarify → research → decompose → analyze
-  - Execute task: `/goent:apply`
-  - Archive change: `/goent:archive`
+  - Execute task: `/go-ent:apply`
+  - Archive change: `/go-ent:archive`
   - **Validation:** Complete workflow executes without errors
   - **Est:** 45min
   - **Depends on:** T018

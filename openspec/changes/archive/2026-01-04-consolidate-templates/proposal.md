@@ -15,24 +15,24 @@ The current template system has two critical issues:
 
     ↓ make prepare-templates (copy step)
 
-/cmd/goent/templates/ (copy for embedding)
+/cmd/go-ent/templates/ (copy for embedding)
     ├── CLAUDE.md.tmpl
     └── ... (missing dotfiles!)
 
     ↓ go build (embed)
 
-dist/goent (binary with embedded templates)
+dist/go-ent (binary with embedded templates)
 ```
 
 **Problems**:
 1. Build step requires copying 15 template files
 2. Two template directories maintained (source vs copy)
 3. Easy to get out of sync during development
-4. Build artifacts (`cmd/goent/templates/`) tracked in git status
+4. Build artifacts (`cmd/go-ent/templates/`) tracked in git status
 
 ### Issue 2: Dotfile Embedding Bug
 
-The `//go:embed **/*.tmpl` pattern in `/cmd/goent/templates/embed.go` does **not** match dotfiles:
+The `//go:embed **/*.tmpl` pattern in `/cmd/go-ent/templates/embed.go` does **not** match dotfiles:
 - `.gitignore.tmpl` - **NOT embedded** ❌
 - `.golangci.yml.tmpl` - **NOT embedded** ❌
 - All other `.*.tmpl` files - **NOT embedded** ❌
@@ -72,7 +72,7 @@ Move templates from split locations to unified location:
 ```
 Before:
 /templates/                     ← Source templates (15 files)
-/cmd/goent/templates/embed.go   ← Embed directive (broken)
+/cmd/go-ent/templates/embed.go   ← Embed directive (broken)
 Makefile: prepare-templates     ← Copy step
 
 After:
@@ -108,7 +108,7 @@ var TemplateFS embed.FS
 Update template imports (2 files):
 
 ```diff
--import "github.com/victorzhuk/go-ent/cmd/goent/templates"
+-import "github.com/victorzhuk/go-ent/cmd/go-ent/templates"
 +import "github.com/victorzhuk/go-ent/internal/templates"
 ```
 
@@ -117,21 +117,21 @@ Update template imports (2 files):
 Remove template copying from Makefile:
 
 ```diff
--prepare-templates: ## Copy templates to cmd/goent for embedding
--	@mkdir -p cmd/goent/templates
--	@find cmd/goent/templates -name "*.tmpl" -delete
--	@rm -rf cmd/goent/templates/mcp cmd/goent/templates/build ...
--	@cp -r templates/* cmd/goent/templates/
+-prepare-templates: ## Copy templates to cmd/go-ent for embedding
+-	@mkdir -p cmd/go-ent/templates
+-	@find cmd/go-ent/templates -name "*.tmpl" -delete
+-	@rm -rf cmd/go-ent/templates/mcp cmd/go-ent/templates/build ...
+-	@cp -r templates/* cmd/go-ent/templates/
 -	@echo "Templates prepared for embedding"
 
 -build: prepare-templates ## Build CLI binary
 +build: ## Build CLI binary
 	@mkdir -p dist
-	@go build $(LDFLAGS) -o dist/goent ./cmd/goent
+	@go build $(LDFLAGS) -o dist/go-ent ./cmd/go-ent
 
 clean: ## Remove dist/ and build artifacts
 	@rm -rf dist/
--	@rm -rf cmd/goent/templates
+-	@rm -rf cmd/go-ent/templates
 	@rm -f goent
 ```
 
@@ -139,23 +139,23 @@ clean: ## Remove dist/ and build artifacts
 
 **Moved**:
 - `/templates/*.tmpl` → `/internal/templates/*.tmpl` (15 files)
-- `/cmd/goent/templates/embed.go` → `/internal/templates/embed.go` (1 file)
+- `/cmd/go-ent/templates/embed.go` → `/internal/templates/embed.go` (1 file)
 
 **Modified**:
-- `/cmd/goent/internal/tools/generate.go` - import path
-- `/cmd/goent/internal/tools/generate_from_spec.go` - import path
+- `/cmd/go-ent/internal/tools/generate.go` - import path
+- `/cmd/go-ent/internal/tools/generate_from_spec.go` - import path
 - `/Makefile` - remove `prepare-templates`, update `build` and `clean`
 - `/internal/templates/embed.go` - fix embedding directives
 
 **Deleted**:
 - `/templates/` directory (after move)
-- `/cmd/goent/templates/` directory (no longer needed)
+- `/cmd/go-ent/templates/` directory (no longer needed)
 
 ## Impact
 
 - **Affected specs**: `cli-build` (template embedding requirements modified)
 - **New directory**: `/internal/templates/` (consolidation target)
-- **Removed directories**: `/templates/`, `/cmd/goent/templates/`
+- **Removed directories**: `/templates/`, `/cmd/go-ent/templates/`
 - **Code changes**: 3 files (2 import updates + Makefile)
 - **Breaking changes**: None (internal refactoring)
 - **Dependencies**: Should be done **after** `refactor-move-core-packages` to have `/internal/` established
@@ -176,4 +176,4 @@ clean: ## Remove dist/ and build artifacts
 | Missed templates in embedding | Medium | Explicit verification that all 15 files embed successfully |
 | Template paths incorrect | Low | Go compiler will catch missing embeds at build time |
 | Build breaks without prepare step | Low | Test build immediately after Makefile change |
-| Generated projects malformed | Medium | Test `goent_generate` after changes |
+| Generated projects malformed | Medium | Test `go_ent_generate` after changes |

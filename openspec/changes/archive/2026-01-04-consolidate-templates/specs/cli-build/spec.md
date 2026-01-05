@@ -6,7 +6,7 @@
 The CLI tool SHALL embed all project templates including dotfiles at build time using Go embed, with templates located in `/internal/templates/`.
 
 **What changed**:
-1. Consolidated templates from `/templates/` (source) and `/cmd/goent/templates/` (copy) into `/internal/templates/`
+1. Consolidated templates from `/templates/` (source) and `/cmd/go-ent/templates/` (copy) into `/internal/templates/`
 2. Fixed embed directive to explicitly include dotfiles (`.gitignore.tmpl`, `.golangci.yml.tmpl`)
 3. Eliminated build-time template copying step
 
@@ -25,7 +25,7 @@ The CLI tool SHALL embed all project templates including dotfiles at build time 
 - **AND** embed directive uses explicit paths for dotfiles
 
 #### Scenario: Embedded templates accessible at runtime
-- **WHEN** `goent_generate` tool is executed
+- **WHEN** `go_ent_generate` tool is executed
 - **THEN** CLI can read all template files from embedded filesystem
 - **AND** dotfile templates are accessible
 - **AND** template files are processed and written to target project directory
@@ -35,7 +35,7 @@ The CLI tool SHALL embed all project templates including dotfiles at build time 
 - **WHEN** examining project structure
 - **THEN** templates exist only at `/internal/templates/`
 - **AND** no `/templates/` directory at project root
-- **AND** no `/cmd/goent/templates/` copy directory
+- **AND** no `/cmd/go-ent/templates/` copy directory
 - **AND** embed directive references `/internal/templates/` directly
 
 ### Requirement: Build Artifacts
@@ -52,7 +52,7 @@ The CLI build process SHALL produce clean, versioned artifacts without requiring
 #### Scenario: Clean build artifacts
 - **WHEN** `make clean` is executed
 - **THEN** `dist/` directory is removed
-- **AND** no `/cmd/goent/templates/` artifacts remain
+- **AND** no `/cmd/go-ent/templates/` artifacts remain
 - **AND** build artifacts are fully cleaned
 
 ### Requirement: Template Structure

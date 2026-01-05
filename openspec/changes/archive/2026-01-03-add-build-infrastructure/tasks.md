@@ -3,9 +3,9 @@
 ## 1. Restructure CLI Module
 
 - [x] 1.1 Create root `go.mod` with module `github.com/victorzhuk/go-ent`
-- [x] 1.2 Create `cmd/goent/` directory
-- [x] 1.3 Move `cli/main.go` to `cmd/goent/main.go`
-- [x] 1.4 Update embed directive in `cmd/goent/main.go` to `//go:embed templates/*` (Note: used cmd/goent/templates symlink workaround)
+- [x] 1.2 Create `cmd/go-ent/` directory
+- [x] 1.3 Move `cli/main.go` to `cmd/go-ent/main.go`
+- [x] 1.4 Update embed directive in `cmd/go-ent/main.go` to `//go:embed templates/*` (Note: used cmd/go-ent/templates symlink workaround)
 - [x] 1.5 Delete `cli/go.mod`
 - [x] 1.6 Delete `cli/` directory (now empty)
 - [x] 1.7 Run `go mod tidy` to ensure module is valid
@@ -15,12 +15,12 @@
 - [x] 2.1 Move `plugins/go-ent/templates/` to `templates/` at project root
 - [x] 2.2 Create symlink `plugins/go-ent/templates → ../../templates` for plugin compatibility
 - [x] 2.3 Verify symlink works: `ls -la plugins/go-ent/templates`
-- [x] 2.4 Test embed: `go build ./cmd/goent` (implemented via Makefile prepare-templates)
+- [x] 2.4 Test embed: `go build ./cmd/go-ent` (implemented via Makefile prepare-templates)
 
 ## 3. Add Build Infrastructure
 
 - [x] 3.1 Create `Makefile` at project root with targets:
-  - `build` - Build CLI to `dist/goent`
+  - `build` - Build CLI to `dist/go-ent`
   - `test` - Run tests with `-race -cover`
   - `lint` - Run golangci-lint
   - `fmt` - Format with goimports
@@ -36,7 +36,7 @@
 
 - [x] 4.1 Add testify dependency: `go get github.com/stretchr/testify`
 - [x] 4.2 Run `go mod tidy`
-- [x] 4.3 Create `cmd/goent/main_test.go` with test cases:
+- [x] 4.3 Create `cmd/go-ent/main_test.go` with test cases:
   - `TestCreateProject` - Verify directory/file creation
   - `TestCreateProject_TemplateReplacements` - Verify `{{PROJECT_NAME}}` and `{{MODULE_PATH}}` replaced
   - `TestCreateProject_NoTemplateMarkers` - Verify no `{{...}}` markers remain
@@ -63,7 +63,7 @@
 ## 6. Documentation Updates
 
 - [x] 6.1 Update README.md with new build instructions:
-  - `make build` or `go build ./cmd/goent`
+  - `make build` or `go build ./cmd/go-ent`
   - Removed old `cd cli && go build` instructions
 - [x] 6.2 Document Makefile targets in README
 - [x] 6.3 Add note about template preparation requirement for development
@@ -73,7 +73,7 @@
 - [x] 7.1 Clean build: `make clean && make build`
 - [x] 7.2 Run all tests: `make test`
 - [x] 7.3 Run linter: configuration created (requires golangci-lint installation)
-- [x] 7.4 Test CLI binary: `dist/goent init test-project`
+- [x] 7.4 Test CLI binary: `dist/go-ent init test-project`
 - [x] 7.5 Verify templates are embedded: checked generated project structure
 - [ ] 7.6 Push to GitHub and verify CI passes on both jobs (requires git push)
 
@@ -85,9 +85,9 @@ The original plan proposed using `//go:embed ../../templates/*` to access templa
 
 1. **Templates Location**: Moved to `templates/` at project root
 2. **Plugin Compatibility**: Created symlink `plugins/go-ent/templates → ../../templates`
-3. **CLI Embedding**: Makefile `prepare-templates` target copies `templates/` to `cmd/goent/templates/` before build
-4. **Embed Directive**: Uses `//go:embed templates/*` (relative to cmd/goent/)
-5. **Gitignore**: Added `cmd/goent/templates/` to .gitignore (generated directory)
+3. **CLI Embedding**: Makefile `prepare-templates` target copies `templates/` to `cmd/go-ent/templates/` before build
+4. **Embed Directive**: Uses `//go:embed templates/*` (relative to cmd/go-ent/)
+5. **Gitignore**: Added `cmd/go-ent/templates/` to .gitignore (generated directory)
 
 This approach:
 - ✅ Maintains single source of truth for templates

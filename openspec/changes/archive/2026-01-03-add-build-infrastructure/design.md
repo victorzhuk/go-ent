@@ -28,7 +28,7 @@ The go-ent project has a CLI tool that cannot build due to Go embed limitations.
 
 ### Decision 1: Move CLI to Root Module
 
-**What:** Restructure CLI from separate module at `cli/` to `cmd/goent/` under root `go.mod`.
+**What:** Restructure CLI from separate module at `cli/` to `cmd/go-ent/` under root `go.mod`.
 
 **Why:**
 - `//go:embed` can only access files within the same module
@@ -55,7 +55,7 @@ The go-ent project has a CLI tool that cannot build due to Go embed limitations.
 - Create symlink `plugins/go-ent/templates → ../../templates`
 
 **Why:**
-- CLI embed can access `../../templates` from `cmd/goent/main.go`
+- CLI embed can access `../../templates` from `cmd/go-ent/main.go`
 - Symlink maintains plugin compatibility (plugin references stay valid)
 - Single source of truth for templates
 
@@ -76,7 +76,7 @@ The go-ent project has a CLI tool that cannot build due to Go embed limitations.
 
 **Targets:**
 ```makefile
-build:    Build CLI binary to dist/goent
+build:    Build CLI binary to dist/go-ent
 test:     Run tests with race detector and coverage
 lint:     Run golangci-lint
 fmt:      Format with goimports
@@ -132,7 +132,7 @@ plugins/go-ent/templates/           # Templates here
 go.mod                              # github.com/victorzhuk/go-ent (root)
 go.sum
 
-cmd/goent/                          # CLI binary
+cmd/go-ent/                          # CLI binary
 ├── main.go                         # //go:embed ../../templates/*
 └── main_test.go                    # Tests
 
@@ -150,14 +150,14 @@ Makefile                            # Build infrastructure
 
 ## Embed Path Calculation
 
-From `cmd/goent/main.go`:
+From `cmd/go-ent/main.go`:
 ```go
 //go:embed ../../templates/*
 var templates embed.FS
 ```
 
 Path resolution:
-- `cmd/goent/main.go` location
+- `cmd/go-ent/main.go` location
 - `../../` goes up to project root
 - `templates/` is at root
 - Result: embeds `/home/zhuk/Projects/own/go-ent/templates/*`
@@ -184,7 +184,7 @@ go build .
 After:
 ```bash
 make build          # or
-go build ./cmd/goent
+go build ./cmd/go-ent
 ```
 
 **For plugin users:**

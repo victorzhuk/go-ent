@@ -9,13 +9,13 @@ The CLI tool SHALL embed all project templates at build time using Go embed.
 - **AND** embedded files are accessible via `embed.FS`
 
 #### Scenario: Embedded templates accessible at runtime
-- **WHEN** `goent_generate` tool is executed
+- **WHEN** `go_ent_generate` tool is executed
 - **THEN** CLI can read template files from embedded filesystem
 - **AND** template files are processed and written to target project directory
 
 #### Scenario: Build copies templates first
 - **WHEN** `make build` is executed
-- **THEN** templates are copied from root `templates/` to `cmd/goent/templates/`
+- **THEN** templates are copied from root `templates/` to `cmd/go-ent/templates/`
 - **AND** `//go:embed` directive includes copied templates
 - **AND** binary contains all template files
 

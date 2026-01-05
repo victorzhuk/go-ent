@@ -27,8 +27,8 @@ T009 -> T010
 - [x] 1.3 Verify build succeeds: `go build ./...`
 - [x] 1.4 Commit: "chore: upgrade to Go 1.25.5"
 
-### T002: Refactor cmd/goent/main.go to run() pattern
-**File**: `/cmd/goent/main.go`
+### T002: Refactor cmd/go-ent/main.go to run() pattern
+**File**: `/cmd/go-ent/main.go`
 **Depends**: T001
 **Parallel**: No
 
@@ -43,7 +43,7 @@ T009 -> T010
 - [x] 2.9 Replace `log.Fatal` with proper error return
 - [x] 2.10 Update `main()` to call `run()` and log error before `os.Exit(1)`
 - [x] 2.11 Test with `kill -SIGTERM` to verify graceful shutdown
-- [x] 2.12 Commit: "refactor: implement run() pattern in cmd/goent/main.go"
+- [x] 2.12 Commit: "refactor: implement run() pattern in cmd/go-ent/main.go"
 
 ### T003: Enhance root Makefile with VERSION/VCS_REF
 **File**: `/Makefile`
@@ -53,9 +53,9 @@ T009 -> T010
 - [x] 3.1 Add `VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")`
 - [x] 3.2 Update VERSION line to include fallback: `VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")`
 - [x] 3.3 Add LDFLAGS: `LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.vcsRef=$(VCS_REF)"`
-- [x] 3.4 Update build target to use LDFLAGS: `go build $(LDFLAGS) -o dist/goent ./cmd/goent`
+- [x] 3.4 Update build target to use LDFLAGS: `go build $(LDFLAGS) -o dist/go-ent ./cmd/go-ent`
 - [x] 3.5 Verify `make build` passes
-- [x] 3.6 Verify `./dist/goent --version` shows version (if implemented)
+- [x] 3.6 Verify `./dist/go-ent --version` shows version (if implemented)
 - [x] 3.7 Commit: "build: add VERSION and VCS_REF to Makefile"
 
 ## Phase 2: Template Upgrades

@@ -24,9 +24,9 @@ Currently, the MCP server handles spec/task management but lacks generation, val
 
 ### Goals
 - Embed templates in binary using Go 1.16+ embed
-- Create `goent_generate` tool for project scaffolding
-- Create `goent_spec_validate` tool for spec validation
-- Create `goent_spec_archive` tool for change archival
+- Create `go_ent_generate` tool for project scaffolding
+- Create `go_ent_spec_validate` tool for spec validation
+- Create `go_ent_spec_archive` tool for change archival
 - Fix plugin.json for marketplace compatibility
 
 ### Non-Goals
@@ -39,7 +39,7 @@ Currently, the MCP server handles spec/task management but lacks generation, val
 
 ### Decision 1: Template Embedding Strategy
 
-**Choice**: Use `//go:embed` with templates copied to `cmd/goent/templates/` at build time
+**Choice**: Use `//go:embed` with templates copied to `cmd/go-ent/templates/` at build time
 
 **Rationale**:
 - Go embed requires files to be in/below the package directory
@@ -48,7 +48,7 @@ Currently, the MCP server handles spec/task management but lacks generation, val
 
 **Structure**:
 ```
-cmd/goent/
+cmd/go-ent/
 ├── templates/          # Copied from root at build time
 │   ├── embed.go        # //go:embed directive
 │   ├── go.mod.tmpl
@@ -60,7 +60,7 @@ cmd/goent/
 
 **Alternatives considered**:
 - Symlinks: Don't work with go:embed
-- Move templates to cmd/goent/: Breaks clean separation
+- Move templates to cmd/go-ent/: Breaks clean separation
 - External template loading: Requires file distribution
 
 ### Decision 2: Template Engine
@@ -145,21 +145,21 @@ var specRules = []ValidationRule{
 **Current** (broken):
 ```json
 "mcp": {
-  "command": "/home/zhuk/Projects/own/go-ent/dist/goent"
+  "command": "/home/zhuk/Projects/own/go-ent/dist/go-ent"
 }
 ```
 
 **Fixed**:
 ```json
 "mcp": {
-  "command": "./dist/goent"
+  "command": "./dist/go-ent"
 }
 ```
 
 Or if Claude Code supports it:
 ```json
 "mcp": {
-  "command": "${PLUGIN_DIR}/dist/goent"
+  "command": "${PLUGIN_DIR}/dist/go-ent"
 }
 ```
 
@@ -184,7 +184,7 @@ All phases are additive. Rollback is simply reverting the commit.
 
 ## Open Questions
 
-1. Should `goent_generate` create a git repository? (Tentative: no, let user init)
+1. Should `go_ent_generate` create a git repository? (Tentative: no, let user init)
 2. Should validation return warnings vs errors? (Tentative: both, with severity)
 3. Should archive support `--dry-run`? (Tentative: yes, for safety)
 
@@ -193,7 +193,7 @@ All phases are additive. Rollback is simply reverting the commit.
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      MCP Server                              │
-│  cmd/goent/main.go                                          │
+│  cmd/go-ent/main.go                                          │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼

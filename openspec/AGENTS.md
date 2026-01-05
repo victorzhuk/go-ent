@@ -69,7 +69,7 @@ The goent plugin provides additional commands for comprehensive planning inspire
 
 ### Task Decomposition
 
-**Command**: `/goent:decompose <change-id>`
+**Command**: `/go-ent:decompose <change-id>`
 
 Transform proposal requirements into dependency-aware tasks:
 - Sequential task IDs (T001, T002...)
@@ -97,7 +97,7 @@ Transform proposal requirements into dependency-aware tasks:
 
 ### Research Phase
 
-**Command**: `/goent:research <change-id> [topic]`
+**Command**: `/go-ent:research <change-id> [topic]`
 
 Structured investigation of unknowns before implementation:
 - Identifies items marked "NEEDS CLARIFICATION" or "TBD"
@@ -110,7 +110,7 @@ Use when proposal contains technology decisions, integration questions, or unkno
 
 ### Quality Assurance
 
-**Command**: `/goent:clarify <change-id>`
+**Command**: `/go-ent:clarify <change-id>`
 
 Ask focused questions (max 5) to clarify underspecified requirements:
 - Analyzes proposal, design, and specs for ambiguities
@@ -118,7 +118,7 @@ Ask focused questions (max 5) to clarify underspecified requirements:
 - Structured questions with context
 - Direct output (no file created)
 
-**Command**: `/goent:analyze <change-id>`
+**Command**: `/go-ent:analyze <change-id>`
 
 Cross-document consistency validation (read-only):
 - Requirement coverage (all requirements have tasks)
@@ -127,7 +127,7 @@ Cross-document consistency validation (read-only):
 - Task dependency cycle detection
 - Generates consistency report
 
-**Command**: `/goent:checklist <change-id>`
+**Command**: `/go-ent:checklist <change-id>`
 
 Generate quality validation criteria:
 - Functional criteria (behavior validation)
@@ -138,15 +138,15 @@ Generate quality validation criteria:
 
 ### Full Planning Workflow
 
-**Command**: `/goent:plan-full <feature-or-change-id>`
+**Command**: `/go-ent:plan-full <feature-or-change-id>`
 
 Comprehensive multi-phase planning:
 
 **Phase 0: Clarification & Research**
 1. Create/load proposal
-2. Run `/goent:clarify` - ask questions
+2. Run `/go-ent:clarify` - ask questions
 3. Wait for user answers
-4. Run `/goent:research` - investigate unknowns
+4. Run `/go-ent:research` - investigate unknowns
 5. Verify no TBD items remain
 
 **Phase 1: Design & Contracts**
@@ -155,9 +155,9 @@ Comprehensive multi-phase planning:
 3. Validate: `openspec validate --strict`
 
 **Phase 2: Task Generation & Validation**
-1. Run `/goent:decompose` - generate tasks
-2. Run `/goent:analyze` - check consistency
-3. Run `/goent:checklist` - create acceptance criteria
+1. Run `/go-ent:decompose` - generate tasks
+2. Run `/go-ent:analyze` - check consistency
+3. Run `/go-ent:checklist` - create acceptance criteria
 4. Final validation and approval
 
 **When to use**:
@@ -182,11 +182,11 @@ The goent plugin provides workflow state tracking for guided planning with expli
 - **Approval Gates**: User must approve before advancing to next phase
 
 **Workflow Tools**:
-- `goent_workflow_start` - Initialize workflow with change ID and starting phase
-- `goent_workflow_approve` - Mark wait point as approved, continue execution
-- `goent_workflow_status` - Check current workflow state
+- `go_ent_workflow_start` - Initialize workflow with change ID and starting phase
+- `go_ent_workflow_approve` - Mark wait point as approved, continue execution
+- `go_ent_workflow_status` - Check current workflow state
 
-**The `/goent:plan-full` command uses 4 explicit wait points**:
+**The `/go-ent:plan-full` command uses 4 explicit wait points**:
 
 1. **WAIT POINT 1: User Clarification** (Phase 0)
    - After analyzing proposal and specs
@@ -230,7 +230,7 @@ updated_at: 2026-01-03T10:30:00Z
 
 ### Autonomous Loop
 
-**Command**: `/goent:loop <task-description> [--max-iterations=10]`
+**Command**: `/go-ent:loop <task-description> [--max-iterations=10]`
 
 Self-correcting autonomous loop for task execution with automatic error recovery. Unlike the guided workflow, the loop operates independently with minimal user intervention.
 
@@ -280,9 +280,9 @@ updated_at: 2026-01-03T10:05:00Z
 - `paused` - Temporarily stopped (not implemented)
 - `completed` - Task finished successfully
 - `failed` - Unrecoverable error encountered
-- `cancelled` - User stopped with `/goent:loop-cancel`
+- `cancelled` - User stopped with `/go-ent:loop-cancel`
 
-**Cancellation**: `/goent:loop-cancel`
+**Cancellation**: `/go-ent:loop-cancel`
 - Immediate stop with state preservation
 - Review adjustments: `cat openspec/.loop-state.yaml`
 - Resume by starting new loop with refined task
@@ -304,7 +304,7 @@ updated_at: 2026-01-03T10:05:00Z
 
 **Example Session**:
 ```bash
-User: /goent:loop "fix all linting errors" --max-iterations=5
+User: /go-ent:loop "fix all linting errors" --max-iterations=5
 
 ═══════════════════════════════════════════
 AUTONOMOUS LOOP: fix all linting errors

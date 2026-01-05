@@ -17,7 +17,7 @@ go.work
 go.work.sum
 
 # Build artifacts
-cmd/goent/templates/
+cmd/go-ent/templates/
 
 # IDE
 .idea/

@@ -2,16 +2,20 @@
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-VERSION_PKG := github.com/victorzhuk/go-ent/cmd/goent/internal/version
+VERSION_PKG := github.com/victorzhuk/go-ent/cmd/go-ent/internal/version
 LDFLAGS := -ldflags "-X $(VERSION_PKG).version=$(VERSION) -X $(VERSION_PKG).vcsRef=$(VCS_REF)"
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-build: ## Build CLI binary to dist/goent
+build: ## Build CLI binary to dist/go-ent
 	@mkdir -p dist
-	@go build $(LDFLAGS) -o dist/goent ./cmd/goent
-	@echo "Build complete: dist/goent"
+	@go build $(LDFLAGS) -o dist/go-ent ./cmd/go-ent
+	@echo "Build complete: dist/go-ent"
+
+build-mcp: build ## Rebuild MCP server binary (alias to build)
+	@echo "MCP server built at ./dist/go-ent"
+	@echo "Restart Claude Code to reload the MCP server connection"
 
 test: ## Run tests with race detector and coverage
 	@go test -race -cover ./...
@@ -24,7 +28,7 @@ fmt: ## Format code with goimports
 
 clean: ## Remove dist/ and build artifacts
 	@rm -rf dist/
-	@rm -f goent
+	@rm -f go-ent
 	@echo "Clean complete"
 
 validate-plugin: ## Validate plugin.json structure

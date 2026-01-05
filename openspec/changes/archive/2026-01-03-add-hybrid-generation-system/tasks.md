@@ -10,7 +10,7 @@
 
 ### T1.1: Define generation.yaml schema
 - **Story**: specs/mcp-tools/spec.md#Generation Configuration
-- **Files**: cmd/goent/internal/generation/config.go
+- **Files**: cmd/go-ent/internal/generation/config.go
 - **Depends**: None
 - **Parallel**: No
 - [x] 1.1.1 Define `GenerationConfig` struct
@@ -21,7 +21,7 @@
 
 ### T1.2: Create archetype registry
 - **Story**: specs/mcp-tools/spec.md#Project Archetypes
-- **Files**: cmd/goent/internal/generation/archetypes.go
+- **Files**: cmd/go-ent/internal/generation/archetypes.go
 - **Depends**: T1.1
 - **Parallel**: No
 - [x] 1.2.1 Define built-in archetypes (standard, mcp, api, grpc, worker)
@@ -29,9 +29,9 @@
 - [x] 1.2.3 Implement template list generation per archetype
 - [x] 1.2.4 Add archetype validation
 
-### T1.3: Implement goent_list_archetypes tool
+### T1.3: Implement go_ent_list_archetypes tool
 - **Story**: specs/mcp-tools/spec.md#Archetype Discovery
-- **Files**: cmd/goent/internal/tools/archetypes.go
+- **Files**: cmd/go-ent/internal/tools/archetypes.go
 - **Depends**: T1.2
 - **Parallel**: Yes (with T2.x)
 - [x] 1.3.1 Define `ListArchetypesInput` (optional filter)
@@ -43,7 +43,7 @@
 
 ### T2.1: Create spec analyzer
 - **Story**: specs/mcp-tools/spec.md#Spec Analysis
-- **Files**: cmd/goent/internal/generation/analyzer.go
+- **Files**: cmd/go-ent/internal/generation/analyzer.go
 - **Depends**: None
 - **Parallel**: Yes (with T1.x)
 - [x] 2.1.1 Define `SpecAnalysis` struct (capabilities, patterns, components)
@@ -54,7 +54,7 @@
 
 ### T2.2: Implement spec-to-archetype mapping
 - **Story**: specs/mcp-tools/spec.md#Archetype Selection
-- **Files**: cmd/goent/internal/generation/mapper.go
+- **Files**: cmd/go-ent/internal/generation/mapper.go
 - **Depends**: T2.1
 - **Parallel**: No
 - [x] 2.2.1 Define mapping rules (patterns → archetypes)
@@ -64,9 +64,9 @@
 
 ## Phase 3: Component Generation
 
-### T3.1: Implement goent_generate_component tool
+### T3.1: Implement go_ent_generate_component tool
 - **Story**: specs/mcp-tools/spec.md#Component Generation
-- **Files**: cmd/goent/internal/tools/generate_component.go
+- **Files**: cmd/go-ent/internal/tools/generate_component.go
 - **Depends**: T1.3, T2.2
 - **Parallel**: No
 - [x] 3.1.1 Define `GenerateComponentInput` (spec_path, component_name, output_dir)
@@ -77,9 +77,9 @@
 - [x] 3.1.6 Mark extension points for AI generation
 - [x] 3.1.7 Register tool in register.go
 
-### T3.2: Implement goent_generate_from_spec tool
+### T3.2: Implement go_ent_generate_from_spec tool
 - **Story**: specs/mcp-tools/spec.md#Spec-Driven Generation
-- **Files**: cmd/goent/internal/tools/generate_from_spec.go
+- **Files**: cmd/go-ent/internal/tools/generate_from_spec.go
 - **Depends**: T3.1
 - **Parallel**: No
 - [x] 3.2.1 Define `GenerateFromSpecInput` (spec_path, output_dir, options)
@@ -93,7 +93,7 @@
 
 ### T4.1: Create prompt template system
 - **Story**: specs/mcp-tools/spec.md#AI Prompt Templates
-- **Files**: prompts/*.md, cmd/goent/internal/generation/prompts.go
+- **Files**: prompts/*.md, cmd/go-ent/internal/generation/prompts.go
 - **Depends**: None
 - **Parallel**: Yes (independent)
 - [x] 4.1.1 Create prompts/ directory structure
@@ -116,7 +116,7 @@
 ## Phase 5: Testing and Documentation
 
 ### T5.1: Add tests for generation system
-- **Files**: cmd/goent/internal/generation/*_test.go
+- **Files**: cmd/go-ent/internal/generation/*_test.go
 - **Depends**: All implementation tasks
 - [x] 5.1.1 Add tests for config parsing
 - [x] 5.1.2 Add tests for spec analyzer

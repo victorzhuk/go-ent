@@ -8,18 +8,18 @@ The CLI tool SHALL build successfully from the project root using Go build tools
 
 #### Scenario: Build from root succeeds
 - **WHEN** running `make build` from project root
-- **THEN** CLI binary is created at `dist/goent`
+- **THEN** CLI binary is created at `dist/go-ent`
 - **AND** binary is executable
 
 #### Scenario: Direct Go build succeeds
-- **WHEN** running `go build ./cmd/goent`
+- **WHEN** running `go build ./cmd/go-ent`
 - **THEN** binary is created successfully
 - **AND** no build errors occur
 
 ### Requirement: Template Embedding
 The CLI tool SHALL embed all project templates including dotfiles at build time using Go embed, with templates located in `/internal/templates/`.
 
-**What changed**: Consolidated templates from `/templates/` and `/cmd/goent/templates/` into `/internal/templates/` and fixed embedding of dotfiles (`.gitignore.tmpl`, `.golangci.yml.tmpl`) using explicit embed directives.
+**What changed**: Consolidated templates from `/templates/` and `/cmd/go-ent/templates/` into `/internal/templates/` and fixed embedding of dotfiles (`.gitignore.tmpl`, `.golangci.yml.tmpl`) using explicit embed directives.
 
 #### Scenario: Templates embedded in binary
 - **WHEN** CLI is built
@@ -36,7 +36,7 @@ The CLI tool SHALL embed all project templates including dotfiles at build time 
 - **AND** embed directive uses explicit paths for dotfiles
 
 #### Scenario: Embedded templates accessible at runtime
-- **WHEN** `goent_generate` tool is executed
+- **WHEN** `go_ent_generate` tool is executed
 - **THEN** CLI can read all template files from embedded filesystem
 - **AND** dotfile templates are accessible
 - **AND** template files are processed and written to target project directory
@@ -46,7 +46,7 @@ The CLI tool SHALL embed all project templates including dotfiles at build time 
 - **WHEN** examining project structure
 - **THEN** templates exist only at `/internal/templates/`
 - **AND** no `/templates/` directory at project root
-- **AND** no `/cmd/goent/templates/` copy directory
+- **AND** no `/cmd/go-ent/templates/` copy directory
 - **AND** embed directive references `/internal/templates/` directly
 
 ### Requirement: Template Organization
@@ -99,22 +99,22 @@ The CLI build process SHALL produce clean, versioned artifacts without requiring
 #### Scenario: Clean build
 - **WHEN** `make clean` is executed
 - **THEN** `dist/` directory is removed
-- **AND** no `/cmd/goent/templates/` artifacts remain
+- **AND** no `/cmd/go-ent/templates/` artifacts remain
 - **AND** build artifacts are fully cleaned
 
 ### Requirement: Go Module Structure
 The CLI SHALL follow clean code principles with no unused directories or files in the project structure.
 
-**What changed**: Removed empty `/cmd/goent/internal/resources/` directory that had no purpose or usage.
+**What changed**: Removed empty `/cmd/go-ent/internal/resources/` directory that had no purpose or usage.
 
 #### Scenario: No unused directories
-- **WHEN** examining `/cmd/goent/internal/` structure
+- **WHEN** examining `/cmd/go-ent/internal/` structure
 - **THEN** only active packages with code exist
 - **AND** no empty directories are present
 - **AND** all directories serve a documented purpose
 
 #### Scenario: Clean package structure
-- **WHEN** listing directories in `/cmd/goent/internal/`
+- **WHEN** listing directories in `/cmd/go-ent/internal/`
 - **THEN** only `tools/` and `server/` directories exist (after refactoring)
 - **AND** each directory contains Go source files
 - **AND** no placeholder or empty packages exist
@@ -128,7 +128,7 @@ A Makefile SHALL provide standard build targets for CLI development.
 
 #### Scenario: Build target
 - **WHEN** running `make build`
-- **THEN** CLI is compiled and output to `dist/goent`
+- **THEN** CLI is compiled and output to `dist/go-ent`
 
 #### Scenario: Clean target
 - **WHEN** running `make clean`
@@ -157,7 +157,7 @@ CLI code SHALL have test coverage with race detection enabled.
 - **AND** test results are reported
 
 #### Scenario: Test files exist
-- **WHEN** checking `cmd/goent/` directory
+- **WHEN** checking `cmd/go-ent/` directory
 - **THEN** `main_test.go` file exists
 - **AND** test cases cover core functionality
 

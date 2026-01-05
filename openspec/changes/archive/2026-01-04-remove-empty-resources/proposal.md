@@ -2,10 +2,10 @@
 
 ## Why
 
-The `/cmd/goent/internal/resources/` directory is empty and unused, serving no purpose in the codebase. Keeping empty directories creates maintenance confusion and violates clean code principles.
+The `/cmd/go-ent/internal/resources/` directory is empty and unused, serving no purpose in the codebase. Keeping empty directories creates maintenance confusion and violates clean code principles.
 
 **Current State**:
-- Directory exists at `/cmd/goent/internal/resources/`
+- Directory exists at `/cmd/go-ent/internal/resources/`
 - Contains zero files
 - No code references this directory
 - No imports of a `resources` package
@@ -27,14 +27,14 @@ Remove the empty directory:
 
 ```
 Before:
-/cmd/goent/internal/
+/cmd/go-ent/internal/
     ├── resources/      ← DELETE (empty)
     ├── tools/
     ├── server/
     └── ...
 
 After:
-/cmd/goent/internal/
+/cmd/go-ent/internal/
     ├── tools/
     ├── server/
     └── ...
@@ -43,7 +43,7 @@ After:
 ### 2. Verification
 
 Confirm no references exist:
-- No `import "github.com/victorzhuk/go-ent/cmd/goent/internal/resources"`
+- No `import "github.com/victorzhuk/go-ent/cmd/go-ent/internal/resources"`
 - No file paths pointing to this directory
 - No documentation mentioning it
 
@@ -58,7 +58,7 @@ Confirm no references exist:
 
 ## Success Criteria
 
-1. Directory `/cmd/goent/internal/resources/` no longer exists
+1. Directory `/cmd/go-ent/internal/resources/` no longer exists
 2. `make build` succeeds without errors
 3. `make test` passes all tests
 4. No references to `resources` in codebase

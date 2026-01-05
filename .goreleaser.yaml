@@ -1,6 +1,6 @@
 version: 2
 
-project_name: goent
+project_name: go-ent
 
 before:
   hooks:
@@ -8,9 +8,9 @@ before:
     - go mod verify
 
 builds:
-  - id: goent
-    main: ./cmd/goent
-    binary: goent
+  - id: go-ent
+    main: ./cmd/go-ent
+    binary: go-ent
     env:
       - CGO_ENABLED=0
     goos:
@@ -22,8 +22,8 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/victorzhuk/go-ent/cmd/goent/internal/version.version={{.Version}}
-      - -X github.com/victorzhuk/go-ent/cmd/goent/internal/version.vcsRef={{.ShortCommit}}
+      - -X github.com/victorzhuk/go-ent/cmd/go-ent/internal/version.version={{.Version}}
+      - -X github.com/victorzhuk/go-ent/cmd/go-ent/internal/version.vcsRef={{.ShortCommit}}
 
 archives:
   - id: default

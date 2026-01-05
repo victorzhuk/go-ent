@@ -1,5 +1,5 @@
 {
-  "name": "goent",
+  "name": "go-ent",
   "version": "1.0.0",
   "description": "Enterprise Go development toolkit with spec-driven workflows",
   "author": {
@@ -25,7 +25,7 @@
     "claude-code": ">=1.0.0"
   },
   "mcp": {
-    "command": "./dist/goent",
+    "command": "../../dist/go-ent",
     "args": []
   }
 }

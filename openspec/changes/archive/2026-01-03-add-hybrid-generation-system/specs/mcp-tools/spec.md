@@ -34,11 +34,11 @@ The system SHALL provide built-in project archetypes with predefined template se
 The system SHALL provide a tool to list available project archetypes.
 
 #### Scenario: List all archetypes
-- **WHEN** `goent_list_archetypes` is called without filter
+- **WHEN** `go_ent_list_archetypes` is called without filter
 - **THEN** all built-in and custom archetypes are returned with metadata
 
 #### Scenario: Filter archetypes
-- **WHEN** `goent_list_archetypes` is called with type filter
+- **WHEN** `go_ent_list_archetypes` is called with type filter
 - **THEN** only matching archetypes are returned
 
 ### Requirement: Spec Analysis
@@ -71,7 +71,7 @@ The system SHALL map spec analysis to recommended archetypes.
 The system SHALL generate component scaffolds from spec and templates.
 
 #### Scenario: Generate from spec
-- **WHEN** `goent_generate_component` is called with spec path
+- **WHEN** `go_ent_generate_component` is called with spec path
 - **THEN** component scaffold is generated using selected templates
 
 #### Scenario: Mark extension points
@@ -86,7 +86,7 @@ The system SHALL generate component scaffolds from spec and templates.
 The system SHALL generate complete projects from spec files.
 
 #### Scenario: Full project generation
-- **WHEN** `goent_generate_from_spec` is called
+- **WHEN** `go_ent_generate_from_spec` is called
 - **THEN** all identified components are generated
 
 #### Scenario: Component integration

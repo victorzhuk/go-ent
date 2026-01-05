@@ -12,16 +12,16 @@ Enterprise Go development toolkit with spec-driven workflows, Clean Architecture
 
 ```bash
 # Initialize project
-/goent:init my-service
+/go-ent:init my-service
 
 # Plan a feature (guided workflow with approval gates)
-/goent:plan "Add user authentication"
+/go-ent:plan "Add user authentication"
 
 # Apply tasks from registry
-/goent:apply
+/go-ent:apply
 
 # Run autonomous loop for repetitive fixes
-/goent:loop "fix all linting errors" --max-iterations=10
+/go-ent:loop "fix all linting errors" --max-iterations=10
 ```
 
 ## Commands
@@ -30,58 +30,58 @@ Enterprise Go development toolkit with spec-driven workflows, Clean Architecture
 
 | Command | Description |
 |---------|-------------|
-| `/goent:init <name>` | Initialize new Go project |
-| `/goent:scaffold <type> <name>` | Generate components |
-| `/goent:lint` | Run linters |
+| `/go-ent:init <name>` | Initialize new Go project |
+| `/go-ent:scaffold <type> <name>` | Generate components |
+| `/go-ent:lint` | Run linters |
 
 ### Workflow Commands
 
 | Command | Description |
 |---------|-------------|
-| `/goent:plan <feature>` | Multi-phase planning with approval gates |
-| `/goent:clarify <change-id>` | Ask clarifying questions |
-| `/goent:research <change-id>` | Research unknowns and technology choices |
-| `/goent:decompose <change-id>` | Task decomposition with dependencies |
-| `/goent:analyze <change-id>` | Consistency validation |
+| `/go-ent:plan <feature>` | Multi-phase planning with approval gates |
+| `/go-ent:clarify <change-id>` | Ask clarifying questions |
+| `/go-ent:research <change-id>` | Research unknowns and technology choices |
+| `/go-ent:decompose <change-id>` | Task decomposition with dependencies |
+| `/go-ent:analyze <change-id>` | Consistency validation |
 
 ### Execution Commands
 
 | Command | Description |
 |---------|-------------|
-| `/goent:apply [change-id]` | Execute tasks from registry |
-| `/goent:gen` | Generate code from OpenAPI/Proto |
-| `/goent:tdd <feature>` | Red-Green-Refactor TDD cycle |
-| `/goent:loop <task> [--max-iterations=N]` | Autonomous self-correction loop |
-| `/goent:loop-cancel` | Cancel running loop |
+| `/go-ent:apply [change-id]` | Execute tasks from registry |
+| `/go-ent:gen` | Generate code from OpenAPI/Proto |
+| `/go-ent:tdd <feature>` | Red-Green-Refactor TDD cycle |
+| `/go-ent:loop <task> [--max-iterations=N]` | Autonomous self-correction loop |
+| `/go-ent:loop-cancel` | Cancel running loop |
 
 ### Registry Commands
 
 | Command | Description |
 |---------|-------------|
-| `/goent:registry list [--filters]` | List all tasks |
-| `/goent:registry next [count]` | Get next recommended task |
-| `/goent:registry update <task-id> <field=value>` | Update task status |
-| `/goent:registry deps <task-id> <op>` | Manage dependencies |
-| `/goent:registry sync` | Sync from tasks.md files |
+| `/go-ent:registry list [--filters]` | List all tasks |
+| `/go-ent:registry next [count]` | Get next recommended task |
+| `/go-ent:registry update <task-id> <field=value>` | Update task status |
+| `/go-ent:registry deps <task-id> <op>` | Manage dependencies |
+| `/go-ent:registry sync` | Sync from tasks.md files |
 
 ### Change Management
 
 | Command | Description |
 |---------|-------------|
-| `/goent:status` | View registry and change status |
-| `/goent:archive <change-id>` | Archive completed change |
+| `/go-ent:status` | View registry and change status |
+| `/go-ent:archive <change-id>` | Archive completed change |
 
 ## Scaffold Types
 
 ```bash
 # Components
-/goent:scaffold entity User
-/goent:scaffold repository User pgx
-/goent:scaffold usecase CreateUser
-/goent:scaffold handler User
+/go-ent:scaffold entity User
+/go-ent:scaffold repository User pgx
+/go-ent:scaffold usecase CreateUser
+/go-ent:scaffold handler User
 
 # Full stack (domain + repo + usecase + transport)
-/goent:scaffold service Order
+/go-ent:scaffold service Order
 ```
 
 ## Agents
@@ -89,17 +89,17 @@ Enterprise Go development toolkit with spec-driven workflows, Clean Architecture
 Tiered by model for optimal performance and cost:
 
 ### Senior Tier (Opus)
-- `@goent:architect` - System design and architecture
-- `@goent:reviewer` - Code review with confidence filtering
-- `@goent:lead` - Workflow orchestration
+- `@go-ent:architect` - System design and architecture
+- `@go-ent:reviewer` - Code review with confidence filtering
+- `@go-ent:lead` - Workflow orchestration
 
 ### Balanced Tier (Sonnet)
-- `@goent:planner` - Feature planning and decomposition
-- `@goent:dev` - Implementation and coding
-- `@goent:debug` - Bug investigation
+- `@go-ent:planner` - Feature planning and decomposition
+- `@go-ent:dev` - Implementation and coding
+- `@go-ent:debug` - Bug investigation
 
 ### Fast Tier (Haiku)
-- `@goent:tester` - Quick test feedback
+- `@go-ent:tester` - Quick test feedback
 
 ## Skills
 
@@ -121,7 +121,7 @@ Skills activate automatically based on context:
 
 ### Guided Planning with Approval Gates
 
-The `/goent:plan` command provides a comprehensive planning workflow with **4 explicit wait points** where you approve before the agent continues:
+The `/go-ent:plan` command provides a comprehensive planning workflow with **4 explicit wait points** where you approve before the agent continues:
 
 **Phase 0: Clarification & Research**
 1. **WAIT 1**: Clarifying questions - agent asks, you answer
@@ -146,13 +146,13 @@ Self-correcting execution for repetitive tasks:
 
 ```bash
 # Fix linting errors autonomously
-/goent:loop "fix all linting errors" --max-iterations=10
+/go-ent:loop "fix all linting errors" --max-iterations=10
 
 # Implement feature with auto-correction
-/goent:loop "add email validation to User entity" --max-iterations=15
+/go-ent:loop "add email validation to User entity" --max-iterations=15
 
 # Cancel if stuck
-/goent:loop-cancel
+/go-ent:loop-cancel
 ```
 
 **Features**:
@@ -175,19 +175,19 @@ Centralized task tracking across all changes:
 
 ```bash
 # Initialize from existing changes
-/goent:registry sync
+/go-ent:registry sync
 
 # Get next task recommendation
-/goent:registry next
+/go-ent:registry next
 
 # Start working (auto-picks task)
-/goent:apply
+/go-ent:apply
 
 # Update task status
-/goent:registry update add-auth/1.1 status=completed
+/go-ent:registry update add-auth/1.1 status=completed
 
 # Manage cross-change dependencies
-/goent:registry deps add-auth/2.1 add add-build/5.5
+/go-ent:registry deps add-auth/2.1 add add-build/5.5
 ```
 
 **Features**:
@@ -241,7 +241,7 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 
 ## Confidence-Based Code Review
 
-The `@goent:reviewer` agent filters findings by confidence level:
+The `@go-ent:reviewer` agent filters findings by confidence level:
 
 - **95-100%**: Definite bugs, security vulnerabilities (always shown)
 - **85-94%**: Strong code quality issues (always shown)
@@ -255,49 +255,49 @@ The `@goent:reviewer` agent filters findings by confidence level:
 The plugin provides 18 MCP tools for automation:
 
 **Spec Management**:
-- `goent_spec_init` - Initialize openspec
-- `goent_spec_list` - List specs/changes
-- `goent_spec_show` - Show details
-- `goent_spec_create` - Create item
-- `goent_spec_update` - Update item
-- `goent_spec_delete` - Delete item
+- `go_ent_spec_init` - Initialize openspec
+- `go_ent_spec_list` - List specs/changes
+- `go_ent_spec_show` - Show details
+- `go_ent_spec_create` - Create item
+- `go_ent_spec_update` - Update item
+- `go_ent_spec_delete` - Delete item
 
 **Registry**:
-- `goent_registry_list` - List tasks
-- `goent_registry_next` - Get next task
-- `goent_registry_update` - Update task
-- `goent_registry_add_dep` - Add dependency
-- `goent_registry_remove_dep` - Remove dependency
-- `goent_registry_sync` - Sync from tasks.md
+- `go_ent_registry_list` - List tasks
+- `go_ent_registry_next` - Get next task
+- `go_ent_registry_update` - Update task
+- `go_ent_registry_add_dep` - Add dependency
+- `go_ent_registry_remove_dep` - Remove dependency
+- `go_ent_registry_sync` - Sync from tasks.md
 
 **Workflow**:
-- `goent_workflow_start` - Start guided workflow
-- `goent_workflow_approve` - Approve wait point
-- `goent_workflow_status` - Check workflow state
+- `go_ent_workflow_start` - Start guided workflow
+- `go_ent_workflow_approve` - Approve wait point
+- `go_ent_workflow_status` - Check workflow state
 
 **Loop**:
-- `goent_loop_start` - Start autonomous loop
-- `goent_loop_get` - Get loop state
-- `goent_loop_set` - Update loop state
-- `goent_loop_cancel` - Cancel loop
+- `go_ent_loop_start` - Start autonomous loop
+- `go_ent_loop_get` - Get loop state
+- `go_ent_loop_set` - Update loop state
+- `go_ent_loop_cancel` - Cancel loop
 
 ## Best Practices
 
 ### When to Use What
 
-**Use `/goent:plan`** for:
+**Use `/go-ent:plan`** for:
 - New features
 - Breaking changes
 - Architecture changes
 - Performance optimizations
 
-**Use `/goent:loop`** for:
+**Use `/go-ent:loop`** for:
 - Fixing failing tests
 - Resolving linting errors
 - Straightforward implementations
 - Iterative debugging
 
-**Use `/goent:apply`** for:
+**Use `/go-ent:apply`** for:
 - Executing planned tasks
 - Following registry recommendations
 - Structured implementation
@@ -310,22 +310,22 @@ The plugin provides 18 MCP tools for automation:
 ### Planning Workflow
 
 1. **Explore**: `openspec list`, `openspec list --specs`
-2. **Plan**: `/goent:plan "feature description"`
+2. **Plan**: `/go-ent:plan "feature description"`
 3. **Approve**: Review at each of 4 wait points
-4. **Sync**: `/goent:registry sync`
-5. **Execute**: `/goent:apply` (or implement manually)
-6. **Archive**: `/goent:archive <change-id>`
+4. **Sync**: `/go-ent:registry sync`
+5. **Execute**: `/go-ent:apply` (or implement manually)
+6. **Archive**: `/go-ent:archive <change-id>`
 
 ### Error Recovery
 
 If autonomous loop gets stuck:
 ```bash
 # Cancel and review state
-/goent:loop-cancel
+/go-ent:loop-cancel
 cat openspec/.loop-state.yaml
 
 # Refine task description and retry
-/goent:loop "more specific task description" --max-iterations=5
+/go-ent:loop "more specific task description" --max-iterations=5
 ```
 
 ## License

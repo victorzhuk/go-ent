@@ -19,10 +19,10 @@
 
 ### T1.2: Move spec package
 - **Story**: proposal.md#Package Relocation
-- **Files**: All files in `cmd/goent/internal/spec/`
+- **Files**: All files in `cmd/go-ent/internal/spec/`
 - **Depends**: T1.1
 - **Parallel**: No
-- [x] 1.2.1 Move `cmd/goent/internal/spec/*.go` to `/internal/spec/`
+- [x] 1.2.1 Move `cmd/go-ent/internal/spec/*.go` to `/internal/spec/`
 - [x] 1.2.2 Move all test files (*_test.go) to `/internal/spec/`
 - [x] 1.2.3 Verify 14 files moved successfully
 - [x] 1.2.4 Verify package declaration remains `package spec`
@@ -32,9 +32,9 @@
 - **Files**: template/ and generation/ packages
 - **Depends**: T1.2
 - **Parallel**: No
-- [x] 1.3.1 Move `cmd/goent/internal/template/` to `/internal/template/`
-- [x] 1.3.2 Move `cmd/goent/internal/template/testdata/` recursively
-- [x] 1.3.3 Move `cmd/goent/internal/generation/` to `/internal/generation/`
+- [x] 1.3.1 Move `cmd/go-ent/internal/template/` to `/internal/template/`
+- [x] 1.3.2 Move `cmd/go-ent/internal/template/testdata/` recursively
+- [x] 1.3.3 Move `cmd/go-ent/internal/generation/` to `/internal/generation/`
 - [x] 1.3.4 Verify all 12 files (template + generation) moved
 - [x] 1.3.5 Verify package declarations unchanged
 
@@ -42,7 +42,7 @@
 
 ### T2.1: Update tools package imports
 - **Story**: proposal.md#Import Path Updates
-- **Files**: All files in `cmd/goent/internal/tools/`
+- **Files**: All files in `cmd/go-ent/internal/tools/`
 - **Depends**: None
 - **Parallel**: Yes (with T1.x - can start immediately)
 - [x] 2.1.1 Update imports in `archive.go` (spec)
@@ -71,8 +71,8 @@
 - [x] 3.1.2 Run `make build` to verify successful compilation
 - [x] 3.1.3 Run `make test` to verify all tests pass
 - [x] 3.1.4 Run `make lint` to verify no new warnings
-- [x] 3.1.5 Verify binary executes: `./dist/goent version`
-- [x] 3.1.6 Remove old `/cmd/goent/internal/{spec,template,generation}` directories
+- [x] 3.1.5 Verify binary executes: `./dist/go-ent version`
+- [x] 3.1.6 Remove old `/cmd/go-ent/internal/{spec,template,generation}` directories
 - [x] 3.1.7 Verify no orphaned files remain in old locations
 
 ## Phase 4: Documentation

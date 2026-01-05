@@ -17,7 +17,7 @@ The project and generated templates use outdated Go 1.23 and alpine-based Docker
 ### Current Issues
 
 1. **Project** (`go-ent`):
-   - `cmd/goent/main.go` uses `log.Fatal` - violates project standards
+   - `cmd/go-ent/main.go` uses `log.Fatal` - violates project standards
    - No graceful shutdown on signals
    - Missing structured logging setup
    - Go 1.23.0 lacks newest features
@@ -35,7 +35,7 @@ The project and generated templates use outdated Go 1.23 and alpine-based Docker
 | File | Change | Impact |
 |------|--------|--------|
 | `go.mod` | `go 1.23.0` → `go 1.25.5` | Use latest Go features |
-| `cmd/goent/main.go` | Refactor to `run(ctx, getenv, stdout, stderr)` pattern | Testable, follows standards |
+| `cmd/go-ent/main.go` | Refactor to `run(ctx, getenv, stdout, stderr)` pattern | Testable, follows standards |
 | `Makefile` | Add `VERSION` and `VCS_REF` build args | Reproducible builds |
 
 ### Template Modifications

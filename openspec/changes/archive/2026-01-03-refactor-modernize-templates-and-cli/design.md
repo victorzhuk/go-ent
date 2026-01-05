@@ -122,7 +122,7 @@ templates/
 - Single template with `{{if .IsMCP}}` conditionals - hard to maintain
 - Separate repo - overkill, fragmentation
 
-### D4: cmd/goent/main.go Refactor Pattern
+### D4: cmd/go-ent/main.go Refactor Pattern
 
 **Decision**: Follow exact pattern from `templates/cmd/server/main.go.tmpl`
 

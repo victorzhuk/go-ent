@@ -526,31 +526,31 @@ goent config agent-matrix edit
 
 ```bash
 # Discovery
-/goent:research <topic>           # Explore codebase
-/goent:analyze <change-id>        # Complexity analysis
-/goent:retrofit <path>            # Generate specs for existing code
+/go-ent:research <topic>           # Explore codebase
+/go-ent:analyze <change-id>        # Complexity analysis
+/go-ent:retrofit <path>            # Generate specs for existing code
 
 # Planning
-/goent:proposal <description>     # Create change proposal
-/goent:plan <change-id>           # Generate tasks.md
-/goent:design <change-id>         # Create design.md
-/goent:split <change-id>          # Split large changes
+/go-ent:proposal <description>     # Create change proposal
+/go-ent:plan <change-id>           # Generate tasks.md
+/go-ent:design <change-id>         # Create design.md
+/go-ent:split <change-id>          # Split large changes
 
 # Execution
-/goent:implement <change-id>      # Implement single task
-/goent:execute <change-id>        # Parallel execution
-/goent:scaffold <type> <name>     # Generate boilerplate
+/go-ent:implement <change-id>      # Implement single task
+/go-ent:execute <change-id>        # Parallel execution
+/go-ent:scaffold <type> <name>     # Generate boilerplate
 
 # Validation
-/goent:review <change-id>         # Code review
-/goent:verify <change-id>         # Run verification
-/goent:debug <error-context>      # Debug assistance
-/goent:lint [path]                # Style check
+/go-ent:review <change-id>         # Code review
+/go-ent:verify <change-id>         # Run verification
+/go-ent:debug <error-context>      # Debug assistance
+/go-ent:lint [path]                # Style check
 
 # Lifecycle
-/goent:approve <change-id>        # Request approval
-/goent:archive <change-id>        # Archive change
-/goent:status [change-id]         # Progress report
+/go-ent:approve <change-id>        # Request approval
+/go-ent:archive <change-id>        # Archive change
+/go-ent:status [change-id]         # Progress report
 ```
 
 ---
@@ -564,7 +564,7 @@ goent config agent-matrix edit
 │                      PROPOSAL WORKFLOW                              │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  USER: /goent:proposal "Add two-factor authentication"              │
+│  USER: /go-ent:proposal "Add two-factor authentication"              │
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │ STEP 1: Context Gathering                                    │   │
@@ -595,7 +595,7 @@ goent config agent-matrix edit
 │  └─────────────────────────────────────────────────────────────┘   │
 │                          │                                          │
 │                          ▼                                          │
-│  OUTPUT: Change folder created, ready for /goent:plan               │
+│  OUTPUT: Change folder created, ready for /go-ent:plan               │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -607,7 +607,7 @@ goent config agent-matrix edit
 │                   PARALLEL EXECUTION WORKFLOW                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  USER: /goent:execute add-2fa --parallel --max-workers 3            │
+│  USER: /go-ent:execute add-2fa --parallel --max-workers 3            │
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │ STEP 1: Task Analysis                                        │   │

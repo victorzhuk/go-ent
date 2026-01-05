@@ -12,16 +12,16 @@
 
 ### T1.1: Create embed.go for template bundling
 - **Story**: specs/cli-build/spec.md#Template Embedding
-- **Files**: cmd/goent/templates/embed.go
+- **Files**: cmd/go-ent/templates/embed.go
 - **Depends**: None
 - **Parallel**: No
-- [x] 1.1.1 Create `cmd/goent/templates/embed.go` with `//go:embed **/*.tmpl` directive (created during testing phase)
+- [x] 1.1.1 Create `cmd/go-ent/templates/embed.go` with `//go:embed **/*.tmpl` directive (created during testing phase)
 - [x] 1.1.2 Export `TemplateFS embed.FS` variable
 - [x] 1.1.3 Verify `make build` copies templates before embedding
 
 ### T1.2: Create template engine
 - **Story**: specs/cli-build/spec.md#Template Processing
-- **Files**: cmd/goent/internal/template/engine.go
+- **Files**: cmd/go-ent/internal/template/engine.go
 - **Depends**: T1.1
 - **Parallel**: No
 - [x] 1.2.1 Create `template/engine.go` with `Engine` struct
@@ -40,9 +40,9 @@
 - [x] 1.3.3 Add `{{.GoVersion}}` where appropriate (go.mod files)
 - [x] 1.3.4 Test template syntax is valid with `template.ParseFS`
 
-### T1.4: Create goent_generate tool
+### T1.4: Create go_ent_generate tool
 - **Story**: specs/mcp-tools/spec.md#Project Generation Tool
-- **Files**: cmd/goent/internal/tools/generate.go
+- **Files**: cmd/go-ent/internal/tools/generate.go
 - **Depends**: T1.2, T1.3
 - **Parallel**: No
 - [x] 1.4.1 Define `GenerateInput` struct with path, module_path, project_type, project_name
@@ -57,7 +57,7 @@
 
 ### T2.1: Create validation rule framework
 - **Story**: specs/mcp-tools/spec.md#Spec Validation Tool
-- **Files**: cmd/goent/internal/spec/validator.go, cmd/goent/internal/spec/rules.go
+- **Files**: cmd/go-ent/internal/spec/validator.go, cmd/go-ent/internal/spec/rules.go
 - **Depends**: T1.4
 - **Parallel**: No
 - [x] 2.1.1 Define `ValidationError` and `ValidationWarning` types
@@ -70,9 +70,9 @@
   - [x] `validateRequirementHasScenario` - each requirement has >= 1 scenario
   - [x] `validateDeltaOperations` - ADDED/MODIFIED/REMOVED/RENAMED are valid
 
-### T2.2: Create goent_spec_validate tool
+### T2.2: Create go_ent_spec_validate tool
 - **Story**: specs/mcp-tools/spec.md#Spec Validation Tool
-- **Files**: cmd/goent/internal/tools/validate.go
+- **Files**: cmd/go-ent/internal/tools/validate.go
 - **Depends**: T2.1
 - **Parallel**: No
 - [x] 2.2.1 Define `ValidateInput` struct with type, id, strict
@@ -88,7 +88,7 @@
 
 ### T3.1: Create spec merger
 - **Story**: specs/mcp-tools/spec.md#Change Archive Tool
-- **Files**: cmd/goent/internal/spec/merger.go
+- **Files**: cmd/go-ent/internal/spec/merger.go
 - **Depends**: None
 - **Parallel**: Yes (with T3.2)
 - [x] 3.1.1 Implement `ParseDeltaSpec(content string) (*DeltaSpec, error)`
@@ -100,7 +100,7 @@
 
 ### T3.2: Create archiver
 - **Story**: specs/mcp-tools/spec.md#Change Archive Tool
-- **Files**: cmd/goent/internal/spec/archiver.go
+- **Files**: cmd/go-ent/internal/spec/archiver.go
 - **Depends**: None
 - **Parallel**: Yes (with T3.1)
 - [x] 3.2.1 Implement `Archive(changeID string, skipSpecs bool) error`
@@ -108,9 +108,9 @@
 - [x] 3.2.3 Move change directory to archive
 - [x] 3.2.4 Implement dry-run mode
 
-### T3.3: Create goent_spec_archive tool
+### T3.3: Create go_ent_spec_archive tool
 - **Story**: specs/mcp-tools/spec.md#Change Archive Tool
-- **Files**: cmd/goent/internal/tools/archive.go
+- **Files**: cmd/go-ent/internal/tools/archive.go
 - **Depends**: T3.1, T3.2
 - **Parallel**: No
 - [x] 3.3.1 Define `ArchiveInput` struct with id, skip_specs, dry_run
@@ -128,14 +128,14 @@
 - **Files**: plugins/go-ent/.claude-plugin/plugin.json
 - **Depends**: None
 - **Parallel**: Independent
-- [x] 4.1.1 Change absolute path to relative path `./dist/goent`
+- [x] 4.1.1 Change absolute path to relative path `./dist/go-ent`
 - [x] 4.1.2 Test plugin installation in Claude Code (plugin.json already uses relative path)
 - [ ] 4.1.3 Update README if installation instructions change
 
 ## Phase 5: Testing and Documentation
 
 ### T5.1: Add unit tests
-- **Files**: cmd/goent/internal/template/*_test.go, cmd/goent/internal/spec/*_test.go
+- **Files**: cmd/go-ent/internal/template/*_test.go, cmd/go-ent/internal/spec/*_test.go
 - **Depends**: All implementation tasks
 - [x] 5.1.1 Add tests for template engine
 - [x] 5.1.2 Add tests for validation rules
@@ -145,14 +145,14 @@
 
 ### T5.2: Update input schemas for existing tools
 - **Story**: specs/mcp-tools/spec.md#MCP Tool Input Schemas
-- **Files**: cmd/goent/internal/tools/*.go
+- **Files**: cmd/go-ent/internal/tools/*.go
 - **Depends**: None
-- [x] 5.2.1 Add inputSchema to goent_spec_init
-- [x] 5.2.2 Add inputSchema to goent_spec_create
-- [x] 5.2.3 Add inputSchema to goent_spec_update
-- [x] 5.2.4 Add inputSchema to goent_spec_delete
-- [x] 5.2.5 Add inputSchema to goent_spec_list
-- [x] 5.2.6 Add inputSchema to goent_spec_show
+- [x] 5.2.1 Add inputSchema to go_ent_spec_init
+- [x] 5.2.2 Add inputSchema to go_ent_spec_create
+- [x] 5.2.3 Add inputSchema to go_ent_spec_update
+- [x] 5.2.4 Add inputSchema to go_ent_spec_delete
+- [x] 5.2.5 Add inputSchema to go_ent_spec_list
+- [x] 5.2.6 Add inputSchema to go_ent_spec_show
 - [x] 5.2.7 Add inputSchema to all registry tools (6 tools)
 - [x] 5.2.8 Add inputSchema to all workflow tools (3 tools)
 - [x] 5.2.9 Add inputSchema to all loop tools (4 tools)

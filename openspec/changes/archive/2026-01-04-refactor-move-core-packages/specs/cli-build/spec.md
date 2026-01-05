@@ -5,14 +5,14 @@
 ### Requirement: Go Module Structure
 The CLI SHALL follow Go project layout best practices with internal packages properly organized at the project root.
 
-**What changed**: Moved reusable internal packages from `/cmd/goent/internal/` to `/internal/` to follow golang-standards/project-layout conventions.
+**What changed**: Moved reusable internal packages from `/cmd/go-ent/internal/` to `/internal/` to follow golang-standards/project-layout conventions.
 
 #### Scenario: Root module structure
 - **WHEN** checking module structure
 - **THEN** root `go.mod` exists with module `github.com/victorzhuk/go-ent`
-- **AND** CLI entry point is at `cmd/goent/main.go`
+- **AND** CLI entry point is at `cmd/go-ent/main.go`
 - **AND** reusable internal packages are at `/internal/`
-- **AND** CLI-specific code remains in `/cmd/goent/internal/`
+- **AND** CLI-specific code remains in `/cmd/go-ent/internal/`
 
 #### Scenario: Internal packages at project root
 - **WHEN** examining project structure
@@ -22,9 +22,9 @@ The CLI SHALL follow Go project layout best practices with internal packages pro
 - **AND** these packages have no MCP dependencies
 
 #### Scenario: CLI-specific packages remain under cmd
-- **WHEN** examining `/cmd/goent/internal/` structure
-- **THEN** MCP tool handlers exist at `/cmd/goent/internal/tools/`
-- **AND** MCP server factory exists at `/cmd/goent/internal/server/`
+- **WHEN** examining `/cmd/go-ent/internal/` structure
+- **THEN** MCP tool handlers exist at `/cmd/go-ent/internal/tools/`
+- **AND** MCP server factory exists at `/cmd/go-ent/internal/server/`
 - **AND** these packages depend on MCP SDK
 
 #### Scenario: Import paths follow new structure

@@ -72,11 +72,11 @@ OpenSpec's AGENTS.md pattern allows different team members to use Claude Code, C
 Cross-change dependency tracking and priority-based task recommendation (`/gt:registry next`) enables sophisticated project management.
 
 #### ✅ **6. Self-Correcting Autonomous Loop**
-The `/goent:loop` command with retry logic and error categorization represents cutting-edge agentic patterns.
+The `/go-ent:loop` command with retry logic and error categorization represents cutting-edge agentic patterns.
 
 #### ✅ **7. Clean Separation of Concerns**
 - Domain logic in `internal/spec/`, `internal/template/`, `internal/generation/`
-- Tool handlers in `cmd/goent/internal/tools/`
+- Tool handlers in `cmd/go-ent/internal/tools/`
 - Templates as reference patterns (not runtime dependencies)
 
 ### 1.3 Weaknesses (Cons)
@@ -95,14 +95,14 @@ Current tools lack JSON Schema definitions, which MCP 2025 spec recommends for b
 
 ```go
 // Current (tools/init.go) - no inputSchema
-s.HandleTool("goent_spec_init", initHandler)
+s.HandleTool("go_ent_spec_init", initHandler)
 
 // Should be:
-s.HandleTool("goent_spec_init", initHandler, mcp.WithInputSchema(initSchema))
+s.HandleTool("go_ent_spec_init", initHandler, mcp.WithInputSchema(initSchema))
 ```
 
 #### ❌ **3. Hardcoded Plugin Path**
-`plugin.json` contains absolute path `/home/zhuk/Projects/own/go-ent/dist/goent` making marketplace distribution impossible.
+`plugin.json` contains absolute path `/home/zhuk/Projects/own/go-ent/dist/go-ent` making marketplace distribution impossible.
 
 #### ❌ **4. Missing Validation Tool**
 AGENTS.md extensively documents `openspec validate [change-id] --strict` but no MCP tool implements this. Validation is critical for the workflow.
@@ -432,7 +432,7 @@ Phase 0: Foundation (Current)         Phase 1: Generation
 ─────────────────────────────         ──────────────────
 ✅ MCP server running                 ⬜ Embed templates
 ✅ Spec/task management               ⬜ Template engine
-✅ Workflow/registry tools            ⬜ goent_generate tool
+✅ Workflow/registry tools            ⬜ go_ent_generate tool
 ❌ Templates not embedded             ⬜ Project archetypes
 ❌ No validation tool
 ❌ No archive tool
@@ -440,14 +440,14 @@ Phase 0: Foundation (Current)         Phase 1: Generation
 Phase 2: Validation                   Phase 3: Hybrid Generation
 ───────────────────                   ────────────────────────
 ⬜ Validation rules                   ⬜ generation.yaml support
-⬜ goent_spec_validate                ⬜ Spec-to-template mapping
+⬜ go_ent_spec_validate                ⬜ Spec-to-template mapping
 ⬜ Strict mode                        ⬜ AI prompt integration
                                       ⬜ Component generation
 
 Phase 4: Archive                      Phase 5: Advanced
 ────────────────                      ──────────────────
 ⬜ Spec merger                        ⬜ Template versioning
-⬜ goent_spec_archive                 ⬜ Migration generation
+⬜ go_ent_spec_archive                 ⬜ Migration generation
 ⬜ Delta application                  ⬜ IDE integration
 ```
 
@@ -466,9 +466,9 @@ This existing proposal covers critical gaps:
 Without this, the tool can't be installed:
 ```json
 // Change from:
-"command": "/home/zhuk/Projects/own/go-ent/dist/goent"
+"command": "/home/zhuk/Projects/own/go-ent/dist/go-ent"
 // To:
-"command": "${pluginDir}/dist/goent"
+"command": "${pluginDir}/dist/go-ent"
 ```
 
 **Priority 3: Add Input Schemas**
@@ -492,7 +492,7 @@ is inconsistent. A hybrid approach provides:
 ## What Changes
 1. Add `generation.yaml` to OpenSpec structure
 2. Create component registry in specs
-3. Implement `goent_generate_component` tool
+3. Implement `go_ent_generate_component` tool
 4. Add spec-to-code prompt templates
 
 ## Impact
@@ -515,7 +515,7 @@ templates need upgrade paths.
 ## What Changes
 1. Add version metadata to templates
 2. Create template changelog
-3. Implement `goent_upgrade` tool
+3. Implement `go_ent_upgrade` tool
 4. Generate migration scripts
 
 ## Impact

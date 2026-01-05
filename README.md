@@ -49,7 +49,7 @@ The `goent` binary is now an MCP server that provides tools for managing `.spec`
 
 ```
 go-ent/
-├── cmd/goent/              # MCP server
+├── cmd/go-ent/              # MCP server
 │   ├── main.go             # stdio transport
 │   └── internal/
 │       ├── server/         # MCP setup
@@ -129,15 +129,15 @@ cd go-ent
 # Build MCP server
 make build
 
-# Binary will be in dist/goent
-./dist/goent  # runs as MCP server on stdio
+# Binary will be in dist/go-ent
+./dist/go-ent  # runs as MCP server on stdio
 ```
 
 ### Makefile Targets
 
 | Target | Description |
 |--------|-------------|
-| `make build` | Build MCP server to `dist/goent` |
+| `make build` | Build MCP server to `dist/go-ent` |
 | `make test` | Run tests with race detector and coverage |
 | `make lint` | Run golangci-lint |
 | `make fmt` | Format code with goimports |
