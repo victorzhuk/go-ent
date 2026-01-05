@@ -658,12 +658,12 @@ Don't mix concerns across layers.
 - **OpenSpec Workflow:** `openspec/AGENTS.md` (835 lines of comprehensive instructions)
 - **Plugin Structure:** `plugins/go-ent/README.md`
 - **Skill Definitions:** `plugins/go-ent/skills/*/SKILL.md`
-- **Agent Definitions:** `plugins/go-ent/agents/go-ent:*.md`
-- **Command Definitions:** `plugins/go-ent/commands/go-ent:*.md`
+- **Agent Definitions:** `plugins/go-ent/agents/*.md`
+- **Command Definitions:** `plugins/go-ent/commands/*.md`
 
 ## Version History
 
-### v1.0.0 (Current)
+### v0.1.0 (Current)
 - Initial self-hosted development setup
 - 7 agents, 9 skills, 16 commands
 - Full OpenSpec workflow integration

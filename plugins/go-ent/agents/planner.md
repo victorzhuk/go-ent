@@ -1,5 +1,5 @@
 ---
-name: go-ent:planner
+name: planner
 description: "Task planner. Breaks features into actionable tasks."
 model: sonnet
 color: green

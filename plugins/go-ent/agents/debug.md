@@ -1,5 +1,5 @@
 ---
-name: go-ent:debug
+name: debug
 description: "Debugger. Troubleshoots issues, analyzes errors."
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena
 model: sonnet

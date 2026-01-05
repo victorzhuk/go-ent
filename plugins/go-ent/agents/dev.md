@@ -1,5 +1,5 @@
 ---
-name: go-ent:dev
+name: dev
 description: "Go developer. Implements features, writes code."
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena
 model: sonnet

@@ -1,5 +1,5 @@
 ---
-name: go-ent:lead
+name: lead
 description: "Lead developer. Orchestrates workflow, delegates to specialists."
 tools: Read, Write, Bash, Glob
 model: opus

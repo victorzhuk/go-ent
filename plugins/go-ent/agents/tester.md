@@ -1,5 +1,5 @@
 ---
-name: go-ent:tester
+name: tester
 description: "Test engineer. Writes tests, TDD cycles."
 model: haiku
 color: cyan

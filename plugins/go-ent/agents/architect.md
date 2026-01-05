@@ -1,5 +1,5 @@
 ---
-name: go-ent:architect
+name: architect
 description: "System architect. Designs components, layers, data flow."
 tools: Read, Glob, Grep, mcp__plugin_serena_serena
 model: opus

@@ -1,5 +1,5 @@
 ---
-name: go-ent:reviewer
+name: reviewer
 description: "Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions."
 model: opus
 color: blue
