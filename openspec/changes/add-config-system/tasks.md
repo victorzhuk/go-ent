@@ -2,7 +2,7 @@
 
 ## 1. Create Config Package
 
-- [ ] Create `internal/config/` directory
+- [x] Create `internal/config/` directory
 - [ ] Create `internal/config/config.go` - Main Config struct
 - [ ] Create `internal/config/agents.go` - AgentsConfig section
 - [ ] Create `internal/config/runtime.go` - RuntimeConfig section
