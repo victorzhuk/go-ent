@@ -14,7 +14,7 @@
 
 ## 2. Implement Core Config Types
 
-- [ ] Define `Config` struct with all sections
+- [x] Define `Config` struct with all sections
 - [ ] Define `AgentsConfig` with roles map
 - [ ] Define `AgentRoleConfig` struct
 - [ ] Define `RuntimeConfig` with preferred/fallback

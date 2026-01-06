@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T19:08:12.697749421+03:00
+synced_at: 2026-01-06T19:14:39.234628128+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 1
+        completed: 2
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -727,8 +727,10 @@ tasks:
         change_id: add-config-system
         task_num: "10"
       content: Define `Config` struct with all sections
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T19:12:58.913245222+03:00
+      completed_at: 2026-01-06T19:14:39.23460228+03:00
       source_line: 17
       synced_at: 2026-01-06T19:05:49.369628911+03:00
     - id:
