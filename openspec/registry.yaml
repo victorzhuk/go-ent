@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T19:17:06.624519431+03:00
+synced_at: 2026-01-06T20:23:11.50989393+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 3
+        completed: 4
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -747,8 +747,11 @@ tasks:
         change_id: add-config-system
         task_num: "12"
       content: Define `AgentRoleConfig` struct
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T20:22:56.498027106+03:00
+      completed_at: 2026-01-06T20:23:11.509875916+03:00
+      notes: AgentRoleConfig struct already exists in internal/config/config.go:40-50 with Model, Skills, BudgetLimit fields and full validation
       source_line: 19
       synced_at: 2026-01-06T19:05:49.369632207+03:00
     - id:

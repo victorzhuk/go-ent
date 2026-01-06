@@ -16,7 +16,7 @@
 
 - [x] Define `Config` struct with all sections
 - [x] Define `AgentsConfig` with roles map
-- [ ] Define `AgentRoleConfig` struct
+- [x] Define `AgentRoleConfig` struct
 - [ ] Define `RuntimeConfig` with preferred/fallback
 - [ ] Define `BudgetConfig` with limits
 - [ ] Define `ModelsConfig` as string map
