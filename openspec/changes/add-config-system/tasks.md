@@ -29,10 +29,10 @@
 - [x] Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
 - [x] Add support for `.go-ent/config.yaml` path resolution
 - [x] Add YAML unmarshaling with validation
-- [ ] Add environment variable override logic
-- [ ] Add config file existence check
-- [ ] Return defaults when config file missing
-- [ ] Add comprehensive error messages
+- [x] Add environment variable override logic
+- [x] Add config file existence check
+- [x] Return defaults when config file missing
+- [x] Add comprehensive error messages
 
 ## 4. Implement Default Configuration
 
