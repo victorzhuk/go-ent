@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T19:14:39.234628128+03:00
+synced_at: 2026-01-06T19:17:06.624519431+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 2
+        completed: 3
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -737,8 +737,10 @@ tasks:
         change_id: add-config-system
         task_num: "11"
       content: Define `AgentsConfig` with roles map
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T19:16:25.722626512+03:00
+      completed_at: 2026-01-06T19:17:06.624500766+03:00
       source_line: 18
       synced_at: 2026-01-06T19:05:49.369631325+03:00
     - id:
