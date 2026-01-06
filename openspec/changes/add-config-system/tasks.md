@@ -3,7 +3,7 @@
 ## 1. Create Config Package
 
 - [x] Create `internal/config/` directory
-- [ ] Create `internal/config/config.go` - Main Config struct
+- [x] Create `internal/config/config.go` - Main Config struct
 - [ ] Create `internal/config/agents.go` - AgentsConfig section
 - [ ] Create `internal/config/runtime.go` - RuntimeConfig section
 - [ ] Create `internal/config/budget.go` - BudgetConfig section
@@ -25,10 +25,10 @@
 
 ## 3. Implement Config Loader
 
-- [ ] Implement `Load(projectRoot string) (*Config, error)`
-- [ ] Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
-- [ ] Add support for `.go-ent/config.yaml` path resolution
-- [ ] Add YAML unmarshaling with validation
+- [x] Implement `Load(projectRoot string) (*Config, error)`
+- [x] Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
+- [x] Add support for `.go-ent/config.yaml` path resolution
+- [x] Add YAML unmarshaling with validation
 - [ ] Add environment variable override logic
 - [ ] Add config file existence check
 - [ ] Return defaults when config file missing

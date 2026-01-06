@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T21:05:00.489149852+03:00
+synced_at: 2026-01-06T21:30:36.296280298+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 9
+        completed: 14
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -663,8 +663,11 @@ tasks:
         change_id: add-config-system
         task_num: "2"
       content: Create `internal/config/config.go` - Main Config struct
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:25:20.057887316+03:00
+      completed_at: 2026-01-06T21:26:03.831086674+03:00
+      notes: config.go already exists with Config struct and all sections (Agents, Runtime, Budget, Models, Skills) plus validation methods
       source_line: 6
       synced_at: 2026-01-06T19:05:49.369618692+03:00
     - id:
@@ -813,32 +816,42 @@ tasks:
         change_id: add-config-system
         task_num: "18"
       content: Implement `Load(projectRoot string) (*Config, error)`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:10:52.064831098+03:00
+      completed_at: 2026-01-06T21:14:50.387714767+03:00
       source_line: 28
       synced_at: 2026-01-06T19:05:49.369639701+03:00
     - id:
         change_id: add-config-system
         task_num: "19"
       content: Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:18:30.784320395+03:00
+      completed_at: 2026-01-06T21:19:36.080131547+03:00
       source_line: 29
       synced_at: 2026-01-06T19:05:49.369642927+03:00
     - id:
         change_id: add-config-system
         task_num: "20"
       content: Add support for `.go-ent/config.yaml` path resolution
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:28:58.909581686+03:00
+      completed_at: 2026-01-06T21:29:13.628733618+03:00
+      notes: Path resolution already implemented in Load() at loader.go:21 using filepath.Join(projectRoot, configDir, configFile) with constants .go-ent and config.yaml
       source_line: 30
       synced_at: 2026-01-06T19:05:49.369647205+03:00
     - id:
         change_id: add-config-system
         task_num: "21"
       content: Add YAML unmarshaling with validation
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:30:23.752902133+03:00
+      completed_at: 2026-01-06T21:30:36.296260992+03:00
+      notes: YAML unmarshaling and validation already implemented in Load() at loader.go:33-38 using yaml.Unmarshal and cfg.Validate()
       source_line: 31
       synced_at: 2026-01-06T19:05:49.369648257+03:00
     - id:
