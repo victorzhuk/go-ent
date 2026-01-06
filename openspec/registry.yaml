@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T20:23:11.50989393+03:00
+synced_at: 2026-01-06T21:05:00.489149852+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 4
+        completed: 9
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -758,40 +758,55 @@ tasks:
         change_id: add-config-system
         task_num: "13"
       content: Define `RuntimeConfig` with preferred/fallback
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T20:52:56.046022804+03:00
+      completed_at: 2026-01-06T20:53:19.051919016+03:00
+      notes: RuntimeConfig already exists in internal/config/config.go:59-73 with Preferred, Fallback, and Options fields plus validation at lines 176-183
       source_line: 20
       synced_at: 2026-01-06T19:05:49.369633219+03:00
     - id:
         change_id: add-config-system
         task_num: "14"
       content: Define `BudgetConfig` with limits
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T20:54:22.289666325+03:00
+      completed_at: 2026-01-06T20:54:55.049880883+03:00
+      notes: BudgetConfig already exists in internal/config/config.go:78-92 with Daily, Monthly, PerTask, Tracking fields plus validation at lines 186-196
       source_line: 21
       synced_at: 2026-01-06T19:05:49.36963408+03:00
     - id:
         change_id: add-config-system
         task_num: "15"
       content: Define `ModelsConfig` as string map
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T20:56:12.687070668+03:00
+      completed_at: 2026-01-06T20:56:32.615323879+03:00
+      notes: ModelsConfig already exists in internal/config/config.go:95-96 as map[string]string with validation at lines 201-209 ensuring non-empty names and IDs
       source_line: 22
       synced_at: 2026-01-06T19:05:49.369635052+03:00
     - id:
         change_id: add-config-system
         task_num: "16"
       content: Define `SkillsConfig` with enabled list
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:00:57.24889269+03:00
+      completed_at: 2026-01-06T21:01:08.994959168+03:00
+      notes: SkillsConfig already exists in internal/config/config.go:98-104 with Enabled []string and CustomDir string fields
       source_line: 23
       synced_at: 2026-01-06T19:05:49.369636966+03:00
     - id:
         change_id: add-config-system
         task_num: "17"
       content: Add validation methods for each struct
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T21:04:31.45635039+03:00
+      completed_at: 2026-01-06T21:05:00.489130295+03:00
+      notes: 'All validation methods already exist: Config (108-130), AgentsConfig (133-159), AgentRoleConfig (162-170), RuntimeConfig (173-185), BudgetConfig (188-199), ModelsConfig (202+)'
       source_line: 24
       synced_at: 2026-01-06T19:05:49.369638068+03:00
     - id:

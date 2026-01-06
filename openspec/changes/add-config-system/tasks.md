@@ -17,11 +17,11 @@
 - [x] Define `Config` struct with all sections
 - [x] Define `AgentsConfig` with roles map
 - [x] Define `AgentRoleConfig` struct
-- [ ] Define `RuntimeConfig` with preferred/fallback
-- [ ] Define `BudgetConfig` with limits
-- [ ] Define `ModelsConfig` as string map
-- [ ] Define `SkillsConfig` with enabled list
-- [ ] Add validation methods for each struct
+- [x] Define `RuntimeConfig` with preferred/fallback
+- [x] Define `BudgetConfig` with limits
+- [x] Define `ModelsConfig` as string map
+- [x] Define `SkillsConfig` with enabled list
+- [x] Add validation methods for each struct
 
 ## 3. Implement Config Loader
 
