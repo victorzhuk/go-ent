@@ -1,6 +1,20 @@
-<# Go Ent v2.0 - Spec-Driven Development for Go
+<<p align="center">
+  <img src="assets/go-ent-logo.png" alt="go-ent mascot" width="280">
+</p>
 
-Enterprise Go development toolkit for Claude Code with Clean Architecture, SOLID principles, and spec-driven development via MCP.
+<h1 align="center">Go Ent</h1>
+
+<p align="center">
+  <em>Enterprise Go development toolkit for Claude Code with Clean Architecture, SOLID principles, and spec-driven development via MCP.</em>
+</p>
+
+<p align="center">
+  <a href="https://pkg.go.dev/github.com/victorzhuk/go-ent"><img src="https://pkg.go.dev/badge/github.com/victorzhuk/go-ent.svg" alt="Go Reference"></a>
+  <a href="https://goreportcard.com/report/github.com/victorzhuk/go-ent"><img src="https://goreportcard.com/badge/github.com/victorzhuk/go-ent" alt="Go Report Card"></a>
+  <a href="https://github.com/victorzhuk/go-ent/actions/workflows/validate.yml"><img src="https://github.com/victorzhuk/go-ent/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/go-%3E%3D1.24-blue" alt="Go 1.24+">
+</p>
 
 > **Major Update**: v2.0 replaces the CLI code generator with an MCP server for spec-driven development. See [TRANSFORMATION.md](TRANSFORMATION.md) for details.
 
