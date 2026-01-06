@@ -1,4 +1,4 @@
-<<p align="center">
+<p align="center">
   <img src="assets/go-ent-logo.png" alt="go-ent mascot" width="280">
 </p>
 
@@ -16,7 +16,30 @@
   <img src="https://img.shields.io/badge/go-%3E%3D1.24-blue" alt="Go 1.24+">
 </p>
 
-> **Major Update**: v2.0 replaces the CLI code generator with an MCP server for spec-driven development. See [TRANSFORMATION.md](TRANSFORMATION.md) for details.
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Architecture v2.0](#architecture-v20)
+- [MCP Tools](#mcp-tools)
+- [Commands](#available-commands)
+- [Agents](#available-agents)
+- [Skills](#skills-auto-activated)
+- [Building from Source](#building-from-source)
+- [Project Structure](#project-structure)
+- [Standards Enforced](#standards-enforced)
+- [How It Works](#how-it-works-v20)
+- [Migration from v1.x](#migration-from-v1x)
+- [Contributing](#contributing)
+- [License](#license)
+- [References](#references)
+
+---
+
+> [!IMPORTANT]
+> **v2.0 Released** - Replaces CLI code generator with MCP server for spec-driven development. See [TRANSFORMATION.md](TRANSFORMATION.md) for details.
 
 ## Features
 
@@ -160,7 +183,7 @@ make build
 
 ### Development Requirements
 
-- Go 1.23 or later
+- Go 1.24 or later
 - make
 - golangci-lint (for `make lint`)
 
