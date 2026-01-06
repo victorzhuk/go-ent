@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/victorzhuk/go-ent/internal/domain"
 )
 
 type WorkflowStatus string
@@ -16,10 +17,14 @@ const (
 	WorkflowStatusCancelled WorkflowStatus = "cancelled"
 )
 
+// WorkflowState tracks the execution state of a change proposal workflow.
+// It bridges the spec domain (what needs to be done) with the agent domain
+// (who is doing it) by tracking the current agent role executing the workflow.
 type WorkflowState struct {
 	ID        string                 `yaml:"id" json:"id"`
 	ChangeID  string                 `yaml:"change_id" json:"change_id"`
 	Phase     string                 `yaml:"phase" json:"phase"`
+	AgentRole domain.AgentRole       `yaml:"agent_role,omitempty" json:"agent_role,omitempty"` // Current agent executing this workflow
 	WaitPoint string                 `yaml:"wait_point,omitempty" json:"wait_point,omitempty"`
 	Status    WorkflowStatus         `yaml:"status" json:"status"`
 	Context   map[string]interface{} `yaml:"context,omitempty" json:"context,omitempty"`

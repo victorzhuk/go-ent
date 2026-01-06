@@ -94,7 +94,7 @@ The CLI build process SHALL produce clean, versioned artifacts without requiring
 - **THEN** binary is built directly without template copying
 - **AND** no intermediate template directories are created
 - **AND** binary is placed in `dist/` directory
-- **AND** binary is named `goent`
+- **AND** binary is named `go-ent`
 
 #### Scenario: Clean build
 - **WHEN** `make clean` is executed

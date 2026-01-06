@@ -27,7 +27,7 @@
 
 - [ ] Implement `Load(projectRoot string) (*Config, error)`
 - [ ] Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
-- [ ] Add support for `.goent/config.yaml` path resolution
+- [ ] Add support for `.go-ent/config.yaml` path resolution
 - [ ] Add YAML unmarshaling with validation
 - [ ] Add environment variable override logic
 - [ ] Add config file existence check
@@ -88,8 +88,8 @@
 
 ## 9. Example Configuration
 
-- [ ] Create `examples/goent/config.yaml` with full example
-- [ ] Create `examples/goent/config-minimal.yaml` with minimal example
+- [ ] Create `examples/go-ent/config.yaml` with full example
+- [ ] Create `examples/go-ent/config-minimal.yaml` with minimal example
 - [ ] Document each section in examples
 - [ ] Add comments explaining options
 

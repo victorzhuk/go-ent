@@ -45,7 +45,7 @@ The LLM (Claude Code) will generate code based on specs and templates, not copy-
 
 ### MCP Server
 
-The `goent` binary is now an MCP server that provides tools for managing `.spec` folders:
+The `go-ent` binary is now an MCP server that provides tools for managing `.spec` folders:
 
 ```
 go-ent/
@@ -206,7 +206,7 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 
 ## Migration from v1.x
 
-v1.x used template-based file generation (`goent init`). v2.0 uses:
+v1.x used template-based file generation (`go-ent init`). v2.0 uses:
 
 - **MCP server** instead of CLI
 - **Spec-driven development** instead of template copying

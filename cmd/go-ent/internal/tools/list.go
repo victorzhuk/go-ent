@@ -69,14 +69,14 @@ func specListHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecLi
 	var items []spec.ListItem
 
 	switch input.Type {
-	case "specs":
+	case "spec":
 		items, err = store.ListSpecs()
-	case "changes":
+	case "change":
 		items, err = store.ListChanges(input.Status)
-	case "tasks":
+	case "task":
 		items, err = store.ListTasks()
 	default:
-		return nil, nil, fmt.Errorf("invalid type: %s. Must be specs, changes, or tasks", input.Type)
+		return nil, nil, fmt.Errorf("invalid type: %s. Must be spec, change, or task", input.Type)
 	}
 
 	if err != nil {

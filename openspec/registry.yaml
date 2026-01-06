@@ -1,0 +1,3124 @@
+version: "1.0"
+synced_at: 2026-01-06T18:59:22.441638049+03:00
+changes:
+    add-agent-mcp-tools:
+        id: add-agent-mcp-tools
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-agent-mcp-tools/tasks.md
+        total: 20
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-agent-system:
+        id: add-agent-system
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-agent-system/tasks.md
+        total: 23
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-cli-commands:
+        id: add-cli-commands
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-cli-commands/tasks.md
+        total: 30
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-config-system:
+        id: add-config-system
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-config-system/tasks.md
+        total: 64
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-domain-types:
+        id: add-domain-types
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-domain-types/tasks.md
+        total: 107
+        completed: 107
+        in_progress: 0
+        blocked: 0
+    add-execution-engine:
+        id: add-execution-engine
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-execution-engine/tasks.md
+        total: 31
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-plugin-system:
+        id: add-plugin-system
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/add-plugin-system/tasks.md
+        total: 50
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    restructure-repository:
+        id: restructure-repository
+        title: ""
+        status: ""
+        tasks_file: openspec/changes/restructure-repository/tasks.md
+        total: 53
+        completed: 0
+        in_progress: 0
+        blocked: 0
+tasks:
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "1"
+      content: Rename all files from go_ent_* pattern to new naming
+      status: pending
+      priority: medium
+      source_line: 4
+      synced_at: 2026-01-06T18:13:00.394449123+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "2"
+      content: Update tool names in internal/mcp/tools/*.go
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.394451798+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "3"
+      content: Update tool registration in internal/mcp/server/server.go
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.394453341+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "4"
+      content: Update plugin.json with new tool names
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.394455334+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "5"
+      content: Create internal/mcp/tools/agent_execute.go
+      status: pending
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.394456837+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "6"
+      content: Create internal/mcp/tools/agent_status.go
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.394459041+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "7"
+      content: Create internal/mcp/tools/agent_list.go
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.394460053+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "8"
+      content: Create internal/mcp/tools/agent_delegate.go
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.394461085+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "9"
+      content: Create internal/mcp/tools/skill_list.go
+      status: pending
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-06T18:13:00.394462067+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "10"
+      content: Create internal/mcp/tools/skill_info.go
+      status: pending
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-06T18:13:00.394463419+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "11"
+      content: Create internal/mcp/tools/runtime_list.go
+      status: pending
+      priority: medium
+      source_line: 16
+      synced_at: 2026-01-06T18:13:00.394466896+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "12"
+      content: Create internal/mcp/tools/runtime_status.go
+      status: pending
+      priority: medium
+      source_line: 17
+      synced_at: 2026-01-06T18:13:00.394467958+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "13"
+      content: Update AGENTS.md with new tool names
+      status: pending
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-06T18:13:00.39446914+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "14"
+      content: Update plugin commands with new names
+      status: pending
+      priority: medium
+      source_line: 21
+      synced_at: 2026-01-06T18:13:00.394470152+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "15"
+      content: Add migration guide for v2 → v3
+      status: pending
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.394471394+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "16"
+      content: Test all renamed tools work
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-06T18:13:00.394472577+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "17"
+      content: Test new agent tools
+      status: pending
+      priority: medium
+      source_line: 26
+      synced_at: 2026-01-06T18:13:00.394473368+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "18"
+      content: Integration test with Claude Code
+      status: pending
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-06T18:13:00.39447434+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "19"
+      content: Update version to 3.0.0
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.394475452+03:00
+    - id:
+        change_id: add-agent-mcp-tools
+        task_num: "20"
+      content: Update CHANGELOG
+      status: pending
+      priority: medium
+      source_line: 31
+      synced_at: 2026-01-06T18:13:00.39447972+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "1"
+      content: Create `internal/agent/selector.go`
+      status: pending
+      priority: medium
+      source_line: 4
+      synced_at: 2026-01-06T18:13:00.394522349+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "2"
+      content: Implement `Select(ctx, task) (AgentRole, []Skill, error)`
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.394523822+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "3"
+      content: Add complexity-based role selection
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.394525004+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "4"
+      content: Add budget-aware selection
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.394526106+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "5"
+      content: Unit tests for selection logic
+      status: pending
+      priority: medium
+      source_line: 8
+      synced_at: 2026-01-06T18:13:00.394527218+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "6"
+      content: Create `internal/agent/complexity.go`
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.394529533+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "7"
+      content: Implement `Analyze(task) TaskComplexity`
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.394530665+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "8"
+      content: Define complexity levels (Trivial to Architectural)
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.394531867+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "9"
+      content: Add pattern matching rules
+      status: pending
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-06T18:13:00.394532739+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "10"
+      content: Unit tests for complexity classification
+      status: pending
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-06T18:13:00.394533831+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "11"
+      content: Create `internal/agent/delegate.go`
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.394537728+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "12"
+      content: Implement decision matrix from `plugins/go-ent/agents/go-ent:lead.md`
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.394539141+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "13"
+      content: Add `CanDelegate(from, to AgentRole) bool`
+      status: pending
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-06T18:13:00.394540223+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "14"
+      content: Add `GetDelegationChain(task) []AgentRole`
+      status: pending
+      priority: medium
+      source_line: 21
+      synced_at: 2026-01-06T18:13:00.394541295+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "15"
+      content: Unit tests for delegation
+      status: pending
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.394542196+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "16"
+      content: Create `internal/skill/registry.go`
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-06T18:13:00.394543369+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "17"
+      content: Implement `Register(skill Skill) error`
+      status: pending
+      priority: medium
+      source_line: 26
+      synced_at: 2026-01-06T18:13:00.39454436+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "18"
+      content: Implement `MatchForContext(ctx SkillContext) []Skill`
+      status: pending
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-06T18:13:00.394545543+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "19"
+      content: Add skill loading from markdown
+      status: pending
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-06T18:13:00.394546444+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "20"
+      content: Unit tests for registry
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.394550572+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "21"
+      content: Update `internal/spec/workflow.go` with CurrentAgent field
+      status: pending
+      priority: medium
+      source_line: 32
+      synced_at: 2026-01-06T18:13:00.394551995+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "22"
+      content: Update `internal/spec/store.go` with AgentsPath(), SkillsPath()
+      status: pending
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.394553377+03:00
+    - id:
+        change_id: add-agent-system
+        task_num: "23"
+      content: Integration tests with config system
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.394554349+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "1"
+      content: Add cobra/pflag dependencies
+      status: pending
+      priority: medium
+      source_line: 4
+      synced_at: 2026-01-06T18:13:00.394587611+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "2"
+      content: Create internal/cli/root.go
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.394588703+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "3"
+      content: Set up command structure
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.394589645+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "4"
+      content: Add global flags (--config, --verbose)
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.394596087+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "5"
+      content: Create internal/cli/run.go
+      status: pending
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.394597149+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "6"
+      content: Implement `go-ent run <action>` command
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.394599453+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "7"
+      content: 'Add flags: --agent, --strategy, --budget, --dry-run'
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.394600635+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "8"
+      content: Integration with execution engine
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.394601567+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "9"
+      content: Create internal/cli/agent.go
+      status: pending
+      priority: medium
+      source_line: 16
+      synced_at: 2026-01-06T18:13:00.394602559+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "10"
+      content: Implement `go-ent agent list`
+      status: pending
+      priority: medium
+      source_line: 17
+      synced_at: 2026-01-06T18:13:00.394603521+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "11"
+      content: Implement `go-ent agent info <name>`
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.394605935+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "12"
+      content: Display agent capabilities
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.394606817+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "13"
+      content: Create internal/cli/skill.go
+      status: pending
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.394607939+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "14"
+      content: Implement `go-ent skill list`
+      status: pending
+      priority: medium
+      source_line: 23
+      synced_at: 2026-01-06T18:13:00.394608851+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "15"
+      content: Implement `go-ent skill info <name>`
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.394609832+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "16"
+      content: Create internal/cli/spec.go
+      status: pending
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-06T18:13:00.394610844+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "17"
+      content: Implement `go-ent spec init/list/show`
+      status: pending
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-06T18:13:00.394611836+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "18"
+      content: Reuse existing spec management code
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.394612828+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "19"
+      content: Create internal/cli/config.go
+      status: pending
+      priority: medium
+      source_line: 32
+      synced_at: 2026-01-06T18:13:00.394615162+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "20"
+      content: Implement `go-ent config show`
+      status: pending
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.39461941+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "21"
+      content: Implement `go-ent config set <key> <value>`
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.394620542+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "22"
+      content: Implement `go-ent config init`
+      status: pending
+      priority: medium
+      source_line: 35
+      synced_at: 2026-01-06T18:13:00.394621464+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "23"
+      content: Update cmd/go-ent/main.go
+      status: pending
+      priority: medium
+      source_line: 38
+      synced_at: 2026-01-06T18:13:00.394622476+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "24"
+      content: Add CLI mode detection (args vs stdin)
+      status: pending
+      priority: medium
+      source_line: 39
+      synced_at: 2026-01-06T18:13:00.394623478+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "25"
+      content: Route to MCP server or CLI based on mode
+      status: pending
+      priority: medium
+      source_line: 40
+      synced_at: 2026-01-06T18:13:00.3946245+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "26"
+      content: Integration tests for each command
+      status: pending
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.394625672+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "27"
+      content: Test with real config files
+      status: pending
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.394626534+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "28"
+      content: Test error handling
+      status: pending
+      priority: medium
+      source_line: 45
+      synced_at: 2026-01-06T18:13:00.394627445+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "29"
+      content: Add CLI usage examples
+      status: pending
+      priority: medium
+      source_line: 48
+      synced_at: 2026-01-06T18:13:00.394628377+03:00
+    - id:
+        change_id: add-cli-commands
+        task_num: "30"
+      content: Update README with CLI commands
+      status: pending
+      priority: medium
+      source_line: 49
+      synced_at: 2026-01-06T18:13:00.394629289+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "1"
+      content: Create `internal/config/` directory
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.39467838+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "2"
+      content: Create `internal/config/config.go` - Main Config struct
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.394679823+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "3"
+      content: Create `internal/config/agents.go` - AgentsConfig section
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.394681195+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "4"
+      content: Create `internal/config/runtime.go` - RuntimeConfig section
+      status: pending
+      priority: medium
+      source_line: 8
+      synced_at: 2026-01-06T18:13:00.394682638+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "5"
+      content: Create `internal/config/budget.go` - BudgetConfig section
+      status: pending
+      priority: medium
+      source_line: 9
+      synced_at: 2026-01-06T18:13:00.39468388+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "6"
+      content: Create `internal/config/model.go` - ModelsConfig section
+      status: pending
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.394685263+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "7"
+      content: Create `internal/config/loader.go` - YAML loading with env override
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.394686766+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "8"
+      content: Create `internal/config/defaults.go` - Default values
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.394687968+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "9"
+      content: Add package documentation
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.39468884+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "10"
+      content: Define `Config` struct with all sections
+      status: pending
+      priority: medium
+      source_line: 17
+      synced_at: 2026-01-06T18:13:00.394690142+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "11"
+      content: Define `AgentsConfig` with roles map
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.394693649+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "12"
+      content: Define `AgentRoleConfig` struct
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.39469461+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "13"
+      content: Define `RuntimeConfig` with preferred/fallback
+      status: pending
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-06T18:13:00.394695863+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "14"
+      content: Define `BudgetConfig` with limits
+      status: pending
+      priority: medium
+      source_line: 21
+      synced_at: 2026-01-06T18:13:00.394696845+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "15"
+      content: Define `ModelsConfig` as string map
+      status: pending
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.394697796+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "16"
+      content: Define `SkillsConfig` with enabled list
+      status: pending
+      priority: medium
+      source_line: 23
+      synced_at: 2026-01-06T18:13:00.394698788+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "17"
+      content: Add validation methods for each struct
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.39469976+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "18"
+      content: Implement `Load(projectRoot string) (*Config, error)`
+      status: pending
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-06T18:13:00.394701233+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "19"
+      content: Implement `LoadWithEnv(projectRoot, getenv) (*Config, error)`
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.394702565+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "20"
+      content: Add support for `.go-ent/config.yaml` path resolution
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.394709478+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "21"
+      content: Add YAML unmarshaling with validation
+      status: pending
+      priority: medium
+      source_line: 31
+      synced_at: 2026-01-06T18:13:00.39471054+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "22"
+      content: Add environment variable override logic
+      status: pending
+      priority: medium
+      source_line: 32
+      synced_at: 2026-01-06T18:13:00.394711552+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "23"
+      content: Add config file existence check
+      status: pending
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.394712514+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "24"
+      content: Return defaults when config file missing
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.394713506+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "25"
+      content: Add comprehensive error messages
+      status: pending
+      priority: medium
+      source_line: 35
+      synced_at: 2026-01-06T18:13:00.394714407+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "26"
+      content: Define default agent roles (architect, senior, developer)
+      status: pending
+      priority: medium
+      source_line: 39
+      synced_at: 2026-01-06T18:13:00.39471581+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "27"
+      content: Define default models (opus, sonnet)
+      status: pending
+      priority: medium
+      source_line: 40
+      synced_at: 2026-01-06T18:13:00.394716782+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "28"
+      content: Define default runtime (claude-code)
+      status: pending
+      priority: medium
+      source_line: 41
+      synced_at: 2026-01-06T18:13:00.394717734+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "29"
+      content: Define default budget limits
+      status: pending
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-06T18:13:00.394718595+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "30"
+      content: Add `DefaultConfig() *Config` function
+      status: pending
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.394719577+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "31"
+      content: Document default values
+      status: pending
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.394720368+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "32"
+      content: Support `GOENT_BUDGET_DAILY` override
+      status: pending
+      priority: medium
+      source_line: 48
+      synced_at: 2026-01-06T18:13:00.394721511+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "33"
+      content: Support `GOENT_BUDGET_MONTHLY` override
+      status: pending
+      priority: medium
+      source_line: 49
+      synced_at: 2026-01-06T18:13:00.394722492+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "34"
+      content: Support `GOENT_RUNTIME_PREFERRED` override
+      status: pending
+      priority: medium
+      source_line: 50
+      synced_at: 2026-01-06T18:13:00.394723595+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "35"
+      content: Support `GOENT_AGENTS_DEFAULT` override
+      status: pending
+      priority: medium
+      source_line: 51
+      synced_at: 2026-01-06T18:13:00.394724606+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "36"
+      content: Add env var parsing helpers
+      status: pending
+      priority: medium
+      source_line: 52
+      synced_at: 2026-01-06T18:13:00.394725458+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "37"
+      content: Document env var naming convention
+      status: pending
+      priority: medium
+      source_line: 53
+      synced_at: 2026-01-06T18:13:00.3947264+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "38"
+      content: Update `internal/spec/store.go`
+      status: pending
+      priority: medium
+      source_line: 57
+      synced_at: 2026-01-06T18:13:00.394734064+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "39"
+      content: Update `internal/generation/config.go`
+      status: pending
+      priority: medium
+      source_line: 62
+      synced_at: 2026-01-06T18:13:00.394736188+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "40"
+      content: Verify no circular dependencies
+      status: pending
+      priority: medium
+      source_line: 66
+      synced_at: 2026-01-06T18:13:00.394737791+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "41"
+      content: Validate agent role names match domain.AgentRole
+      status: pending
+      priority: medium
+      source_line: 70
+      synced_at: 2026-01-06T18:13:00.394739123+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "42"
+      content: Validate runtime names match domain.Runtime
+      status: pending
+      priority: medium
+      source_line: 71
+      synced_at: 2026-01-06T18:13:00.394740236+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "43"
+      content: Validate model mappings are non-empty
+      status: pending
+      priority: medium
+      source_line: 72
+      synced_at: 2026-01-06T18:13:00.394741237+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "44"
+      content: Validate budget values are positive
+      status: pending
+      priority: medium
+      source_line: 73
+      synced_at: 2026-01-06T18:13:00.394742179+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "45"
+      content: Validate skills list contains valid skill IDs
+      status: pending
+      priority: medium
+      source_line: 74
+      synced_at: 2026-01-06T18:13:00.394743231+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "46"
+      content: Add detailed validation error messages
+      status: pending
+      priority: medium
+      source_line: 75
+      synced_at: 2026-01-06T18:13:00.394744213+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "47"
+      content: Add `Validate() error` method on Config
+      status: pending
+      priority: medium
+      source_line: 76
+      synced_at: 2026-01-06T18:13:00.394745215+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "48"
+      content: Unit test config loading from YAML
+      status: pending
+      priority: medium
+      source_line: 80
+      synced_at: 2026-01-06T18:13:00.394746347+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "49"
+      content: Unit test default config generation
+      status: pending
+      priority: medium
+      source_line: 81
+      synced_at: 2026-01-06T18:13:00.394747289+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "50"
+      content: Unit test env var overrides
+      status: pending
+      priority: medium
+      source_line: 82
+      synced_at: 2026-01-06T18:13:00.39474816+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "51"
+      content: Unit test validation (valid cases)
+      status: pending
+      priority: medium
+      source_line: 83
+      synced_at: 2026-01-06T18:13:00.394749102+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "52"
+      content: Unit test validation (invalid cases)
+      status: pending
+      priority: medium
+      source_line: 84
+      synced_at: 2026-01-06T18:13:00.394750044+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "53"
+      content: Unit test error handling (missing file, bad YAML)
+      status: pending
+      priority: medium
+      source_line: 85
+      synced_at: 2026-01-06T18:13:00.394751146+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "54"
+      content: Integration test with spec store
+      status: pending
+      priority: medium
+      source_line: 86
+      synced_at: 2026-01-06T18:13:00.394752058+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "55"
+      content: Test config file creation
+      status: pending
+      priority: medium
+      source_line: 87
+      synced_at: 2026-01-06T18:13:00.394752879+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "56"
+      content: Create `examples/go-ent/config.yaml` with full example
+      status: pending
+      priority: medium
+      source_line: 91
+      synced_at: 2026-01-06T18:13:00.394754272+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "57"
+      content: Create `examples/go-ent/config-minimal.yaml` with minimal example
+      status: pending
+      priority: medium
+      source_line: 92
+      synced_at: 2026-01-06T18:13:00.394755604+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "58"
+      content: Document each section in examples
+      status: pending
+      priority: medium
+      source_line: 93
+      synced_at: 2026-01-06T18:13:00.394756576+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "59"
+      content: Add comments explaining options
+      status: pending
+      priority: medium
+      source_line: 94
+      synced_at: 2026-01-06T18:13:00.394757478+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "60"
+      content: Add package-level documentation
+      status: pending
+      priority: medium
+      source_line: 98
+      synced_at: 2026-01-06T18:13:00.39475866+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "61"
+      content: Document each config section
+      status: pending
+      priority: medium
+      source_line: 99
+      synced_at: 2026-01-06T18:13:00.394759552+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "62"
+      content: Add godoc examples for loading
+      status: pending
+      priority: medium
+      source_line: 100
+      synced_at: 2026-01-06T18:13:00.394760453+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "63"
+      content: Document env var naming convention
+      status: pending
+      priority: medium
+      source_line: 101
+      synced_at: 2026-01-06T18:13:00.394761385+03:00
+    - id:
+        change_id: add-config-system
+        task_num: "64"
+      content: Add migration guide from no config
+      status: pending
+      priority: medium
+      source_line: 102
+      synced_at: 2026-01-06T18:13:00.394762317+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "1"
+      content: Create `internal/domain/` directory
+      status: completed
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.394814935+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "2"
+      content: Add package documentation
+      status: completed
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.394816037+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "3"
+      content: Create `internal/domain/agent.go`
+      status: completed
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.394817429+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "4"
+      content: Create `internal/domain/runtime.go`
+      status: completed
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.394818532+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "5"
+      content: Create `internal/domain/action.go`
+      status: completed
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.394819493+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "6"
+      content: Create `internal/domain/execution.go`
+      status: completed
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.394822669+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "7"
+      content: Create `internal/domain/skill.go`
+      status: completed
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-06T18:13:00.394823641+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "8"
+      content: Create `internal/domain/errors.go`
+      status: completed
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-06T18:13:00.394824613+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "9"
+      content: Define `type AgentRole string`
+      status: completed
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-06T18:13:00.394827929+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "10"
+      content: 'Add constants: Product, Architect, Senior, Developer, Reviewer, Ops'
+      status: completed
+      priority: medium
+      source_line: 21
+      synced_at: 2026-01-06T18:13:00.394829502+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "11"
+      content: Add `String() string` method
+      status: completed
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.394832047+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "12"
+      content: Add `Valid() bool` method
+      status: completed
+      priority: medium
+      source_line: 23
+      synced_at: 2026-01-06T18:13:00.394832948+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "13"
+      content: Add doc comments explaining each role
+      status: completed
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.39483393+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "14"
+      content: Define struct with Role, Model, Skills, Tools fields
+      status: completed
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-06T18:13:00.394835323+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "15"
+      content: Add BudgetLimit, Priority fields
+      status: completed
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-06T18:13:00.394836225+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "16"
+      content: Add validation methods
+      status: completed
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.394837026+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "17"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.394837787+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "18"
+      content: Define capability flags/enum
+      status: completed
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.394838849+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "19"
+      content: Add methods to check capabilities
+      status: completed
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.394839901+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "20"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 35
+      synced_at: 2026-01-06T18:13:00.394843979+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "21"
+      content: Define `type Runtime string`
+      status: completed
+      priority: medium
+      source_line: 40
+      synced_at: 2026-01-06T18:13:00.394845241+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "22"
+      content: 'Add constants: ClaudeCode, OpenCode, CLI'
+      status: completed
+      priority: medium
+      source_line: 41
+      synced_at: 2026-01-06T18:13:00.394846253+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "23"
+      content: Add `String() string` method
+      status: completed
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-06T18:13:00.394847165+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "24"
+      content: Add `Valid() bool` method
+      status: completed
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.394848006+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "25"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.394848788+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "26"
+      content: Define capability struct
+      status: completed
+      priority: medium
+      source_line: 47
+      synced_at: 2026-01-06T18:13:00.39484982+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "27"
+      content: Add methods to query runtime features
+      status: completed
+      priority: medium
+      source_line: 48
+      synced_at: 2026-01-06T18:13:00.394850812+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "28"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 49
+      synced_at: 2026-01-06T18:13:00.394851593+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "29"
+      content: Define `type SpecAction string`
+      status: completed
+      priority: medium
+      source_line: 54
+      synced_at: 2026-01-06T18:13:00.394852775+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "30"
+      content: 'Add Discovery actions: Research, Analyze, Retrofit'
+      status: completed
+      priority: medium
+      source_line: 55
+      synced_at: 2026-01-06T18:13:00.394853968+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "31"
+      content: 'Add Planning actions: Proposal, Plan, Design, Split'
+      status: completed
+      priority: medium
+      source_line: 56
+      synced_at: 2026-01-06T18:13:00.39485517+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "32"
+      content: 'Add Execution actions: Implement, Execute, Scaffold'
+      status: completed
+      priority: medium
+      source_line: 57
+      synced_at: 2026-01-06T18:13:00.394856332+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "33"
+      content: 'Add Validation actions: Review, Verify, Debug, Lint'
+      status: completed
+      priority: medium
+      source_line: 58
+      synced_at: 2026-01-06T18:13:00.394857484+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "34"
+      content: 'Add Lifecycle actions: Approve, Archive, Status'
+      status: completed
+      priority: medium
+      source_line: 59
+      synced_at: 2026-01-06T18:13:00.394858656+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "35"
+      content: Add `String() string` method
+      status: completed
+      priority: medium
+      source_line: 60
+      synced_at: 2026-01-06T18:13:00.394859558+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "36"
+      content: Add `Valid() bool` method
+      status: completed
+      priority: medium
+      source_line: 61
+      synced_at: 2026-01-06T18:13:00.39486049+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "37"
+      content: Add `Phase() ActionPhase` method
+      status: completed
+      priority: medium
+      source_line: 64
+      synced_at: 2026-01-06T18:13:00.394861572+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "38"
+      content: Define ActionPhase enum (Discovery, Planning, Execution, Validation, Lifecycle)
+      status: completed
+      priority: medium
+      source_line: 65
+      synced_at: 2026-01-06T18:13:00.394869086+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "39"
+      content: Add doc comments explaining each action
+      status: completed
+      priority: medium
+      source_line: 66
+      synced_at: 2026-01-06T18:13:00.394870178+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "40"
+      content: Define `type ExecutionStrategy string`
+      status: completed
+      priority: medium
+      source_line: 71
+      synced_at: 2026-01-06T18:13:00.39487143+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "41"
+      content: 'Add constants: Single, Multi, Parallel'
+      status: completed
+      priority: medium
+      source_line: 72
+      synced_at: 2026-01-06T18:13:00.394872422+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "42"
+      content: Add `String() string` method
+      status: completed
+      priority: medium
+      source_line: 73
+      synced_at: 2026-01-06T18:13:00.394873374+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "43"
+      content: Add `Valid() bool` method
+      status: completed
+      priority: medium
+      source_line: 74
+      synced_at: 2026-01-06T18:13:00.394874245+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "44"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 75
+      synced_at: 2026-01-06T18:13:00.394875027+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "45"
+      content: Define struct with Runtime, Agent, Strategy fields
+      status: completed
+      priority: medium
+      source_line: 78
+      synced_at: 2026-01-06T18:13:00.394876369+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "46"
+      content: Add ChangeID, TaskID, Budget fields
+      status: completed
+      priority: medium
+      source_line: 79
+      synced_at: 2026-01-06T18:13:00.394877341+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "47"
+      content: Add metadata fields
+      status: completed
+      priority: medium
+      source_line: 80
+      synced_at: 2026-01-06T18:13:00.394878273+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "48"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 81
+      synced_at: 2026-01-06T18:13:00.394879034+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "49"
+      content: Define struct with Success, Output, Error fields
+      status: completed
+      priority: medium
+      source_line: 84
+      synced_at: 2026-01-06T18:13:00.394880287+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "50"
+      content: Add Tokens, Cost, Duration fields
+      status: completed
+      priority: medium
+      source_line: 85
+      synced_at: 2026-01-06T18:13:00.394881248+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "51"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 86
+      synced_at: 2026-01-06T18:13:00.39488203+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "52"
+      content: Define interface with Name(), Description() methods
+      status: completed
+      priority: medium
+      source_line: 91
+      synced_at: 2026-01-06T18:13:00.394883523+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "53"
+      content: Add CanHandle(ctx SkillContext) bool method
+      status: completed
+      priority: medium
+      source_line: 92
+      synced_at: 2026-01-06T18:13:00.394884575+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "54"
+      content: Add Execute(ctx context.Context, req SkillRequest) (SkillResult, error) method
+      status: completed
+      priority: medium
+      source_line: 93
+      synced_at: 2026-01-06T18:13:00.394886098+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "55"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 94
+      synced_at: 2026-01-06T18:13:00.394886889+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "56"
+      content: Define SkillMetadata struct
+      status: completed
+      priority: medium
+      source_line: 97
+      synced_at: 2026-01-06T18:13:00.394887881+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "57"
+      content: Define SkillContext struct
+      status: completed
+      priority: medium
+      source_line: 98
+      synced_at: 2026-01-06T18:13:00.394888732+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "58"
+      content: Define SkillRequest struct
+      status: completed
+      priority: medium
+      source_line: 99
+      synced_at: 2026-01-06T18:13:00.394889614+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "59"
+      content: Define SkillResult struct
+      status: completed
+      priority: medium
+      source_line: 100
+      synced_at: 2026-01-06T18:13:00.394890466+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "60"
+      content: Add doc comments for each
+      status: completed
+      priority: medium
+      source_line: 101
+      synced_at: 2026-01-06T18:13:00.394891317+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "61"
+      content: Define `ErrAgentNotFound`
+      status: completed
+      priority: medium
+      source_line: 106
+      synced_at: 2026-01-06T18:13:00.394892459+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "62"
+      content: Define `ErrRuntimeUnavailable`
+      status: completed
+      priority: medium
+      source_line: 107
+      synced_at: 2026-01-06T18:13:00.394893411+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "63"
+      content: Define `ErrInvalidAction`
+      status: completed
+      priority: medium
+      source_line: 108
+      synced_at: 2026-01-06T18:13:00.394894243+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "64"
+      content: Define `ErrInvalidStrategy`
+      status: completed
+      priority: medium
+      source_line: 109
+      synced_at: 2026-01-06T18:13:00.394895124+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "65"
+      content: Define `ErrSkillNotFound`
+      status: completed
+      priority: medium
+      source_line: 110
+      synced_at: 2026-01-06T18:13:00.394895976+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "66"
+      content: Add error wrapping helpers
+      status: completed
+      priority: medium
+      source_line: 111
+      synced_at: 2026-01-06T18:13:00.394896858+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "67"
+      content: Add `IsAgentError(err error) bool` type check
+      status: completed
+      priority: medium
+      source_line: 114
+      synced_at: 2026-01-06T18:13:00.39489815+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "68"
+      content: Add `IsRuntimeError(err error) bool` type check
+      status: completed
+      priority: medium
+      source_line: 115
+      synced_at: 2026-01-06T18:13:00.394899252+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "69"
+      content: Add doc comments
+      status: completed
+      priority: medium
+      source_line: 116
+      synced_at: 2026-01-06T18:13:00.394900033+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "70"
+      content: Import `internal/domain` package
+      status: completed
+      priority: medium
+      source_line: 121
+      synced_at: 2026-01-06T18:13:00.394901246+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "71"
+      content: Document relationship between spec and agent domains
+      status: completed
+      priority: medium
+      source_line: 122
+      synced_at: 2026-01-06T18:13:00.394902438+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "72"
+      content: Verify no circular dependencies
+      status: completed
+      priority: medium
+      source_line: 123
+      synced_at: 2026-01-06T18:13:00.39490339+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "73"
+      content: Add `AgentRole` field to WorkflowState
+      status: completed
+      priority: medium
+      source_line: 126
+      synced_at: 2026-01-06T18:13:00.394905694+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "74"
+      content: Add import for `internal/domain`
+      status: completed
+      priority: medium
+      source_line: 127
+      synced_at: 2026-01-06T18:13:00.394906736+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "75"
+      content: Update doc comments
+      status: completed
+      priority: medium
+      source_line: 128
+      synced_at: 2026-01-06T18:13:00.394921634+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "76"
+      content: Test AgentRole validation
+      status: completed
+      priority: medium
+      source_line: 133
+      synced_at: 2026-01-06T18:13:00.394922796+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "77"
+      content: Test AgentConfig validation
+      status: completed
+      priority: medium
+      source_line: 134
+      synced_at: 2026-01-06T18:13:00.394923668+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "78"
+      content: Test AgentCapability methods
+      status: completed
+      priority: medium
+      source_line: 135
+      synced_at: 2026-01-06T18:13:00.394924549+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "79"
+      content: Test Runtime validation
+      status: completed
+      priority: medium
+      source_line: 138
+      synced_at: 2026-01-06T18:13:00.394925521+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "80"
+      content: Test RuntimeCapability methods
+      status: completed
+      priority: medium
+      source_line: 139
+      synced_at: 2026-01-06T18:13:00.394926453+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "81"
+      content: Test SpecAction validation
+      status: completed
+      priority: medium
+      source_line: 142
+      synced_at: 2026-01-06T18:13:00.394927435+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "82"
+      content: Test Phase() classification
+      status: completed
+      priority: medium
+      source_line: 143
+      synced_at: 2026-01-06T18:13:00.394928346+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "83"
+      content: Test all action constants
+      status: completed
+      priority: medium
+      source_line: 144
+      synced_at: 2026-01-06T18:13:00.394929208+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "84"
+      content: Test ExecutionStrategy validation
+      status: completed
+      priority: medium
+      source_line: 147
+      synced_at: 2026-01-06T18:13:00.39493026+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "85"
+      content: Test ExecutionContext creation
+      status: completed
+      priority: medium
+      source_line: 148
+      synced_at: 2026-01-06T18:13:00.394931162+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "86"
+      content: Test ExecutionResult marshaling
+      status: completed
+      priority: medium
+      source_line: 149
+      synced_at: 2026-01-06T18:13:00.394932063+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "87"
+      content: Test Skill interface compliance (mock implementation)
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:18:04.178082172+03:00
+      completed_at: 2026-01-06T18:18:54.366192652+03:00
+      source_line: 152
+      synced_at: 2026-01-06T18:13:00.394933446+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "88"
+      content: Test SkillContext usage
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:20:56.869275327+03:00
+      completed_at: 2026-01-06T18:21:32.471868718+03:00
+      source_line: 153
+      synced_at: 2026-01-06T18:13:00.394934307+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "89"
+      content: Test SkillResult handling
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:24:17.62730754+03:00
+      completed_at: 2026-01-06T18:25:11.075404007+03:00
+      source_line: 154
+      synced_at: 2026-01-06T18:13:00.394935199+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "90"
+      content: Test error creation
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:34:59.103012662+03:00
+      completed_at: 2026-01-06T18:35:38.721487221+03:00
+      source_line: 157
+      synced_at: 2026-01-06T18:13:00.394936201+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "91"
+      content: Test error wrapping
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:40:15.237725262+03:00
+      completed_at: 2026-01-06T18:41:39.948613585+03:00
+      source_line: 158
+      synced_at: 2026-01-06T18:13:00.394937022+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "92"
+      content: Test error type checks
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:51:35.596380344+03:00
+      completed_at: 2026-01-06T18:52:36.051626021+03:00
+      source_line: 159
+      synced_at: 2026-01-06T18:13:00.394937964+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "93"
+      content: Write comprehensive package doc comment
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:54:19.472490459+03:00
+      completed_at: 2026-01-06T18:55:38.691688331+03:00
+      source_line: 164
+      synced_at: 2026-01-06T18:13:00.394939257+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "94"
+      content: Add examples for common usage
+      status: completed
+      priority: medium
+      completed_at: 2026-01-06T18:56:35.906282273+03:00
+      notes: Examples already included in doc.go comprehensive documentation
+      source_line: 165
+      synced_at: 2026-01-06T18:13:00.394940138+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "95"
+      content: Document design decisions
+      status: completed
+      priority: medium
+      completed_at: 2026-01-06T18:56:46.336841325+03:00
+      notes: Design decisions section already included in doc.go
+      source_line: 166
+      synced_at: 2026-01-06T18:13:00.39494105+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "96"
+      content: Add example for AgentRole usage
+      status: completed
+      priority: medium
+      started_at: 2026-01-06T18:57:21.966814882+03:00
+      completed_at: 2026-01-06T18:58:53.802138135+03:00
+      source_line: 169
+      synced_at: 2026-01-06T18:13:00.394942172+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "97"
+      content: Add example for SpecAction classification
+      status: completed
+      priority: medium
+      completed_at: 2026-01-06T18:59:22.321338454+03:00
+      notes: Already included in example_test.go
+      source_line: 170
+      synced_at: 2026-01-06T18:13:00.394943184+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "98"
+      content: Add example for Skill implementation
+      status: completed
+      priority: medium
+      completed_at: 2026-01-06T18:59:22.441599376+03:00
+      notes: Already included in example_test.go
+      source_line: 171
+      synced_at: 2026-01-06T18:13:00.394944156+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "99"
+      content: Run `go build ./internal/domain`
+      status: completed
+      priority: medium
+      source_line: 176
+      synced_at: 2026-01-06T18:13:00.394945388+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "100"
+      content: Verify no compilation errors
+      status: completed
+      priority: medium
+      source_line: 177
+      synced_at: 2026-01-06T18:13:00.39494655+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "101"
+      content: Check for unused imports
+      status: completed
+      priority: medium
+      source_line: 178
+      synced_at: 2026-01-06T18:13:00.394947422+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "102"
+      content: Run `go test ./internal/domain`
+      status: completed
+      priority: medium
+      source_line: 181
+      synced_at: 2026-01-06T18:13:00.394948494+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "103"
+      content: Verify >80% coverage
+      status: completed
+      priority: medium
+      source_line: 182
+      synced_at: 2026-01-06T18:13:00.394949375+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "104"
+      content: Check for race conditions with `go test -race`
+      status: completed
+      priority: medium
+      source_line: 183
+      synced_at: 2026-01-06T18:13:00.394950598+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "105"
+      content: Run `go mod graph | grep internal/domain`
+      status: completed
+      priority: medium
+      source_line: 186
+      synced_at: 2026-01-06T18:13:00.39495179+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "106"
+      content: Verify zero external dependencies
+      status: completed
+      priority: medium
+      source_line: 187
+      synced_at: 2026-01-06T18:13:00.394952772+03:00
+    - id:
+        change_id: add-domain-types
+        task_num: "107"
+      content: Verify no circular imports
+      status: completed
+      priority: medium
+      source_line: 188
+      synced_at: 2026-01-06T18:13:00.394953663+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "1"
+      content: Create `internal/execution/runner.go`
+      status: pending
+      priority: medium
+      source_line: 4
+      synced_at: 2026-01-06T18:13:00.395010099+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "2"
+      content: Define `Runner` interface
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.395011211+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "3"
+      content: Define `RunRequest`, `RunResult` types
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.395012443+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "4"
+      content: Add runner factory
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.395013435+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "5"
+      content: Create `internal/execution/claude.go`
+      status: pending
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.395014677+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "6"
+      content: Implement MCP protocol integration
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.395015819+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "7"
+      content: Add prompt building with role + skills
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.395017302+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "8"
+      content: Unit tests with mock MCP client
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.395018244+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "9"
+      content: Create `internal/execution/opencode.go`
+      status: pending
+      priority: medium
+      source_line: 16
+      synced_at: 2026-01-06T18:13:00.395019446+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "10"
+      content: Implement native OpenCode API integration
+      status: pending
+      priority: medium
+      source_line: 17
+      synced_at: 2026-01-06T18:13:00.395020558+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "11"
+      content: Add authentication handling
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.395023614+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "12"
+      content: Unit tests with mock API client
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.395024566+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "13"
+      content: Create `internal/execution/cli.go`
+      status: pending
+      priority: medium
+      source_line: 22
+      synced_at: 2026-01-06T18:13:00.395025738+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "14"
+      content: Implement standalone execution
+      status: pending
+      priority: medium
+      source_line: 23
+      synced_at: 2026-01-06T18:13:00.39502664+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "15"
+      content: Add prompt template rendering
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.395027521+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "16"
+      content: Unit tests
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-06T18:13:00.395028233+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "17"
+      content: Create `internal/execution/engine.go`
+      status: pending
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-06T18:13:00.395029345+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "18"
+      content: Implement `Execute(ctx, req) (*Result, error)`
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.395030477+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "19"
+      content: Add runtime selection logic
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.395031348+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "20"
+      content: Integration tests
+      status: pending
+      priority: medium
+      source_line: 31
+      synced_at: 2026-01-06T18:13:00.395035406+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "21"
+      content: Create `internal/execution/strategy.go`
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.395036598+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "22"
+      content: Implement Single strategy
+      status: pending
+      priority: medium
+      source_line: 35
+      synced_at: 2026-01-06T18:13:00.3950376+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "23"
+      content: Implement Multi strategy (agent handoff)
+      status: pending
+      priority: medium
+      source_line: 36
+      synced_at: 2026-01-06T18:13:00.395038612+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "24"
+      content: Implement Parallel strategy with dependency graph
+      status: pending
+      priority: medium
+      source_line: 37
+      synced_at: 2026-01-06T18:13:00.395039774+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "25"
+      content: Unit tests for each strategy
+      status: pending
+      priority: medium
+      source_line: 38
+      synced_at: 2026-01-06T18:13:00.395040726+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "26"
+      content: Create `internal/execution/budget.go`
+      status: pending
+      priority: medium
+      source_line: 41
+      synced_at: 2026-01-06T18:13:00.395041898+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "27"
+      content: Implement budget tracker
+      status: pending
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-06T18:13:00.39504275+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "28"
+      content: Add cost calculation per model
+      status: pending
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.395043651+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "29"
+      content: Add spending limits enforcement
+      status: pending
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.395044633+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "30"
+      content: Update `internal/spec/workflow.go` with ExecutionHistory
+      status: pending
+      priority: medium
+      source_line: 47
+      synced_at: 2026-01-06T18:13:00.395048711+03:00
+    - id:
+        change_id: add-execution-engine
+        task_num: "31"
+      content: Update `internal/spec/loop.go` to use execution engine
+      status: pending
+      priority: medium
+      source_line: 48
+      synced_at: 2026-01-06T18:13:00.395050043+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "1"
+      content: Create internal/plugin/manager.go
+      status: pending
+      priority: medium
+      source_line: 4
+      synced_at: 2026-01-06T18:13:00.395074248+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "2"
+      content: Implement Install(ctx, name) error
+      status: pending
+      priority: medium
+      source_line: 5
+      synced_at: 2026-01-06T18:13:00.39507537+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "3"
+      content: Implement Uninstall(ctx, name) error
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.395076523+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "4"
+      content: Implement List() []PluginInfo
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.395078957+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "5"
+      content: Implement Enable/Disable(name) error
+      status: pending
+      priority: medium
+      source_line: 8
+      synced_at: 2026-01-06T18:13:00.395079989+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "6"
+      content: Create internal/plugin/manifest.go
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.395082484+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "7"
+      content: Define Manifest struct
+      status: pending
+      priority: medium
+      source_line: 12
+      synced_at: 2026-01-06T18:13:00.395083335+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "8"
+      content: Implement YAML parsing
+      status: pending
+      priority: medium
+      source_line: 13
+      synced_at: 2026-01-06T18:13:00.395084157+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "9"
+      content: Add manifest validation
+      status: pending
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-06T18:13:00.395085038+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "10"
+      content: Define SkillRef, AgentRef, RuleRef types
+      status: pending
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-06T18:13:00.395086161+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "11"
+      content: Create internal/plugin/loader.go
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.39509119+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "12"
+      content: Implement LoadPlugin(path) (*Plugin, error)
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.395092332+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "13"
+      content: Integrate with skill registry
+      status: pending
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-06T18:13:00.395093264+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "14"
+      content: Integrate with agent registry
+      status: pending
+      priority: medium
+      source_line: 21
+      synced_at: 2026-01-06T18:13:00.395094165+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "15"
+      content: Create internal/plugin/validator.go
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.395095278+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "16"
+      content: Validate manifest schema
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-06T18:13:00.395096189+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "17"
+      content: Check for conflicts
+      status: pending
+      priority: medium
+      source_line: 26
+      synced_at: 2026-01-06T18:13:00.395097011+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "18"
+      content: Verify dependencies
+      status: pending
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-06T18:13:00.395097882+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "19"
+      content: Create internal/marketplace/client.go
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.395099035+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "20"
+      content: Implement Search(ctx, query) ([]PluginInfo, error)
+      status: pending
+      priority: medium
+      source_line: 31
+      synced_at: 2026-01-06T18:13:00.395103543+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "21"
+      content: Implement Download(ctx, name, version) ([]byte, error)
+      status: pending
+      priority: medium
+      source_line: 32
+      synced_at: 2026-01-06T18:13:00.395104845+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "22"
+      content: Add HTTP client with retries
+      status: pending
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.395105727+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "23"
+      content: Create internal/marketplace/search.go
+      status: pending
+      priority: medium
+      source_line: 36
+      synced_at: 2026-01-06T18:13:00.395106879+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "24"
+      content: Add filtering by category, author
+      status: pending
+      priority: medium
+      source_line: 37
+      synced_at: 2026-01-06T18:13:00.395107811+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "25"
+      content: Add sorting by downloads, rating
+      status: pending
+      priority: medium
+      source_line: 38
+      synced_at: 2026-01-06T18:13:00.395108743+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "26"
+      content: Create internal/marketplace/install.go
+      status: pending
+      priority: medium
+      source_line: 41
+      synced_at: 2026-01-06T18:13:00.395109975+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "27"
+      content: Download and verify plugin
+      status: pending
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-06T18:13:00.395110847+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "28"
+      content: Extract to plugin directory
+      status: pending
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.395111728+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "29"
+      content: Validate before enabling
+      status: pending
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.39511258+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "30"
+      content: Create internal/rules/engine.go
+      status: pending
+      priority: medium
+      source_line: 47
+      synced_at: 2026-01-06T18:13:00.395113642+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "31"
+      content: Define Rule struct
+      status: pending
+      priority: medium
+      source_line: 48
+      synced_at: 2026-01-06T18:13:00.395114453+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "32"
+      content: Implement Evaluate(ctx, event) ([]Action, error)
+      status: pending
+      priority: medium
+      source_line: 49
+      synced_at: 2026-01-06T18:13:00.395115585+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "33"
+      content: Load rules from plugins
+      status: pending
+      priority: medium
+      source_line: 50
+      synced_at: 2026-01-06T18:13:00.395116427+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "34"
+      content: Create internal/rules/rule.go
+      status: pending
+      priority: medium
+      source_line: 53
+      synced_at: 2026-01-06T18:13:00.395117509+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "35"
+      content: Define rule YAML format
+      status: pending
+      priority: medium
+      source_line: 54
+      synced_at: 2026-01-06T18:13:00.395118361+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "36"
+      content: Add condition evaluation
+      status: pending
+      priority: medium
+      source_line: 55
+      synced_at: 2026-01-06T18:13:00.395119212+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "37"
+      content: Create internal/rules/evaluator.go
+      status: pending
+      priority: medium
+      source_line: 58
+      synced_at: 2026-01-06T18:13:00.395120344+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "38"
+      content: Implement rule matching
+      status: pending
+      priority: medium
+      source_line: 59
+      synced_at: 2026-01-06T18:13:00.395126937+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "39"
+      content: Add action execution
+      status: pending
+      priority: medium
+      source_line: 60
+      synced_at: 2026-01-06T18:13:00.395127818+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "40"
+      content: Create internal/mcp/tools/plugin_list.go
+      status: pending
+      priority: medium
+      source_line: 63
+      synced_at: 2026-01-06T18:13:00.395129101+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "41"
+      content: Create internal/mcp/tools/plugin_install.go
+      status: pending
+      priority: medium
+      source_line: 64
+      synced_at: 2026-01-06T18:13:00.395130193+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "42"
+      content: Create internal/mcp/tools/plugin_search.go
+      status: pending
+      priority: medium
+      source_line: 65
+      synced_at: 2026-01-06T18:13:00.395131315+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "43"
+      content: Create internal/mcp/tools/plugin_info.go
+      status: pending
+      priority: medium
+      source_line: 66
+      synced_at: 2026-01-06T18:13:00.395132387+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "44"
+      content: Unit tests for plugin manager
+      status: pending
+      priority: medium
+      source_line: 69
+      synced_at: 2026-01-06T18:13:00.395133459+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "45"
+      content: Unit tests for marketplace client
+      status: pending
+      priority: medium
+      source_line: 70
+      synced_at: 2026-01-06T18:13:00.395134421+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "46"
+      content: Integration tests for plugin loading
+      status: pending
+      priority: medium
+      source_line: 71
+      synced_at: 2026-01-06T18:13:00.395135422+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "47"
+      content: E2E test with sample plugin
+      status: pending
+      priority: medium
+      source_line: 72
+      synced_at: 2026-01-06T18:13:00.395136314+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "48"
+      content: Plugin development guide
+      status: pending
+      priority: medium
+      source_line: 75
+      synced_at: 2026-01-06T18:13:00.395137316+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "49"
+      content: Manifest format reference
+      status: pending
+      priority: medium
+      source_line: 76
+      synced_at: 2026-01-06T18:13:00.395138167+03:00
+    - id:
+        change_id: add-plugin-system
+        task_num: "50"
+      content: Marketplace usage guide
+      status: pending
+      priority: medium
+      source_line: 77
+      synced_at: 2026-01-06T18:13:00.395139029+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "1"
+      content: Move `cmd/go-ent/internal/tools/` to `internal/mcp/tools/`
+      status: pending
+      priority: medium
+      source_line: 6
+      synced_at: 2026-01-06T18:13:00.395792498+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "2"
+      content: Verify all files moved (15+ tool handler files)
+      status: pending
+      priority: medium
+      source_line: 7
+      synced_at: 2026-01-06T18:13:00.395796164+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "3"
+      content: Move `cmd/go-ent/internal/server/` to `internal/mcp/server/`
+      status: pending
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-06T18:13:00.395798218+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "4"
+      content: Verify server.go moved
+      status: pending
+      priority: medium
+      source_line: 11
+      synced_at: 2026-01-06T18:13:00.395800693+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "5"
+      content: Move `cmd/go-ent/internal/version/` to `internal/version/`
+      status: pending
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-06T18:13:00.395802186+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "6"
+      content: Verify version.go moved
+      status: pending
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-06T18:13:00.395807045+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "7"
+      content: Delete empty `cmd/go-ent/internal/` directory
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-06T18:13:00.395808267+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "8"
+      content: Verify no files left behind
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-06T18:13:00.395809259+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "9"
+      content: Replace `cmd/go-ent/internal/server` with `internal/mcp/server`
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-06T18:13:00.395810862+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "10"
+      content: Replace `cmd/go-ent/internal/version` with `internal/version`
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-06T18:13:00.395812485+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "11"
+      content: Verify imports
+      status: pending
+      priority: medium
+      source_line: 26
+      synced_at: 2026-01-06T18:13:00.395814499+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "12"
+      content: Replace `cmd/go-ent/internal/tools` with `internal/mcp/tools`
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-06T18:13:00.395815911+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "13"
+      content: Verify imports
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-06T18:13:00.395816643+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "14"
+      content: Update package imports if needed
+      status: pending
+      priority: medium
+      source_line: 33
+      synced_at: 2026-01-06T18:13:00.395817855+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "15"
+      content: Verify all tool registrations work
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-06T18:13:00.395818987+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "16"
+      content: Update imports in init.go
+      status: pending
+      priority: medium
+      source_line: 37
+      synced_at: 2026-01-06T18:13:00.395820009+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "17"
+      content: Update imports in list.go
+      status: pending
+      priority: medium
+      source_line: 38
+      synced_at: 2026-01-06T18:13:00.395820941+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "18"
+      content: Update imports in show.go
+      status: pending
+      priority: medium
+      source_line: 39
+      synced_at: 2026-01-06T18:13:00.395821782+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "19"
+      content: Update imports in crud.go
+      status: pending
+      priority: medium
+      source_line: 40
+      synced_at: 2026-01-06T18:13:00.395822624+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "20"
+      content: Update imports in registry.go
+      status: pending
+      priority: medium
+      source_line: 41
+      synced_at: 2026-01-06T18:13:00.395825629+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "21"
+      content: Update imports in workflow.go
+      status: pending
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-06T18:13:00.395826541+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "22"
+      content: Update imports in loop.go
+      status: pending
+      priority: medium
+      source_line: 43
+      synced_at: 2026-01-06T18:13:00.395827413+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "23"
+      content: Update imports in validate.go
+      status: pending
+      priority: medium
+      source_line: 44
+      synced_at: 2026-01-06T18:13:00.395828304+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "24"
+      content: Update imports in archive.go
+      status: pending
+      priority: medium
+      source_line: 45
+      synced_at: 2026-01-06T18:13:00.395829186+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "25"
+      content: Update imports in generate*.go files
+      status: pending
+      priority: medium
+      source_line: 46
+      synced_at: 2026-01-06T18:13:00.395830148+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "26"
+      content: Verify all tool files compile
+      status: pending
+      priority: medium
+      source_line: 47
+      synced_at: 2026-01-06T18:13:00.395831019+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "27"
+      content: Find all *_test.go files with old imports
+      status: pending
+      priority: medium
+      source_line: 50
+      synced_at: 2026-01-06T18:13:00.395832252+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "28"
+      content: Update import paths
+      status: pending
+      priority: medium
+      source_line: 51
+      synced_at: 2026-01-06T18:13:00.395833053+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "29"
+      content: Verify tests compile
+      status: pending
+      priority: medium
+      source_line: 52
+      synced_at: 2026-01-06T18:13:00.395833845+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "30"
+      content: Run `go build ./cmd/go-ent`
+      status: pending
+      priority: medium
+      source_line: 57
+      synced_at: 2026-01-06T18:13:00.395835047+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "31"
+      content: Verify no compilation errors
+      status: pending
+      priority: medium
+      source_line: 58
+      synced_at: 2026-01-06T18:13:00.395835969+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "32"
+      content: Check binary size is similar
+      status: pending
+      priority: medium
+      source_line: 59
+      synced_at: 2026-01-06T18:13:00.39583683+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "33"
+      content: Run `go test ./internal/mcp/...`
+      status: pending
+      priority: medium
+      source_line: 62
+      synced_at: 2026-01-06T18:13:00.395837892+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "34"
+      content: Run `go test ./...` (full suite)
+      status: pending
+      priority: medium
+      source_line: 63
+      synced_at: 2026-01-06T18:13:00.395838814+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "35"
+      content: Verify all tests pass
+      status: pending
+      priority: medium
+      source_line: 64
+      synced_at: 2026-01-06T18:13:00.395839696+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "36"
+      content: 'Start MCP server: `./dist/go-ent serve`'
+      status: pending
+      priority: medium
+      source_line: 67
+      synced_at: 2026-01-06T18:13:00.395840868+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "37"
+      content: Test with Claude Code plugin
+      status: pending
+      priority: medium
+      source_line: 68
+      synced_at: 2026-01-06T18:13:00.395841729+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "38"
+      content: Verify tools respond correctly
+      status: pending
+      priority: medium
+      source_line: 69
+      synced_at: 2026-01-06T18:13:00.395845546+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "39"
+      content: Check logs for errors
+      status: pending
+      priority: medium
+      source_line: 70
+      synced_at: 2026-01-06T18:13:00.395846368+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "40"
+      content: Search for `cmd/go-ent/internal/` in codebase
+      status: pending
+      priority: medium
+      source_line: 73
+      synced_at: 2026-01-06T18:13:00.39584761+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "41"
+      content: Verify no references remain
+      status: pending
+      priority: medium
+      source_line: 74
+      synced_at: 2026-01-06T18:13:00.395848662+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "42"
+      content: Check for broken imports
+      status: pending
+      priority: medium
+      source_line: 75
+      synced_at: 2026-01-06T18:13:00.395849464+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "43"
+      content: Update import examples if present
+      status: pending
+      priority: medium
+      source_line: 80
+      synced_at: 2026-01-06T18:13:00.395850656+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "44"
+      content: Update directory structure documentation
+      status: pending
+      priority: medium
+      source_line: 81
+      synced_at: 2026-01-06T18:13:00.395851658+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "45"
+      content: Update any references to internal structure
+      status: pending
+      priority: medium
+      source_line: 84
+      synced_at: 2026-01-06T18:13:00.39585283+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "46"
+      content: Verify openspec instructions still accurate
+      status: pending
+      priority: medium
+      source_line: 85
+      synced_at: 2026-01-06T18:13:00.395853892+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "47"
+      content: Run `go mod tidy`
+      status: pending
+      priority: medium
+      source_line: 88
+      synced_at: 2026-01-06T18:13:00.395854784+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "48"
+      content: Verify module dependencies
+      status: pending
+      priority: medium
+      source_line: 89
+      synced_at: 2026-01-06T18:13:00.395855625+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "49"
+      content: Stage all moved files
+      status: pending
+      priority: medium
+      source_line: 94
+      synced_at: 2026-01-06T18:13:00.395856757+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "50"
+      content: Stage all modified files
+      status: pending
+      priority: medium
+      source_line: 95
+      synced_at: 2026-01-06T18:13:00.395857579+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "51"
+      content: Review diff
+      status: pending
+      priority: medium
+      source_line: 96
+      synced_at: 2026-01-06T18:13:00.39585826+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "52"
+      content: Create commit with clear message
+      status: pending
+      priority: medium
+      source_line: 99
+      synced_at: 2026-01-06T18:13:00.395859362+03:00
+    - id:
+        change_id: restructure-repository
+        task_num: "53"
+      content: Reference this proposal in commit message
+      status: pending
+      priority: medium
+      source_line: 100
+      synced_at: 2026-01-06T18:13:00.395860384+03:00

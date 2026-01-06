@@ -2,7 +2,7 @@
 
 ## Overview
 
-Project-level configuration system for agent preferences, runtime selection, budget limits, and model mappings via `.goent/config.yaml`.
+Project-level configuration system for agent preferences, runtime selection, budget limits, and model mappings via `.go-ent/config.yaml`.
 
 ---
 
@@ -10,17 +10,17 @@ Project-level configuration system for agent preferences, runtime selection, bud
 
 ### Requirement: Configuration File Location
 
-The system SHALL load configuration from `.goent/config.yaml` in the project root.
+The system SHALL load configuration from `.go-ent/config.yaml` in the project root.
 
 **Level**: MUST
 
 #### Scenario: Standard Location
 **Given** a project root directory
 **When** loading configuration
-**Then** the system SHALL attempt to read `.goent/config.yaml`
+**Then** the system SHALL attempt to read `.go-ent/config.yaml`
 
 #### Scenario: Missing Configuration
-**Given** no `.goent/config.yaml` exists
+**Given** no `.go-ent/config.yaml` exists
 **When** loading configuration
 **Then** the system SHALL use default values without error
 

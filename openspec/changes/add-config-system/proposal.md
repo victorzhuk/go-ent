@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implement `.goent/config.yaml` configuration system for project-level and user-level settings. Enables customization of agent preferences, runtime selection, budget limits, and model mappings.
+Implement `.go-ent/config.yaml` configuration system for project-level and user-level settings. Enables customization of agent preferences, runtime selection, budget limits, and model mappings.
 
 ## Rationale
 
@@ -25,7 +25,7 @@ The current system lacks configuration for:
 
 ### Target State
 
-New `.goent/config.yaml` with hierarchical configuration:
+New `.go-ent/config.yaml` with hierarchical configuration:
 ```yaml
 version: "1.0"
 
@@ -68,18 +68,18 @@ models:
 **Priority**: Project-level for v3.0, user-level for v3.1
 
 **Loading order** (future):
-1. `~/.goent/config.yaml` (user defaults)
-2. `.goent/config.yaml` (project overrides)
+1. `~/.go-ent/config.yaml` (user defaults)
+2. `.go-ent/config.yaml` (project overrides)
 3. Environment variables (runtime overrides)
 
 **v3.0 scope**: Project-level only
 
 ### 3. Config Location
 
-**Decision**: `.goent/config.yaml` in project root
+**Decision**: `.go-ent/config.yaml` in project root
 
 **Rationale**:
-- Aligns with `.goent/` convention
+- Aligns with `.go-ent/` convention
 - Gitignored by default (contains budget preferences)
 - Easy to find and edit
 
@@ -142,7 +142,7 @@ models:
 ```yaml
 skills:
   enabled: [go-code, go-arch, go-db, go-test]
-  custom_dir: .goent/skills          # Custom skill directory
+  custom_dir: .go-ent/skills          # Custom skill directory
 ```
 
 ## Integration Points
@@ -168,7 +168,7 @@ None - this is a pure addition. Existing code continues to work without config f
 
 ## Success Criteria
 
-- [ ] Config loads from `.goent/config.yaml`
+- [ ] Config loads from `.go-ent/config.yaml`
 - [ ] Defaults work when config file missing
 - [ ] Environment variables override config
 - [ ] Validation catches invalid configuration

@@ -5,13 +5,13 @@
 ### 1.1 Update Claude Code Settings
 - [x] Update `.claude/settings.local.json` with `extraKnownMarketplaces`
 - [x] Add `go-ent-local` marketplace pointing to `./plugins/go-ent`
-- [x] Add `enabledPlugins` entry for `goent@go-ent-local`
+- [x] Add `enabledPlugins` entry for `go-ent@go-ent-local`
 - [x] Add `Bash(make build-mcp:*)` to permissions allowlist
 - [x] Add `mcp__go_ent__*` to permissions allowlist
 
 ### 1.2 Verify Plugin Configuration
 - [x] Check `plugins/go-ent/.claude-plugin/plugin.json` exists and is valid JSON
-- [x] Verify plugin name is `goent`
+- [x] Verify plugin name is `go-ent`
 - [x] Verify version is `1.0.0`
 - [x] Check marketplace registration (not needed for directory source)
 

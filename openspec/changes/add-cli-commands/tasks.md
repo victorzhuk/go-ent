@@ -8,31 +8,31 @@
 
 ## 2. Run Command
 - [ ] Create internal/cli/run.go
-- [ ] Implement `goent run <action>` command
+- [ ] Implement `go-ent run <action>` command
 - [ ] Add flags: --agent, --strategy, --budget, --dry-run
 - [ ] Integration with execution engine
 
 ## 3. Agent Commands
 - [ ] Create internal/cli/agent.go
-- [ ] Implement `goent agent list`
-- [ ] Implement `goent agent info <name>`
+- [ ] Implement `go-ent agent list`
+- [ ] Implement `go-ent agent info <name>`
 - [ ] Display agent capabilities
 
 ## 4. Skill Commands
 - [ ] Create internal/cli/skill.go
-- [ ] Implement `goent skill list`
-- [ ] Implement `goent skill info <name>`
+- [ ] Implement `go-ent skill list`
+- [ ] Implement `go-ent skill info <name>`
 
 ## 5. Spec Commands
 - [ ] Create internal/cli/spec.go
-- [ ] Implement `goent spec init/list/show`
+- [ ] Implement `go-ent spec init/list/show`
 - [ ] Reuse existing spec management code
 
 ## 6. Config Commands
 - [ ] Create internal/cli/config.go
-- [ ] Implement `goent config show`
-- [ ] Implement `goent config set <key> <value>`
-- [ ] Implement `goent config init`
+- [ ] Implement `go-ent config show`
+- [ ] Implement `go-ent config set <key> <value>`
+- [ ] Implement `go-ent config init`
 
 ## 7. Main Integration
 - [ ] Update cmd/go-ent/main.go

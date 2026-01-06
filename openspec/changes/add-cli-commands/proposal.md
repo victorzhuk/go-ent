@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add standalone CLI commands (`goent run`, `goent status`, etc.) for non-MCP usage. Enables goent to work outside of Claude Code environment for automation and CI/CD.
+Add standalone CLI commands (`go-ent run`, `go-ent status`, etc.) for non-MCP usage. Enables go-ent to work outside of Claude Code environment for automation and CI/CD.
 
 ## Rationale
 
@@ -12,12 +12,12 @@ GoEnt only works via MCP (Claude Code) - can't use it standalone for scripts, CI
 ### Solution
 Add CLI commands that wrap the execution engine and spec management:
 ```
-goent run <task>              # Execute with agent selection
-goent status                  # Show execution status
-goent agent list/info         # Agent management
-goent skill list/info         # Skill management
-goent spec init/list/show     # Spec management
-goent config show/set/init    # Config management
+go-ent run <task>              # Execute with agent selection
+go-ent status                  # Show execution status
+go-ent agent list/info         # Agent management
+go-ent skill list/info         # Skill management
+go-ent spec init/list/show     # Spec management
+go-ent config show/set/init    # Config management
 ```
 
 ## Key Components
@@ -35,7 +35,7 @@ goent config show/set/init    # Config management
 
 ## Success Criteria
 
-- [ ] `goent run <task>` executes with agent selection
-- [ ] `goent spec list` works like MCP tool
-- [ ] `goent config show` displays current config
+- [ ] `go-ent run <task>` executes with agent selection
+- [ ] `go-ent spec list` works like MCP tool
+- [ ] `go-ent config show` displays current config
 - [ ] All commands have `--help` text

@@ -1,5 +1,6 @@
 # Binaries
 dist/
+bin/
 *.exe
 *.exe~
 *.dll
@@ -30,3 +31,6 @@ cmd/go-ent/templates/
 # OS
 .DS_Store
 Thumbs.db
+
+# Development MCP override (project-level config for dogfooding)
+.mcp.json

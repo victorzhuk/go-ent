@@ -65,7 +65,7 @@ After deployment, create separate PR to:
 
 ## Extended Planning Commands
 
-The goent plugin provides additional commands for comprehensive planning inspired by spec-kit methodology. These commands enhance the OpenSpec workflow with task decomposition, research, and quality validation.
+The go-ent plugin provides additional commands for comprehensive planning inspired by spec-kit methodology. These commands enhance the OpenSpec workflow with task decomposition, research, and quality validation.
 
 ### Task Decomposition
 
@@ -173,7 +173,7 @@ Comprehensive multi-phase planning:
 
 ### Workflow State Management
 
-The goent plugin provides workflow state tracking for guided planning with explicit user approval gates. This ensures alignment between agent actions and user expectations throughout the planning process.
+The go-ent plugin provides workflow state tracking for guided planning with explicit user approval gates. This ensures alignment between agent actions and user expectations throughout the planning process.
 
 **Key Concepts**:
 - **Wait Points**: Explicit stops where the agent presents findings and waits for user approval

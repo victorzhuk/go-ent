@@ -39,7 +39,7 @@ Configure go-ent to use its own plugin and MCP server for self-development (dogf
 
 Additions:
 - `extraKnownMarketplaces` with local plugin directory (`./plugins/go-ent`)
-- `enabledPlugins` to enable `goent@go-ent-local`
+- `enabledPlugins` to enable `go-ent@go-ent-local`
 - Permission allowlist for `make build-mcp` command
 - Permission allowlist for all `mcp__go_ent__*` tools
 

@@ -426,18 +426,19 @@ func (r *RegistryStore) parseTasksFile(path, changeID string) ([]RegistryTask, e
 	lines := strings.Split(string(data), "\n")
 	tasks := make([]RegistryTask, 0)
 
-	taskPattern := regexp.MustCompile(`^[-*]\s+\[([ x])\]\s+(\d+(?:\.\d+)?)\s+(.+)$`)
+	taskPattern := regexp.MustCompile(`^[-*]\s+\[([ xX])\]\s+(.+)$`)
+	taskCounter := 0
 
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
 		matches := taskPattern.FindStringSubmatch(line)
-		if len(matches) != 4 {
+		if len(matches) != 3 {
 			continue
 		}
 
-		checked := matches[1] == "x"
-		taskNum := matches[2]
-		content := matches[3]
+		taskCounter++
+		checked := matches[1] == "x" || matches[1] == "X"
+		content := matches[2]
 
 		status := RegStatusPending
 		if checked {
@@ -447,7 +448,7 @@ func (r *RegistryStore) parseTasksFile(path, changeID string) ([]RegistryTask, e
 		task := RegistryTask{
 			ID: TaskID{
 				ChangeID: changeID,
-				TaskNum:  taskNum,
+				TaskNum:  fmt.Sprintf("%d", taskCounter),
 			},
 			Content:    content,
 			Status:     status,

@@ -7,7 +7,7 @@ Create plugin manager and marketplace system for third-party skills, custom agen
 ## Rationale
 
 ### Problem
-No way to extend goent with custom skills, agents, or rules without modifying core code.
+No way to extend go-ent with custom skills, agents, or rules without modifying core code.
 
 ### Solution
 - **Plugin manager**: Install, load, validate plugins from marketplace or local

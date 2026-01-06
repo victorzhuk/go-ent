@@ -4,6 +4,47 @@
 
 go-ent uses its own plugin system for development (dogfooding). This means you can use go-ent's agents, skills, and workflows to develop go-ent itself.
 
+## MCP Server Configuration (Dual Setup)
+
+go-ent uses a **dual-configuration** approach:
+
+### Production Configuration (Plugin)
+**File**: `plugins/go-ent/.mcp.json` (committed)
+```json
+{
+  "go-ent": {
+    "command": "./scripts/run-mcp.sh",
+    "args": [],
+    "env": {}
+  }
+}
+```
+- ✅ Smart launcher script with auto-detection
+- ✅ Works for both local dev and marketplace installs
+- ✅ Production-ready, no hardcoded paths
+- ✅ Committed to git for distribution
+
+### Development Override (Project)
+**File**: `.mcp.json` (project root, gitignored)
+```json
+{
+  "go-ent": {
+    "command": "./dist/go-ent",
+    "args": [],
+    "env": {
+      "LOG_LEVEL": "info",
+      "LOG_FORMAT": "text"
+    }
+  }
+}
+```
+- ✅ Direct binary path for instant startup
+- ✅ Takes priority over plugin config in this project
+- ✅ Created automatically (gitignored)
+- ✅ Avoids hardcoded path in plugin
+
+**Why Both?** Claude Code's config priority is: Project `.mcp.json` → Plugin `.mcp.json`. For dogfooding, the project override uses the local binary directly. For marketplace users, the plugin's smart launcher handles their environment.
+
 ## Initial Setup
 
 ### 1. Build the MCP Server
@@ -29,7 +70,7 @@ Check that `.claude/settings.local.json` contains:
     }
   },
   "enabledPlugins": {
-    "goent@go-ent-local": true
+    "go-ent@go-ent-local": true
   },
   "permissions": {
     "allow": [
