@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/victorzhuk/go-ent/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,6 +24,10 @@ func (s *Store) SpecPath() string {
 		return openspecPath
 	}
 	return filepath.Join(s.rootPath, ".spec")
+}
+
+func (s *Store) ConfigPath() string {
+	return filepath.Join(s.rootPath, ".go-ent", "config.yaml")
 }
 
 func (s *Store) Exists() (bool, error) {
@@ -261,6 +266,28 @@ func (s *Store) SaveRegistry(reg *Registry) error {
 
 	if err := os.WriteFile(s.RegistryPath(), data, 0644); err != nil {
 		return fmt.Errorf("write registry.yaml: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Store) LoadConfig() (*config.Config, error) {
+	return config.Load(s.rootPath)
+}
+
+func (s *Store) SaveConfig(cfg *config.Config) error {
+	cfgPath := s.ConfigPath()
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0755); err != nil {
+		return fmt.Errorf("create config dir: %w", err)
+	}
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+
+	if err := os.WriteFile(cfgPath, data, 0644); err != nil {
+		return fmt.Errorf("write config.yaml: %w", err)
 	}
 
 	return nil

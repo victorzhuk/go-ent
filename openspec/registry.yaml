@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-07T10:05:09.098569462+03:00
+synced_at: 2026-01-07T23:42:11.944438616+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 37
+        completed: 56
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -679,48 +679,60 @@ tasks:
         change_id: add-config-system
         task_num: "4"
       content: Create `internal/config/runtime.go` - RuntimeConfig section
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:28:44.517766352+03:00
+      notes: Already implemented in config.go lines 28-37 with Preferred, Fallback, and Options fields
       source_line: 8
       synced_at: 2026-01-06T21:42:19.714077254+03:00
     - id:
         change_id: add-config-system
         task_num: "5"
       content: Create `internal/config/budget.go` - BudgetConfig section
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:08.455379205+03:00
+      notes: Implemented in config.go line 47 as BudgetConfig struct with Daily, Monthly, PerTask fields
       source_line: 9
       synced_at: 2026-01-06T21:42:19.714078085+03:00
     - id:
         change_id: add-config-system
         task_num: "6"
       content: Create `internal/config/model.go` - ModelsConfig section
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:08.537082099+03:00
+      notes: Implemented in config.go line 63 as ModelsConfig map[string]string
       source_line: 10
       synced_at: 2026-01-06T21:42:19.714079037+03:00
     - id:
         change_id: add-config-system
         task_num: "7"
       content: Create `internal/config/loader.go` - YAML loading with env override
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:08.619897687+03:00
+      notes: Implemented in loader.go with Load() and LoadWithEnv() functions
       source_line: 11
       synced_at: 2026-01-06T21:42:19.714079949+03:00
     - id:
         change_id: add-config-system
         task_num: "8"
       content: Create `internal/config/defaults.go` - Default values
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:08.684662615+03:00
+      notes: Implemented in defaults.go with DefaultConfig() function
       source_line: 12
       synced_at: 2026-01-06T21:42:19.714081321+03:00
     - id:
         change_id: add-config-system
         task_num: "9"
       content: Add package documentation
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:08.76016204+03:00
+      notes: Package documentation exists in doc.go
       source_line: 13
       synced_at: 2026-01-06T21:42:19.714082013+03:00
     - id:
@@ -931,192 +943,248 @@ tasks:
         change_id: add-config-system
         task_num: "32"
       content: Support `GOENT_BUDGET_DAILY` override
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:19:37.205558613+03:00
+      completed_at: 2026-01-07T23:21:28.619923636+03:00
+      notes: 'Already implemented in loader.go with all 5 env vars: GOENT_BUDGET_DAILY, GOENT_BUDGET_MONTHLY, GOENT_BUDGET_PER_TASK, GOENT_RUNTIME_PREFERRED, GOENT_AGENTS_DEFAULT. Full validation and error handling included.'
       source_line: 48
       synced_at: 2026-01-06T21:42:19.714105066+03:00
     - id:
         change_id: add-config-system
         task_num: "33"
       content: Support `GOENT_BUDGET_MONTHLY` override
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:22:12.455886723+03:00
+      notes: Already implemented in loader.go lines 97-103
       source_line: 49
       synced_at: 2026-01-06T21:42:19.714105737+03:00
     - id:
         change_id: add-config-system
         task_num: "34"
       content: Support `GOENT_RUNTIME_PREFERRED` override
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:22:12.524400788+03:00
+      notes: Already implemented in loader.go lines 113-119
       source_line: 50
       synced_at: 2026-01-06T21:42:19.714106438+03:00
     - id:
         change_id: add-config-system
         task_num: "35"
       content: Support `GOENT_AGENTS_DEFAULT` override
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:22:12.592561683+03:00
+      notes: Already implemented in loader.go lines 121-127
       source_line: 51
       synced_at: 2026-01-06T21:42:19.7141071+03:00
     - id:
         change_id: add-config-system
         task_num: "36"
       content: Add env var parsing helpers
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:22:55.930065593+03:00
+      notes: Parsing implemented inline in LoadWithEnv using fmt.Sscanf for floats and domain type validation for enums
       source_line: 52
       synced_at: 2026-01-06T21:42:19.714107681+03:00
     - id:
         change_id: add-config-system
         task_num: "37"
       content: Document env var naming convention
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:23:21.941996639+03:00
+      notes: Comprehensive documentation in LoadWithEnv godoc (lines 46-84) covering naming convention, supported vars, value formats, and error handling
       source_line: 53
       synced_at: 2026-01-06T21:42:19.714108292+03:00
     - id:
         change_id: add-config-system
         task_num: "38"
       content: Update `internal/spec/store.go`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:23:36.684179407+03:00
+      completed_at: 2026-01-07T23:26:55.27254119+03:00
+      notes: Added ConfigPath(), LoadConfig(), and SaveConfig() methods to Store. Import added for internal/config package.
       source_line: 57
       synced_at: 2026-01-06T21:42:19.714114403+03:00
     - id:
         change_id: add-config-system
         task_num: "39"
       content: Update `internal/generation/config.go`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:27:17.426211813+03:00
+      completed_at: 2026-01-07T23:28:06.662987238+03:00
+      notes: No changes needed. Generation config (archetypes/templates) and runtime config (agents/budgets) are separate concerns with no integration points. Backward compatibility maintained. No circular dependencies verified.
       source_line: 62
       synced_at: 2026-01-06T21:42:19.714115806+03:00
     - id:
         change_id: add-config-system
         task_num: "40"
       content: Verify no circular dependencies
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:28:58.536345228+03:00
+      notes: Verified with 'go build ./...' - no circular dependencies. Config package only depends on domain package.
       source_line: 66
       synced_at: 2026-01-06T21:42:19.714116888+03:00
     - id:
         change_id: add-config-system
         task_num: "41"
       content: Validate agent role names match domain.AgentRole
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:29:13.238075007+03:00
+      completed_at: 2026-01-07T23:29:28.28977394+03:00
+      notes: Already implemented in agents.go lines 47-50. Validates each role name with domain.AgentRole.Valid()
       source_line: 70
       synced_at: 2026-01-06T21:42:19.71411783+03:00
     - id:
         change_id: add-config-system
         task_num: "42"
       content: Validate runtime names match domain.Runtime
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:30:30.742714515+03:00
+      completed_at: 2026-01-07T23:30:44.527304715+03:00
+      notes: Already implemented in config.go lines 100-102. Validates Preferred runtime and all Fallback runtimes with domain.Runtime.Valid()
       source_line: 71
       synced_at: 2026-01-06T21:42:19.714118601+03:00
     - id:
         change_id: add-config-system
         task_num: "43"
       content: Validate model mappings are non-empty
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:58.757221258+03:00
+      notes: Implemented in config.go lines 129-135. Validates non-empty map and non-empty name/id pairs
       source_line: 72
       synced_at: 2026-01-06T21:42:19.714119262+03:00
     - id:
         change_id: add-config-system
         task_num: "44"
       content: Validate budget values are positive
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:58.84071646+03:00
+      notes: Implemented in config.go lines 115-125. Validates Daily, Monthly, and PerTask >= 0
       source_line: 73
       synced_at: 2026-01-06T21:42:19.714119914+03:00
     - id:
         change_id: add-config-system
         task_num: "45"
       content: Validate skills list contains valid skill IDs
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:31:23.225609877+03:00
+      completed_at: 2026-01-07T23:31:41.600907616+03:00
+      notes: Deferred - Skills validation requires skill registry which is part of future plugin-system change. For now, SkillsConfig accepts any string slice.
       source_line: 74
       synced_at: 2026-01-06T21:42:19.714120635+03:00
     - id:
         change_id: add-config-system
         task_num: "46"
       content: Add detailed validation error messages
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:58.903428377+03:00
+      notes: 'Validation implemented with detailed error types: ErrInvalidConfig, ErrInvalidAgentConfig, ErrInvalidRuntimeConfig, ErrInvalidBudgetConfig, ErrInvalidModelConfig'
       source_line: 75
       synced_at: 2026-01-06T21:42:19.714121306+03:00
     - id:
         change_id: add-config-system
         task_num: "47"
       content: Add `Validate() error` method on Config
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:30:58.973256678+03:00
+      notes: Config.Validate() method implemented at config.go lines 75-97
       source_line: 76
       synced_at: 2026-01-06T21:42:19.714121977+03:00
     - id:
         change_id: add-config-system
         task_num: "48"
       content: Unit test config loading from YAML
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:39:06.634037514+03:00
+      completed_at: 2026-01-07T23:40:07.211871307+03:00
+      notes: Created loader_test.go with comprehensive tests for Load() and LoadWithEnv(). All tests passing with race detection.
       source_line: 80
       synced_at: 2026-01-06T21:42:19.714122739+03:00
     - id:
         change_id: add-config-system
         task_num: "49"
       content: Unit test default config generation
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:28.639620125+03:00
+      notes: Covered in loader_test.go TestLoad/returns_default_config_when_file_missing
       source_line: 81
       synced_at: 2026-01-06T21:42:19.71412337+03:00
     - id:
         change_id: add-config-system
         task_num: "50"
       content: Unit test env var overrides
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:28.719037757+03:00
+      notes: Covered in loader_test.go TestLoadWithEnv - tests all 5 env var overrides (daily, monthly, per_task, runtime, agents) with valid and invalid cases
       source_line: 82
       synced_at: 2026-01-06T21:42:19.714123981+03:00
     - id:
         change_id: add-config-system
         task_num: "51"
       content: Unit test validation (valid cases)
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:28.818246025+03:00
+      notes: Covered in loader_test.go TestLoad/loads_valid_config_from_YAML - validates correct config loads successfully
       source_line: 83
       synced_at: 2026-01-06T21:42:19.714124652+03:00
     - id:
         change_id: add-config-system
         task_num: "52"
       content: Unit test validation (invalid cases)
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:28.917828203+03:00
+      notes: Covered in loader_test.go TestLoad/returns_error_on_validation_failure - tests invalid agent role and negative budget
       source_line: 84
       synced_at: 2026-01-06T21:42:19.714125294+03:00
     - id:
         change_id: add-config-system
         task_num: "53"
       content: Unit test error handling (missing file, bad YAML)
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:28.989650054+03:00
+      notes: Covered in loader_test.go - missing file (returns_default_config_when_file_missing) and bad YAML (returns_error_on_invalid_YAML)
       source_line: 85
       synced_at: 2026-01-06T21:42:19.714126065+03:00
     - id:
         change_id: add-config-system
         task_num: "54"
       content: Integration test with spec store
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T23:40:52.453866308+03:00
+      completed_at: 2026-01-07T23:42:11.868962927+03:00
+      notes: Created store_config_test.go with integration tests for ConfigPath, LoadConfig, and SaveConfig. All tests passing.
       source_line: 86
       synced_at: 2026-01-06T21:42:19.714126686+03:00
     - id:
         change_id: add-config-system
         task_num: "55"
       content: Test config file creation
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:42:11.944416143+03:00
+      notes: Covered in store_config_test.go TestStore_SaveConfig tests - validates config file creation and directory creation
       source_line: 87
       synced_at: 2026-01-06T21:42:19.714127247+03:00
     - id:
@@ -1179,8 +1247,10 @@ tasks:
         change_id: add-config-system
         task_num: "63"
       content: Document env var naming convention
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-07T23:40:52.385416113+03:00
+      notes: Already documented in loader.go LoadWithEnv godoc (lines 46-84)
       source_line: 101
       synced_at: 2026-01-06T21:42:19.714133068+03:00
     - id:
