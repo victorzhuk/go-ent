@@ -54,49 +54,49 @@
 
 ## 6. Integration with Existing Code
 
-- [ ] Update `internal/spec/store.go`
+- [x] Update `internal/spec/store.go`
   - Add `ConfigPath() string` method
   - Add `LoadConfig() (*config.Config, error)` method
   - Add `SaveConfig(cfg *config.Config) error` method
   - Add config file path resolution
-- [ ] Update `internal/generation/config.go`
+- [x] Update `internal/generation/config.go`
   - Import new config package
   - Add integration points
   - Maintain backward compatibility
-- [ ] Verify no circular dependencies
+- [x] Verify no circular dependencies
 
 ## 7. Config Validation
 
-- [ ] Validate agent role names match domain.AgentRole
-- [ ] Validate runtime names match domain.Runtime
-- [ ] Validate model mappings are non-empty
-- [ ] Validate budget values are positive
-- [ ] Validate skills list contains valid skill IDs
-- [ ] Add detailed validation error messages
-- [ ] Add `Validate() error` method on Config
+- [x] Validate agent role names match domain.AgentRole
+- [x] Validate runtime names match domain.Runtime
+- [x] Validate model mappings are non-empty
+- [x] Validate budget values are positive
+- [x] Validate skills list contains valid skill IDs
+- [x] Add detailed validation error messages
+- [x] Add `Validate() error` method on Config
 
 ## 8. Testing
 
-- [ ] Unit test config loading from YAML
-- [ ] Unit test default config generation
-- [ ] Unit test env var overrides
-- [ ] Unit test validation (valid cases)
-- [ ] Unit test validation (invalid cases)
-- [ ] Unit test error handling (missing file, bad YAML)
-- [ ] Integration test with spec store
-- [ ] Test config file creation
+- [x] Unit test config loading from YAML
+- [x] Unit test default config generation
+- [x] Unit test env var overrides
+- [x] Unit test validation (valid cases)
+- [x] Unit test validation (invalid cases)
+- [x] Unit test error handling (missing file, bad YAML)
+- [x] Integration test with spec store
+- [x] Test config file creation
 
 ## 9. Example Configuration
 
-- [ ] Create `examples/go-ent/config.yaml` with full example
-- [ ] Create `examples/go-ent/config-minimal.yaml` with minimal example
-- [ ] Document each section in examples
-- [ ] Add comments explaining options
+- [x] Create `examples/go-ent/config.yaml` with full example
+- [x] Create `examples/go-ent/config-minimal.yaml` with minimal example
+- [x] Document each section in examples
+- [x] Add comments explaining options
 
 ## 10. Documentation
 
-- [ ] Add package-level documentation
-- [ ] Document each config section
-- [ ] Add godoc examples for loading
-- [ ] Document env var naming convention
-- [ ] Add migration guide from no config
+- [x] Add package-level documentation
+- [x] Document each config section
+- [x] Add godoc examples for loading
+- [x] Document env var naming convention
+- [x] Add migration guide from no config

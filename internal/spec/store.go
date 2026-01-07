@@ -53,7 +53,7 @@ func (s *Store) Init(project Project) error {
 	if err := os.MkdirAll(filepath.Join(specPath, "tasks"), 0755); err != nil {
 		return fmt.Errorf("create tasks dir: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Join(specPath, "archive"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(specPath, "changes", "archive"), 0755); err != nil {
 		return fmt.Errorf("create archive dir: %w", err)
 	}
 

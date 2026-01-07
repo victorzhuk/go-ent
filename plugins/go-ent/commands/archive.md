@@ -30,7 +30,7 @@ Input: `$ARGUMENTS` (change-id)
 
 4. **Move to archive**:
    ```bash
-   mv openspec/changes/{id} openspec/archive/
+   mv openspec/changes/{id} openspec/changes/archive/$(date +%Y-%m-%d)-{id}/
    ```
 
 5. **Report**:
@@ -39,7 +39,7 @@ Input: `$ARGUMENTS` (change-id)
    📦 CHANGE ARCHIVED
    ═══════════════════════════════════════════
      ID: {id}
-     Location: openspec/archive/{id}/
+     Location: openspec/changes/archive/YYYY-MM-DD-{id}/
 
    💡 SUGGESTED GIT
      git add -A

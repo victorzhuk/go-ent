@@ -1,0 +1,15 @@
+# go-ent Configuration Example (Minimal)
+#
+# This is a minimal configuration that only overrides essential settings.
+# All other options will use sensible defaults.
+
+version: "1.0"
+
+# Override default agent role
+agents:
+  default: architect
+
+# Adjust budget limits
+budget:
+  daily: 15.0
+  monthly: 300.0

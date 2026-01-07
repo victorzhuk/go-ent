@@ -168,8 +168,11 @@ None - this is a pure addition. Existing code continues to work without config f
 
 ## Success Criteria
 
-- [ ] Config loads from `.go-ent/config.yaml`
-- [ ] Defaults work when config file missing
-- [ ] Environment variables override config
-- [ ] Validation catches invalid configuration
-- [ ] Integration with existing spec store works
+- [x] Config loads from `.go-ent/config.yaml`
+- [x] Defaults work when config file missing
+- [x] Environment variables override config
+- [x] Validation catches invalid configuration
+- [x] Integration with existing spec store works
+
+**Status:** COMPLETE → ARCHIVED
+**Archived:** 2026-01-08

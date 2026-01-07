@@ -1,0 +1,87 @@
+# go-ent Configuration Example (Full)
+#
+# This file demonstrates all available configuration options for go-ent.
+# Place this file at `.go-ent/config.yaml` in your project root.
+#
+# All settings shown here reflect the defaults when this file is not present.
+# You only need to include sections you want to customize.
+
+# Configuration version (required)
+version: "1.0"
+
+# Agent Configuration
+# Defines agent roles, their models, skills, and execution settings
+agents:
+  # Default agent role to use when not explicitly specified
+  default: senior
+
+  # Agent role definitions
+  # Each role maps to a specific model and set of skills
+  roles:
+    # Architect: System design and architecture decisions
+    architect:
+      model: opus                           # Use Opus model (most capable)
+      skills: [go-arch, go-api]             # Architecture and API design skills
+      budget_limit: 5.0                     # Max USD per execution
+
+    # Senior Developer: Complex implementation and refactoring
+    senior:
+      model: sonnet                         # Use Sonnet model (balanced)
+      skills: [go-code, go-db, go-test]     # Code, database, and testing skills
+      budget_limit: 2.0
+
+    # Developer: Standard feature implementation
+    developer:
+      model: sonnet
+      skills: [go-code, go-test]
+      budget_limit: 1.0
+
+  # Delegation settings (optional)
+  delegation:
+    auto: true                              # Enable automatic task delegation
+    approval_required: [architect]          # Roles requiring user approval
+
+# Runtime Configuration
+# Specifies execution environment preferences
+runtime:
+  # Primary runtime to use
+  preferred: claude-code
+
+  # Fallback runtimes in order of preference
+  fallback: [cli]
+
+  # Runtime-specific options (optional)
+  options:
+    claude_code_path: ""                    # Custom path to claude-code binary
+
+# Budget Configuration
+# Spending limits and tracking settings
+budget:
+  daily: 10.0                               # Daily spending limit (USD)
+  monthly: 200.0                            # Monthly spending limit (USD)
+  per_task: 1.0                             # Per-task spending limit (USD)
+  tracking: true                            # Enable budget tracking
+
+# Model Mappings
+# Maps friendly model names to actual Claude model IDs
+models:
+  opus: claude-opus-4-5-20251101            # Most capable, highest cost
+  sonnet: claude-sonnet-4-5-20251101        # Balanced capability and cost
+  haiku: claude-haiku-3-5-20241022          # Fastest, lowest cost
+
+# Skills Configuration (optional)
+skills:
+  # List of enabled skill IDs
+  enabled:
+    - go-code                               # Go code implementation
+    - go-arch                               # Architecture design
+    - go-api                                # API design (OpenAPI/gRPC)
+    - go-db                                 # Database integration
+    - go-test                               # Testing and TDD
+    - go-perf                               # Performance optimization
+    - go-sec                                # Security review
+    - go-ops                                # Operations and deployment
+    - go-review                             # Code review
+
+  # Custom skill directory (optional)
+  custom_dir: .go-ent/skills
