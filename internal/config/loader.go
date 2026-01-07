@@ -43,12 +43,47 @@ func Load(projectRoot string) (*Config, error) {
 
 // LoadWithEnv loads configuration with environment variable overrides.
 // Environment variables take precedence over config file values.
-// Supported env vars:
-//   - GOENT_BUDGET_DAILY: Override daily budget limit
-//   - GOENT_BUDGET_MONTHLY: Override monthly budget limit
-//   - GOENT_BUDGET_PER_TASK: Override per-task budget limit
-//   - GOENT_RUNTIME_PREFERRED: Override preferred runtime
-//   - GOENT_AGENTS_DEFAULT: Override default agent role
+//
+// # Environment Variable Naming Convention
+//
+// All go-ent environment variables follow the pattern: GOENT_<SECTION>_<FIELD>
+//
+// Examples:
+//   - GOENT_BUDGET_DAILY (maps to config.budget.daily)
+//   - GOENT_RUNTIME_PREFERRED (maps to config.runtime.preferred)
+//   - GOENT_AGENTS_DEFAULT (maps to config.agents.default)
+//
+// Naming Rules:
+//   - Prefix: Always starts with GOENT_
+//   - Section: Top-level config section (BUDGET, RUNTIME, AGENTS, etc.)
+//   - Field: Specific field within that section
+//   - Case: Always SCREAMING_SNAKE_CASE
+//   - Separators: Underscores between prefix, section, and field
+//
+// Value Formats:
+//   - Float values: "10.5" or "200.0" (for budget limits)
+//   - String values: "claude-code" or "senior" (for runtime/agent)
+//   - Boolean values: "true" or "false" (for tracking flags)
+//
+// # Supported Environment Variables
+//
+// Budget Section:
+//   - GOENT_BUDGET_DAILY: Override daily budget limit (float, USD)
+//   - GOENT_BUDGET_MONTHLY: Override monthly budget limit (float, USD)
+//   - GOENT_BUDGET_PER_TASK: Override per-task budget limit (float, USD)
+//
+// Runtime Section:
+//   - GOENT_RUNTIME_PREFERRED: Override preferred runtime (claude-code|opencode|cli)
+//
+// Agents Section:
+//   - GOENT_AGENTS_DEFAULT: Override default agent role (architect|senior|developer|...)
+//
+// # Error Handling
+//
+// Invalid environment variable values will cause LoadWithEnv to return an error:
+//   - Type mismatch (e.g., "abc" for a float budget value)
+//   - Invalid enum values (e.g., "invalid-runtime" for GOENT_RUNTIME_PREFERRED)
+//   - Validation failures (e.g., negative budget values)
 func LoadWithEnv(projectRoot string, getenv func(string) string) (*Config, error) {
 	cfg, err := Load(projectRoot)
 	if err != nil {
@@ -100,56 +135,4 @@ func LoadWithEnv(projectRoot string, getenv func(string) string) (*Config, error
 	}
 
 	return cfg, nil
-}
-
-// DefaultConfig returns the default configuration when no config file exists.
-// Provides sensible defaults for all configuration sections.
-func DefaultConfig() *Config {
-	return &Config{
-		Version: "1.0",
-		Agents: AgentsConfig{
-			Default: domain.AgentRoleSenior,
-			Roles: map[string]AgentRoleConfig{
-				string(domain.AgentRoleArchitect): {
-					Model:  "opus",
-					Skills: []string{"go-arch", "go-api"},
-				},
-				string(domain.AgentRoleSenior): {
-					Model:  "sonnet",
-					Skills: []string{"go-code", "go-db", "go-test"},
-				},
-				string(domain.AgentRoleDeveloper): {
-					Model:  "sonnet",
-					Skills: []string{"go-code", "go-test"},
-				},
-			},
-			Delegation: DelegationConfig{
-				Auto: false,
-			},
-		},
-		Runtime: RuntimeConfig{
-			Preferred: domain.RuntimeClaudeCode,
-			Fallback:  []domain.Runtime{domain.RuntimeCLI},
-		},
-		Budget: BudgetConfig{
-			Daily:    10.0,
-			Monthly:  200.0,
-			PerTask:  1.0,
-			Tracking: true,
-		},
-		Models: ModelsConfig{
-			"opus":   "claude-opus-4-5-20251101",
-			"sonnet": "claude-sonnet-4-5-20251101",
-			"haiku":  "claude-haiku-3-5-20241022",
-		},
-		Skills: SkillsConfig{
-			Enabled: []string{
-				"go-code",
-				"go-arch",
-				"go-api",
-				"go-db",
-				"go-test",
-			},
-		},
-	}
 }

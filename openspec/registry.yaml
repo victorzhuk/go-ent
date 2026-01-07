@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-06T21:55:15.256190354+03:00
+synced_at: 2026-01-07T10:05:09.098569462+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/add-config-system/tasks.md
         total: 64
-        completed: 17
+        completed: 37
         in_progress: 0
         blocked: 0
     add-execution-engine:
@@ -669,8 +669,10 @@ tasks:
         change_id: add-config-system
         task_num: "3"
       content: Create `internal/config/agents.go` - AgentsConfig section
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T10:01:31.614424859+03:00
+      completed_at: 2026-01-07T10:03:23.986954523+03:00
       source_line: 7
       synced_at: 2026-01-06T21:42:19.714076202+03:00
     - id:
@@ -854,58 +856,77 @@ tasks:
         change_id: add-config-system
         task_num: "25"
       content: Add comprehensive error messages
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-06T22:01:43.350245936+03:00
+      completed_at: 2026-01-06T22:02:05.551877216+03:00
+      notes: 'Comprehensive error messages implemented throughout loader.go: file read errors (line 28), YAML parsing (line 33), validation (lines 37, 94), and all env var overrides (lines 62, 69, 76, 82, 89). All errors use fmt.Errorf with %w for wrapping or include descriptive context.'
       source_line: 35
       synced_at: 2026-01-06T21:42:19.714100157+03:00
     - id:
         change_id: add-config-system
         task_num: "26"
       content: Define default agent roles (architect, senior, developer)
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T08:34:18.990964308+03:00
+      completed_at: 2026-01-07T08:34:42.676668696+03:00
+      notes: 'Default agent roles fully defined in DefaultConfig() at loader.go:111-121. Architect (opus, go-arch/go-api), Senior (sonnet, go-code/go-db/go-test), Developer (sonnet, go-code/go-test). Also verified tasks 27-29 complete: default models (opus/sonnet/haiku at lines 141-145), runtime (claude-code at line 136), budget limits (lines 138-140), and DefaultConfig function exists.'
       source_line: 39
       synced_at: 2026-01-06T21:42:19.714101138+03:00
     - id:
         change_id: add-config-system
         task_num: "27"
       content: Define default models (opus, sonnet)
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T08:46:54.525726148+03:00
+      completed_at: 2026-01-07T08:47:04.319693833+03:00
+      notes: Default models defined in DefaultConfig() at loader.go:141-143. Maps opus→claude-opus-4-5-20251101, sonnet→claude-sonnet-4-5-20251101, haiku→claude-haiku-3-5-20241022.
       source_line: 40
       synced_at: 2026-01-06T21:42:19.71410181+03:00
     - id:
         change_id: add-config-system
         task_num: "28"
       content: Define default runtime (claude-code)
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T09:08:19.413411775+03:00
+      completed_at: 2026-01-07T09:08:34.255811566+03:00
+      notes: Default runtime defined in DefaultConfig() at loader.go:129-131. Preferred runtime is claude-code with CLI as fallback.
       source_line: 41
       synced_at: 2026-01-06T21:42:19.714102451+03:00
     - id:
         change_id: add-config-system
         task_num: "29"
       content: Define default budget limits
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T09:27:14.724785125+03:00
+      completed_at: 2026-01-07T09:27:21.886945847+03:00
+      notes: 'Default budget limits defined in DefaultConfig() at loader.go:133-137. Daily: 10.0 USD, Monthly: 200.0 USD, PerTask: 1.0 USD, Tracking: enabled.'
       source_line: 42
       synced_at: 2026-01-06T21:42:19.714103032+03:00
     - id:
         change_id: add-config-system
         task_num: "30"
       content: Add `DefaultConfig() *Config` function
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T10:03:52.137401083+03:00
+      completed_at: 2026-01-07T10:05:09.098554023+03:00
       source_line: 43
       synced_at: 2026-01-06T21:42:19.714103703+03:00
     - id:
         change_id: add-config-system
         task_num: "31"
       content: Document default values
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-07T10:15:00Z
+      completed_at: 2026-01-07T10:18:00Z
       source_line: 44
-      synced_at: 2026-01-06T21:42:19.714104244+03:00
+      synced_at: 2026-01-07T10:18:00Z
     - id:
         change_id: add-config-system
         task_num: "32"

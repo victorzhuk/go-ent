@@ -4,13 +4,13 @@
 
 - [x] Create `internal/config/` directory
 - [x] Create `internal/config/config.go` - Main Config struct
-- [ ] Create `internal/config/agents.go` - AgentsConfig section
-- [ ] Create `internal/config/runtime.go` - RuntimeConfig section
-- [ ] Create `internal/config/budget.go` - BudgetConfig section
-- [ ] Create `internal/config/model.go` - ModelsConfig section
-- [ ] Create `internal/config/loader.go` - YAML loading with env override
-- [ ] Create `internal/config/defaults.go` - Default values
-- [ ] Add package documentation
+- [x] Create `internal/config/agents.go` - AgentsConfig section
+- [x] Create `internal/config/runtime.go` - RuntimeConfig section (implemented in config.go)
+- [x] Create `internal/config/budget.go` - BudgetConfig section (implemented in config.go)
+- [x] Create `internal/config/model.go` - ModelsConfig section (implemented in config.go)
+- [x] Create `internal/config/loader.go` - YAML loading with env override
+- [x] Create `internal/config/defaults.go` - Default values
+- [x] Add package documentation
 
 ## 2. Implement Core Config Types
 
@@ -36,21 +36,21 @@
 
 ## 4. Implement Default Configuration
 
-- [ ] Define default agent roles (architect, senior, developer)
-- [ ] Define default models (opus, sonnet)
-- [ ] Define default runtime (claude-code)
-- [ ] Define default budget limits
-- [ ] Add `DefaultConfig() *Config` function
-- [ ] Document default values
+- [x] Define default agent roles (architect, senior, developer)
+- [x] Define default models (opus, sonnet)
+- [x] Define default runtime (claude-code)
+- [x] Define default budget limits
+- [x] Add `DefaultConfig() *Config` function
+- [x] Document default values
 
 ## 5. Add Environment Variable Support
 
-- [ ] Support `GOENT_BUDGET_DAILY` override
-- [ ] Support `GOENT_BUDGET_MONTHLY` override
-- [ ] Support `GOENT_RUNTIME_PREFERRED` override
-- [ ] Support `GOENT_AGENTS_DEFAULT` override
-- [ ] Add env var parsing helpers
-- [ ] Document env var naming convention
+- [x] Support `GOENT_BUDGET_DAILY` override
+- [x] Support `GOENT_BUDGET_MONTHLY` override
+- [x] Support `GOENT_RUNTIME_PREFERRED` override
+- [x] Support `GOENT_AGENTS_DEFAULT` override
+- [x] Add env var parsing helpers (GOENT_BUDGET_PER_TASK also supported)
+- [x] Document env var naming convention
 
 ## 6. Integration with Existing Code
 
