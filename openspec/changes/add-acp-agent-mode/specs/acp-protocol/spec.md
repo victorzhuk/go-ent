@@ -126,23 +126,75 @@ The system SHALL provide MCP tools for spawning and managing ACP workers from Cl
 - **AND** worker terminates gracefully
 - **AND** partial results are collected
 
+### Requirement: Multi-Provider Backend Support
+
+The system SHALL support multiple AI providers for worker execution.
+
+#### Scenario: Configure provider
+- **WHEN** providers.yaml contains provider configuration
+- **THEN** provider is registered with API key and base URL
+- **AND** provider models are available for selection
+
+#### Scenario: Supported providers
+- **WHEN** worker requests a provider
+- **THEN** system supports: Anthropic (Haiku/Sonnet/Opus), Z.AI (GLM 4.7), Moonshot (Kimi K2), DeepSeek, Alibaba (Qwen3)
+
+#### Scenario: Provider health check
+- **WHEN** provider is selected for task
+- **THEN** health check is performed before spawning
+- **AND** unhealthy providers are skipped
+
+#### Scenario: Provider failover
+- **WHEN** primary provider fails or is rate-limited
+- **THEN** task is retried with fallback provider
+- **AND** failure is logged for monitoring
+
+### Requirement: Provider-Aware Task Routing
+
+The system SHALL route tasks to optimal providers based on task characteristics.
+
+#### Scenario: Route by complexity
+- **WHEN** task complexity is simple (lint, format)
+- **THEN** cheap fast provider is selected (Haiku, GLM 4.7)
+
+#### Scenario: Route by context size
+- **WHEN** task requires large context (>50K tokens)
+- **THEN** long-context provider is selected (Kimi K2 - 128K)
+
+#### Scenario: Route by task type
+- **WHEN** task type is code-heavy refactoring
+- **THEN** code-optimized provider is selected (DeepSeek)
+
+#### Scenario: Explicit provider override
+- **WHEN** `--provider` flag is specified
+- **THEN** specified provider is used regardless of routing rules
+
+#### Scenario: Cost-based routing
+- **WHEN** budget constraint is active
+- **THEN** cheapest capable provider is selected
+
 ### Requirement: Model Tiering for Workers
 
 The system SHALL automatically select cost-effective models for worker tasks.
 
-#### Scenario: Default to Haiku for simple tasks
+#### Scenario: Default to cheap model for bulk tasks
 - **WHEN** worker is spawned without explicit model
-- **AND** task complexity is classified as simple
-- **THEN** Haiku model is used
+- **AND** task is bulk implementation
+- **THEN** GLM 4.7 or Haiku is used based on availability
 
 #### Scenario: Escalate to Sonnet for complex tasks
 - **WHEN** task involves multiple files or complex logic
-- **THEN** Sonnet model is used instead of Haiku
+- **THEN** Sonnet model is used
 
-#### Scenario: Track cost per worker
+#### Scenario: Use Opus only for orchestrator
+- **WHEN** task is research, planning, or review
+- **THEN** task remains with Claude Code orchestrator (Opus)
+- **AND** not delegated to worker
+
+#### Scenario: Track cost per worker per provider
 - **WHEN** worker completes execution
-- **THEN** token usage and cost are recorded
-- **AND** aggregated in execution summary
+- **THEN** token usage and cost are recorded per provider
+- **AND** aggregated in execution summary with provider breakdown
 
 ### Requirement: Parallel Worker Coordination
 
@@ -154,14 +206,41 @@ The system SHALL coordinate multiple ACP workers for parallel execution.
 - **AND** each worker receives one task
 - **AND** workers execute in parallel
 
+#### Scenario: Heterogeneous swarm
+- **WHEN** multiple tasks with different characteristics exist
+- **THEN** workers with different providers are spawned
+- **AND** example: Task 1 → GLM 4.7, Task 2 → Kimi K2, Task 3 → Haiku
+- **AND** all workers execute in parallel
+
 #### Scenario: Collect parallel results
 - **WHEN** all parallel workers complete
 - **THEN** results are aggregated
 - **AND** conflicts are detected
 - **AND** summary is returned to orchestrator
+- **AND** per-provider statistics included
 
 #### Scenario: Handle worker failure
 - **WHEN** one worker fails during parallel execution
 - **THEN** other workers continue
 - **AND** failure is reported with partial results
-- **AND** orchestrator can retry failed task
+- **AND** orchestrator can retry failed task with different provider
+
+### Requirement: MCP Provider Management Tools
+
+The system SHALL provide MCP tools for managing providers from Claude Code.
+
+#### Scenario: List providers
+- **WHEN** `provider_list` is called
+- **THEN** all configured providers are returned
+- **AND** each provider includes: name, models, status, cost info
+
+#### Scenario: Check provider status
+- **WHEN** `provider_status` is called with provider name
+- **THEN** health check is performed
+- **AND** rate limit status is returned
+- **AND** recent error count is included
+
+#### Scenario: Get provider recommendation
+- **WHEN** `provider_recommend` is called with task description
+- **THEN** optimal provider is recommended based on routing rules
+- **AND** rationale is included in response
