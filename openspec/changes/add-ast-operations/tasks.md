@@ -1,0 +1,45 @@
+# Tasks: Add AST-Based Code Operations
+
+## Dependencies
+- None (uses Go stdlib)
+
+## 1. Core Infrastructure
+
+- [ ] 1.1 Create `internal/ast/parser.go` - Parse Go files to AST
+- [ ] 1.2 Create `internal/ast/query.go` - Query AST for patterns
+- [ ] 1.3 Create `internal/ast/transform.go` - Transform AST nodes
+- [ ] 1.4 Create `internal/ast/printer.go` - Print AST back to Go code
+
+## 2. Symbol Operations
+
+- [ ] 2.1 Create `internal/ast/symbols.go` - Symbol table construction
+- [ ] 2.2 Implement find-all-references
+- [ ] 2.3 Implement go-to-definition
+- [ ] 2.4 Implement type-aware rename
+
+## 3. MCP Tools
+
+- [ ] 3.1 Implement `go_ent_ast_parse` - Parse file and return structure
+- [ ] 3.2 Implement `go_ent_ast_query` - Find functions/types/interfaces by pattern
+- [ ] 3.3 Implement `go_ent_ast_rename` - Safe symbol rename across files
+- [ ] 3.4 Implement `go_ent_ast_refs` - Find all references to symbol
+- [ ] 3.5 Implement `go_ent_ast_extract` - Extract code to new function
+
+## 4. Structural Queries
+
+- [ ] 4.1 Query by function signature pattern
+- [ ] 4.2 Query by interface implementation
+- [ ] 4.3 Query by struct field type
+- [ ] 4.4 Query by import dependency
+
+## 5. Code Generation
+
+- [ ] 5.1 Create AST template system
+- [ ] 5.2 Generate interface implementations
+- [ ] 5.3 Generate test scaffolds from function signatures
+
+## 6. Testing
+
+- [ ] 6.1 Unit tests for AST parsing
+- [ ] 6.2 Test rename across multiple files
+- [ ] 6.3 Test edge cases (shadowing, embedding, generics)
