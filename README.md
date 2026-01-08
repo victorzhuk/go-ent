@@ -39,7 +39,7 @@
 ---
 
 > [!IMPORTANT]
-> **v2.0 Released** - Replaces CLI code generator with MCP server for spec-driven development. See [TRANSFORMATION.md](TRANSFORMATION.md) for details.
+> **Architecture v2.0** (Current release: v0.3.0) - MCP server for spec-driven development with multi-agent orchestration.
 
 ## Features
 
@@ -47,33 +47,49 @@
 - 📝 **SOLID principles** validation
 - 🔍 **Automated code review** with enterprise standards
 - 🧪 **Testing patterns** (unit, integration, benchmarks)
-- 📋 **Spec-driven development** with `.spec` folder management
+- 📋 **Spec-driven development** with `openspec` folder management
 - 🤖 **MCP server** for spec/task management tools
 - 🔧 **Hooks** for automatic formatting and safety
-- 🤖 **Specialized agents** (reviewer, planner, test-runner)
+- 🤖 **Specialized agents** (architect, debug, dev, lead, planner, reviewer, tester)
 - ⚡ **Slash commands** for common workflows
 
 ## Quick Start
 
 ### 1. Install Plugin
 
-```bash
-/plugin install go-ent@go-ent
+Add the plugin source to your Claude Code settings:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "go-ent": {
+      "source": {
+        "source": "directory",
+        "path": "/path/to/go-ent/plugins/go-ent"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "go-ent@go-ent": true
+  }
+}
 ```
+
+Then restart Claude Code.
 
 ### 2. Initialize Spec-Driven Development
 
 Use MCP tools to manage your project specs:
 
 ```
-# Initialize .spec folder in your project
-Call spec_init tool with path to your project
+# Initialize openspec folder in your project
+Call go_ent_spec_init tool with path to your project
 
 # Create a new spec
-Call spec_create tool with type="spec", id="user-auth", content="..."
+Call go_ent_spec_create tool with type="spec", id="user-auth", content="..."
 
 # List all specs
-Call spec_list tool with type="specs"
+Call go_ent_spec_list tool with type="spec"
 ```
 
 The LLM (Claude Code) will generate code based on specs and templates, not copy-paste them.
@@ -82,27 +98,37 @@ The LLM (Claude Code) will generate code based on specs and templates, not copy-
 
 ### MCP Server
 
-The `go-ent` binary is now an MCP server that provides tools for managing `.spec` folders:
+The `go-ent` binary is now an MCP server that provides tools for managing `openspec` folders:
 
 ```
 go-ent/
 ├── cmd/go-ent/              # MCP server
-│   ├── main.go             # stdio transport
-│   └── internal/
-│       ├── server/         # MCP setup
-│       ├── tools/          # Tool handlers
-│       └── spec/           # Domain logic
+│   └── main.go             # stdio transport
 ├── internal/
-│   └── templates/          # Reference patterns (embedded)
-└── plugins/go-ent/
-    └── .claude-plugin/
-        └── plugin.json     # MCP configuration
+│   ├── mcp/
+│   │   ├── server/         # MCP setup
+│   │   └── tools/          # Tool handlers (25 tools)
+│   ├── spec/               # Spec management domain
+│   ├── templates/          # Reference patterns (embedded)
+│   └── domain/             # Core domain types
+├── plugins/go-ent/          # Claude Code plugin
+│   ├── agents/             # 7 agent definitions
+│   ├── commands/           # 16 slash commands
+│   ├── skills/             # 10 skill definitions
+│   └── .claude-plugin/
+│       ├── plugin.json     # MCP configuration
+│       └── marketplace.json
+└── openspec/               # Self-hosted development
+    ├── project.yaml
+    ├── specs/
+    ├── changes/
+    └── tasks/
 ```
 
-### `.spec` Folder Structure
+### `openspec` Folder Structure
 
 ```
-project/.spec/
+project/openspec/
 ├── project.yaml            # Project metadata
 ├── specs/                  # Capability specs
 │   └── {capability}/
@@ -119,42 +145,120 @@ project/.spec/
 
 ## MCP Tools
 
+### Spec Management
+
 | Tool | Description |
 |------|-------------|
-| `spec_init` | Initialize .spec folder in project |
-| `spec_list` | List specs, changes, or tasks |
-| `spec_show` | Show detailed content |
-| `spec_create` | Create new spec/change/task |
-| `spec_update` | Update existing item |
-| `spec_delete` | Delete item |
+| `go_ent_spec_init` | Initialize openspec folder in project |
+| `go_ent_spec_list` | List specs, changes, or tasks |
+| `go_ent_spec_show` | Show detailed content |
+| `go_ent_spec_create` | Create new spec/change/task |
+| `go_ent_spec_update` | Update existing item |
+| `go_ent_spec_delete` | Delete item |
+| `go_ent_spec_validate` | Validate specs against rules |
+| `go_ent_spec_archive` | Archive completed changes |
+
+### Registry
+
+| Tool | Description |
+|------|-------------|
+| `go_ent_registry_init` | Initialize task registry |
+| `go_ent_registry_list` | List all tasks in registry |
+| `go_ent_registry_next` | Get next recommended tasks |
+| `go_ent_registry_update` | Update task status/priority |
+| `go_ent_registry_deps` | Show task dependencies |
+| `go_ent_registry_sync` | Sync tasks across proposals |
+
+### Workflow
+
+| Tool | Description |
+|------|-------------|
+| `go_ent_workflow_start` | Start planning workflow |
+| `go_ent_workflow_status` | Get workflow status |
+| `go_ent_workflow_approve` | Approve workflow step |
+
+### Loop
+
+| Tool | Description |
+|------|-------------|
+| `go_ent_loop_start` | Start autonomous loop |
+| `go_ent_loop_get` | Get loop status |
+| `go_ent_loop_set` | Update loop parameters |
+| `go_ent_loop_cancel` | Cancel loop |
+
+### Generation
+
+| Tool | Description |
+|------|-------------|
+| `go_ent_generate` | Generate code from templates |
+| `go_ent_generate_component` | Generate specific component |
+| `go_ent_generate_from_spec` | Generate from OpenSpec |
+| `go_ent_list_archetypes` | List available archetypes |
 
 ## Available Commands
 
+### Planning & Workflow
+
 | Command | Description |
 |---------|-------------|
-| `/go-ent:init <name>` | Initialize new project with specs |
-| `/go-ent:scaffold <type> <name>` | Scaffold components |
-| `/go-ent:review` | Review code for enterprise standards |
-| `/go-ent:plan <feature>` | Create implementation plan |
-| `/go-ent:test [pkg]` | Run tests and analyze failures |
-| `/go-ent:lint` | Run linters |
+| `/plan <feature>` | Comprehensive planning workflow with research, design, and task decomposition |
+| `/clarify <change-id>` | Ask focused questions to clarify underspecified requirements |
+| `/research <change-id> [topic]` | Structured research phase for unknowns and technology decisions |
+| `/decompose <change-id>` | Break proposal into dependency-aware, trackable tasks |
+| `/analyze <change-id>` | Cross-document consistency validation (read-only) |
+
+### Execution
+
+| Command | Description |
+|---------|-------------|
+| `/apply` | Execute tasks from OpenSpec change proposal |
+| `/loop <task-description> [--max-iterations=10]` | Start autonomous work loop with self-correction |
+| `/loop-cancel` | Cancel running autonomous loop |
+| `/tdd` | Test-driven development cycle (Red-Green-Refactor) |
+
+### Project Management
+
+| Command | Description |
+|---------|-------------|
+| `/init <project-name> [module-path] [--type=http\|mcp]` | Initialize a new Go enterprise project with Clean Architecture structure |
+| `/scaffold <type> <name> [impl]` | Scaffold Go components (entity, repository, usecase, handler, service) |
+| `/gen` | Generate code from OpenAPI/Proto specs |
+| `/status` | View status of all OpenSpec changes |
+| `/archive` | Archive completed OpenSpec change |
+| `/registry` | Manage OpenSpec task registry |
+
+### Quality
+
+| Command | Description |
+|---------|-------------|
+| `/lint` | Run Go linters and fix issues |
 
 ## Available Agents
 
 | Agent | Description |
 |-------|-------------|
-| `@code-reviewer` | Senior Go code reviewer |
-| `@go-planner` | Architecture and feature planning |
-| `@test-runner` | Test analysis and fixes |
+| `lead` (opus/gold) | Lead developer. Orchestrates workflow, delegates to specialists |
+| `architect` (opus/blue) | System architect. Designs components, layers, data flow |
+| `planner` (sonnet/green) | Task planner. Breaks features into actionable tasks |
+| `dev` (sonnet/green) | Go developer. Implements features, writes code |
+| `reviewer` (opus/blue) | Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions |
+| `debug` (sonnet/red) | Debugger. Troubleshoots issues, analyzes errors |
+| `tester` (haiku/cyan) | Test engineer. Writes tests, TDD cycles |
 
 ## Skills (Auto-activated)
 
 | Skill | Triggers |
 |-------|----------|
-| `go-review` | "review code", "check quality" |
-| `go-patterns` | "create repository", "implement handler" |
-| `go-testing` | "write tests", "add coverage" |
-| `go-architecture` | "design service", "plan architecture" |
+| `go-hub` | Go development, backend services, Clean Architecture, OpenSpec workflow |
+| `go-code` | Writing Go code, implementing features, refactoring, error handling, configuration |
+| `go-arch` | Architecture decisions, system design, layer organization, dependency injection, bounded contexts |
+| `go-api` | API design, OpenAPI specs, code generation, protobuf, REST endpoints, gRPC services |
+| `go-db` | Database work, migrations, queries, repositories, caching |
+| `go-test` | Writing tests, TDD, coverage, integration tests, mocks |
+| `go-review` | Code review, quality checks, PR review, architecture validation |
+| `go-perf` | Performance issues, profiling, optimization, memory leaks, benchmarking |
+| `go-sec` | Security concerns, authentication, authorization, input validation, secrets |
+| `go-ops` | Deployment, containerization, orchestration, CI/CD pipelines, infrastructure |
 
 ## Building from Source
 
@@ -166,19 +270,20 @@ cd go-ent
 # Build MCP server
 make build
 
-# Binary will be in dist/go-ent
-./dist/go-ent  # runs as MCP server on stdio
+# Binary will be in bin/go-ent
+./bin/go-ent  # runs as MCP server on stdio
 ```
 
 ### Makefile Targets
 
 | Target | Description |
 |--------|-------------|
-| `make build` | Build MCP server to `dist/go-ent` |
+| `make build` | Build MCP server to `bin/go-ent` |
 | `make test` | Run tests with race detector and coverage |
 | `make lint` | Run golangci-lint |
 | `make fmt` | Format code with goimports |
 | `make clean` | Remove build artifacts |
+| `make validate-plugin` | Validate plugin JSON files |
 | `make help` | Show all available targets |
 
 ### Development Requirements
@@ -186,8 +291,42 @@ make build
 - Go 1.24 or later
 - make
 - golangci-lint (for `make lint`)
+- jq (for `make validate-plugin`)
 
 ## Project Structure
+
+### go-ent Repository
+
+```
+go-ent/
+├── cmd/go-ent/              # MCP server binary
+│   └── main.go
+├── internal/
+│   ├── mcp/
+│   │   ├── server/           # MCP server setup
+│   │   └── tools/           # 25 MCP tool handlers
+│   ├── spec/                # OpenSpec domain logic
+│   ├── templates/           # Code generation templates
+│   ├── domain/              # Core domain types
+│   ├── generation/          # Code generation engine
+│   ├── config/              # Configuration system
+│   └── version/             # Version metadata
+├── plugins/go-ent/          # Claude Code plugin
+│   ├── agents/              # Agent role definitions (7)
+│   ├── commands/            # Slash commands (16)
+│   ├── skills/              # Skill definitions (10)
+│   └── .claude-plugin/      # Plugin config
+├── openspec/                # Self-hosted development specs
+│   ├── project.yaml
+│   ├── specs/
+│   ├── changes/
+│   └── tasks/
+├── docs/                    # Additional documentation
+├── assets/                  # Logo and branding
+└── Makefile                 # Build targets
+```
+
+### Generated Projects
 
 Generated projects follow Clean Architecture:
 
@@ -201,7 +340,7 @@ project/
 │   ├── usecase/       # Business logic
 │   ├── repository/    # Data access
 │   └── transport/     # HTTP handlers
-├── .spec/             # Spec-driven development
+├── openspec/          # Spec-driven development
 │   ├── project.yaml
 │   ├── specs/
 │   ├── changes/
@@ -236,10 +375,10 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 
 ## How It Works (v2.0)
 
-1. **Specs First**: Create specs in `.spec/specs/`
+1. **Specs First**: Create specs in `openspec/specs/`
 2. **LLM Reads Templates**: Uses `internal/templates/` as reference patterns
 3. **LLM Generates Code**: Writes code adapted to your project context
-4. **Track Progress**: Manages tasks in `.spec/changes/` and `.spec/tasks/`
+4. **Track Progress**: Manages tasks in `openspec/changes/` and `openspec/tasks/`
 
 ## Migration from v1.x
 
@@ -249,7 +388,7 @@ v1.x used template-based file generation (`go-ent init`). v2.0 uses:
 - **Spec-driven development** instead of template copying
 - **LLM code generation** instead of string replacement
 
-See [TRANSFORMATION.md](TRANSFORMATION.md) for detailed migration guide.
+See [MIGRATION_PLAN_GOENT_V3.md](docs/MIGRATION_PLAN_GOENT_V3.md) for the v3.0 multi-agent architecture migration plan.
 
 ## Contributing
 
@@ -266,4 +405,5 @@ MIT
 
 - [MCP Specification](https://modelcontextprotocol.io)
 - [Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)
-- [Transformation Guide](TRANSFORMATION.md)
+- [Development Guide](docs/DEVELOPMENT.md)
+- [Migration Plan v3.0](docs/MIGRATION_PLAN_GOENT_V3.md)

@@ -8,7 +8,7 @@ description: "Go enterprise development hub with spec-driven workflow, MCP integ
 ## Commands
 
 ```
-/go-ent:init {project}     → Initialize project + .spec
+/go-ent:init {project}     → Initialize project + openspec
 /go-ent:plan {feature}     → Create change (proposal + tasks)
 /go-ent:apply {id}         → Execute tasks with verification
 /go-ent:status             → View changes and progress
@@ -55,7 +55,7 @@ mcp__github__create_issue(...)
 ## OpenSpec Structure
 
 ```
-.spec/
+openspec/
 ├── project.yaml
 ├── specs/{capability}/
 ├── changes/{change-id}/

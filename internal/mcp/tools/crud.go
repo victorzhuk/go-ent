@@ -116,7 +116,7 @@ func specCreateHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 	exists, err := store.Exists()
 	if err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking openspec folder: %v", err)}},
 		}, nil, nil
 	}
 
@@ -166,7 +166,7 @@ func specUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 	exists, err := store.Exists()
 	if err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking openspec folder: %v", err)}},
 		}, nil, nil
 	}
 
@@ -216,7 +216,7 @@ func specDeleteHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 	exists, err := store.Exists()
 	if err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking openspec folder: %v", err)}},
 		}, nil, nil
 	}
 

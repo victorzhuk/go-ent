@@ -17,16 +17,9 @@ Change ID: $ARGUMENTS (from `openspec list`)
 
 ## Path Resolution
 
-Commands support both directory structures:
-1. **Primary**: `.spec/` (if exists) - modern spec-kit style
-2. **Fallback**: `openspec/changes/$ARGUMENTS/` - OpenSpec style
+Change directory: `openspec/changes/$ARGUMENTS/`
 
-Detection logic:
-- If `.spec/proposal.md` exists → use `.spec/` as change root
-- Else if `openspec/changes/$ARGUMENTS/` exists → use that
-- Else → error: change not found
-
-For the steps below, `$CHANGE_ROOT` refers to the resolved directory.
+For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 
 ## Steps
 
@@ -82,6 +75,4 @@ For the steps below, `$CHANGE_ROOT` refers to the resolved directory.
 
 Enhanced `$CHANGE_ROOT/tasks.md` with task IDs, dependencies, and parallelization markers.
 
-Examples:
-- `.spec/tasks.md` (if using .spec/)
-- `openspec/changes/$ARGUMENTS/tasks.md` (if using openspec/)
+Output file: `openspec/changes/$ARGUMENTS/tasks.md`

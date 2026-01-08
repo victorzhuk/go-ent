@@ -55,7 +55,7 @@ func specShowHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecSh
 	exists, err := store.Exists()
 	if err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking openspec folder: %v", err)}},
 		}, nil, nil
 	}
 

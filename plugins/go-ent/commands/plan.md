@@ -16,16 +16,9 @@ $ARGUMENTS can be:
 
 ## Path Resolution
 
-Commands support both directory structures:
-1. **Primary**: `.spec/` (if exists) - modern spec-kit style
-2. **Fallback**: `openspec/changes/$ARGUMENTS/` - OpenSpec style
+Change directory: `openspec/changes/$ARGUMENTS/`
 
-Detection logic:
-- If `.spec/proposal.md` exists → use `.spec/` as change root
-- Else if `openspec/changes/$ARGUMENTS/` exists → use that
-- Else → error: change not found
-
-For the steps below, `$CHANGE_ROOT` refers to the resolved directory.
+For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 
 ## Workflow Management
 
@@ -184,9 +177,7 @@ Fully validated change proposal ready for implementation with:
 - `$CHANGE_ROOT/tasks.md` with task IDs and dependencies
 - Spec deltas in `$CHANGE_ROOT/specs/` validated by OpenSpec
 
-Examples:
-- `.spec/` directory (if using .spec/)
-- `openspec/changes/$ARGUMENTS/` directory (if using openspec/)
+Output directory: `openspec/changes/$ARGUMENTS/`
 
 ## Next Step
 

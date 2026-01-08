@@ -38,7 +38,7 @@ func (s *Store) Exists() (bool, error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return false, fmt.Errorf("stat .spec: %w", err)
+	return false, fmt.Errorf("stat spec folder: %w", err)
 }
 
 func (s *Store) Init(project Project) error {
@@ -123,6 +123,12 @@ func (s *Store) ListChanges(status string) ([]ListItem, error) {
 		}
 
 		id := entry.Name()
+
+		// Skip the archive directory itself (contains archived changes)
+		if id == "archive" {
+			continue
+		}
+
 		proposalPath := filepath.Join(changesPath, id, "proposal.md")
 
 		desc := ""

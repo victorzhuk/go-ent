@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Enterprise Go development toolkit with Clean Architecture, SOLID principles, and production-ready patterns",
-    "version": "1.0.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "go-ent",
       "source": "./plugins/go-ent",
       "description": "Complete Go enterprise development toolkit with Clean Architecture skills, code review agents, testing patterns, and project scaffolding",
-      "version": "1.0.0",
+      "version": "0.3.0",
       "author": {
         "name": "Victor Zhuk",
         "url": "https://github.com/victorzhuk"

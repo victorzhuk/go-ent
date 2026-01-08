@@ -64,13 +64,13 @@ func specInitHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecIn
 	exists, err := store.Exists()
 	if err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error checking openspec folder: %v", err)}},
 		}, nil, nil
 	}
 
 	if exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf(".spec folder already exists at %s", store.SpecPath())}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("openspec folder already exists at %s", store.SpecPath())}},
 		}, nil, nil
 	}
 
@@ -87,17 +87,17 @@ func specInitHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecIn
 
 	if err := store.Init(project); err != nil {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error initializing .spec folder: %v", err)}},
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error initializing openspec folder: %v", err)}},
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("✅ Initialized .spec folder at %s\n\n", store.SpecPath())
+	msg := fmt.Sprintf("✅ Initialized openspec folder at %s\n\n", store.SpecPath())
 	msg += "Created structure:\n"
-	msg += "  - .spec/project.yaml\n"
-	msg += "  - .spec/specs/\n"
-	msg += "  - .spec/changes/\n"
-	msg += "  - .spec/tasks/\n"
-	msg += "  - .spec/archive/\n"
+	msg += "  - openspec/project.yaml\n"
+	msg += "  - openspec/specs/\n"
+	msg += "  - openspec/changes/\n"
+	msg += "  - openspec/tasks/\n"
+	msg += "  - openspec/archive/\n"
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: msg}},

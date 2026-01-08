@@ -704,7 +704,7 @@ Don't mix concerns across layers.
 
 ## Version History
 
-### v0.1.0 (Current)
+### v0.3.0 (Current)
 - Initial self-hosted development setup
 - 7 agents, 9 skills, 16 commands
 - Full OpenSpec workflow integration

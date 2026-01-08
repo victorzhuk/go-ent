@@ -14,16 +14,9 @@ Investigate unknowns and technical questions before implementation.
 
 ## Path Resolution
 
-Commands support both directory structures:
-1. **Primary**: `.spec/` (if exists) - modern spec-kit style
-2. **Fallback**: `openspec/changes/$ARGUMENTS/` - OpenSpec style
+Change directory: `openspec/changes/$ARGUMENTS/`
 
-Detection logic:
-- If `.spec/proposal.md` exists → use `.spec/` as change root
-- Else if `openspec/changes/$ARGUMENTS/` exists → use that
-- Else → error: change not found
-
-For the steps below, `$CHANGE_ROOT` refers to the resolved directory.
+For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 
 ## When to Use
 
@@ -160,9 +153,7 @@ Questions still needing human input:
 
 Creates `$CHANGE_ROOT/research.md`
 
-Examples:
-- `.spec/research.md` (if using .spec/)
-- `openspec/changes/$ARGUMENTS/research.md` (if using openspec/)
+Output file: `openspec/changes/$ARGUMENTS/research.md`
 
 ## Integration
 
