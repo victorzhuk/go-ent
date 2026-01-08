@@ -301,7 +301,7 @@ This command:
 
 ### Adding a New MCP Tool
 
-1. Create `cmd/go-ent/internal/tools/newtool.go`:
+1. Create `internal/mcp/tools/newtool.go`:
 
 ```go
 package tools
@@ -341,7 +341,7 @@ func newToolHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.Call
 }
 ```
 
-2. Register in `cmd/go-ent/internal/tools/register.go`:
+2. Register in `internal/mcp/tools/register.go`:
 
 ```go
 func Register(s *mcp.Server) {
@@ -494,7 +494,7 @@ make build-mcp
 **Fix:**
 ```bash
 # List available tools (if MCP inspector available)
-# Or check cmd/go-ent/internal/tools/register.go
+# Or check internal/mcp/tools/register.go
 
 # Add permission if needed
 # Edit .claude/settings.local.json:

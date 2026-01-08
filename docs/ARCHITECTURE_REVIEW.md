@@ -76,7 +76,8 @@ The `/go-ent:loop` command with retry logic and error categorization represents 
 
 #### ✅ **7. Clean Separation of Concerns**
 - Domain logic in `internal/spec/`, `internal/template/`, `internal/generation/`
-- Tool handlers in `cmd/go-ent/internal/tools/`
+- Tool handlers in `internal/mcp/tools/`
+- MCP server in `internal/mcp/server/`
 - Templates as reference patterns (not runtime dependencies)
 
 ### 1.3 Weaknesses (Cons)

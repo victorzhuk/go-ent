@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-08T10:29:24.667988857+03:00
+synced_at: 2026-01-08T17:22:45.878265387+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -52,8 +52,8 @@ changes:
         status: ""
         tasks_file: openspec/changes/restructure-repository/tasks.md
         total: 53
-        completed: 4
-        in_progress: 0
+        completed: 51
+        in_progress: 1
         blocked: 0
 tasks:
     - id:
@@ -1814,64 +1814,75 @@ tasks:
         change_id: restructure-repository
         task_num: "2"
       content: Verify all files moved (15+ tool handler files)
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:15:30.0861958+03:00
+      completed_at: 2026-01-08T16:16:41.21162946+03:00
       source_line: 7
       synced_at: 2026-01-08T00:26:46.335476664+03:00
     - id:
         change_id: restructure-repository
         task_num: "3"
       content: Move `cmd/go-ent/internal/server/` to `internal/mcp/server/`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:40:38.333610902+03:00
+      completed_at: 2026-01-08T16:41:16.41904975+03:00
       source_line: 10
       synced_at: 2026-01-08T00:26:46.335478347+03:00
     - id:
         change_id: restructure-repository
         task_num: "4"
       content: Verify server.go moved
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:41:16.491256243+03:00
       source_line: 11
       synced_at: 2026-01-08T00:26:46.3354796+03:00
     - id:
         change_id: restructure-repository
         task_num: "5"
       content: Move `cmd/go-ent/internal/version/` to `internal/version/`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T17:18:15.317137858+03:00
+      completed_at: 2026-01-08T17:19:21.08067839+03:00
       source_line: 14
       synced_at: 2026-01-08T00:26:46.335480992+03:00
     - id:
         change_id: restructure-repository
         task_num: "6"
       content: Verify version.go moved
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:19:21.159764982+03:00
       source_line: 15
       synced_at: 2026-01-08T00:26:46.335482225+03:00
     - id:
         change_id: restructure-repository
         task_num: "7"
       content: Delete empty `cmd/go-ent/internal/` directory
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:19:21.247118562+03:00
       source_line: 18
       synced_at: 2026-01-08T00:26:46.335483417+03:00
     - id:
         change_id: restructure-repository
         task_num: "8"
       content: Verify no files left behind
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:19:21.331192242+03:00
       source_line: 19
       synced_at: 2026-01-08T00:26:46.335484258+03:00
     - id:
         change_id: restructure-repository
         task_num: "9"
       content: Replace `cmd/go-ent/internal/server` with `internal/mcp/server`
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:49:15.648416897+03:00
       source_line: 24
       synced_at: 2026-01-08T00:26:46.335485851+03:00
     - id:
@@ -1908,320 +1919,373 @@ tasks:
         change_id: restructure-repository
         task_num: "13"
       content: Verify imports
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T15:50:58.208271709+03:00
+      completed_at: 2026-01-08T15:51:52.278845055+03:00
       source_line: 30
       synced_at: 2026-01-08T00:26:46.33549072+03:00
     - id:
         change_id: restructure-repository
         task_num: "14"
       content: Update package imports if needed
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T15:53:52.712819244+03:00
+      completed_at: 2026-01-08T15:56:51.690983216+03:00
       source_line: 33
       synced_at: 2026-01-08T00:26:46.335491792+03:00
     - id:
         change_id: restructure-repository
         task_num: "15"
       content: Verify all tool registrations work
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:06:00.614593041+03:00
+      completed_at: 2026-01-08T16:07:45.873523815+03:00
       source_line: 34
       synced_at: 2026-01-08T00:26:46.335492694+03:00
     - id:
         change_id: restructure-repository
         task_num: "16"
       content: Update imports in init.go
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:12:57.458398054+03:00
+      completed_at: 2026-01-08T16:14:35.917062675+03:00
       source_line: 37
       synced_at: 2026-01-08T00:26:46.335493886+03:00
     - id:
         change_id: restructure-repository
         task_num: "17"
       content: Update imports in list.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:35.9884317+03:00
       source_line: 38
       synced_at: 2026-01-08T00:26:46.335494738+03:00
     - id:
         change_id: restructure-repository
         task_num: "18"
       content: Update imports in show.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.05859828+03:00
       source_line: 39
       synced_at: 2026-01-08T00:26:46.335495569+03:00
     - id:
         change_id: restructure-repository
         task_num: "19"
       content: Update imports in crud.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.133231355+03:00
       source_line: 40
       synced_at: 2026-01-08T00:26:46.335496391+03:00
     - id:
         change_id: restructure-repository
         task_num: "20"
       content: Update imports in registry.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.220936351+03:00
       source_line: 41
       synced_at: 2026-01-08T00:26:46.335504947+03:00
     - id:
         change_id: restructure-repository
         task_num: "21"
       content: Update imports in workflow.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.306113031+03:00
       source_line: 42
       synced_at: 2026-01-08T00:26:46.335505849+03:00
     - id:
         change_id: restructure-repository
         task_num: "22"
       content: Update imports in loop.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.389606022+03:00
       source_line: 43
       synced_at: 2026-01-08T00:26:46.33550665+03:00
     - id:
         change_id: restructure-repository
         task_num: "23"
       content: Update imports in validate.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.472480812+03:00
       source_line: 44
       synced_at: 2026-01-08T00:26:46.335507492+03:00
     - id:
         change_id: restructure-repository
         task_num: "24"
       content: Update imports in archive.go
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.572356394+03:00
       source_line: 45
       synced_at: 2026-01-08T00:26:46.335508313+03:00
     - id:
         change_id: restructure-repository
         task_num: "25"
       content: Update imports in generate*.go files
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.661511606+03:00
       source_line: 46
       synced_at: 2026-01-08T00:26:46.335509305+03:00
     - id:
         change_id: restructure-repository
         task_num: "26"
       content: Verify all tool files compile
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:14:36.744042816+03:00
       source_line: 47
       synced_at: 2026-01-08T00:26:46.335510197+03:00
     - id:
         change_id: restructure-repository
         task_num: "27"
       content: Find all *_test.go files with old imports
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:34:15.501541998+03:00
+      completed_at: 2026-01-08T16:35:50.408989295+03:00
       source_line: 50
       synced_at: 2026-01-08T00:26:46.335511309+03:00
     - id:
         change_id: restructure-repository
         task_num: "28"
       content: Update import paths
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:35:50.471601213+03:00
       source_line: 51
       synced_at: 2026-01-08T00:26:46.33551205+03:00
     - id:
         change_id: restructure-repository
         task_num: "29"
       content: Verify tests compile
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:35:50.544137114+03:00
       source_line: 52
       synced_at: 2026-01-08T00:26:46.335512832+03:00
     - id:
         change_id: restructure-repository
         task_num: "30"
       content: Run `go build ./cmd/go-ent`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:48:01.54399519+03:00
+      completed_at: 2026-01-08T16:49:15.709514485+03:00
       source_line: 57
       synced_at: 2026-01-08T00:26:46.335513934+03:00
     - id:
         change_id: restructure-repository
         task_num: "31"
       content: Verify no compilation errors
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:49:15.777479146+03:00
       source_line: 58
       synced_at: 2026-01-08T00:26:46.335514785+03:00
     - id:
         change_id: restructure-repository
         task_num: "32"
       content: Check binary size is similar
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:49:15.843329522+03:00
       source_line: 59
       synced_at: 2026-01-08T00:26:46.335523451+03:00
     - id:
         change_id: restructure-repository
         task_num: "33"
       content: Run `go test ./internal/mcp/...`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:51:53.627150472+03:00
+      completed_at: 2026-01-08T16:52:11.482689179+03:00
       source_line: 62
       synced_at: 2026-01-08T00:26:46.335524624+03:00
     - id:
         change_id: restructure-repository
         task_num: "34"
       content: Run `go test ./...` (full suite)
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:52:11.574454683+03:00
       source_line: 63
       synced_at: 2026-01-08T00:26:46.335525565+03:00
     - id:
         change_id: restructure-repository
         task_num: "35"
       content: Verify all tests pass
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:52:11.680115027+03:00
       source_line: 64
       synced_at: 2026-01-08T00:26:46.335526377+03:00
     - id:
         change_id: restructure-repository
         task_num: "36"
       content: 'Start MCP server: `./dist/go-ent serve`'
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:53:01.919144862+03:00
+      completed_at: 2026-01-08T16:54:20.399097643+03:00
       source_line: 67
       synced_at: 2026-01-08T00:26:46.335527669+03:00
     - id:
         change_id: restructure-repository
         task_num: "37"
       content: Test with Claude Code plugin
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:54:20.482627953+03:00
       source_line: 68
       synced_at: 2026-01-08T00:26:46.335528671+03:00
     - id:
         change_id: restructure-repository
         task_num: "38"
       content: Verify tools respond correctly
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:54:20.569187359+03:00
       source_line: 69
       synced_at: 2026-01-08T00:26:46.335538019+03:00
     - id:
         change_id: restructure-repository
         task_num: "39"
       content: Check logs for errors
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:54:20.660569901+03:00
       source_line: 70
       synced_at: 2026-01-08T00:26:46.33553895+03:00
     - id:
         change_id: restructure-repository
         task_num: "40"
       content: Search for `cmd/go-ent/internal/` in codebase
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T16:56:20.038500239+03:00
+      completed_at: 2026-01-08T16:57:19.437936116+03:00
       source_line: 73
       synced_at: 2026-01-08T00:26:46.335540203+03:00
     - id:
         change_id: restructure-repository
         task_num: "41"
       content: Verify no references remain
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:57:19.497824419+03:00
       source_line: 74
       synced_at: 2026-01-08T00:26:46.335543559+03:00
     - id:
         change_id: restructure-repository
         task_num: "42"
       content: Check for broken imports
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T16:57:19.559126599+03:00
       source_line: 75
       synced_at: 2026-01-08T00:26:46.33554442+03:00
     - id:
         change_id: restructure-repository
         task_num: "43"
       content: Update import examples if present
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T17:01:30.604017597+03:00
+      completed_at: 2026-01-08T17:03:13.673524761+03:00
       source_line: 80
       synced_at: 2026-01-08T00:26:46.335545543+03:00
     - id:
         change_id: restructure-repository
         task_num: "44"
       content: Update directory structure documentation
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:03:13.738557447+03:00
       source_line: 81
       synced_at: 2026-01-08T00:26:46.335546504+03:00
     - id:
         change_id: restructure-repository
         task_num: "45"
       content: Update any references to internal structure
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T17:04:31.323301099+03:00
+      completed_at: 2026-01-08T17:04:48.262672768+03:00
       source_line: 84
       synced_at: 2026-01-08T00:26:46.335547636+03:00
     - id:
         change_id: restructure-repository
         task_num: "46"
       content: Verify openspec instructions still accurate
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:04:48.319071258+03:00
       source_line: 85
       synced_at: 2026-01-08T00:26:46.335548638+03:00
     - id:
         change_id: restructure-repository
         task_num: "47"
       content: Run `go mod tidy`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T17:13:03.956839818+03:00
+      completed_at: 2026-01-08T17:13:28.627156612+03:00
       source_line: 88
       synced_at: 2026-01-08T00:26:46.335551654+03:00
     - id:
         change_id: restructure-repository
         task_num: "48"
       content: Verify module dependencies
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:13:28.698583713+03:00
       source_line: 89
       synced_at: 2026-01-08T00:26:46.335552485+03:00
     - id:
         change_id: restructure-repository
         task_num: "49"
       content: Stage all moved files
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T17:15:29.291709668+03:00
+      completed_at: 2026-01-08T17:15:56.224409772+03:00
       source_line: 94
       synced_at: 2026-01-08T00:26:46.335553557+03:00
     - id:
         change_id: restructure-repository
         task_num: "50"
       content: Stage all modified files
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:15:56.28901463+03:00
       source_line: 95
       synced_at: 2026-01-08T00:26:46.335554419+03:00
     - id:
         change_id: restructure-repository
         task_num: "51"
       content: Review diff
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:15:56.35710076+03:00
       source_line: 96
       synced_at: 2026-01-08T00:26:46.33555508+03:00
     - id:
         change_id: restructure-repository
         task_num: "52"
       content: Create commit with clear message
-      status: pending
+      status: in_progress
       priority: medium
+      started_at: 2026-01-08T17:22:45.878255197+03:00
       source_line: 99
       synced_at: 2026-01-08T00:26:46.335556102+03:00
     - id:

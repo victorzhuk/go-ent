@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	internalserver "github.com/victorzhuk/go-ent/cmd/go-ent/internal/server"
+	internalserver "github.com/victorzhuk/go-ent/internal/mcp/server"
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
