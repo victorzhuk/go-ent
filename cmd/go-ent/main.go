@@ -12,7 +12,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	internalserver "github.com/victorzhuk/go-ent/cmd/go-ent/internal/server"
-	"github.com/victorzhuk/go-ent/cmd/go-ent/internal/version"
+	"github.com/victorzhuk/go-ent/internal/version"
 )
 
 func main() {

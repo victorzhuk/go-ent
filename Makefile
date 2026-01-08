@@ -2,7 +2,7 @@
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-VERSION_PKG := github.com/victorzhuk/go-ent/cmd/go-ent/internal/version
+VERSION_PKG := github.com/victorzhuk/go-ent/internal/version
 LDFLAGS := -ldflags "-X $(VERSION_PKG).version=$(VERSION) -X $(VERSION_PKG).vcsRef=$(VCS_REF)"
 
 help:

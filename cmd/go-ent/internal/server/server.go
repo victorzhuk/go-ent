@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/cmd/go-ent/internal/tools"
-	"github.com/victorzhuk/go-ent/cmd/go-ent/internal/version"
+	"github.com/victorzhuk/go-ent/internal/mcp/tools"
+	"github.com/victorzhuk/go-ent/internal/version"
 )
 
 func New() *mcp.Server {

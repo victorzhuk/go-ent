@@ -3,8 +3,8 @@
 ## 1. File Movement
 
 ### 1.1 Move tool handlers
-- [ ] Move `cmd/go-ent/internal/tools/` to `internal/mcp/tools/`
-- [ ] Verify all files moved (15+ tool handler files)
+- [x] Move `cmd/go-ent/internal/tools/` to `internal/mcp/tools/`
+- [x] Verify all files moved (14 tool handler files)
 
 ### 1.2 Move server package
 - [ ] Move `cmd/go-ent/internal/server/` to `internal/mcp/server/`
@@ -22,11 +22,11 @@
 
 ### 2.1 Update cmd/go-ent/main.go
 - [ ] Replace `cmd/go-ent/internal/server` with `internal/mcp/server`
-- [ ] Replace `cmd/go-ent/internal/version` with `internal/version`
-- [ ] Verify imports
+- [x] Replace `cmd/go-ent/internal/version` with `internal/version`
+- [x] Verify imports
 
 ### 2.2 Update internal/mcp/server/server.go
-- [ ] Replace `cmd/go-ent/internal/tools` with `internal/mcp/tools`
+- [x] Replace `cmd/go-ent/internal/tools` with `internal/mcp/tools`
 - [ ] Verify imports
 
 ### 2.3 Update internal/mcp/tools/register.go

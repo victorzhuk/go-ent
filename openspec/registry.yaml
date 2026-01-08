@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-08T00:26:46.33556019+03:00
+synced_at: 2026-01-08T10:29:24.667988857+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -52,7 +52,7 @@ changes:
         status: ""
         tasks_file: openspec/changes/restructure-repository/tasks.md
         total: 53
-        completed: 0
+        completed: 4
         in_progress: 0
         blocked: 0
 tasks:
@@ -1804,8 +1804,10 @@ tasks:
         change_id: restructure-repository
         task_num: "1"
       content: Move `cmd/go-ent/internal/tools/` to `internal/mcp/tools/`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T10:15:22.025404287+03:00
+      completed_at: 2026-01-08T10:17:10.180954711+03:00
       source_line: 6
       synced_at: 2026-01-08T00:26:46.335474921+03:00
     - id:
@@ -1876,24 +1878,30 @@ tasks:
         change_id: restructure-repository
         task_num: "10"
       content: Replace `cmd/go-ent/internal/version` with `internal/version`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T10:22:27.072078849+03:00
+      completed_at: 2026-01-08T10:25:10.781871961+03:00
       source_line: 25
       synced_at: 2026-01-08T00:26:46.335487214+03:00
     - id:
         change_id: restructure-repository
         task_num: "11"
       content: Verify imports
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T10:25:57.33307049+03:00
+      completed_at: 2026-01-08T10:27:34.424488955+03:00
       source_line: 26
       synced_at: 2026-01-08T00:26:46.335488346+03:00
     - id:
         change_id: restructure-repository
         task_num: "12"
       content: Replace `cmd/go-ent/internal/tools` with `internal/mcp/tools`
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-08T10:28:56.321659222+03:00
+      completed_at: 2026-01-08T10:29:24.667978507+03:00
       source_line: 29
       synced_at: 2026-01-08T00:26:46.335489939+03:00
     - id:

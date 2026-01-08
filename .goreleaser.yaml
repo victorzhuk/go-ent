@@ -22,8 +22,8 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/victorzhuk/go-ent/cmd/go-ent/internal/version.version={{.Version}}
-      - -X github.com/victorzhuk/go-ent/cmd/go-ent/internal/version.vcsRef={{.ShortCommit}}
+      - -X github.com/victorzhuk/go-ent/internal/version.version={{.Version}}
+      - -X github.com/victorzhuk/go-ent/internal/version.vcsRef={{.ShortCommit}}
 
 archives:
   - id: default
