@@ -1,34 +1,14 @@
 ---
 name: go-code
-description: "Go 1.25/1.26 implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring."
+description: "Go 1.25+ implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration."
 ---
 
 # Go Code Patterns (1.25+)
 
-## Current Versions (Jan 2026)
+## Versions (Jan 2026)
 
-- **Go 1.25.6** - Current stable
-- **Go 1.26** - Coming Feb 2026 (`new(expr)`, SIMD, HPKE)
-
-## 1.25+ Features
-
-```go
-// Tool directives in go.mod (since 1.24)
-tool (
-    golang.org/x/tools/cmd/stringer
-    github.com/golangci/golangci-lint/cmd/golangci-lint
-)
-
-// Generic type aliases
-type Set[T comparable] = map[T]struct{}
-
-// Weak pointers
-ref := weak.Make(&obj)
-if val := ref.Value(); val != nil { ... }
-
-// Go 1.26: new(expr)
-Age: new(30) // creates *int with value 30
-```
+- **Go 1.25.6** — Current stable
+- **Go 1.26** — Coming Feb 2026
 
 ## Bootstrap
 
@@ -46,7 +26,7 @@ func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writ
         return fmt.Errorf("config: %w", err)
     }
     
-    log := slog.New(slog.NewJSONHandler(stdout, &slog.HandlerOptions{Level: cfg.LogLevel}))
+    log := slog.New(slog.NewJSONHandler(stdout, nil))
     slog.SetDefault(log)
     
     app, err := app.New(log, cfg)
@@ -83,8 +63,8 @@ if err != nil {
 
 // Domain errors
 var (
-    ErrNotFound     = errors.New("not found")
-    ErrConflict     = errors.New("conflict")
+    ErrNotFound = errors.New("not found")
+    ErrConflict = errors.New("conflict")
 )
 
 // Check wrapped
@@ -94,7 +74,6 @@ if errors.Is(err, ErrNotFound) { ... }
 ## Concurrency
 
 ```go
-// errgroup with limit
 g, ctx := errgroup.WithContext(ctx)
 g.SetLimit(10)
 
@@ -114,7 +93,7 @@ type repository struct {
     psql sq.StatementBuilderType
 }
 
-func New(pool *pgxpool.Pool) contract.UserRepo {
+func New(pool *pgxpool.Pool) *repository {
     return &repository{
         pool: pool,
         psql: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),

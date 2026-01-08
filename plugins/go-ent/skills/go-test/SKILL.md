@@ -1,9 +1,19 @@
 ---
 name: go-test
-description: "Go testing with testify, testcontainers, table-driven tests, synctest. Auto-activates for: writing tests, TDD, coverage improvement."
+description: "Testing patterns with testify, testcontainers, table-driven tests. Auto-activates for: writing tests, TDD, coverage, integration tests, mocks."
 ---
 
 # Go Testing (1.25+)
+
+## Commands
+
+```bash
+go test ./... -v                    # All tests
+go test -race ./...                 # Race detection
+go test -run TestXxx -v ./pkg/...   # Specific test
+go test -coverprofile=c.out ./...   # Coverage
+go test -bench=. -benchmem ./...    # Benchmarks
+```
 
 ## Go 1.25+ Testing Features
 
@@ -50,7 +60,7 @@ func TestNewUser(t *testing.T) {
 }
 ```
 
-## UseCase with Mocks
+## Mocks
 
 ```go
 type mockUserRepo struct{ mock.Mock }
@@ -71,32 +81,15 @@ func TestCreateUser(t *testing.T) {
 }
 ```
 
-## Integration (Testcontainers)
+## Testcontainers
 
 ```go
-type UserRepoSuite struct {
-    suite.Suite
-    ctx       context.Context
-    container *postgres.PostgresContainer
-    pool      *pgxpool.Pool
-    repo      contract.UserRepository
-}
-
-func TestUserRepoSuite(t *testing.T) {
-    suite.Run(t, new(UserRepoSuite))
-}
-
 func (s *UserRepoSuite) SetupSuite() {
     s.ctx = context.Background()
     container, err := postgres.Run(s.ctx, "postgres:17-alpine",
         postgres.WithDatabase("test"),
         postgres.WithUsername("test"),
         postgres.WithPassword("test"),
-        testcontainers.WithWaitStrategy(
-            wait.ForLog("ready to accept connections").
-                WithOccurrence(2).
-                WithStartupTimeout(30*time.Second),
-        ),
     )
     s.Require().NoError(err)
     s.container = container
@@ -105,77 +98,20 @@ func (s *UserRepoSuite) SetupSuite() {
     s.pool, _ = pgxpool.New(s.ctx, connStr)
     s.repo = userRepo.New(s.pool)
 }
-
-func (s *UserRepoSuite) TearDownSuite() {
-    s.pool.Close()
-    s.container.Terminate(s.ctx)
-}
-
-func (s *UserRepoSuite) TestSaveAndFind() {
-    user, _ := entity.NewUser("test@example.com", "John")
-    s.Require().NoError(s.repo.Save(s.ctx, user))
-    
-    found, err := s.repo.FindByID(s.ctx, user.ID)
-    s.Require().NoError(err)
-    s.Equal(user.Email, found.Email)
-}
 ```
 
-## HTTP Handler Tests
+## Testing by Layer
 
-```go
-func TestUserHandler_Create(t *testing.T) {
-    tests := []struct {
-        name   string
-        body   string
-        setup  func(*mockUC)
-        status int
-    }{
-        {
-            name: "success",
-            body: `{"email":"a@b.com","name":"John"}`,
-            setup: func(m *mockUC) {
-                m.On("Execute", mock.Anything, mock.Anything).
-                    Return(&CreateUserResp{ID: "123"}, nil)
-            },
-            status: http.StatusCreated,
-        },
-        {
-            name:   "invalid json",
-            body:   "not json",
-            setup:  func(m *mockUC) {},
-            status: http.StatusBadRequest,
-        },
-    }
+| Layer      | Test Type   | Tools              |
+|------------|-------------|--------------------|
+| Domain     | Pure unit   | testify            |
+| UseCase    | Mock repos  | testify/mock       |
+| Repository | Integration | testcontainers     |
+| Transport  | HTTP test   | httptest + mock UC |
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            uc := new(mockUC)
-            tt.setup(uc)
-            h := NewUserHandler(uc)
+## Context7
 
-            req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(tt.body))
-            rec := httptest.NewRecorder()
-            h.Create(rec, req)
-
-            assert.Equal(t, tt.status, rec.Code)
-        })
-    }
-}
 ```
-
-## Commands
-
-```bash
-go test ./... -v                    # All
-go test -race ./...                 # Race
-go test -coverprofile=c.out ./...   # Coverage
-go test -run TestXxx -v ./pkg/...   # Specific
-go test -bench=. -benchmem ./...    # Bench
+mcp__context7__resolve(library: "testify")
+mcp__context7__resolve(library: "testcontainers-go")
 ```
-
-## Libraries
-
-- testify v1.9+
-- testcontainers-go v0.34+
-- go-sqlmock v1.5+

@@ -1,9 +1,9 @@
 ---
 name: go-arch
-description: "Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization."
+description: "Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization, dependency injection, bounded contexts."
 ---
 
-# Go Architecture (1.25+)
+# Go Architecture
 
 ## Layer Structure
 
@@ -16,7 +16,7 @@ internal/
 ├── usecase/          # Business orchestration
 ├── repository/       # Data access
 │   └── {store}/pgx/
-├── transport/        # HTTP/gRPC (ogen-generated handlers)
+├── transport/        # HTTP/gRPC handlers
 │   └── http/
 └── app/              # Bootstrap, DI
     ├── app.go
@@ -87,22 +87,22 @@ func (uc *createOrderUC) Execute(ctx context.Context, req CreateOrderReq) error 
 }
 ```
 
+## Decision Matrix
+
+| Scenario       | Pattern              |
+|----------------|----------------------|
+| Simple CRUD    | Clean Architecture   |
+| Complex domain | DDD bounded contexts |
+| Cross-service  | Event-driven, outbox |
+| High load      | CQRS, read replicas  |
+
 ## Graceful Shutdown
 
 ```go
 func (a *app) Shutdown(ctx context.Context) error {
-    a.httpSrv.Shutdown(ctx)  // Stop accepting
-    a.workers.Stop()          // Drain workers
-    a.container.close()       // Close connections
+    a.httpSrv.Shutdown(ctx)
+    a.workers.Stop()
+    a.container.close()
     return nil
 }
 ```
-
-## Decision Matrix
-
-| Scenario | Pattern |
-|----------|---------|
-| Simple CRUD | Clean Architecture |
-| Complex domain | DDD bounded contexts |
-| Cross-service | Event-driven, outbox |
-| High load | CQRS, read replicas |

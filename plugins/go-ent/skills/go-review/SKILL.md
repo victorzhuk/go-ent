@@ -1,40 +1,36 @@
 ---
 name: go-review
-description: "Code review for Go enterprise standards, SOLID, Clean Architecture. Auto-activates for: code review, PR review, quality checks, Go validation."
-allowed-tools: Read, Grep, Glob, Bash
+description: "Code review patterns and quality checks. Auto-activates for: code review, quality checks, PR review, architecture validation."
 ---
 
 # Go Code Review
 
-## Review Checklist
+## Checklist
 
-### 1. Architecture (Dependencies flow inward)
+### 1. Architecture
 ```
 Transport → UseCase → Domain ← Repository ← Infrastructure
 ```
 - Domain has ZERO external deps, NO struct tags
 - Interfaces defined at consumer side
-- Private models in repository with mappers
 
-### 2. Naming (Concise, no AI-style)
+### 2. Naming
 ```go
 // ❌ REJECT
 applicationConfiguration := config.Load()
-userRepositoryInstance := userRepo.New(pool)
 
 // ✅ ACCEPT  
 cfg := config.Load()
-repo := userRepo.New(pool)
 ```
 
-### 3. Comments (ZERO explaining WHAT)
+### 3. Comments
 ```go
 // ❌ REJECT - explains what
 // Create a new user
 user := NewUser(name)
 
 // ✅ ACCEPT - explains why (rare)
-// Required by legacy API - remove after v2 migration
+// Required by legacy API
 resp.Header.Set("X-Legacy-Token", token)
 ```
 
@@ -42,17 +38,11 @@ resp.Header.Set("X-Legacy-Token", token)
 ```go
 // ❌ REJECT
 return fmt.Errorf("Failed to query user: %w", err)
-return err  // no context
+return err
 
 // ✅ ACCEPT
 return fmt.Errorf("query user %s: %w", id, err)
 ```
-
-### 5. Patterns
-- Constructor: `New()` public, `new*()` private
-- Context as first parameter
-- Happy path left (early returns)
-- Structs private by default
 
 ## Review Commands
 
@@ -61,13 +51,21 @@ return fmt.Errorf("query user %s: %w", id, err)
 grep -r "import.*transport" internal/domain/
 
 # AI-style names
-grep -rn "applicationConfig\|userRepository\|databaseConnection" internal/
+grep -rn "applicationConfig\|userRepository" internal/
 
 # Comment violations  
-grep -rn "// Create\|// Get\|// Set\|// Check" internal/ | grep -v "_test.go"
+grep -rn "// Create\|// Get\|// Set" internal/ | grep -v "_test.go"
 
 # Error handling
 grep -rn 'return err$' internal/
+```
+
+## Serena
+
+```
+mcp__serena__find_symbol(name: "UserRepository")
+mcp__serena__find_referencing_symbols(symbol: "CreateUser")
+mcp__serena__get_project_structure()
 ```
 
 ## Output Format
@@ -77,9 +75,17 @@ grep -rn 'return err$' internal/
 
 ### 🚨 Critical (Must Fix)
 - [FILE:LINE] Issue description
-  ```go
-  // Current → Suggested
-  ```
 
-### ⚠️ Warnings | 💡 Suggestions | ✅ Well Done
+### ⚠️ Warnings
+...
+
+### ✅ Well Done
+- Good error handling in X
 ```
+
+## Confidence Filter
+
+Only report >= 80%:
+- 95-100%: Bugs, security, Go idiom violations
+- 85-94%: Quality issues, anti-patterns
+- <80%: Skip — subjective preferences
