@@ -5,6 +5,18 @@
 - Requires: add-background-agents (async spawning infrastructure)
 - External: OpenCode installed on system (`opencode` binary)
 
+## Relationship with add-background-agents
+
+This proposal builds ON TOP of add-background-agents:
+
+| Tool Type | Proposal | Use Case |
+|-----------|----------|----------|
+| `go_ent_agent_*` | add-background-agents | Lightweight internal agents via direct API |
+| `worker_*` | **this proposal** | Heavy OpenCode workers via ACP/CLI |
+
+Internal agents (Haiku) → quick exploration, analysis, validation
+OpenCode workers (GLM/Kimi) → bulk implementation, multi-file changes
+
 ## 1. Worker Manager Core
 
 - [ ] 1.1 Create `internal/worker/manager.go` - Worker lifecycle management
