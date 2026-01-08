@@ -1,162 +1,292 @@
-# Proposal: Add ACP Agent Mode with Multi-Provider Workers
+# Proposal: Add ACP Proxy Mode for OpenCode Worker Orchestration
 
 ## Why
 
-go-ent currently only operates as an MCP server for Claude Code. To enable true multi-agent orchestration where Claude Code (Opus) acts as master orchestrator and heterogeneous workers execute tasks in parallel, we need:
+go-ent currently operates as an MCP server for Claude Code. To enable true multi-agent orchestration where Claude Code (Opus) acts as master and **OpenCode instances** run as parallel workers with different AI backends, go-ent needs to act as an **ACP proxy/bridge**.
 
-1. **go-ent as ACP Agent**: Run as worker process spawned by orchestrator
-2. **Multi-Provider Support**: Workers can use Claude, OpenCode (GLM 4.7, Kimi K2), or other AI backends
-3. **Heterogeneous Swarm**: Mix different providers based on task requirements
+**Key Architecture Insight**:
+- **Claude Code (Opus 4.5)** = Master orchestrator for research, planning, review
+- **go-ent** = ACP proxy that spawns and manages OpenCode workers
+- **OpenCode** = Actual workers configured with different AI providers (GLM 4.7, Kimi K2, DeepSeek)
 
-**Key Insight**: Claude Code with Opus 4.5 excels at research, planning, and review (high reasoning). For bulk implementation tasks, spawning multiple workers with **different AI backends** provides:
-- 2-5x faster execution through parallelization
-- 80-95% cost reduction using cheaper models (GLM 4.7, Kimi K2) for bulk work
+go-ent is NOT a worker itself - it's the orchestration layer between Claude Code and OpenCode.
+
+**Benefits of this architecture**:
+- 2-5x faster execution through parallel OpenCode workers
+- 80-95% cost reduction using cheap providers (GLM 4.7, Kimi K2) for bulk work
 - Provider diversity (avoid rate limits, leverage model strengths)
-- Isolated context windows (no context bloat in orchestrator)
+- Isolated context windows (workers don't bloat orchestrator)
+- Leverage OpenCode's existing tooling (LSP, MCP, agents)
 
 Inspired by:
-- [Agent Client Protocol](https://github.com/agentclientprotocol/agent-client-protocol) - JSON-RPC 2.0 standard for editor-agent communication
+- [OpenCode ACP Support](https://opencode.ai/docs/acp/) - `opencode acp` command for editor integration
+- [Agent Client Protocol](https://github.com/agentclientprotocol/agent-client-protocol) - JSON-RPC 2.0 standard
 - [Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Subagent orchestration patterns
-- [Oh-My-OpenCode](https://github.com/code-yeongyu/oh-my-opencode) - Multi-agent Sisyphus model with specialized teammates
-- [Claude-Flow](https://github.com/ruvnet/claude-flow) - Swarm coordination with 64 specialized agents
 
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │              CLAUDE CODE (Master Orchestrator)                       │
-│                    Opus 4.5 + Agent SDK                              │
+│                    Opus 4.5 + Claude Agent SDK                       │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Research (Opus)  │  Orchestration (Opus)  │  Review (Opus)         │
-│  - Explore        │  - Task routing        │  - Quality gate        │
-│  - Analyze        │  - Provider selection  │  - Approval            │
-│  - Pattern find   │  - Worker spawn        │  - Standards check     │
-└───────────────────┴───────────┬────────────┴────────────────────────┘
+│  Research (Opus)  │  Planning (Opus)   │  Review (Opus)              │
+│  - Explore        │  - Task breakdown  │  - Quality gate             │
+│  - Analyze        │  - Dependency graph│  - Standards check          │
+│  - Pattern find   │  - Delegate work   │  - Approval                 │
+└───────────────────┴───────────┬────────┴────────────────────────────┘
                                 │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-              │  ACP Protocol   │  Claude Task    │  Direct API
-              │  (stdio)        │  (subagent)     │  (HTTP)
-              │                 │                 │
-    ┌─────────┴─────────┐ ┌─────┴─────┐ ┌────────┴────────┐
-    ▼                   ▼ ▼           ▼ ▼                 ▼
-┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-│ OpenCode    │ │ OpenCode    │ │ Claude Code │ │ OpenCode    │
-│ Worker      │ │ Worker      │ │ Subagent    │ │ Worker      │
-│             │ │             │ │             │ │             │
-│ Provider:   │ │ Provider:   │ │ Provider:   │ │ Provider:   │
-│ GLM 4.7     │ │ Kimi K2     │ │ Haiku       │ │ DeepSeek    │
-│ (Z.AI)      │ │ (Moonshot)  │ │ (Anthropic) │ │             │
-│             │ │             │ │             │ │             │
-│ Best for:   │ │ Best for:   │ │ Best for:   │ │ Best for:   │
-│ Fast impl   │ │ Long ctx    │ │ Simple fix  │ │ Code-heavy  │
-│ Bulk tasks  │ │ Large files │ │ Quick tasks │ │ Refactoring │
-└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
-    Task: T001      Task: T002      Task: T003      Task: T004
+                      MCP Protocol (stdio)
+              go-ent plugin: agents, skills, commands
+              worker_spawn, worker_status, worker_output
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    go-ent (ACP PROXY / BRIDGE)                       │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐   │
+│   │ MCP Server      │   │ Worker Manager  │   │ Task Router     │   │
+│   │ - Receives cmds │   │ - Spawn workers │   │ - Select provider│   │
+│   │ - Exposes tools │   │ - Track status  │   │ - Apply rules   │   │
+│   │ - Return results│   │ - Collect output│   │ - Cost optimize │   │
+│   └─────────────────┘   └─────────────────┘   └─────────────────┘   │
+│                                                                      │
+│   Communication Methods:                                             │
+│   ├── ACP (stdio): opencode acp → JSON-RPC over stdin/stdout        │
+│   ├── CLI (exec):  opencode -p "prompt" -f json → batch mode        │
+│   └── API (http):  Direct provider API calls for simple queries     │
+│                                                                      │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                       │                       │
+        │ ACP (stdio)           │ CLI (subprocess)      │ API (HTTP)
+        │ opencode acp          │ opencode -p "..."     │ provider APIs
+        │ Long-running tasks    │ Quick one-shot        │ Simple queries
+        ▼                       ▼                       ▼
+┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+│ OpenCode      │       │ OpenCode      │       │ Direct API    │
+│ Worker 1      │       │ Worker 2      │       │ Call          │
+│               │       │               │       │               │
+│ ~/.opencode/  │       │ ~/.opencode/  │       │ Provider:     │
+│ config:       │       │ config:       │       │ Anthropic     │
+│ GLM 4.7       │       │ Kimi K2       │       │ Haiku         │
+│ (Z.AI)        │       │ (Moonshot)    │       │               │
+│               │       │               │       │               │
+│ Best for:     │       │ Best for:     │       │ Best for:     │
+│ Bulk impl     │       │ Large files   │       │ Quick fixes   │
+│ Mass edits    │       │ 128K context  │       │ Simple tasks  │
+└───────────────┘       └───────────────┘       └───────────────┘
+    Task: T001              Task: T002              Task: T003
 ```
 
 ## What Changes
 
-### 1. Multi-Mode Operation
-- **MCP Server Mode** (existing): For Claude Code direct integration
-- **ACP Agent Mode** (new): Run as worker spawned by orchestrator
-- **ACP Server Mode** (new): Spawn and manage heterogeneous workers
+### 1. go-ent as ACP Proxy (Not Worker)
+- go-ent does NOT execute tasks itself
+- go-ent SPAWNS OpenCode workers and manages their lifecycle
+- go-ent ROUTES tasks to appropriate OpenCode configs/providers
+- go-ent AGGREGATES results back to Claude Code
 
-### 2. Multi-Provider Backend Support
-go-ent workers can use different AI providers:
+### 2. Three Communication Methods with OpenCode
 
-| Provider | Model | Strength | Cost | Best For |
-|----------|-------|----------|------|----------|
-| Anthropic | Haiku | Fast, cheap | $ | Simple tasks, linting |
-| Anthropic | Sonnet | Balanced | $$ | Standard implementation |
-| Z.AI | GLM 4.7 | Fast, bulk | ¢ | Mass file edits |
-| Moonshot | Kimi K2 | Long context (128K) | ¢ | Large file analysis |
-| DeepSeek | DeepSeek-V3 | Code-focused | ¢ | Complex refactoring |
-| Alibaba | Qwen3 | Multilingual | ¢ | i18n, docs |
+| Method | Command | Use Case | Pros | Cons |
+|--------|---------|----------|------|------|
+| **ACP** | `opencode acp` | Long-running, streaming | Bidirectional, progress | Process overhead |
+| **CLI** | `opencode -p "..." -f json` | Quick one-shot tasks | Simple, fast | No streaming |
+| **API** | Direct HTTP to provider | Simple queries | Fastest | No OpenCode tools |
 
-### 3. ACP Protocol Implementation
-- JSON-RPC 2.0 over stdio transport
-- Initialize/authenticate handshake with provider config
-- Session management with streaming
-- Permission flow for tool execution
-- File operations with context mentions
+### 3. OpenCode Worker Configuration
+Each OpenCode worker can be pre-configured with different providers:
 
-### 4. Worker Spawning Interface
-Three spawning mechanisms:
-1. **ACP (stdio)**: For OpenCode workers - spawn subprocess, communicate via JSON-RPC
-2. **Claude Task tool**: For Claude subagents - use existing Task tool with run_in_background
-3. **Direct API**: For stateless calls to provider APIs
+```json
+// ~/.opencode-glm.json (for bulk implementation)
+{
+  "provider": "openai-compatible",
+  "model": "glm-4",
+  "baseUrl": "https://api.z.ai/v1",
+  "apiKey": "${ZAI_API_KEY}"
+}
 
-### 5. Provider-Aware Task Routing
+// ~/.opencode-kimi.json (for large context)
+{
+  "provider": "openai-compatible",
+  "model": "moonshot-v1-128k",
+  "baseUrl": "https://api.moonshot.cn/v1",
+  "apiKey": "${MOONSHOT_API_KEY}"
+}
+
+// ~/.opencode-deepseek.json (for code-heavy)
+{
+  "provider": "openai-compatible",
+  "model": "deepseek-coder",
+  "apiKey": "${DEEPSEEK_API_KEY}"
+}
+```
+
+### 4. go-ent Worker Manager
+```go
+type WorkerManager struct {
+    workers  map[string]*OpenCodeWorker
+    configs  map[string]string  // provider -> config path
+}
+
+type OpenCodeWorker struct {
+    ID        string
+    Provider  string           // "glm", "kimi", "deepseek", "haiku"
+    Method    CommunicationMethod  // ACP, CLI, API
+    Process   *os.Process      // for ACP/CLI
+    Status    WorkerStatus
+    Task      *Task
+}
+
+func (m *WorkerManager) SpawnACP(provider string, task *Task) (*OpenCodeWorker, error) {
+    configPath := m.configs[provider]
+    cmd := exec.Command("opencode", "acp", "--config", configPath)
+    // ... setup stdin/stdout pipes for JSON-RPC
+}
+
+func (m *WorkerManager) SpawnCLI(provider string, prompt string) (string, error) {
+    configPath := m.configs[provider]
+    cmd := exec.Command("opencode", "-p", prompt, "-f", "json", "--config", configPath)
+    // ... capture output
+}
+```
+
+### 5. MCP Tools for Claude Code
+
+| Tool | Purpose |
+|------|---------|
+| `worker_spawn` | Spawn OpenCode worker with provider selection |
+| `worker_prompt` | Send task to ACP worker |
+| `worker_status` | Check worker status |
+| `worker_output` | Get streaming output |
+| `worker_cancel` | Cancel worker |
+| `worker_list` | List active workers |
+| `provider_list` | List configured providers |
+| `provider_recommend` | Get optimal provider for task |
+
+### 6. Task Routing Rules
+
 ```yaml
+# .goent/routing.yaml
 routing_rules:
-  - match: { type: "lint", files: "<10" }
-    provider: anthropic
-    model: haiku
+  # Simple tasks → Direct API or CLI (fast)
+  - match: { type: "lint", complexity: "trivial" }
+    method: cli
+    provider: haiku
 
-  - match: { type: "implement", loc: "<100" }
-    provider: z-ai
-    model: glm-4.7
+  # Bulk implementation → OpenCode ACP with GLM
+  - match: { type: "implement", files: ">3" }
+    method: acp
+    provider: glm
 
-  - match: { type: "analyze", context_size: ">50000" }
-    provider: moonshot
-    model: kimi-k2
+  # Large file analysis → OpenCode ACP with Kimi (128K)
+  - match: { context_tokens: ">50000" }
+    method: acp
+    provider: kimi
 
+  # Complex refactoring → OpenCode ACP with DeepSeek
   - match: { type: "refactor", complexity: "high" }
-    provider: anthropic
-    model: sonnet
+    method: acp
+    provider: deepseek
+
+  # Default fallback
+  - match: { default: true }
+    method: cli
+    provider: glm
 ```
 
 ## Impact
 
-- Affected specs: acp-protocol (new capability), execution-engine (provider abstraction)
-- Affected code: cmd/acp/, internal/acp/, internal/execution/, internal/provider/
-- Dependencies: Extends add-execution-engine, requires add-background-agents
+- Affected specs: acp-proxy (new capability)
+- Affected code: internal/proxy/, internal/worker/, cmd/mcp/
+- Dependencies: Requires OpenCode installed on system
 - Breaking: None (additive feature)
 
 ## Key Benefits
 
-1. **Heterogeneous Swarm**: Mix providers based on task requirements
-2. **Cost Optimization**: 80-95% savings using GLM/Kimi for bulk work
-3. **Rate Limit Avoidance**: Distribute across providers
-4. **Context Optimization**: Use Kimi K2 for large file analysis (128K context)
-5. **Provider Failover**: Auto-switch if one provider is down
-6. **Context Isolation**: Workers don't pollute orchestrator context
-7. **Editor Agnostic**: Works with Zed, Neovim, JetBrains, any ACP client
+1. **Leverage OpenCode**: Use OpenCode's tools, LSP, MCP without reimplementing
+2. **Provider Flexibility**: Switch providers via OpenCode config, not go-ent code
+3. **Cost Optimization**: 80-95% savings using GLM/Kimi for bulk work
+4. **Context Optimization**: Use Kimi K2 for large files (128K context)
+5. **Parallel Execution**: Spawn multiple OpenCode workers simultaneously
+6. **Clean Separation**: Claude Code (brain) → go-ent (orchestrator) → OpenCode (hands)
 
 ## Provider Configuration
 
 ```yaml
 # .goent/providers.yaml
 providers:
-  anthropic:
-    api_key: ${ANTHROPIC_API_KEY}
-    models:
-      - haiku    # $0.25/1M input, $1.25/1M output
-      - sonnet   # $3/1M input, $15/1M output
-      - opus     # $15/1M input, $75/1M output
+  # Anthropic (via Claude Code subagent or direct API)
+  haiku:
+    method: api  # Direct API call, fastest for simple tasks
+    provider: anthropic
+    model: claude-3-haiku
 
-  z-ai:
-    api_key: ${ZAI_API_KEY}
-    base_url: https://api.z.ai/v1
-    models:
-      - glm-4.7  # ~$0.01/1M tokens
+  sonnet:
+    method: api
+    provider: anthropic
+    model: claude-3-5-sonnet
 
-  moonshot:
-    api_key: ${MOONSHOT_API_KEY}
-    base_url: https://api.moonshot.cn/v1
-    models:
-      - kimi-k2  # 128K context, ~$0.02/1M tokens
+  # OpenCode workers with different backends
+  glm:
+    method: acp  # opencode acp --config ~/.opencode-glm.json
+    opencode_config: ~/.opencode-glm.json
+    best_for: ["bulk", "implementation", "mass-edits"]
+    cost: "$0.01/1M tokens"
+
+  kimi:
+    method: acp
+    opencode_config: ~/.opencode-kimi.json
+    best_for: ["large-context", "file-analysis"]
+    context_limit: 128000
+    cost: "$0.02/1M tokens"
 
   deepseek:
-    api_key: ${DEEPSEEK_API_KEY}
-    models:
-      - deepseek-v3
+    method: acp
+    opencode_config: ~/.opencode-deepseek.json
+    best_for: ["refactoring", "code-heavy"]
+    cost: "$0.01/1M tokens"
 
 defaults:
-  orchestrator: anthropic/opus
-  research: anthropic/sonnet
-  implementation: z-ai/glm-4.7
-  long_context: moonshot/kimi-k2
-  review: anthropic/opus
+  research: opus        # Stays in Claude Code
+  planning: opus        # Stays in Claude Code
+  review: opus          # Stays in Claude Code
+  implementation: glm   # OpenCode worker
+  large_context: kimi   # OpenCode worker
+  simple_tasks: haiku   # Direct API
+```
+
+## Example Workflow
+
+```
+User: "Add rate limiting to all API endpoints"
+
+1. CLAUDE CODE (Opus) receives request
+   → Research: Explores codebase, finds 15 endpoints
+   → Plan: Creates 15 tasks in tasks.md with dependencies
+
+2. CLAUDE CODE delegates to go-ent via MCP:
+   worker_spawn(provider="glm", tasks=["T001", "T002", "T003"])
+   worker_spawn(provider="glm", tasks=["T004", "T005", "T006"])
+   worker_spawn(provider="kimi", tasks=["T007"])  # Large config file
+
+3. go-ent (ACP Proxy) spawns OpenCode workers:
+   → opencode acp --config ~/.opencode-glm.json (Worker 1)
+   → opencode acp --config ~/.opencode-glm.json (Worker 2)
+   → opencode acp --config ~/.opencode-kimi.json (Worker 3)
+
+4. OpenCode workers execute tasks with their configured models
+   → Worker 1 (GLM): Implements T001-T003
+   → Worker 2 (GLM): Implements T004-T006
+   → Worker 3 (Kimi): Analyzes large config, implements T007
+
+5. go-ent collects results, returns to Claude Code
+
+6. CLAUDE CODE (Opus) reviews:
+   → Quality check all implementations
+   → Request fixes if needed → delegate again
+   → Approve and archive
 ```

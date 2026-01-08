@@ -1,246 +1,240 @@
 ## ADDED Requirements
 
-### Requirement: ACP Protocol Transport
+### Requirement: go-ent as ACP Proxy
 
-The system SHALL implement JSON-RPC 2.0 over stdio for ACP communication.
+The system SHALL act as an ACP proxy between Claude Code and OpenCode workers (NOT as a worker itself).
 
-#### Scenario: Receive JSON-RPC request
-- **WHEN** a valid JSON-RPC 2.0 request is received on stdin
-- **THEN** the request is parsed and routed to appropriate handler
-- **AND** a response is sent to stdout
+#### Scenario: Proxy role
+- **GIVEN** Claude Code delegates a task via MCP
+- **WHEN** go-ent receives the task
+- **THEN** go-ent spawns an OpenCode worker to execute the task
+- **AND** go-ent does NOT execute the task itself
 
-#### Scenario: Handle notification (no response expected)
-- **WHEN** a JSON-RPC notification (no id) is received
-- **THEN** the message is processed
-- **AND** no response is sent
+#### Scenario: Worker management
+- **WHEN** go-ent spawns an OpenCode worker
+- **THEN** go-ent manages the worker lifecycle
+- **AND** go-ent collects results from the worker
+- **AND** go-ent returns results to Claude Code
 
-#### Scenario: Protocol error
-- **WHEN** an invalid JSON-RPC message is received
-- **THEN** a JSON-RPC error response is returned with code -32700 (Parse error)
+### Requirement: OpenCode ACP Communication
 
-### Requirement: ACP Initialize Handshake
-
-The system SHALL implement capability negotiation during initialization.
-
-#### Scenario: Initialize with capabilities
-- **WHEN** `acp/initialize` request is received with client capabilities
-- **THEN** server responds with supported capabilities
-- **AND** protocol version is validated
-- **AND** session is ready for prompts
-
-#### Scenario: Version mismatch
-- **WHEN** client requests unsupported protocol version
-- **THEN** error is returned with supported versions
-- **AND** connection is not established
-
-### Requirement: ACP Session Management
-
-The system SHALL maintain stateful sessions for task execution.
-
-#### Scenario: Create session
-- **WHEN** `session/create` request is received
-- **THEN** new session is created with unique ID
-- **AND** session context is initialized
-- **AND** session ID is returned to client
-
-#### Scenario: Send prompt to session
-- **WHEN** `session/prompt` request is received with task description
-- **THEN** task is parsed and executed
-- **AND** progress updates are streamed as notifications
-- **AND** final result is returned when complete
-
-#### Scenario: Cancel session
-- **WHEN** `session/cancel` request is received
-- **THEN** current execution is terminated gracefully
-- **AND** partial results are preserved
-- **AND** session is marked as cancelled
-
-### Requirement: ACP Permission Flow
-
-The system SHALL request permission from client before executing sensitive operations.
-
-#### Scenario: Request tool permission
-- **WHEN** worker needs to execute Write or Bash tool
-- **THEN** `permission/request` notification is sent to client
-- **AND** worker waits for `permission/response`
-- **AND** tool is executed only if approved
-
-#### Scenario: Permission denied
-- **WHEN** client denies permission request
-- **THEN** worker skips the operation
-- **AND** execution continues with alternative approach or error
-
-### Requirement: ACP Streaming Responses
-
-The system SHALL stream progress and results during execution.
-
-#### Scenario: Stream progress updates
-- **WHEN** worker is executing a task
-- **THEN** periodic `session/progress` notifications are sent
-- **AND** notifications include current step and completion percentage
-
-#### Scenario: Stream partial results
-- **WHEN** worker generates intermediate output
-- **THEN** `session/output` notifications are sent with content
-- **AND** client can display streaming results
-
-### Requirement: Worker Process Management
-
-The system SHALL manage go-ent worker processes spawned via ACP.
-
-#### Scenario: Start worker in ACP mode
-- **WHEN** `go-ent acp` command is executed
-- **THEN** process starts in ACP agent mode
-- **AND** listens on stdin for JSON-RPC messages
-- **AND** writes responses to stdout
-
-#### Scenario: Worker with model override
-- **WHEN** `go-ent acp --model haiku` is executed
-- **THEN** worker uses Haiku model for task execution
-- **AND** ignores default model selection
-
-#### Scenario: Worker with tool restrictions
-- **WHEN** `go-ent acp --allowed-tools Read,Grep,Glob` is executed
-- **THEN** worker can only use specified tools
-- **AND** other tool requests are denied
-
-### Requirement: MCP Tools for ACP Worker Spawning
-
-The system SHALL provide MCP tools for spawning and managing ACP workers from Claude Code.
+The system SHALL communicate with OpenCode workers via ACP protocol.
 
 #### Scenario: Spawn ACP worker
-- **WHEN** `agent_spawn_acp` is called with task and model
-- **THEN** go-ent subprocess is spawned in ACP mode
-- **AND** worker ID is returned for tracking
-- **AND** worker connects via stdio
+- **WHEN** `worker_spawn` is called with `method: "acp"` and provider config
+- **THEN** go-ent executes `opencode acp --config <provider_config>`
+- **AND** go-ent establishes JSON-RPC 2.0 connection over stdio
+- **AND** worker_id is returned for tracking
 
-#### Scenario: Send prompt to worker
-- **WHEN** `agent_prompt_acp` is called with worker_id and prompt
-- **THEN** prompt is sent to worker via ACP
-- **AND** worker begins execution
-- **AND** streaming results are returned
+#### Scenario: ACP initialize handshake
+- **WHEN** OpenCode subprocess starts
+- **THEN** go-ent sends `acp/initialize` request
+- **AND** capabilities are exchanged
+- **AND** session is ready for prompts
 
-#### Scenario: Cancel worker
-- **WHEN** `agent_cancel_acp` is called with worker_id
-- **THEN** cancel request is sent via ACP
-- **AND** worker terminates gracefully
+#### Scenario: Send prompt via ACP
+- **WHEN** `worker_prompt` is called with worker_id and prompt
+- **THEN** go-ent sends `session/prompt` to OpenCode
+- **AND** OpenCode executes the task with its configured AI provider
+- **AND** streaming responses are forwarded to Claude Code
+
+#### Scenario: Cancel ACP worker
+- **WHEN** `worker_cancel` is called with worker_id
+- **THEN** go-ent sends `session/cancel` to OpenCode
+- **AND** OpenCode terminates gracefully
 - **AND** partial results are collected
 
-### Requirement: Multi-Provider Backend Support
+### Requirement: OpenCode CLI Communication
 
-The system SHALL support multiple AI providers for worker execution.
+The system SHALL support CLI communication for quick one-shot tasks.
 
-#### Scenario: Configure provider
-- **WHEN** providers.yaml contains provider configuration
-- **THEN** provider is registered with API key and base URL
-- **AND** provider models are available for selection
+#### Scenario: Execute via CLI
+- **WHEN** `worker_spawn` is called with `method: "cli"`
+- **THEN** go-ent executes `opencode -p "prompt" -f json --config <provider_config>`
+- **AND** waits for completion
+- **AND** parses JSON output
 
-#### Scenario: Supported providers
-- **WHEN** worker requests a provider
-- **THEN** system supports: Anthropic (Haiku/Sonnet/Opus), Z.AI (GLM 4.7), Moonshot (Kimi K2), DeepSeek, Alibaba (Qwen3)
+#### Scenario: CLI with custom config
+- **WHEN** provider specifies `opencode_config` path
+- **THEN** `--config` flag is passed to opencode CLI
+- **AND** OpenCode uses the specified AI provider
 
-#### Scenario: Provider health check
-- **WHEN** provider is selected for task
-- **THEN** health check is performed before spawning
-- **AND** unhealthy providers are skipped
+#### Scenario: CLI error handling
+- **WHEN** OpenCode CLI returns non-zero exit code
+- **THEN** error is captured
+- **AND** partial output is preserved
+- **AND** error is reported to Claude Code
 
-#### Scenario: Provider failover
-- **WHEN** primary provider fails or is rate-limited
-- **THEN** task is retried with fallback provider
-- **AND** failure is logged for monitoring
+### Requirement: Direct Provider API
 
-### Requirement: Provider-Aware Task Routing
+The system SHALL support direct API calls for simple tasks (bypassing OpenCode).
 
-The system SHALL route tasks to optimal providers based on task characteristics.
+#### Scenario: Direct API for Anthropic
+- **WHEN** `worker_spawn` is called with `method: "api"`, `provider: "haiku"`
+- **THEN** go-ent makes direct API call to Anthropic
+- **AND** no OpenCode process is spawned
+- **AND** response is returned immediately
+
+#### Scenario: Direct API for OpenAI-compatible
+- **WHEN** provider uses OpenAI-compatible API (GLM, Kimi, DeepSeek)
+- **THEN** go-ent can make direct API calls
+- **AND** `base_url` from provider config is used
+
+### Requirement: Multiple OpenCode Configurations
+
+The system SHALL support multiple OpenCode configurations for different providers.
+
+#### Scenario: GLM provider config
+- **GIVEN** `~/.opencode-glm.json` configured with Z.AI GLM 4.7
+- **WHEN** provider "glm" is selected
+- **THEN** OpenCode is spawned with `--config ~/.opencode-glm.json`
+- **AND** OpenCode uses GLM 4.7 for task execution
+
+#### Scenario: Kimi provider config
+- **GIVEN** `~/.opencode-kimi.json` configured with Moonshot Kimi K2 (128K context)
+- **WHEN** provider "kimi" is selected
+- **THEN** OpenCode uses Kimi K2
+- **AND** large context tasks can be handled
+
+#### Scenario: DeepSeek provider config
+- **GIVEN** `~/.opencode-deepseek.json` configured with DeepSeek
+- **WHEN** provider "deepseek" is selected
+- **THEN** OpenCode uses DeepSeek for code-heavy tasks
+
+### Requirement: Task Routing
+
+The system SHALL route tasks to optimal provider based on task characteristics.
 
 #### Scenario: Route by complexity
-- **WHEN** task complexity is simple (lint, format)
-- **THEN** cheap fast provider is selected (Haiku, GLM 4.7)
+- **WHEN** task is simple (lint, format, trivial fix)
+- **THEN** router selects `method: "cli"` or `method: "api"`
+- **AND** cheap fast provider is selected (Haiku, GLM)
 
 #### Scenario: Route by context size
-- **WHEN** task requires large context (>50K tokens)
-- **THEN** long-context provider is selected (Kimi K2 - 128K)
+- **WHEN** task requires context > 50K tokens
+- **THEN** router selects Kimi K2 provider (128K context)
+- **AND** `method: "acp"` is used for streaming
 
 #### Scenario: Route by task type
-- **WHEN** task type is code-heavy refactoring
-- **THEN** code-optimized provider is selected (DeepSeek)
+- **WHEN** task is code-heavy refactoring
+- **THEN** router selects DeepSeek or Sonnet
+- **AND** `method: "acp"` is used for complex execution
 
 #### Scenario: Explicit provider override
-- **WHEN** `--provider` flag is specified
+- **WHEN** `provider` parameter is explicitly specified
 - **THEN** specified provider is used regardless of routing rules
 
-#### Scenario: Cost-based routing
-- **WHEN** budget constraint is active
-- **THEN** cheapest capable provider is selected
+#### Scenario: Route based on rules file
+- **GIVEN** `.goent/routing.yaml` contains routing rules
+- **WHEN** task is routed
+- **THEN** rules are evaluated in order
+- **AND** first matching rule determines provider and method
 
-### Requirement: Model Tiering for Workers
+### Requirement: MCP Tools for Worker Management
 
-The system SHALL automatically select cost-effective models for worker tasks.
+The system SHALL expose MCP tools for Claude Code to manage OpenCode workers.
 
-#### Scenario: Default to cheap model for bulk tasks
-- **WHEN** worker is spawned without explicit model
-- **AND** task is bulk implementation
-- **THEN** GLM 4.7 or Haiku is used based on availability
+#### Scenario: worker_spawn
+- **WHEN** `worker_spawn` is called with provider and task
+- **THEN** OpenCode worker is spawned (ACP, CLI, or API based on method)
+- **AND** worker_id is returned
 
-#### Scenario: Escalate to Sonnet for complex tasks
-- **WHEN** task involves multiple files or complex logic
-- **THEN** Sonnet model is used
+#### Scenario: worker_prompt
+- **WHEN** `worker_prompt` is called with worker_id and prompt
+- **THEN** prompt is sent to the ACP worker
+- **AND** streaming results are returned
 
-#### Scenario: Use Opus only for orchestrator
-- **WHEN** task is research, planning, or review
-- **THEN** task remains with Claude Code orchestrator (Opus)
-- **AND** not delegated to worker
+#### Scenario: worker_status
+- **WHEN** `worker_status` is called with worker_id
+- **THEN** current status is returned (running, completed, failed)
+- **AND** progress percentage and current step are included
 
-#### Scenario: Track cost per worker per provider
-- **WHEN** worker completes execution
-- **THEN** token usage and cost are recorded per provider
-- **AND** aggregated in execution summary with provider breakdown
+#### Scenario: worker_output
+- **WHEN** `worker_output` is called with worker_id
+- **THEN** accumulated output from worker is returned
+- **AND** `since_last` flag returns only new output
 
-### Requirement: Parallel Worker Coordination
+#### Scenario: worker_cancel
+- **WHEN** `worker_cancel` is called with worker_id
+- **THEN** worker is terminated gracefully
+- **AND** partial results are preserved
 
-The system SHALL coordinate multiple ACP workers for parallel execution.
+#### Scenario: worker_list
+- **WHEN** `worker_list` is called
+- **THEN** all active workers are returned with status
+
+#### Scenario: provider_list
+- **WHEN** `provider_list` is called
+- **THEN** all configured providers are returned
+- **AND** each includes: name, method, capabilities, cost estimate
+
+#### Scenario: provider_recommend
+- **WHEN** `provider_recommend` is called with task description
+- **THEN** optimal provider is recommended
+- **AND** rationale explains the recommendation
+
+### Requirement: Parallel Worker Execution
+
+The system SHALL support multiple OpenCode workers running in parallel.
 
 #### Scenario: Spawn parallel workers
-- **WHEN** execution engine has independent tasks
-- **THEN** multiple ACP workers are spawned simultaneously
-- **AND** each worker receives one task
-- **AND** workers execute in parallel
+- **WHEN** Claude Code spawns multiple workers
+- **THEN** workers execute simultaneously
+- **AND** each worker is independent
 
 #### Scenario: Heterogeneous swarm
 - **WHEN** multiple tasks with different characteristics exist
 - **THEN** workers with different providers are spawned
-- **AND** example: Task 1 → GLM 4.7, Task 2 → Kimi K2, Task 3 → Haiku
-- **AND** all workers execute in parallel
+- **AND** example: Worker 1 (GLM), Worker 2 (Kimi), Worker 3 (DeepSeek)
 
-#### Scenario: Collect parallel results
-- **WHEN** all parallel workers complete
-- **THEN** results are aggregated
-- **AND** conflicts are detected
-- **AND** summary is returned to orchestrator
-- **AND** per-provider statistics included
+#### Scenario: Result aggregation
+- **WHEN** all workers complete
+- **THEN** go-ent aggregates results
+- **AND** conflicts are detected (same file edited by multiple workers)
+- **AND** summary is returned to Claude Code
 
-#### Scenario: Handle worker failure
-- **WHEN** one worker fails during parallel execution
+#### Scenario: Worker failure handling
+- **WHEN** one worker fails
 - **THEN** other workers continue
-- **AND** failure is reported with partial results
-- **AND** orchestrator can retry failed task with different provider
+- **AND** failure is reported to Claude Code
+- **AND** Claude Code can retry with different provider
 
-### Requirement: MCP Provider Management Tools
+### Requirement: Cost Tracking
 
-The system SHALL provide MCP tools for managing providers from Claude Code.
+The system SHALL track costs per worker per provider.
 
-#### Scenario: List providers
-- **WHEN** `provider_list` is called
-- **THEN** all configured providers are returned
-- **AND** each provider includes: name, models, status, cost info
+#### Scenario: Track worker cost
+- **WHEN** worker completes execution
+- **THEN** token usage is recorded
+- **AND** cost is calculated based on provider pricing
 
-#### Scenario: Check provider status
-- **WHEN** `provider_status` is called with provider name
-- **THEN** health check is performed
-- **AND** rate limit status is returned
-- **AND** recent error count is included
+#### Scenario: Cost aggregation
+- **WHEN** execution with multiple workers completes
+- **THEN** total cost is calculated
+- **AND** breakdown by provider is included
+- **AND** cost is returned to Claude Code
 
-#### Scenario: Get provider recommendation
-- **WHEN** `provider_recommend` is called with task description
-- **THEN** optimal provider is recommended based on routing rules
-- **AND** rationale is included in response
+#### Scenario: Budget enforcement
+- **WHEN** budget limit is configured
+- **AND** execution would exceed budget
+- **THEN** warning is returned
+- **AND** cheaper provider is suggested
+
+### Requirement: Provider Health and Failover
+
+The system SHALL handle provider failures gracefully.
+
+#### Scenario: Provider health check
+- **WHEN** provider is selected
+- **THEN** optional health check can be performed
+- **AND** unhealthy providers are skipped
+
+#### Scenario: Provider failover
+- **WHEN** OpenCode worker fails due to provider issue (rate limit, timeout)
+- **THEN** go-ent can retry with fallback provider
+- **AND** failure is logged
+
+#### Scenario: Rate limit awareness
+- **WHEN** provider returns rate limit error
+- **THEN** go-ent tracks rate limit status
+- **AND** routes subsequent tasks to other providers
