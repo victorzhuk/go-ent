@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-08T17:22:45.878265387+03:00
+synced_at: 2026-01-08T17:24:23.49151347+03:00
 changes:
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
@@ -52,8 +52,8 @@ changes:
         status: ""
         tasks_file: openspec/changes/restructure-repository/tasks.md
         total: 53
-        completed: 51
-        in_progress: 1
+        completed: 53
+        in_progress: 0
         blocked: 0
 tasks:
     - id:
@@ -2283,16 +2283,18 @@ tasks:
         change_id: restructure-repository
         task_num: "52"
       content: Create commit with clear message
-      status: in_progress
+      status: completed
       priority: medium
       started_at: 2026-01-08T17:22:45.878255197+03:00
+      completed_at: 2026-01-08T17:24:23.429126803+03:00
       source_line: 99
       synced_at: 2026-01-08T00:26:46.335556102+03:00
     - id:
         change_id: restructure-repository
         task_num: "53"
       content: Reference this proposal in commit message
-      status: pending
+      status: completed
       priority: medium
+      completed_at: 2026-01-08T17:24:23.491503802+03:00
       source_line: 100
       synced_at: 2026-01-08T00:26:46.335557104+03:00

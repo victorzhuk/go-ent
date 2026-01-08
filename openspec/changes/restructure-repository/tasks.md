@@ -96,5 +96,5 @@
 - [x] Review diff
 
 ### 5.2 Commit
-- [ ] Create commit with clear message
-- [ ] Reference this proposal in commit message
+- [x] Create commit with clear message
+- [x] Reference this proposal in commit message
