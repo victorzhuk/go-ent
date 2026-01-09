@@ -1,7 +1,7 @@
 ---
 description: Comprehensive planning workflow with research, design, and task decomposition
 argument-hint: <feature-description-or-change-id>
-allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__workflow_start, mcp__go_ent__workflow_status
+allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__plugin_go-ent_go-ent__workflow_start, mcp__plugin_go-ent_go-ent__workflow_status, mcp__plugin_go-ent_go-ent__workflow_wait
 ---
 
 # Planning Workflow
@@ -40,17 +40,17 @@ For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
    - Get change ID for subsequent steps
 3. Run `/go-ent:clarify <change-id>`
 4. **WAIT POINT 1**: Present findings and clarifying questions
-   - Use workflow state to mark: `wait_point="user-clarification"`
+   - Call `workflow_wait` with `wait_point="user-clarification"`
    - Stop execution, present questions to user
    - User provides answers
-   - Resume after approval
+   - Resume after user calls `workflow_approve`
 5. Update proposal/design based on answers
 6. Run `/go-ent:research <change-id>`
 7. Conduct research for all identified unknowns
 8. **WAIT POINT 2**: Present research findings
-   - Use workflow state to mark: `wait_point="research-review"`
+   - Call `workflow_wait` with `wait_point="research-review"`
    - Present: technology choices, alternatives, recommendations
-   - User approves approach
+   - User approves approach via `workflow_approve`
 9. **VERIFY**: No "NEEDS CLARIFICATION" or "TBD" items remain
 10. If blockers exist, escalate to user for decisions
 
@@ -76,10 +76,9 @@ For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 5. Validate: `openspec validate <change-id> --strict`
 6. Fix all validation errors before proceeding
 7. **WAIT POINT 3**: Present design for approval
-   - Use workflow state to mark: `wait_point="design-approval"`
+   - Call `workflow_wait` with `wait_point="design-approval"`
    - Present: architecture decisions, data models, API contracts
-   - User reviews and approves design
-   - Resume after approval
+   - User reviews and approves design via `workflow_approve`
 
 ### Phase 2: Task Generation & Validation
 
@@ -97,10 +96,10 @@ For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 4. Fix any issues found
 5. Final validation: `openspec validate <change-id> --strict`
 7. **WAIT POINT 4 (FINAL)**: Present complete plan for approval
-   - Use workflow state to mark: `wait_point="plan-approval"`
+   - Call `workflow_wait` with `wait_point="plan-approval"`
    - Present: full task breakdown, priorities, dependencies
    - Estimated effort per task
-   - User approves plan
+   - User approves plan via `workflow_approve`
    - Mark workflow as completed after approval
 
 ## Success Criteria

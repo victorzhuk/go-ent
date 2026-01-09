@@ -1,6 +1,6 @@
 ---
 description: View status of all OpenSpec changes
-allowed-tools: Read, Bash, mcp__go_ent__registry_list, mcp__go_ent__registry_next
+allowed-tools: Read, Bash, mcp__plugin_go-ent_go-ent__registry_list, mcp__plugin_go-ent_go-ent__registry_next
 ---
 
 # OpenSpec Status

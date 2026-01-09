@@ -859,11 +859,29 @@ tool_find(query="complexity selection model", limit=3)
 → agent_execute
 ```
 
+**Skill Management**:
+```
+tool_find(query="skill information details", limit=3)
+→ skill_info
+
+tool_find(query="get skill content", limit=3)
+→ skill_info
+```
+
+**Runtime Management**:
+```
+tool_find(query="list runtime environments", limit=3)
+→ runtime_list, runtime_status
+
+tool_find(query="current runtime status", limit=3)
+→ runtime_status, runtime_list
+```
+
 ### Query Guidelines
 
 **Effective queries**:
-- Use domain terms: "spec", "task", "workflow", "generate", "validate"
-- Include action verbs: "create", "update", "list", "archive", "start"
+- Use domain terms: "spec", "task", "workflow", "generate", "validate", "agent", "skill", "runtime"
+- Include action verbs: "create", "update", "list", "archive", "start", "execute", "status"
 - Add context when ambiguous: "registry next task" vs just "next"
 - Combine related concepts: "autonomous loop self-correction"
 
@@ -872,6 +890,8 @@ tool_find(query="complexity selection model", limit=3)
 - **Workflows**: "start workflow", "approve wait point", "autonomous loop"
 - **Code generation**: "generate project", "scaffold component", "create from spec"
 - **Task management**: "next task", "update status", "task dependencies"
+- **Agent & Skills**: "agent execute", "skill info", "complexity selection"
+- **Runtime**: "list runtimes", "current runtime", "runtime status"
 
 **Search tips**:
 - Queries are case-insensitive and stemmed
@@ -936,6 +956,14 @@ Token usage: ~200 vs ~2,385 (91.6% reduction)
 - agent_execute
 - Automatic agent/model selection
 
+**Skill Operations** (1 tool):
+- skill_info
+- Get detailed skill metadata and content
+
+**Runtime Operations** (2 tools):
+- runtime_list, runtime_status
+- Runtime environment capabilities and configuration
+
 **Discovery Operations** (4 tools):
 - tool_find, tool_describe, tool_load, tool_active
 - Progressive tool disclosure
@@ -944,11 +972,11 @@ Token usage: ~200 vs ~2,385 (91.6% reduction)
 
 | Scenario | Tools Loaded | Tokens | Reduction |
 |----------|-------------|--------|-----------|
-| All tools (baseline) | 30 | 2,385 | - |
-| Meta tools only | 4 | 147 | 93.8% |
-| Simple spec task | 5 | 218 | 90.9% |
-| Registry workflow | 7 | 350 | 85.3% |
-| Complex workflow | 10 | 500 | 79.0% |
+| All tools (baseline) | 33 | 2,600 | - |
+| Meta tools only | 4 | 147 | 94.3% |
+| Simple spec task | 5 | 218 | 91.6% |
+| Registry workflow | 7 | 350 | 86.5% |
+| Complex workflow | 10 | 500 | 80.8% |
 
 **Search accuracy**: 100% top-3 accuracy on 25 diverse test queries
 

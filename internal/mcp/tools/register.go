@@ -26,6 +26,13 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry) {
 	registerGenerateComponent(s)
 	registerGenerateFromSpec(s)
 	registerAgentExecute(s, skillRegistry)
+	registerAgentStatus(s)
+	registerAgentList(s)
+	registerAgentDelegate(s)
+	registerSkillList(s, skillRegistry)
+	registerSkillInfo(s, skillRegistry)
+	registerRuntimeList(s)
+	registerRuntimeStatus(s)
 
 	// Register meta tools (tool discovery system)
 	registerMetaTools(s, toolRegistry)

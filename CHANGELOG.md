@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [3.0.0] - 2026-01-09
+
 ### Added
 - Tool discovery system with progressive disclosure
   - `tool_find` - Search tools by semantic query using TF-IDF scoring
   - `tool_describe` - Get detailed tool metadata and JSON schema
   - `tool_load` - Dynamically activate tools into the active set
   - `tool_active` - List currently loaded tools
+- New agent and runtime tools
+  - `agent_execute` - Execute tasks with automatic agent selection
+  - `skill_info` - Get detailed skill information
+  - `runtime_list` - List available runtimes and their capabilities
+  - `runtime_status` - Get current runtime status and configuration
 - Tool registry with lazy loading architecture
 - TF-IDF search implementation (stdlib only, no external dependencies)
 - Comprehensive tool discovery documentation in `openspec/AGENTS.md`
@@ -85,6 +94,7 @@ sed -i 's/go_ent_agent_execute/agent_execute/g' scripts/*.sh
 
 ---
 
-[Unreleased]: https://github.com/victorzhuk/go-ent/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/victorzhuk/go-ent/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/victorzhuk/go-ent/compare/v0.2.0...v3.0.0
 [0.2.0]: https://github.com/victorzhuk/go-ent/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/victorzhuk/go-ent/releases/tag/v0.1.0

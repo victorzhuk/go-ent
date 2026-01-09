@@ -1,6 +1,6 @@
 ---
 description: Manage OpenSpec task registry
-allowed-tools: mcp__go_ent__registry_list, mcp__go_ent__registry_next, mcp__go_ent__registry_update, mcp__go_ent__registry_deps, mcp__go_ent__registry_sync, mcp__go_ent__registry_init
+allowed-tools: mcp__plugin_go-ent_go-ent__registry_list, mcp__plugin_go-ent_go-ent__registry_next, mcp__plugin_go-ent_go-ent__registry_update, mcp__plugin_go-ent_go-ent__registry_deps, mcp__plugin_go-ent_go-ent__registry_sync, mcp__plugin_go-ent_go-ent__registry_init
 ---
 
 # Task Registry Management

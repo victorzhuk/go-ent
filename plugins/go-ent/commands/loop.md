@@ -1,7 +1,7 @@
 ---
 description: Start autonomous work loop with self-correction
 argument-hint: <task-description> [--max-iterations=10]
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena, mcp__go_ent__loop_start, mcp__go_ent__loop_get, mcp__go_ent__loop_set, mcp__go_ent__registry_next, mcp__go_ent__registry_update
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena, mcp__plugin_go-ent_go-ent__loop_start, mcp__plugin_go-ent_go-ent__loop_get, mcp__plugin_go-ent_go-ent__loop_set, mcp__plugin_go-ent_go-ent__registry_next, mcp__plugin_go-ent_go-ent__registry_update
 ---
 
 # Autonomous Loop

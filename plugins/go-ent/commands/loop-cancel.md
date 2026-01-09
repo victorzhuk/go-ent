@@ -1,6 +1,6 @@
 ---
 description: Cancel running autonomous loop
-allowed-tools: mcp__go_ent__loop_cancel, mcp__go_ent__loop_get
+allowed-tools: mcp__plugin_go-ent_go-ent__loop_cancel, mcp__plugin_go-ent_go-ent__loop_get
 ---
 
 # Cancel Autonomous Loop

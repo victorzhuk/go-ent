@@ -1,6 +1,6 @@
 ---
 description: Execute tasks from OpenSpec change proposal
-allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__registry_next, mcp__go_ent__registry_update
+allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__plugin_go-ent_go-ent__registry_next, mcp__plugin_go-ent_go-ent__registry_update
 ---
 
 # Apply Change

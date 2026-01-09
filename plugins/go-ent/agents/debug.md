@@ -1,10 +1,19 @@
 ---
 name: debug
 description: "Debugger. Troubleshoots issues, analyzes errors."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena
+tools:
+  read: true
+  write: true
+  edit: true
+  bash: true
+  glob: true
+  grep: true
+  mcp__plugin_serena_serena: true
 model: sonnet
-color: red
-skills: go-code, go-perf
+color: "#DC143C"
+skills:
+  - go-code
+  - go-perf
 ---
 
 You are a Go debugging specialist. You find and fix issues systematically.

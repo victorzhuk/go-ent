@@ -24,6 +24,11 @@ type WorkflowStatusInput struct {
 	Path string `json:"path"`
 }
 
+type WorkflowWaitInput struct {
+	Path      string `json:"path"`
+	WaitPoint string `json:"wait_point"`
+}
+
 func registerWorkflow(s *mcp.Server) {
 	startTool := &mcp.Tool{
 		Name:        "workflow_start",
@@ -66,6 +71,20 @@ func registerWorkflow(s *mcp.Server) {
 		},
 	}
 	mcp.AddTool(s, statusTool, workflowStatusHandler)
+
+	waitTool := &mcp.Tool{
+		Name:        "workflow_wait",
+		Description: "Set a wait point and pause workflow for user approval",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path":       map[string]any{"type": "string", "description": "Path to project directory"},
+				"wait_point": map[string]any{"type": "string", "description": "Name of the wait point (e.g., 'user-clarification')"},
+			},
+			"required": []string{"path", "wait_point"},
+		},
+	}
+	mcp.AddTool(s, waitTool, workflowWaitHandler)
 }
 
 func workflowStartHandler(ctx context.Context, req *mcp.CallToolRequest, input WorkflowStartInput) (*mcp.CallToolResult, any, error) {
@@ -192,6 +211,54 @@ func workflowStatusHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 		msg += fmt.Sprintf("\n\n⏸️  WAITING: %s", workflow.WaitPoint)
 		msg += "\n\nUse workflow_approve to continue"
 	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: msg}},
+	}, nil, nil
+}
+
+func workflowWaitHandler(ctx context.Context, req *mcp.CallToolRequest, input WorkflowWaitInput) (*mcp.CallToolResult, any, error) {
+	if input.Path == "" {
+		return nil, nil, fmt.Errorf("path is required")
+	}
+	if input.WaitPoint == "" {
+		return nil, nil, fmt.Errorf("wait_point is required")
+	}
+
+	store := spec.NewStore(input.Path)
+
+	if !store.WorkflowExists() {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: "No active workflow found. Start with workflow_start first."}},
+		}, nil, nil
+	}
+
+	workflow, err := store.LoadWorkflow()
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error loading workflow: %v", err)}},
+		}, nil, nil
+	}
+
+	if workflow.Status == spec.WorkflowStatusWaiting {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{
+				Text: fmt.Sprintf("Workflow already waiting at: %s", workflow.WaitPoint),
+			}},
+		}, nil, nil
+	}
+
+	workflow.SetWaitPoint(input.WaitPoint)
+
+	if err := store.SaveWorkflow(workflow); err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error saving workflow: %v", err)}},
+		}, nil, nil
+	}
+
+	msg := fmt.Sprintf("⏸️  Workflow paused at wait point: %s\n\n", input.WaitPoint)
+	msg += "Status: waiting\n"
+	msg += "\nUse workflow_approve to continue after user approval"
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: msg}},
