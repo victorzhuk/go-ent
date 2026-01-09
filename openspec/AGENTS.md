@@ -790,6 +790,168 @@ Only add complexity with:
 | Read specific files | Read | Direct file access |
 | Explore unknown scope | Task | Multi-step investigation |
 
+## Tool Discovery
+
+The go-ent MCP server provides 30+ tools for spec management, code generation, workflows, and task orchestration. To reduce context overhead, tools are progressively disclosed through a discovery system with TF-IDF search.
+
+### Discovery Tools
+
+| Tool | Purpose |
+|------|---------|
+| `tool_find` | Search tools by semantic query |
+| `tool_describe` | Get detailed tool metadata and schema |
+| `tool_load` | Activate tools dynamically |
+| `tool_active` | List currently loaded tools |
+
+### Common Search Patterns
+
+**Spec Management**:
+```
+tool_find(query="spec management", limit=5)
+→ spec_init, spec_create, spec_update, spec_list, spec_show
+
+tool_find(query="validate", limit=3)
+→ spec_validate
+
+tool_find(query="archive completed change", limit=3)
+→ spec_archive
+```
+
+**Task & Registry Operations**:
+```
+tool_find(query="next task registry", limit=5)
+→ registry_next, registry_list, registry_update, registry_sync
+
+tool_find(query="task dependencies priority", limit=5)
+→ registry_deps, registry_update, registry_next, registry_list
+
+tool_find(query="sync registry from tasks", limit=3)
+→ registry_sync, registry_init
+```
+
+**Code Generation**:
+```
+tool_find(query="generate code scaffold", limit=5)
+→ generate, generate_component, generate_from_spec
+
+tool_find(query="create new project", limit=3)
+→ generate
+
+tool_find(query="scaffold from spec", limit=3)
+→ generate_from_spec, generate_component
+```
+
+**Workflow Management**:
+```
+tool_find(query="workflow start approve", limit=5)
+→ workflow_start, workflow_approve, workflow_status
+
+tool_find(query="autonomous loop self-correction", limit=3)
+→ loop_start, loop_cancel, loop_get
+```
+
+**Agent Execution**:
+```
+tool_find(query="agent execute task", limit=3)
+→ agent_execute
+
+tool_find(query="complexity selection model", limit=3)
+→ agent_execute
+```
+
+### Query Guidelines
+
+**Effective queries**:
+- Use domain terms: "spec", "task", "workflow", "generate", "validate"
+- Include action verbs: "create", "update", "list", "archive", "start"
+- Add context when ambiguous: "registry next task" vs just "next"
+- Combine related concepts: "autonomous loop self-correction"
+
+**Common query patterns**:
+- **Operations**: "validate spec", "list changes", "archive change"
+- **Workflows**: "start workflow", "approve wait point", "autonomous loop"
+- **Code generation**: "generate project", "scaffold component", "create from spec"
+- **Task management**: "next task", "update status", "task dependencies"
+
+**Search tips**:
+- Queries are case-insensitive and stemmed
+- Stopwords (the, a, and, etc.) are filtered automatically
+- TF-IDF scoring prioritizes relevant tools
+- Use `limit` parameter to control result count (default: 10)
+
+### Progressive Loading Pattern
+
+**Startup**: Only meta tools loaded (~147 tokens)
+
+**Discovery flow**:
+1. Search for relevant tools: `tool_find(query="your need")`
+2. Review tool details: `tool_describe(name="tool_name")`
+3. Load selected tools: `tool_load(names=["tool1", "tool2"])`
+4. Check loaded set: `tool_active()`
+
+**Example session**:
+```
+# Agent needs to validate specs
+tool_find(query="validate spec", limit=3)
+→ [spec_validate, spec_show, spec_list]
+
+tool_describe(name="spec_validate")
+→ Returns full schema with parameters
+
+tool_load(names=["spec_validate"])
+→ Activates spec_validate
+
+spec_validate(path=".", type="all", strict=true)
+→ Executes validation
+
+Token usage: ~200 vs ~2,385 (91.6% reduction)
+```
+
+### Tool Categories
+
+**Spec Operations** (9 tools):
+- spec_init, spec_create, spec_update, spec_delete
+- spec_list, spec_show, spec_validate, spec_archive
+- spec_* family handles OpenSpec document lifecycle
+
+**Registry Operations** (6 tools):
+- registry_list, registry_next, registry_update
+- registry_sync, registry_init, registry_deps
+- Centralized task tracking across changes
+
+**Workflow Operations** (3 tools):
+- workflow_start, workflow_approve, workflow_status
+- Guided planning with wait points
+
+**Loop Operations** (4 tools):
+- loop_start, loop_cancel, loop_get, loop_set
+- Autonomous self-correction loops
+
+**Generation Operations** (4 tools):
+- generate, generate_component, generate_from_spec
+- list_archetypes
+- Code scaffolding from templates
+
+**Agent Operations** (1 tool):
+- agent_execute
+- Automatic agent/model selection
+
+**Discovery Operations** (4 tools):
+- tool_find, tool_describe, tool_load, tool_active
+- Progressive tool disclosure
+
+### Performance Impact
+
+| Scenario | Tools Loaded | Tokens | Reduction |
+|----------|-------------|--------|-----------|
+| All tools (baseline) | 30 | 2,385 | - |
+| Meta tools only | 4 | 147 | 93.8% |
+| Simple spec task | 5 | 218 | 90.9% |
+| Registry workflow | 7 | 350 | 85.3% |
+| Complex workflow | 10 | 500 | 79.0% |
+
+**Search accuracy**: 100% top-3 accuracy on 25 diverse test queries
+
 ## Error Recovery
 
 ### Change Conflicts

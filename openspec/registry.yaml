@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-09T17:41:46.857136331+03:00
+synced_at: 2026-01-09T18:44:26.824480631+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -106,7 +106,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-tool-discovery/tasks.md
         total: 44
-        completed: 38
+        completed: 44
         in_progress: 0
         blocked: 0
 tasks:
@@ -3470,47 +3470,59 @@ tasks:
         change_id: add-tool-discovery
         task_num: "39"
       content: 6.7 Test thread-safety under concurrent access
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T17:53:02.66383876+03:00
+      completed_at: 2026-01-09T17:56:13.589899773+03:00
       source_line: 52
       synced_at: 2026-01-09T16:18:57.2518729+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "40"
       content: 7.1 Add usage examples to proposal.md
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T18:10:16.759253089+03:00
+      completed_at: 2026-01-09T18:11:08.349089447+03:00
       source_line: 55
       synced_at: 2026-01-09T16:18:57.251873982+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "41"
       content: 7.2 Document tool search queries
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T18:19:30.966904176+03:00
+      completed_at: 2026-01-09T18:21:04.092020844+03:00
       source_line: 56
       synced_at: 2026-01-09T16:18:57.251874874+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "42"
       content: 7.3 Add migration guide for tool name changes
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T18:22:26.917379351+03:00
+      completed_at: 2026-01-09T18:24:59.141107729+03:00
       source_line: 57
       synced_at: 2026-01-09T16:18:57.251875956+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "43"
       content: 7.4 Update CHANGELOG with breaking changes
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T18:29:51.491270045+03:00
+      completed_at: 2026-01-09T18:30:34.850434766+03:00
       source_line: 58
       synced_at: 2026-01-09T16:18:57.251876978+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "44"
       content: 7.5 Add architecture diagrams
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T18:43:14.995968782+03:00
+      completed_at: 2026-01-09T18:44:26.8244372+03:00
       source_line: 59
       synced_at: 2026-01-09T16:18:57.251878491+03:00

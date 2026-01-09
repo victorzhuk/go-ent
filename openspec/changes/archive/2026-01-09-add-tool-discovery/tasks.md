@@ -49,11 +49,11 @@
 - [x] 6.4 Test `tool_active` listing
 - [x] 6.5 Verify search accuracy >80%
 - [x] 6.6 Measure token reduction for simple tasks
-- [ ] 6.7 Test thread-safety under concurrent access
+- [x] 6.7 Test thread-safety under concurrent access
 
 ## 7. Documentation
-- [ ] 7.1 Add usage examples to proposal.md
-- [ ] 7.2 Document tool search queries
-- [ ] 7.3 Add migration guide for tool name changes
-- [ ] 7.4 Update CHANGELOG with breaking changes
-- [ ] 7.5 Add architecture diagrams
+- [x] 7.1 Add usage examples to proposal.md
+- [x] 7.2 Document tool search queries
+- [x] 7.3 Add migration guide for tool name changes
+- [x] 7.4 Update CHANGELOG with breaking changes
+- [x] 7.5 Add architecture diagrams
