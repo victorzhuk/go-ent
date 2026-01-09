@@ -172,8 +172,8 @@ func isStopword(term string) bool {
 		"a": true, "an": true, "and": true, "are": true, "as": true,
 		"at": true, "be": true, "by": true, "for": true, "from": true,
 		"has": true, "he": true, "in": true, "is": true, "it": true,
-		"its": true, "of": true, "on": true, "that": true, "the": true,
-		"to": true, "was": true, "will": true, "with": true,
+		"its": true, "of": true, "on": true, "or": true, "that": true,
+		"the": true, "to": true, "was": true, "will": true, "with": true,
 	}
 	return stopwords[term]
 }

@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-09T16:18:57.251885033+03:00
+synced_at: 2026-01-09T17:41:46.857136331+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -106,7 +106,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-tool-discovery/tasks.md
         total: 44
-        completed: 32
+        completed: 38
         in_progress: 0
         blocked: 0
 tasks:
@@ -3410,48 +3410,60 @@ tasks:
         change_id: add-tool-discovery
         task_num: "33"
       content: 6.1 Test `tool_find` with various queries
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T16:37:35.027463569+03:00
+      completed_at: 2026-01-09T16:41:59.842326438+03:00
       source_line: 46
       synced_at: 2026-01-09T16:18:57.251864324+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "34"
       content: 6.2 Test `tool_describe` for all tools
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T16:43:41.903860819+03:00
+      completed_at: 2026-01-09T16:45:06.878166138+03:00
       source_line: 47
       synced_at: 2026-01-09T16:18:57.251865356+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "35"
       content: 6.3 Test `tool_load` dynamic activation
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T16:50:44.418394842+03:00
+      completed_at: 2026-01-09T16:51:52.235486574+03:00
       source_line: 48
       synced_at: 2026-01-09T16:18:57.251866388+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "36"
       content: 6.4 Test `tool_active` listing
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T17:03:30.834696994+03:00
+      completed_at: 2026-01-09T17:04:55.650247595+03:00
       source_line: 49
       synced_at: 2026-01-09T16:18:57.2518673+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "37"
       content: 6.5 Verify search accuracy >80%
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T17:31:02.444472062+03:00
+      completed_at: 2026-01-09T17:35:10.71983437+03:00
       source_line: 50
       synced_at: 2026-01-09T16:18:57.251868202+03:00
     - id:
         change_id: add-tool-discovery
         task_num: "38"
       content: 6.6 Measure token reduction for simple tasks
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-09T17:37:55.636395527+03:00
+      completed_at: 2026-01-09T17:41:46.857092109+03:00
       source_line: 51
       synced_at: 2026-01-09T16:18:57.251871818+03:00
     - id:

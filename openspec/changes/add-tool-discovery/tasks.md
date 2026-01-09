@@ -43,12 +43,12 @@
 - [x] 5.9 Update `plugins/go-ent/agents/*.md`
 
 ## 6. Testing & Validation
-- [ ] 6.1 Test `tool_find` with various queries
-- [ ] 6.2 Test `tool_describe` for all tools
-- [ ] 6.3 Test `tool_load` dynamic activation
-- [ ] 6.4 Test `tool_active` listing
-- [ ] 6.5 Verify search accuracy >80%
-- [ ] 6.6 Measure token reduction for simple tasks
+- [x] 6.1 Test `tool_find` with various queries
+- [x] 6.2 Test `tool_describe` for all tools
+- [x] 6.3 Test `tool_load` dynamic activation
+- [x] 6.4 Test `tool_active` listing
+- [x] 6.5 Verify search accuracy >80%
+- [x] 6.6 Measure token reduction for simple tasks
 - [ ] 6.7 Test thread-safety under concurrent access
 
 ## 7. Documentation
