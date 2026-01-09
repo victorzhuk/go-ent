@@ -1,6 +1,6 @@
 ---
 description: Execute tasks from OpenSpec change proposal
-allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__go_ent_registry_next, mcp__go_ent__go_ent_registry_update
+allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__registry_next, mcp__go_ent__registry_update
 ---
 
 # Apply Change
@@ -12,9 +12,9 @@ Input: `$ARGUMENTS` (change-id or empty for auto)
 1. **Get next task** (registry-aware):
    ```
    If $ARGUMENTS is empty:
-     Use go_ent_registry_next with path="." to get recommended task
+     Use registry_next with path="." to get recommended task
    Else:
-     Use go_ent_registry_next with path=".", change_id=$ARGUMENTS
+     Use registry_next with path=".", change_id=$ARGUMENTS
    ```
 
 2. **Load change context**:
@@ -26,7 +26,7 @@ Input: `$ARGUMENTS` (change-id or empty for auto)
 
 3. **Mark task as in_progress**:
    ```
-   Use go_ent_registry_update:
+   Use registry_update:
      task_id="{change-id}/{task-num}"
      status="in_progress"
    ```
@@ -38,7 +38,7 @@ Input: `$ARGUMENTS` (change-id or empty for auto)
 
 5. **Mark task complete**:
    ```
-   Use go_ent_registry_update:
+   Use registry_update:
      task_id="{change-id}/{task-num}"
      status="completed"
    ```

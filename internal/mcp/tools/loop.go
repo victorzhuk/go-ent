@@ -35,7 +35,7 @@ type LoopCancelInput struct {
 
 func registerLoop(s *mcp.Server) {
 	startTool := &mcp.Tool{
-		Name:        "go_ent_loop_start",
+		Name:        "loop_start",
 		Description: "Start autonomous loop with self-correction",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -50,7 +50,7 @@ func registerLoop(s *mcp.Server) {
 	mcp.AddTool(s, startTool, loopStartHandler)
 
 	getTool := &mcp.Tool{
-		Name:        "go_ent_loop_get",
+		Name:        "loop_get",
 		Description: "Get current loop state",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -63,7 +63,7 @@ func registerLoop(s *mcp.Server) {
 	mcp.AddTool(s, getTool, loopGetHandler)
 
 	setTool := &mcp.Tool{
-		Name:        "go_ent_loop_set",
+		Name:        "loop_set",
 		Description: "Update loop state (iteration, error, adjustment, status)",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -82,7 +82,7 @@ func registerLoop(s *mcp.Server) {
 	mcp.AddTool(s, setTool, loopSetHandler)
 
 	cancelTool := &mcp.Tool{
-		Name:        "go_ent_loop_cancel",
+		Name:        "loop_cancel",
 		Description: "Cancel running loop",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -115,7 +115,7 @@ func loopStartHandler(ctx context.Context, req *mcp.CallToolRequest, input LoopS
 		if err == nil && existing.Status == spec.LoopStatusRunning {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("Loop already running. Use go_ent_loop_cancel to stop it first."),
+					Text: fmt.Sprintf("Loop already running. Use loop_cancel to stop it first."),
 				}},
 			}, nil, nil
 		}
@@ -190,7 +190,7 @@ func loopSetHandler(ctx context.Context, req *mcp.CallToolRequest, input LoopSet
 
 	if !store.LoopExists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No loop state found. Use go_ent_loop_start first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No loop state found. Use loop_start first."}},
 		}, nil, nil
 	}
 

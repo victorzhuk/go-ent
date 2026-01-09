@@ -166,6 +166,10 @@ func (m *WorkerManager) SpawnCLI(provider string, prompt string) (string, error)
 | `worker_list` | List active workers |
 | `provider_list` | List configured providers |
 | `provider_recommend` | Get optimal provider for task |
+| **`mcp_find`** | **Search available MCP servers dynamically** |
+| **`mcp_add`** | **Add MCP server to current session** |
+| **`mcp_remove`** | **Remove MCP server from session** |
+| **`mcp_active`** | **List currently active MCP servers** |
 
 ### 6. Task Routing Rules
 
@@ -290,3 +294,172 @@ User: "Add rate limiting to all API endpoints"
    → Request fixes if needed → delegate again
    → Approve and archive
 ```
+
+## Phase 3 Enhancement: Dynamic MCP Discovery and Docker Gateway
+
+### Dynamic MCP Discovery
+
+Allows agents to discover and activate MCP servers at runtime without hardcoding configurations.
+
+**Problem**: Currently all MCP servers must be pre-configured in Claude Code settings. This creates brittleness and requires manual configuration updates.
+
+**Solution**: Implement dynamic MCP discovery inspired by Docker's dynamic MCP pattern.
+
+**New MCP Tools**:
+
+#### `mcp_find(query: string) -> []MCPServer`
+Search for available MCP servers based on capabilities.
+
+```go
+// internal/mcp/discovery.go
+type MCPServer struct {
+    Name         string
+    Description  string
+    Capabilities []string
+    Transport    string  // "stdio" | "sse" | "http"
+    Command      string  // Launch command
+    Installed    bool
+}
+
+func (d *Discovery) Find(query string) []MCPServer {
+    // Search Docker Hub MCP Registry
+    // Search local .mcp-server-registry/
+    // Search system installed servers
+}
+```
+
+**Example**:
+```
+mcp_find("database migration") ->
+  - mcp-server-postgres (installed: true)
+  - mcp-server-mongodb (installed: false)
+  - mcp-server-sqlite (installed: true)
+```
+
+#### `mcp_add(name: string, config: object) -> success`
+Dynamically add an MCP server to the current session.
+
+```go
+func (m *Manager) Add(name string, cfg MCPConfig) error {
+    // Validate server exists and is safe
+    // Launch server process
+    // Register tools with go-ent MCP bridge
+    // Send tools/list_changed notification
+}
+```
+
+**Example**:
+```
+mcp_add("mcp-server-postgres", {
+  "connection": "postgresql://localhost/mydb"
+})
+```
+
+#### `mcp_remove(name: string) -> success`
+Remove an MCP server from the current session.
+
+#### `mcp_active() -> []string`
+List currently active MCP servers.
+
+### Docker MCP Gateway Integration
+
+Connects to Docker's MCP Gateway to access cloud-hosted MCP servers without local installation.
+
+**Implementation**:
+```go
+// internal/mcp/gateway.go
+type GatewayClient struct {
+    apiURL    string
+    apiKey    string
+    transport *http.Client
+}
+
+// Query Docker MCP Registry
+func (g *GatewayClient) Search(query string) []RemoteMCP
+
+// Proxy requests to remote MCP server
+func (g *GatewayClient) Proxy(server string, tool string, params any) (any, error)
+```
+
+**Configuration**:
+```yaml
+# .go-ent/mcp-gateway.yaml
+gateway:
+  enabled: true
+  api_url: https://mcp-gateway.docker.com/v1
+  api_key: ${DOCKER_MCP_KEY}
+
+  # Auto-discovery rules
+  discovery:
+    - pattern: "docker*"
+      source: gateway
+    - pattern: "*"
+      source: local
+```
+
+### Dynamic Tool Selection
+
+Automatically activates MCP servers based on task context.
+
+**Rules Engine**:
+```yaml
+# .go-ent/mcp-routing.yaml
+routing:
+  # Database tasks → activate postgres MCP
+  - match: { keywords: ["database", "migration", "schema"] }
+    mcp: mcp-server-postgres
+    auto_activate: true
+
+  # Browser tasks → activate playwright MCP
+  - match: { keywords: ["browser", "web", "scrape"] }
+    mcp: mcp-server-playwright
+    auto_activate: true
+
+  # Cloud tasks → check Docker Gateway first
+  - match: { keywords: ["cloud", "deploy", "container"] }
+    prefer: gateway
+```
+
+**Implementation**:
+```go
+// internal/mcp/selector.go
+type MCPSelector struct {
+    rules   []RoutingRule
+    gateway *GatewayClient
+}
+
+func (s *MCPSelector) SelectForTask(task Task) []string {
+    // Match task against rules
+    // Return recommended MCP servers
+    // Optionally auto-activate
+}
+```
+
+### Benefits
+
+1. **No Manual Configuration**: Agents discover and activate MCPs as needed
+2. **Gateway Access**: Use cloud MCPs without local installation
+3. **Context-Aware Loading**: Only load MCPs relevant to current task
+4. **Session Isolation**: Different tasks can use different MCP combinations
+5. **Reduced Setup Friction**: New users don't need complex MCP configuration
+
+### Example Workflow
+
+```
+User: "Analyze database schema and generate migration"
+
+1. Agent receives task, analyzes keywords
+2. Agent calls mcp_find("database migration")
+3. System returns: mcp-server-postgres (local), mcp-server-prisma (gateway)
+4. Agent calls mcp_add("mcp-server-postgres", {...})
+5. go-ent launches postgres MCP, registers its tools
+6. Agent now has database tools available
+7. Task completes, mcp_remove() cleans up
+```
+
+### Security Considerations
+
+- **MCP Approval**: User must approve first-time MCP activations
+- **Capability Limits**: MCPs can only access resources within their declared capabilities
+- **Gateway Authentication**: Require API key for Docker MCP Gateway
+- **Resource Quotas**: Limit number of concurrent MCPs per session

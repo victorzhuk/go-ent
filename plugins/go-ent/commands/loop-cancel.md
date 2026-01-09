@@ -1,6 +1,6 @@
 ---
 description: Cancel running autonomous loop
-allowed-tools: mcp__go_ent__go_ent_loop_cancel, mcp__go_ent__go_ent_loop_get
+allowed-tools: mcp__go_ent__loop_cancel, mcp__go_ent__loop_get
 ---
 
 # Cancel Autonomous Loop
@@ -11,12 +11,12 @@ Stop the currently running autonomous loop immediately.
 
 1. **Check if loop is running**:
    ```
-   Use go_ent_loop_get with path="."
+   Use loop_get with path="."
    ```
 
 2. **If loop exists**:
    ```
-   Use go_ent_loop_cancel with path="."
+   Use loop_cancel with path="."
    ```
 
 3. **Output results**:

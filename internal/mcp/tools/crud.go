@@ -28,7 +28,7 @@ type SpecDeleteInput struct {
 
 func registerCRUD(s *mcp.Server) {
 	createTool := &mcp.Tool{
-		Name:        "go_ent_spec_create",
+		Name:        "spec_create",
 		Description: "Create a new spec, change, or task",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -53,7 +53,7 @@ func registerCRUD(s *mcp.Server) {
 	mcp.AddTool(s, createTool, specCreateHandler)
 
 	updateTool := &mcp.Tool{
-		Name:        "go_ent_spec_update",
+		Name:        "spec_update",
 		Description: "Update an existing spec, change, or task",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -78,7 +78,7 @@ func registerCRUD(s *mcp.Server) {
 	mcp.AddTool(s, updateTool, specUpdateHandler)
 
 	deleteTool := &mcp.Tool{
-		Name:        "go_ent_spec_delete",
+		Name:        "spec_delete",
 		Description: "Delete a spec, change, or task",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -122,7 +122,7 @@ func specCreateHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 
@@ -172,7 +172,7 @@ func specUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 
@@ -222,7 +222,7 @@ func specDeleteHandler(ctx context.Context, req *mcp.CallToolRequest, input Spec
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 

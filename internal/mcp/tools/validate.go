@@ -19,7 +19,7 @@ type ValidateInput struct {
 
 func registerValidate(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_spec_validate",
+		Name:        "spec_validate",
 		Description: "Validate OpenSpec files. Type can be 'spec', 'change', or 'all'. Use strict mode for comprehensive validation.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -67,7 +67,7 @@ func validateHandler(ctx context.Context, req *mcp.CallToolRequest, input Valida
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 

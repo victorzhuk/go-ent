@@ -26,7 +26,7 @@ type GenerateFromSpecInput struct {
 
 func registerGenerateFromSpec(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_generate_from_spec",
+		Name:        "generate_from_spec",
 		Description: "Generate a complete project from a spec file. Analyzes spec, selects archetype, generates scaffold, and provides AI prompts for business logic.",
 		InputSchema: map[string]any{
 			"type": "object",

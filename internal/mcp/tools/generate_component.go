@@ -20,7 +20,7 @@ type GenerateComponentInput struct {
 
 func registerGenerateComponent(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_generate_component",
+		Name:        "generate_component",
 		Description: "Generate a component scaffold from a spec file. Analyzes the spec, selects templates, and marks extension points for AI completion.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -135,7 +135,7 @@ func generateComponentHandler(ctx context.Context, req *mcp.CallToolRequest, inp
 
 	msg += "## Next Steps\n\n"
 	msg += "1. Review the analysis and adjust archetype if needed in `generation.yaml`\n"
-	msg += "2. Use `go_ent_generate` to scaffold the project with the selected archetype\n"
+	msg += "2. Use `generate` to scaffold the project with the selected archetype\n"
 	msg += "3. Extension points will be marked with `@generate:` comments\n"
 	msg += "4. Use AI prompts to fill in business logic at extension points\n\n"
 

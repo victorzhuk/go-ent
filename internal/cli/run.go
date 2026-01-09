@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/domain"
+	"github.com/victorzhuk/go-ent/internal/skill"
 )
 
 // RunConfig holds configuration for the run command.
@@ -40,10 +42,22 @@ func Run(ctx context.Context, cfg RunConfig) error {
 		Metadata:    make(map[string]interface{}),
 	}
 
+	// Initialize skill registry
+	registry := skill.NewRegistry()
+	exe, err := os.Executable()
+	skillsPath := "plugins/go-ent/skills" // fallback
+	if err == nil {
+		exeDir := filepath.Dir(exe)
+		skillsPath = filepath.Join(exeDir, "..", "plugins", "go-ent", "skills")
+	}
+	if err := registry.Load(skillsPath); err != nil && cfg.Verbose {
+		fmt.Fprintf(os.Stderr, "Warning: failed to load skills: %v\n", err)
+	}
+
 	selector := agent.NewSelector(agent.Config{
 		MaxBudget:  cfg.Budget,
 		StrictMode: false,
-	}, &mockRegistry{})
+	}, registry)
 
 	result, err := selector.Select(ctx, task)
 	if err != nil {
@@ -97,10 +111,4 @@ func parseTaskType(t string) agent.TaskType {
 	default:
 		return agent.TaskTypeFeature
 	}
-}
-
-type mockRegistry struct{}
-
-func (m *mockRegistry) MatchForContext(ctx domain.SkillContext) []string {
-	return []string{}
 }

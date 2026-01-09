@@ -16,7 +16,7 @@ type SpecShowInput struct {
 
 func registerShow(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_spec_show",
+		Name:        "spec_show",
 		Description: "Show detailed content of a spec, change, or task",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -61,7 +61,7 @@ func specShowHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecSh
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 

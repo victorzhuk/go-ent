@@ -1,7 +1,7 @@
 ---
 description: Start autonomous work loop with self-correction
 argument-hint: <task-description> [--max-iterations=10]
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena, mcp__go_ent__go_ent_loop_start, mcp__go_ent__go_ent_loop_get, mcp__go_ent__go_ent_loop_set, mcp__go_ent__go_ent_registry_next, mcp__go_ent__go_ent_registry_update
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_serena_serena, mcp__go_ent__loop_start, mcp__go_ent__loop_get, mcp__go_ent__loop_set, mcp__go_ent__registry_next, mcp__go_ent__registry_update
 ---
 
 # Autonomous Loop
@@ -24,7 +24,7 @@ Examples:
 ### 1. Initialize Loop
 
 ```
-Use go_ent_loop_start:
+Use loop_start:
   path="."
   task="$TASK_DESCRIPTION"
   max_iterations=$MAX_ITER
@@ -38,7 +38,7 @@ Repeat until success, max iterations, or cancellation:
 
 1. **Get next task** (if no specific task given):
    ```
-   Use go_ent_registry_next to get recommended task
+   Use registry_next to get recommended task
    OR use the specific task from $ARGUMENTS
    ```
 
@@ -49,21 +49,21 @@ Repeat until success, max iterations, or cancellation:
 
 3. **Check result**:
    - **SUCCESS**:
-     - Mark loop completed: `go_ent_loop_set status=completed`
+     - Mark loop completed: `loop_set status=completed`
      - Output: `<promise>COMPLETE</promise>`
      - Exit loop
 
    - **FAILURE**:
      - Analyze error message
-     - Record error: `go_ent_loop_set last_error="..."`
+     - Record error: `loop_set last_error="..."`
      - Determine adjustment strategy
-     - Record adjustment: `go_ent_loop_set adjustment="..."`
-     - Increment iteration: `go_ent_loop_set iteration=$((i+1))`
+     - Record adjustment: `loop_set adjustment="..."`
+     - Increment iteration: `loop_set iteration=$((i+1))`
      - Continue to next iteration
 
 4. **Between iterations**:
    - Wait 2-3 seconds (avoid tight loop)
-   - Check if loop was cancelled: `go_ent_loop_get`
+   - Check if loop was cancelled: `loop_get`
    - If status=cancelled, exit with message
 
 ### 3. Self-Correction Strategies

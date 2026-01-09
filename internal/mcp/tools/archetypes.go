@@ -16,7 +16,7 @@ type ListArchetypesInput struct {
 
 func registerListArchetypes(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_list_archetypes",
+		Name:        "list_archetypes",
 		Description: "List available project archetypes (built-in and custom). Archetypes define template sets for different project types.",
 		InputSchema: map[string]any{
 			"type": "object",

@@ -18,7 +18,7 @@ type SpecInitInput struct {
 
 func registerInit(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_spec_init",
+		Name:        "spec_init",
 		Description: "Initialize openspec folder in a project directory",
 		InputSchema: map[string]any{
 			"type": "object",

@@ -1,7 +1,7 @@
 ---
 description: Comprehensive planning workflow with research, design, and task decomposition
 argument-hint: <feature-description-or-change-id>
-allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__go_ent_workflow_start, mcp__go_ent__go_ent_workflow_status
+allowed-tools: Read, Bash, Edit, mcp__plugin_serena_serena, mcp__go_ent__workflow_start, mcp__go_ent__workflow_status
 ---
 
 # Planning Workflow
@@ -24,7 +24,7 @@ For the steps below, `$CHANGE_ROOT` refers to `openspec/changes/$ARGUMENTS/`.
 
 **IMPORTANT**: Use workflow state tracking for guided execution:
 
-1. **Start workflow**: `go_ent_workflow_start` with change_id and phase="discovery"
+1. **Start workflow**: `workflow_start` with change_id and phase="discovery"
 2. **At each wait point**: Save state and wait for user approval
 3. **User approves**: Workflow continues to next phase
 

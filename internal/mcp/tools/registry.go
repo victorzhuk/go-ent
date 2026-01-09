@@ -53,7 +53,7 @@ type RegistryInitInput struct {
 
 func registerRegistry(s *mcp.Server) {
 	listTool := &mcp.Tool{
-		Name:        "go_ent_registry_list",
+		Name:        "registry_list",
 		Description: "List tasks from the OpenSpec registry with optional filters. Shows aggregated view across all changes.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -72,7 +72,7 @@ func registerRegistry(s *mcp.Server) {
 	mcp.AddTool(s, listTool, registryListHandler)
 
 	nextTool := &mcp.Tool{
-		Name:        "go_ent_registry_next",
+		Name:        "registry_next",
 		Description: "Get the next recommended task(s) based on priority, dependencies, and status. Returns unblocked, highest priority pending tasks.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -87,7 +87,7 @@ func registerRegistry(s *mcp.Server) {
 	mcp.AddTool(s, nextTool, registryNextHandler)
 
 	updateTool := &mcp.Tool{
-		Name:        "go_ent_registry_update",
+		Name:        "registry_update",
 		Description: "Update task status, priority, or assignment in the registry. Automatically updates blocked_by for dependent tasks.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -105,7 +105,7 @@ func registerRegistry(s *mcp.Server) {
 	mcp.AddTool(s, updateTool, registryUpdateHandler)
 
 	depsTool := &mcp.Tool{
-		Name:        "go_ent_registry_deps",
+		Name:        "registry_deps",
 		Description: "Manage task dependencies. Supports cross-change dependencies. Detects cycles.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -121,7 +121,7 @@ func registerRegistry(s *mcp.Server) {
 	mcp.AddTool(s, depsTool, registryDepsHandler)
 
 	syncTool := &mcp.Tool{
-		Name:        "go_ent_registry_sync",
+		Name:        "registry_sync",
 		Description: "Synchronize registry from tasks.md files. Rebuilds registry from source change proposals.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -136,7 +136,7 @@ func registerRegistry(s *mcp.Server) {
 	mcp.AddTool(s, syncTool, registrySyncHandler)
 
 	initTool := &mcp.Tool{
-		Name:        "go_ent_registry_init",
+		Name:        "registry_init",
 		Description: "Initialize an empty registry.yaml file. Use this before first sync or to reset the registry.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -159,7 +159,7 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run go_ent_registry_sync to initialize from tasks.md files."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync to initialize from tasks.md files."}},
 		}, nil, nil
 	}
 
@@ -211,7 +211,7 @@ func registryNextHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run go_ent_registry_sync first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
 		}, nil, nil
 	}
 
@@ -253,7 +253,7 @@ func registryUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run go_ent_registry_sync first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
 		}, nil, nil
 	}
 
@@ -311,7 +311,7 @@ func registryDepsHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run go_ent_registry_sync first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
 		}, nil, nil
 	}
 
@@ -411,7 +411,7 @@ func registryInitHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 
 	if regStore.Exists() {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry already exists. Use go_ent_registry_sync to update it."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry already exists. Use registry_sync to update it."}},
 		}, nil, nil
 	}
 

@@ -1,6 +1,6 @@
 ---
 description: View status of all OpenSpec changes
-allowed-tools: Read, Bash, mcp__go_ent__go_ent_registry_list, mcp__go_ent__go_ent_registry_next
+allowed-tools: Read, Bash, mcp__go_ent__registry_list, mcp__go_ent__registry_next
 ---
 
 # OpenSpec Status
@@ -9,8 +9,8 @@ allowed-tools: Read, Bash, mcp__go_ent__go_ent_registry_list, mcp__go_ent__go_en
 
 1. Check if registry exists and get stats:
    ```
-   Use go_ent_registry_list with path="."
-   Use go_ent_registry_next with path=".", count=1
+   Use registry_list with path="."
+   Use registry_next with path=".", count=1
    ```
 
 2. If registry exists, display registry summary first.

@@ -18,7 +18,7 @@ type ArchiveInput struct {
 
 func registerArchive(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_spec_archive",
+		Name:        "spec_archive",
 		Description: "Archive a completed change and optionally merge deltas into specs. Use dry_run to preview changes.",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -68,7 +68,7 @@ func archiveHandler(ctx context.Context, req *mcp.CallToolRequest, input Archive
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 

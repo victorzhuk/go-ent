@@ -17,7 +17,7 @@ type SpecListInput struct {
 
 func registerList(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_spec_list",
+		Name:        "spec_list",
 		Description: "List specs, changes, or tasks",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -62,7 +62,7 @@ func specListHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecLi
 
 	if !exists {
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run go_ent_spec_init first."}},
+			Content: []mcp.Content{&mcp.TextContent{Text: "No openspec folder found. Run spec_init first."}},
 		}, nil, nil
 	}
 

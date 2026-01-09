@@ -23,7 +23,7 @@ type GenerateInput struct {
 
 func registerGenerate(s *mcp.Server) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_generate",
+		Name:        "generate",
 		Description: "Generate a new Go project from templates. Supports 'standard' (web service) and 'mcp' (MCP server) project types.",
 		InputSchema: map[string]any{
 			"type": "object",

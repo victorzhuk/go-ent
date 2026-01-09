@@ -8,6 +8,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/domain"
+	"github.com/victorzhuk/go-ent/internal/skill"
 )
 
 type AgentExecuteInput struct {
@@ -30,9 +31,9 @@ type AgentExecuteResponse struct {
 	Message    string   `json:"message"`
 }
 
-func registerAgentExecute(s *mcp.Server) {
+func registerAgentExecute(s *mcp.Server, registry *skill.Registry) {
 	tool := &mcp.Tool{
-		Name:        "go_ent_agent_execute",
+		Name:        "agent_execute",
 		Description: "Execute a task with automatic agent selection based on complexity",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -74,97 +75,95 @@ func registerAgentExecute(s *mcp.Server) {
 			"required": []string{"path", "task"},
 		},
 	}
-	mcp.AddTool(s, tool, agentExecuteHandler)
+
+	handler := makeAgentExecuteHandler(registry)
+	mcp.AddTool(s, tool, handler)
 }
 
-func agentExecuteHandler(ctx context.Context, req *mcp.CallToolRequest, input AgentExecuteInput) (*mcp.CallToolResult, any, error) {
-	if input.Path == "" {
-		return nil, nil, fmt.Errorf("path is required")
-	}
-	if input.Task == "" {
-		return nil, nil, fmt.Errorf("task is required")
-	}
+func makeAgentExecuteHandler(registry *skill.Registry) func(context.Context, *mcp.CallToolRequest, AgentExecuteInput) (*mcp.CallToolResult, any, error) {
+	return func(ctx context.Context, req *mcp.CallToolRequest, input AgentExecuteInput) (*mcp.CallToolResult, any, error) {
+		if input.Path == "" {
+			return nil, nil, fmt.Errorf("path is required")
+		}
+		if input.Task == "" {
+			return nil, nil, fmt.Errorf("task is required")
+		}
 
-	taskType := agent.TaskTypeFeature
-	if input.TaskType != "" {
-		taskType = agent.TaskType(input.TaskType)
-	}
+		taskType := agent.TaskTypeFeature
+		if input.TaskType != "" {
+			taskType = agent.TaskType(input.TaskType)
+		}
 
-	task := agent.Task{
-		Description: input.Task,
-		Type:        taskType,
-		Files:       input.Files,
-		Metadata:    input.Context,
-	}
+		task := agent.Task{
+			Description: input.Task,
+			Type:        taskType,
+			Files:       input.Files,
+			Metadata:    input.Context,
+		}
 
-	maxBudget := 0
-	if input.MaxBudget > 0 {
-		maxBudget = input.MaxBudget
-	}
+		maxBudget := 0
+		if input.MaxBudget > 0 {
+			maxBudget = input.MaxBudget
+		}
 
-	selector := agent.NewSelector(agent.Config{
-		MaxBudget:  maxBudget,
-		StrictMode: false,
-	}, &mockRegistry{})
+		selector := agent.NewSelector(agent.Config{
+			MaxBudget:  maxBudget,
+			StrictMode: false,
+		}, registry)
 
-	result, err := selector.Select(ctx, task)
-	if err != nil {
+		result, err := selector.Select(ctx, task)
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: fmt.Sprintf("Error selecting agent: %v", err),
+				}},
+			}, nil, nil
+		}
+
+		if input.ForceRole != "" {
+			result.Role = domain.AgentRole(input.ForceRole)
+			result.Reason = fmt.Sprintf("manually overridden to %s", input.ForceRole)
+		}
+
+		if input.ForceModel != "" {
+			result.Model = input.ForceModel
+		}
+
+		complexity := "unknown"
+		analyzer := agent.NewComplexity()
+		complexityResult := analyzer.Analyze(task)
+		complexity = complexityResult.Level.String()
+
+		response := AgentExecuteResponse{
+			Role:       result.Role.String(),
+			Model:      result.Model,
+			Skills:     result.Skills,
+			Reason:     result.Reason,
+			Complexity: complexity,
+			Message:    fmt.Sprintf("Selected %s agent with %s model (complexity: %s)", result.Role, result.Model, complexity),
+		}
+
+		data, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: fmt.Sprintf("Error formatting response: %v", err),
+				}},
+			}, nil, nil
+		}
+
+		msg := fmt.Sprintf("✅ Agent selected for execution\n\n```json\n%s\n```\n\n", string(data))
+		msg += fmt.Sprintf("**Next Steps:**\n")
+		msg += fmt.Sprintf("- The %s agent (%s) will handle this task\n", result.Role, result.Model)
+		msg += fmt.Sprintf("- Complexity level: %s\n", complexity)
+		msg += fmt.Sprintf("- Reason: %s\n", result.Reason)
+
+		if len(result.Skills) > 0 {
+			msg += fmt.Sprintf("\n**Available Skills:** %v\n", result.Skills)
+		}
+
 		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{
-				Text: fmt.Sprintf("Error selecting agent: %v", err),
-			}},
-		}, nil, nil
+			Content: []mcp.Content{&mcp.TextContent{Text: msg}},
+		}, response, nil
 	}
-
-	if input.ForceRole != "" {
-		result.Role = domain.AgentRole(input.ForceRole)
-		result.Reason = fmt.Sprintf("manually overridden to %s", input.ForceRole)
-	}
-
-	if input.ForceModel != "" {
-		result.Model = input.ForceModel
-	}
-
-	complexity := "unknown"
-	analyzer := agent.NewComplexity()
-	complexityResult := analyzer.Analyze(task)
-	complexity = complexityResult.Level.String()
-
-	response := AgentExecuteResponse{
-		Role:       result.Role.String(),
-		Model:      result.Model,
-		Skills:     result.Skills,
-		Reason:     result.Reason,
-		Complexity: complexity,
-		Message:    fmt.Sprintf("Selected %s agent with %s model (complexity: %s)", result.Role, result.Model, complexity),
-	}
-
-	data, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{
-				Text: fmt.Sprintf("Error formatting response: %v", err),
-			}},
-		}, nil, nil
-	}
-
-	msg := fmt.Sprintf("✅ Agent selected for execution\n\n```json\n%s\n```\n\n", string(data))
-	msg += fmt.Sprintf("**Next Steps:**\n")
-	msg += fmt.Sprintf("- The %s agent (%s) will handle this task\n", result.Role, result.Model)
-	msg += fmt.Sprintf("- Complexity level: %s\n", complexity)
-	msg += fmt.Sprintf("- Reason: %s\n", result.Reason)
-
-	if len(result.Skills) > 0 {
-		msg += fmt.Sprintf("\n**Available Skills:** %v\n", result.Skills)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{&mcp.TextContent{Text: msg}},
-	}, response, nil
-}
-
-type mockRegistry struct{}
-
-func (m *mockRegistry) MatchForContext(ctx domain.SkillContext) []string {
-	return []string{}
 }

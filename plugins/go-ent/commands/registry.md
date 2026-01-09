@@ -1,6 +1,6 @@
 ---
 description: Manage OpenSpec task registry
-allowed-tools: mcp__go_ent__go_ent_registry_list, mcp__go_ent__go_ent_registry_next, mcp__go_ent__go_ent_registry_update, mcp__go_ent__go_ent_registry_deps, mcp__go_ent__go_ent_registry_sync, mcp__go_ent__go_ent_registry_init
+allowed-tools: mcp__go_ent__registry_list, mcp__go_ent__registry_next, mcp__go_ent__registry_update, mcp__go_ent__registry_deps, mcp__go_ent__registry_sync, mcp__go_ent__registry_init
 ---
 
 # Task Registry Management
@@ -19,7 +19,7 @@ Examples:
 - `list --unblocked` - Show only unblocked tasks
 - `list --priority=critical` - Show critical priority tasks
 
-Use tool: `go_ent_registry_list`
+Use tool: `registry_list`
 
 ### `next [count]`
 Get recommended next task(s) based on priority and dependencies.
@@ -28,7 +28,7 @@ Examples:
 - `next` - Get single next task
 - `next 3` - Get top 3 recommended tasks
 
-Use tool: `go_ent_registry_next`
+Use tool: `registry_next`
 
 ### `update <task-id> <field=value>`
 Update task status, priority, or assignee.
@@ -38,7 +38,7 @@ Examples:
 - `update add-auth/2.1 status=in_progress assignee=claude`
 - `update add-auth/3.1 priority=critical`
 
-Use tool: `go_ent_registry_update`
+Use tool: `registry_update`
 
 ### `deps <task-id> <operation> [dep-id]`
 Manage task dependencies (add/remove/show).
@@ -48,7 +48,7 @@ Examples:
 - `deps add-auth/2.1 add add-auth/1.1` - Add dependency
 - `deps add-auth/2.1 remove add-auth/1.1` - Remove dependency
 
-Use tool: `go_ent_registry_deps`
+Use tool: `registry_deps`
 
 ### `sync [--dry-run]`
 Sync registry from tasks.md files in all changes.
@@ -57,12 +57,12 @@ Examples:
 - `sync` - Rebuild registry from source
 - `sync --dry-run` - Preview sync changes
 
-Use tool: `go_ent_registry_sync`
+Use tool: `registry_sync`
 
 ### `init`
 Initialize empty registry.yaml file.
 
-Use tool: `go_ent_registry_init`
+Use tool: `registry_init`
 
 ## Implementation
 

@@ -26,7 +26,7 @@ type WorkflowStatusInput struct {
 
 func registerWorkflow(s *mcp.Server) {
 	startTool := &mcp.Tool{
-		Name:        "go_ent_workflow_start",
+		Name:        "workflow_start",
 		Description: "Start a guided workflow with state tracking and wait points",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -42,7 +42,7 @@ func registerWorkflow(s *mcp.Server) {
 	mcp.AddTool(s, startTool, workflowStartHandler)
 
 	approveTool := &mcp.Tool{
-		Name:        "go_ent_workflow_approve",
+		Name:        "workflow_approve",
 		Description: "Approve the current wait point and continue workflow",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -55,7 +55,7 @@ func registerWorkflow(s *mcp.Server) {
 	mcp.AddTool(s, approveTool, workflowApproveHandler)
 
 	statusTool := &mcp.Tool{
-		Name:        "go_ent_workflow_status",
+		Name:        "workflow_status",
 		Description: "Check current workflow status and wait points",
 		InputSchema: map[string]any{
 			"type": "object",
@@ -86,7 +86,7 @@ func workflowStartHandler(ctx context.Context, req *mcp.CallToolRequest, input W
 		if err == nil && existing.Status == spec.WorkflowStatusActive {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("Workflow already active for change %s. Use go_ent_workflow_status to check or cancel first.", existing.ChangeID),
+					Text: fmt.Sprintf("Workflow already active for change %s. Use workflow_status to check or cancel first.", existing.ChangeID),
 				}},
 			}, nil, nil
 		}
@@ -190,7 +190,7 @@ func workflowStatusHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 
 	if workflow.Status == spec.WorkflowStatusWaiting && workflow.WaitPoint != "" {
 		msg += fmt.Sprintf("\n\n⏸️  WAITING: %s", workflow.WaitPoint)
-		msg += "\n\nUse go_ent_workflow_approve to continue"
+		msg += "\n\nUse workflow_approve to continue"
 	}
 
 	return &mcp.CallToolResult{

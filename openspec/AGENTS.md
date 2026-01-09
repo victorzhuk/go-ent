@@ -182,9 +182,9 @@ The go-ent plugin provides workflow state tracking for guided planning with expl
 - **Approval Gates**: User must approve before advancing to next phase
 
 **Workflow Tools**:
-- `go_ent_workflow_start` - Initialize workflow with change ID and starting phase
-- `go_ent_workflow_approve` - Mark wait point as approved, continue execution
-- `go_ent_workflow_status` - Check current workflow state
+- `workflow_start` - Initialize workflow with change ID and starting phase
+- `workflow_approve` - Mark wait point as approved, continue execution
+- `workflow_status` - Check current workflow state
 
 **The `/go-ent:plan-full` command uses 4 explicit wait points**:
 
