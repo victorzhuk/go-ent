@@ -7,7 +7,7 @@
 - [ ] Add global flags (--config, --verbose)
 
 ## 2. Run Command
-- [ ] Create internal/cli/run.go
+- [x] Create internal/cli/run.go
 - [ ] Implement `go-ent run <action>` command
 - [ ] Add flags: --agent, --strategy, --budget, --dry-run
 - [ ] Integration with execution engine

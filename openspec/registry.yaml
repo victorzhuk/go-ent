@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-09T01:00:31.630128531+03:00
+synced_at: 2026-01-09T15:13:29.292746023+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -9,14 +9,14 @@ changes:
         total: 57
         completed: 0
         in_progress: 0
-        blocked: 0
+        blocked: 1
     add-agent-mcp-tools:
         id: add-agent-mcp-tools
         title: ""
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-agent-mcp-tools/tasks.md
         total: 20
-        completed: 0
+        completed: 1
         in_progress: 0
         blocked: 0
     add-agent-system:
@@ -25,7 +25,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-agent-system/tasks.md
         total: 23
-        completed: 0
+        completed: 1
         in_progress: 0
         blocked: 0
     add-ast-operations:
@@ -45,14 +45,14 @@ changes:
         total: 18
         completed: 0
         in_progress: 0
-        blocked: 0
+        blocked: 1
     add-cli-commands:
         id: add-cli-commands
         title: ""
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-cli-commands/tasks.md
         total: 30
-        completed: 0
+        completed: 1
         in_progress: 0
         blocked: 0
     add-context-memory:
@@ -72,7 +72,7 @@ changes:
         total: 31
         completed: 0
         in_progress: 0
-        blocked: 0
+        blocked: 1
     add-plugin-system:
         id: add-plugin-system
         title: ""
@@ -581,8 +581,10 @@ tasks:
         change_id: add-agent-mcp-tools
         task_num: "5"
       content: Create internal/mcp/tools/agent_execute.go
-      status: pending
+      status: completed
       priority: high
+      started_at: 2026-01-09T15:03:57.975902677+03:00
+      completed_at: 2026-01-09T15:06:29.273834276+03:00
       source_line: 10
       synced_at: 2026-01-09T00:55:00.790702464+03:00
     - id:
@@ -709,8 +711,10 @@ tasks:
         change_id: add-agent-system
         task_num: "1"
       content: Create `internal/agent/selector.go`
-      status: pending
+      status: completed
       priority: critical
+      started_at: 2026-01-09T14:58:40.255971583+03:00
+      completed_at: 2026-01-09T15:02:03.681108388+03:00
       source_line: 4
       synced_at: 2026-01-09T00:55:00.790760582+03:00
     - id:
@@ -1259,8 +1263,10 @@ tasks:
         change_id: add-cli-commands
         task_num: "5"
       content: Create internal/cli/run.go
-      status: pending
+      status: completed
       priority: high
+      started_at: 2026-01-09T15:11:08.93756351+03:00
+      completed_at: 2026-01-09T15:13:29.292720706+03:00
       source_line: 10
       synced_at: 2026-01-09T00:55:00.790913117+03:00
     - id:

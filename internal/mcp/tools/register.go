@@ -16,4 +16,5 @@ func Register(s *mcp.Server) {
 	registerListArchetypes(s)
 	registerGenerateComponent(s)
 	registerGenerateFromSpec(s)
+	registerAgentExecute(s)
 }

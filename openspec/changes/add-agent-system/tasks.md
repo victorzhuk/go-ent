@@ -1,7 +1,7 @@
 # Tasks: Add Agent System
 
 ## 1. Agent Selector
-- [ ] Create `internal/agent/selector.go`
+- [x] Create `internal/agent/selector.go`
 - [ ] Implement `Select(ctx, task) (AgentRole, []Skill, error)`
 - [ ] Add complexity-based role selection
 - [ ] Add budget-aware selection
