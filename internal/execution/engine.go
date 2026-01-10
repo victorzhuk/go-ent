@@ -56,6 +56,7 @@ func New(cfg Config, selector *agent.Selector) *Engine {
 	// Register strategies
 	engine.RegisterStrategy(NewSingleStrategy())
 	engine.RegisterStrategy(NewMultiStrategy())
+	engine.RegisterStrategy(NewParallelStrategy(4))
 
 	return engine
 }
@@ -214,4 +215,50 @@ type SelectionResult struct {
 	Agent  domain.AgentRole
 	Model  string
 	Skills []string
+}
+
+// StatusInfo contains engine status information.
+type StatusInfo struct {
+	AvailableRuntimes   []string
+	AvailableStrategies []string
+	PreferredRuntime    string
+	Budget              BudgetInfo
+}
+
+// BudgetInfo contains budget status.
+type BudgetInfo struct {
+	DailyTokens     int
+	DailySpending   float64
+	MonthlyTokens   int
+	MonthlySpending float64
+}
+
+// Status returns current engine status.
+func (e *Engine) Status(ctx context.Context) StatusInfo {
+	var runtimes []string
+	for rt, runner := range e.runners {
+		if runner.Available(ctx) {
+			runtimes = append(runtimes, string(rt))
+		}
+	}
+
+	var strategies []string
+	for name := range e.strategies {
+		strategies = append(strategies, string(name))
+	}
+
+	dailyTokens, dailyCost := e.budget.GetDailySpending()
+	monthlyTokens, monthlyCost := e.budget.GetMonthlySpending()
+
+	return StatusInfo{
+		AvailableRuntimes:   runtimes,
+		AvailableStrategies: strategies,
+		PreferredRuntime:    string(e.preferred),
+		Budget: BudgetInfo{
+			DailyTokens:     dailyTokens,
+			DailySpending:   dailyCost,
+			MonthlyTokens:   monthlyTokens,
+			MonthlySpending: monthlyCost,
+		},
+	}
 }

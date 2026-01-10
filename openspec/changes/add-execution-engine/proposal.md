@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implement the execution engine that runs agents on different runtimes: Claude Code (MCP), OpenCode (subprocess), and CLI (standalone). Supports Single, Multi-agent, and Parallel execution strategies with JavaScript sandbox for dynamic tool composition.
+Implement the execution engine that runs agents on different runtimes: Claude Code (MCP), OpenCode (subprocess), and CLI (standalone). Supports Single, Multi-agent, and Parallel execution strategies.
 
 ## Rationale
 
@@ -19,12 +19,15 @@ No runtime abstraction - can't execute tasks via OpenCode or CLI, only MCP.
 
 1. `internal/execution/engine.go` - Main orchestration engine
 2. `internal/execution/claude.go` - Claude Code MCP runner
-3. `internal/execution/opencode.go` - **OpenCode subprocess runner (CLI integration)**
+3. `internal/execution/opencode.go` - OpenCode subprocess runner (CLI integration)
 4. `internal/execution/cli.go` - CLI standalone runner
 5. `internal/execution/strategy.go` - Execution strategy implementations
-6. `internal/execution/codemode.go` - **Code-mode tool: JavaScript sandbox for dynamic tool composition**
-7. `internal/execution/sandbox.go` - **Security sandbox for untrusted code execution**
-8. `internal/tool/composer.go` - **Tool composition registry for storing composed tools**
+6. `internal/execution/single.go` - Single strategy implementation
+7. `internal/execution/multi.go` - Multi-agent strategy implementation
+8. `internal/execution/parallel.go` - Parallel strategy with dependency graph
+9. `internal/execution/budget.go` - Budget tracking and enforcement
+10. `internal/execution/fallback.go` - Runtime fallback resolver
+11. `internal/mcp/tools/execution.go` - MCP tools for engine control
 
 ## Dependencies
 
@@ -33,14 +36,16 @@ No runtime abstraction - can't execute tasks via OpenCode or CLI, only MCP.
 
 ## Success Criteria
 
-- [ ] Claude Code runner executes via MCP
-- [ ] OpenCode runner executes via subprocess (CLI)
-- [ ] CLI runner executes standalone
-- [ ] Parallel execution with dependency graph works
-- [ ] Budget tracking monitors spending (auto-proceeds with warning in MCP mode)
-- [ ] Code-mode tool enables JavaScript-based tool composition
-- [ ] Sandbox isolates untrusted code execution
-- [ ] Composed tools persist and can be reused across sessions
+- [x] Claude Code runner executes via MCP
+- [x] OpenCode runner executes via subprocess (CLI)
+- [x] CLI runner executes standalone
+- [x] Single strategy executes tasks sequentially
+- [x] Multi strategy executes agent handoff chains (Architect → Developer)
+- [x] Parallel execution with dependency graph works
+- [x] Budget tracking monitors spending (auto-proceeds with warning in MCP mode)
+- [x] MCP tools registered: engine_execute, engine_status, engine_budget, engine_interrupt
+- [x] ExecutionHistory tracking in WorkflowState
+- [x] Integration tests passing
 
 ## Clarified Design Decisions
 
@@ -57,113 +62,39 @@ This prevents unsafe cross-runtime failures while maintaining execution reliabil
 
 ### OpenCode Integration
 OpenCode is a CLI tool (not REST API). Integration uses subprocess pattern:
-- Spawns opencode process
-- Communicates via stdin/stdout
-- Parses CLI output for results
+- Spawns opencode process with `opencode -p "prompt" -f json -q`
+- Communicates via stdout
+- Parses JSON output for results
 
-## Code-Mode and Tool Composition
+## Implementation Status
 
-### Code-Mode Tool
+### Completed (v1)
+- ✅ Runner interface and implementations (Claude Code, OpenCode, CLI)
+- ✅ Engine with runner/strategy registration
+- ✅ Single strategy (sequential execution)
+- ✅ Multi strategy (agent handoff: Architect → Developer → Reviewer)
+- ✅ Parallel strategy (dependency graph with errgroup)
+- ✅ Budget tracking with mode-aware behavior (MCP vs CLI)
+- ✅ Fallback resolver (same-family fallback)
+- ✅ MCP tools: engine_execute, engine_status, engine_budget, engine_interrupt
+- ✅ ExecutionHistory tracking in WorkflowState
+- ✅ Integration tests
 
-Implements a JavaScript sandbox for dynamic tool composition at runtime, inspired by Docker's code-mode pattern.
-
-**Purpose**: Allow agents to programmatically create and modify tools on-the-fly without editing Go code.
-
-**Implementation**:
-```go
-// internal/execution/codemode.go
-type CodeMode struct {
-    sandbox  *Sandbox
-    composer *tool.Composer
-}
-
-// Execute JavaScript code in isolated sandbox
-func (c *CodeMode) Execute(code string, context map[string]any) (any, error)
-
-// Register composed tool for future use
-func (c *CodeMode) RegisterTool(name string, code string) error
-```
-
-**Example Use Case**:
-```javascript
-// Agent composes a new tool dynamically
-const autoFix = async (file, lintErrors) => {
-  const content = await readFile(file);
-  for (const error of lintErrors) {
-    // Apply automated fix logic
-    content = applyFix(content, error);
-  }
-  await writeFile(file, content);
-  return { fixed: lintErrors.length };
-};
-```
-
-**MCP Tool**: `code_mode_execute(code: string, context: object) -> result`
-
-### Security Sandbox
-
-Isolates untrusted code execution to prevent system compromise.
-
-**Features**:
-- Resource limits (CPU, memory, time)
-- Filesystem access restrictions (read-only project files)
-- Network access control (optional allow-list)
-- API whitelisting (only allowed MCP tools)
-
-**Implementation**:
-```go
-// internal/execution/sandbox.go
-type Sandbox struct {
-    limits   ResourceLimits
-    allowFS  []string  // Allowed file paths
-    allowAPI []string  // Allowed API calls
-}
-
-type ResourceLimits struct {
-    MaxMemoryMB  int
-    MaxCPUTime   time.Duration
-    MaxExecTime  time.Duration
-}
-```
-
-### Tool Composition Registry
-
-Stores composed tools for cross-session reuse.
-
-**Schema**:
-```go
-// internal/tool/composer.go
-type ComposedTool struct {
-    ID          string
-    Name        string
-    Description string
-    Code        string    // JavaScript implementation
-    Scope       string    // "project" | "global"
-    Created     time.Time
-    UsageCount  int
-    LastUsed    time.Time
-}
-
-func (c *Composer) Save(tool *ComposedTool) error
-func (c *Composer) Load(name string) (*ComposedTool, error)
-func (c *Composer) List() []ComposedTool
-```
-
-**Storage**: `.go-ent/composed-tools/{name}.json`
-
-**Benefits**:
-- 80%+ reuse of successful compositions
-- Persistent skill development across sessions
-- Shareable tool definitions within teams
+### Deferred (v2)
+- Code-mode JavaScript sandbox for dynamic tool composition
+- Tool composition registry for cross-session reuse
+- Context summarization for long-running executions
+- Resource limits and sandbox enforcement
+- Full execution state management for interrupts
 
 ## Impact
 
 **Performance**:
-- Code-mode adds ~5ms overhead per execution
-- Sandbox prevents runaway processes
-- Composed tools reduce token usage by 70-90%
+- Multi-agent strategy adds coordination overhead but improves quality
+- Parallel execution reduces wall-clock time for independent tasks
+- Budget tracking adds negligible overhead
 
-**Security**:
-- Isolated execution environment
-- No access to system commands without explicit permission
-- Audit trail for all composed tool executions
+**Architecture**:
+- Clean separation: runners (how) vs strategies (what)
+- Same-family fallback prevents unsafe cross-runtime failures
+- Execution history enables cost tracking and workflow analytics

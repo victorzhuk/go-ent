@@ -33,6 +33,10 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry) {
 	registerSkillInfo(s, skillRegistry)
 	registerRuntimeList(s)
 	registerRuntimeStatus(s)
+	registerEngineExecute(s, skillRegistry)
+	registerEngineStatus(s)
+	registerEngineBudget(s)
+	registerEngineInterrupt(s)
 
 	// Register meta tools (tool discovery system)
 	registerMetaTools(s, toolRegistry)
