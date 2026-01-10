@@ -45,6 +45,11 @@ func NewWorkflowState(changeID, phase string) *WorkflowState {
 	}
 }
 
+func (w *WorkflowState) SetAgent(role domain.AgentRole) {
+	w.AgentRole = role
+	w.UpdatedAt = time.Now()
+}
+
 func (w *WorkflowState) SetWaitPoint(waitPoint string) {
 	w.WaitPoint = waitPoint
 	w.Status = WorkflowStatusWaiting

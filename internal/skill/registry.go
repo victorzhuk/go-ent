@@ -11,16 +11,56 @@ import (
 
 // Registry manages skill metadata and matching.
 type Registry struct {
-	skills []SkillMeta
-	parser *Parser
+	skills        []SkillMeta
+	runtimeSkills map[string]domain.Skill
+	parser        *Parser
 }
 
 // NewRegistry creates a new skill registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		skills: make([]SkillMeta, 0),
-		parser: NewParser(),
+		skills:        make([]SkillMeta, 0),
+		runtimeSkills: make(map[string]domain.Skill),
+		parser:        NewParser(),
 	}
+}
+
+// Register adds a runtime skill to the registry.
+func (r *Registry) Register(skill domain.Skill) error {
+	if skill == nil {
+		return fmt.Errorf("skill cannot be nil")
+	}
+
+	name := skill.Name()
+	if name == "" {
+		return fmt.Errorf("skill name cannot be empty")
+	}
+
+	if _, exists := r.runtimeSkills[name]; exists {
+		return fmt.Errorf("skill %s already registered", name)
+	}
+
+	r.runtimeSkills[name] = skill
+	return nil
+}
+
+// Unregister removes a runtime skill from the registry.
+func (r *Registry) Unregister(name string) error {
+	if _, exists := r.runtimeSkills[name]; !exists {
+		return fmt.Errorf("skill %s not found", name)
+	}
+
+	delete(r.runtimeSkills, name)
+	return nil
+}
+
+// GetSkill retrieves a runtime skill by name.
+func (r *Registry) GetSkill(name string) (domain.Skill, error) {
+	skill, exists := r.runtimeSkills[name]
+	if !exists {
+		return nil, fmt.Errorf("skill %s not found", name)
+	}
+	return skill, nil
 }
 
 // Load scans a directory for SKILL.md files and loads their metadata.
@@ -48,9 +88,15 @@ func (r *Registry) Load(skillsPath string) error {
 func (r *Registry) MatchForContext(ctx domain.SkillContext) []string {
 	var matched []string
 
-	// Build search terms from context
-	terms := r.buildSearchTerms(ctx)
+	// Check runtime skills first
+	for name, skill := range r.runtimeSkills {
+		if skill.CanHandle(ctx) {
+			matched = append(matched, name)
+		}
+	}
 
+	// Then check metadata skills
+	terms := r.buildSearchTerms(ctx)
 	for _, skill := range r.skills {
 		if r.matchesContext(skill, terms) {
 			matched = append(matched, skill.Name)

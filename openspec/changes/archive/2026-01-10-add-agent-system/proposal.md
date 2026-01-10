@@ -1,5 +1,7 @@
 # Proposal: Add Agent System
 
+Status: COMPLETE
+
 ## Overview
 
 Implement the core agent orchestration system: role definitions, skill registry, agent selector based on task complexity, and delegation logic from existing `go-ent:lead.md`.
@@ -29,7 +31,7 @@ No automatic agent selection - users must manually choose which agent/model to u
 
 ## Success Criteria
 
-- [ ] Agent selector chooses appropriate role based on complexity
-- [ ] Delegation matrix matches existing go-ent:lead.md logic
-- [ ] Skill registry loads from markdown files
-- [ ] Complexity analyzer classifies tasks accurately
+- [x] Agent selector chooses appropriate role based on complexity
+- [x] Delegation matrix matches existing go-ent:lead.md logic
+- [x] Skill registry loads from markdown files
+- [x] Complexity analyzer classifies tasks accurately

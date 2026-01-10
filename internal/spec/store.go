@@ -30,6 +30,14 @@ func (s *Store) ConfigPath() string {
 	return filepath.Join(s.rootPath, ".go-ent", "config.yaml")
 }
 
+func (s *Store) AgentsPath() string {
+	return filepath.Join(s.rootPath, "plugins", "go-ent", "agents")
+}
+
+func (s *Store) SkillsPath() string {
+	return filepath.Join(s.rootPath, "plugins", "go-ent", "skills")
+}
+
 func (s *Store) Exists() (bool, error) {
 	_, err := os.Stat(s.SpecPath())
 	if err == nil {

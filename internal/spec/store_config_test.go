@@ -20,6 +20,22 @@ func TestStore_ConfigPath(t *testing.T) {
 	assert.Equal(t, expected, store.ConfigPath())
 }
 
+func TestStore_AgentsPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	store := NewStore(tmpDir)
+
+	expected := filepath.Join(tmpDir, "plugins", "go-ent", "agents")
+	assert.Equal(t, expected, store.AgentsPath())
+}
+
+func TestStore_SkillsPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	store := NewStore(tmpDir)
+
+	expected := filepath.Join(tmpDir, "plugins", "go-ent", "skills")
+	assert.Equal(t, expected, store.SkillsPath())
+}
+
 func TestStore_LoadConfig(t *testing.T) {
 	t.Run("returns default config when file missing", func(t *testing.T) {
 		tmpDir := t.TempDir()
