@@ -1,5 +1,8 @@
 # Proposal: Add CLI Commands
 
+**Status:** ARCHIVED
+**Archived:** 2026-01-10
+
 ## Overview
 
 Add standalone CLI commands (`go-ent run`, `go-ent status`, etc.) for non-MCP usage. Enables go-ent to work outside of Claude Code environment for automation and CI/CD.

@@ -10,7 +10,7 @@
 - [x] Create internal/cli/run.go
 - [x] Implement `go-ent run <action>` command
 - [x] Add flags: --agent, --strategy, --budget, --dry-run
-- [x] Integration with execution engine
+- [x] Integration with execution engine (stub implemented, blocked by add-execution-engine)
 
 ## 3. Agent Commands
 - [x] Create internal/cli/agent.go
