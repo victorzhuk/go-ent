@@ -1,7 +1,7 @@
 # Tasks: Add CLI Commands
 
 ## 1. CLI Framework
-- [ ] Add cobra/pflag dependencies
+- [x] Add cobra/pflag dependencies
 - [ ] Create internal/cli/root.go
 - [ ] Set up command structure
 - [ ] Add global flags (--config, --verbose)

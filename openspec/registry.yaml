@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-10T04:00:54.559977438+03:00
+synced_at: 2026-01-10T04:09:48.581607275+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -34,7 +34,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-cli-commands/tasks.md
         total: 30
-        completed: 1
+        completed: 2
         in_progress: 0
         blocked: 0
     add-context-memory:
@@ -871,8 +871,10 @@ tasks:
         change_id: add-cli-commands
         task_num: "1"
       content: Add cobra/pflag dependencies
-      status: pending
+      status: completed
       priority: medium
+      started_at: 2026-01-10T04:08:36.978175693+03:00
+      completed_at: 2026-01-10T04:09:48.581575733+03:00
       source_line: 4
       synced_at: 2026-01-10T04:00:54.559523861+03:00
     - id:
