@@ -40,24 +40,24 @@ The system SHALL execute tasks via Claude Code using MCP protocol.
 - **THEN** error is captured with context
 - **AND** partial output is preserved
 
-### Requirement: OpenCode Native Runner
+### Requirement: OpenCode Subprocess Runner
 
-The system SHALL execute tasks via OpenCode native API (required for v3.0).
+The system SHALL execute tasks via OpenCode CLI subprocess.
 
-#### Scenario: OpenCode API authentication
+#### Scenario: OpenCode subprocess initialization
 - **WHEN** OpenCodeRunner initializes
-- **THEN** API key from config is used
-- **AND** connection is validated
+- **THEN** opencode binary is located in PATH
+- **AND** availability is verified
 
-#### Scenario: Native API execution
+#### Scenario: Subprocess execution
 - **WHEN** task is executed via OpenCode
-- **THEN** OpenCode API `/execute` endpoint is called
-- **AND** task prompt and configuration are sent
-- **AND** response is parsed from JSON
+- **THEN** opencode process is spawned with task prompt
+- **AND** output is captured from stdout
+- **AND** exit code determines success/failure
 
-#### Scenario: OpenCode provider selection
+#### Scenario: OpenCode provider configuration
 - **WHEN** OpenCodeRunner executes with specific provider
-- **THEN** provider config is passed to OpenCode
+- **THEN** provider is passed via CLI flags or config
 - **AND** OpenCode uses the specified AI backend (GLM, Kimi, etc.)
 
 ### Requirement: CLI Standalone Runner
@@ -135,10 +135,15 @@ The system SHALL track and enforce spending limits during execution.
 - **THEN** input and output tokens are counted
 - **AND** cost is calculated based on model pricing
 
-#### Scenario: Budget limit enforcement
-- **WHEN** execution would exceed budget
-- **THEN** warning is shown before proceeding
-- **AND** execution can be cancelled by user
+#### Scenario: Budget limit enforcement (MCP mode)
+- **WHEN** execution would exceed budget in MCP mode
+- **THEN** warning is logged
+- **AND** execution proceeds automatically (no user prompt possible)
+
+#### Scenario: Budget limit enforcement (CLI mode)
+- **WHEN** execution would exceed budget in CLI mode
+- **THEN** warning is shown with prompt
+- **AND** user can approve or cancel execution
 
 #### Scenario: Cost accumulation
 - **WHEN** multiple tasks execute in parallel
@@ -193,10 +198,15 @@ The system SHALL handle execution errors gracefully.
 - **AND** partial results are returned
 - **AND** status is marked as "timeout"
 
-#### Scenario: Graceful degradation
-- **WHEN** OpenCode runtime is unavailable
-- **THEN** fallback to Claude Code runtime is attempted
+#### Scenario: Same-family fallback (MCP)
+- **WHEN** claude-code runtime is unavailable
+- **THEN** fallback to open-code is attempted (same MCP family)
 - **AND** user is notified of fallback
+
+#### Scenario: No cross-family fallback (CLI)
+- **WHEN** cli runtime is unavailable
+- **THEN** no fallback is attempted (isolated family)
+- **AND** error is returned immediately
 
 ### Requirement: Execution Context Management
 

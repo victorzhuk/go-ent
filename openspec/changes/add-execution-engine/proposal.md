@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implement the execution engine that runs agents on different runtimes: Claude Code (MCP), OpenCode (native), and CLI (standalone). Supports Single, Multi-agent, and Parallel execution strategies.
+Implement the execution engine that runs agents on different runtimes: Claude Code (MCP), OpenCode (subprocess), and CLI (standalone). Supports Single, Multi-agent, and Parallel execution strategies with JavaScript sandbox for dynamic tool composition.
 
 ## Rationale
 
@@ -19,7 +19,7 @@ No runtime abstraction - can't execute tasks via OpenCode or CLI, only MCP.
 
 1. `internal/execution/engine.go` - Main orchestration engine
 2. `internal/execution/claude.go` - Claude Code MCP runner
-3. `internal/execution/opencode.go` - **OpenCode native runner (required for v3.0)**
+3. `internal/execution/opencode.go` - **OpenCode subprocess runner (CLI integration)**
 4. `internal/execution/cli.go` - CLI standalone runner
 5. `internal/execution/strategy.go` - Execution strategy implementations
 6. `internal/execution/codemode.go` - **Code-mode tool: JavaScript sandbox for dynamic tool composition**
@@ -34,15 +34,34 @@ No runtime abstraction - can't execute tasks via OpenCode or CLI, only MCP.
 ## Success Criteria
 
 - [ ] Claude Code runner executes via MCP
-- [ ] OpenCode runner executes via native API
+- [ ] OpenCode runner executes via subprocess (CLI)
 - [ ] CLI runner executes standalone
 - [ ] Parallel execution with dependency graph works
-- [ ] Budget tracking prevents overspending
+- [ ] Budget tracking monitors spending (auto-proceeds with warning in MCP mode)
 - [ ] Code-mode tool enables JavaScript-based tool composition
 - [ ] Sandbox isolates untrusted code execution
 - [ ] Composed tools persist and can be reused across sessions
 
-## Phase 2 Enhancement: Code-Mode and Tool Composition
+## Clarified Design Decisions
+
+### Runtime Fallback Strategy
+**Same-family fallback**: Runtimes within the same family can substitute for each other:
+- **MCP Family**: claude-code ↔ open-code (bidirectional fallback)
+- **CLI Family**: cli (isolated, no fallback)
+
+This prevents unsafe cross-runtime failures while maintaining execution reliability.
+
+### Budget Behavior
+**In MCP Mode**: Auto-proceed with warning log (cannot prompt user interactively)
+**In CLI Mode**: Block execution with prompt for user approval
+
+### OpenCode Integration
+OpenCode is a CLI tool (not REST API). Integration uses subprocess pattern:
+- Spawns opencode process
+- Communicates via stdin/stdout
+- Parses CLI output for results
+
+## Code-Mode and Tool Composition
 
 ### Code-Mode Tool
 
