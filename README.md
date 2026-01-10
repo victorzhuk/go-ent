@@ -24,7 +24,8 @@
 - [Quick Start](#quick-start)
 - [Architecture v2.0](#architecture-v20)
 - [MCP Tools](#mcp-tools)
-- [Commands](#available-commands)
+- [CLI Commands](#cli-commands)
+- [Slash Commands](#available-commands)
 - [Agents](#available-agents)
 - [Skills](#skills-auto-activated)
 - [Building from Source](#building-from-source)
@@ -77,7 +78,9 @@ Add the plugin source to your Claude Code settings:
 
 Then restart Claude Code.
 
-### 2. Initialize Spec-Driven Development
+### 2. Using go-ent
+
+**Via MCP (in Claude Code):**
 
 Use MCP tools to manage your project specs:
 
@@ -91,6 +94,26 @@ Call go_ent_spec_create tool with type="spec", id="user-auth", content="..."
 # List all specs
 Call go_ent_spec_list tool with type="spec"
 ```
+
+**Via CLI (standalone):**
+
+The `go-ent` binary can also be used as a standalone CLI:
+
+```bash
+# Initialize configuration
+go-ent config init
+
+# View configuration
+go-ent config show
+
+# List available agents
+go-ent agent list
+
+# Initialize OpenSpec
+go-ent spec init
+```
+
+See [CLI Examples](docs/CLI_EXAMPLES.md) for detailed usage.
 
 The LLM (Claude Code) will generate code based on specs and templates, not copy-paste them.
 
@@ -195,7 +218,88 @@ project/openspec/
 | `go_ent_generate_from_spec` | Generate from OpenSpec |
 | `go_ent_list_archetypes` | List available archetypes |
 
+## CLI Commands
+
+The `go-ent` binary can run in two modes:
+
+1. **MCP Server Mode** (default): Communicates via stdio with Claude Code
+2. **CLI Mode**: Standalone command-line interface for automation and scripting
+
+### Configuration Management
+
+```bash
+# Initialize configuration
+go-ent config init [path]
+
+# Show current configuration
+go-ent config show [path]
+go-ent config show --format summary
+
+# Modify configuration
+go-ent config set <key> <value> [path]
+go-ent config set budget.daily 25
+go-ent config set agents.default architect
+```
+
+### Agent Management
+
+```bash
+# List all agents
+go-ent agent list
+go-ent agent list --detailed
+
+# Get agent information
+go-ent agent info <name>
+go-ent agent info architect
+```
+
+### Skill Management
+
+```bash
+# List all skills
+go-ent skill list
+go-ent skill list --detailed
+
+# Get skill information
+go-ent skill info <name>
+go-ent skill info go-arch
+```
+
+### Spec Management
+
+```bash
+# Initialize OpenSpec
+go-ent spec init [path]
+
+# List specs or changes
+go-ent spec list <type>  # type: spec, change
+go-ent spec list spec
+go-ent spec list change
+
+# Show specific spec or change
+go-ent spec show <type> <id>
+go-ent spec show spec api
+go-ent spec show change add-authentication
+```
+
+### Global Flags
+
+```bash
+# Use custom config file
+go-ent --config /path/to/config.yaml <command>
+
+# Verbose output
+go-ent --verbose <command>
+
+# Show version
+go-ent version
+```
+
+**Full CLI documentation:** [CLI Examples](docs/CLI_EXAMPLES.md)
+
 ## Available Commands
+
+> **Note:** The following are **slash commands** for use within Claude Code, not CLI commands.
 
 ### Planning & Workflow
 
@@ -403,6 +507,7 @@ MIT
 
 ## References
 
+- [CLI Examples](docs/CLI_EXAMPLES.md) - Comprehensive CLI usage guide
 - [MCP Specification](https://modelcontextprotocol.io)
 - [Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)
 - [Development Guide](docs/DEVELOPMENT.md)

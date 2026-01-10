@@ -11,12 +11,17 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/cli"
 	internalserver "github.com/victorzhuk/go-ent/internal/mcp/server"
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
 func main() {
+	// Detect CLI mode vs MCP mode
+	// CLI mode: has arguments (except help flags) or is a TTY
+	// MCP mode: stdin is a pipe (not a TTY)
 	if len(os.Args) > 1 {
+		// Handle version flag for backward compatibility
 		switch os.Args[1] {
 		case "version", "--version", "-v":
 			v := version.Get()
@@ -24,8 +29,16 @@ func main() {
 			fmt.Printf("  go: %s\n", v.GoVersion)
 			os.Exit(0)
 		}
+
+		// Run in CLI mode
+		if err := cli.Execute(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		return
 	}
 
+	// Run in MCP server mode (no arguments, expects stdio communication)
 	if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
 		slog.Error("startup failed", "error", err)
 		os.Exit(1)
