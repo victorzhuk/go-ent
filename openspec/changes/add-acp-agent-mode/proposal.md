@@ -62,7 +62,7 @@ Inspired by:
         ┌───────────────────────┼───────────────────────┐
         │                       │                       │
         │ ACP (stdio)           │ CLI (subprocess)      │ API (HTTP)
-        │ opencode acp          │ opencode -p "..."     │ provider APIs
+        │ opencode acp          │ opencode run --model  │ provider APIs
         │ Long-running tasks    │ Quick one-shot        │ Simple queries
         ▼                       ▼                       ▼
 ┌───────────────┐       ┌───────────────┐       ┌───────────────┐
@@ -94,36 +94,59 @@ Inspired by:
 | Method | Command | Use Case | Pros | Cons |
 |--------|---------|----------|------|------|
 | **ACP** | `opencode acp` | Long-running, streaming | Bidirectional, progress | Process overhead |
-| **CLI** | `opencode -p "..." -f json` | Quick one-shot tasks | Simple, fast | No streaming |
+| **CLI** | `opencode run --model <provider/model> --prompt "..."` | Quick one-shot tasks | Simple, fast | No streaming |
 | **API** | Direct HTTP to provider | Simple queries | Fastest | No OpenCode tools |
 
 ### 3. OpenCode Worker Configuration
-Each OpenCode worker can be pre-configured with different providers:
+OpenCode uses a single configuration file with multiple providers:
 
 ```json
-// ~/.opencode-glm.json (for bulk implementation)
+// ~/.config/opencode/opencode.json
 {
-  "provider": "openai-compatible",
-  "model": "glm-4",
-  "baseUrl": "https://api.z.ai/v1",
-  "apiKey": "${ZAI_API_KEY}"
-}
-
-// ~/.opencode-kimi.json (for large context)
-{
-  "provider": "openai-compatible",
-  "model": "moonshot-v1-128k",
-  "baseUrl": "https://api.moonshot.cn/v1",
-  "apiKey": "${MOONSHOT_API_KEY}"
-}
-
-// ~/.opencode-deepseek.json (for code-heavy)
-{
-  "provider": "openai-compatible",
-  "model": "deepseek-coder",
-  "apiKey": "${DEEPSEEK_API_KEY}"
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "moonshot": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Moonshot AI",
+      "options": {
+        "baseURL": "https://api.moonshot.cn/v1"
+      },
+      "models": {
+        "glm-4": {
+          "name": "GLM 4.7",
+          "provider": "z.ai"
+        },
+        "kimi-k2": {
+          "name": "Kimi K2 (128K context)"
+        }
+      }
+    },
+    "deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DeepSeek",
+      "options": {
+        "baseURL": "https://api.deepseek.com/v1"
+      },
+      "models": {
+        "deepseek-coder": {
+          "name": "DeepSeek Coder"
+        }
+      }
+    },
+    "anthropic": {
+      "options": {
+        "baseURL": "https://api.anthropic.com/v1"
+      }
+    }
+  },
+  "defaultModel": "moonshot/glm-4"
 }
 ```
+
+**Provider/Model Selection:**
+- In CLI mode: Use `--model provider/model` flag
+- In ACP mode: Model is bound to session at creation
+- Cannot switch providers mid-session in ACP mode
 
 ### 4. go-ent Worker Manager
 ```go
@@ -141,15 +164,23 @@ type OpenCodeWorker struct {
     Task      *Task
 }
 
-func (m *WorkerManager) SpawnACP(provider string, task *Task) (*OpenCodeWorker, error) {
-    configPath := m.configs[provider]
-    cmd := exec.Command("opencode", "acp", "--config", configPath)
+func (m *WorkerManager) SpawnACP(provider, model string, task *Task) (*OpenCodeWorker, error) {
+    cmd := exec.Command("opencode", "acp")
+    cmd.Env = append(os.Environ(),
+        fmt.Sprintf("OPENCODE_CONFIG=%s", m.configPath),
+    )
+    // Provider/model will be set in session/new request
     // ... setup stdin/stdout pipes for JSON-RPC
 }
 
-func (m *WorkerManager) SpawnCLI(provider string, prompt string) (string, error) {
-    configPath := m.configs[provider]
-    cmd := exec.Command("opencode", "-p", prompt, "-f", "json", "--config", configPath)
+func (m *WorkerManager) SpawnCLI(provider, model string, prompt string) (string, error) {
+    cmd := exec.Command("opencode", "run",
+        "--model", fmt.Sprintf("%s/%s", provider, model),
+        "--prompt", prompt,
+    )
+    cmd.Env = append(os.Environ(),
+        fmt.Sprintf("OPENCODE_CONFIG=%s", m.configPath),
+    )
     // ... capture output
 }
 ```
@@ -158,18 +189,14 @@ func (m *WorkerManager) SpawnCLI(provider string, prompt string) (string, error)
 
 | Tool | Purpose |
 |------|---------|
-| `worker_spawn` | Spawn OpenCode worker with provider selection |
+| `worker_spawn` | Spawn OpenCode worker with provider/model selection |
 | `worker_prompt` | Send task to ACP worker |
 | `worker_status` | Check worker status |
 | `worker_output` | Get streaming output |
 | `worker_cancel` | Cancel worker |
 | `worker_list` | List active workers |
 | `provider_list` | List configured providers |
-| `provider_recommend` | Get optimal provider for task |
-| **`mcp_find`** | **Search available MCP servers dynamically** |
-| **`mcp_add`** | **Add MCP server to current session** |
-| **`mcp_remove`** | **Remove MCP server from session** |
-| **`mcp_active`** | **List currently active MCP servers** |
+| `provider_recommend` | Get optimal provider/model for task |
 
 ### 6. Task Routing Rules
 
@@ -179,27 +206,32 @@ routing_rules:
   # Simple tasks → Direct API or CLI (fast)
   - match: { type: "lint", complexity: "trivial" }
     method: cli
-    provider: haiku
+    provider: anthropic
+    model: claude-3-haiku
 
   # Bulk implementation → OpenCode ACP with GLM
   - match: { type: "implement", files: ">3" }
     method: acp
-    provider: glm
+    provider: moonshot
+    model: glm-4
 
   # Large file analysis → OpenCode ACP with Kimi (128K)
   - match: { context_tokens: ">50000" }
     method: acp
-    provider: kimi
+    provider: moonshot
+    model: kimi-k2
 
   # Complex refactoring → OpenCode ACP with DeepSeek
   - match: { type: "refactor", complexity: "high" }
     method: acp
     provider: deepseek
+    model: deepseek-coder
 
   # Default fallback
   - match: { default: true }
     method: cli
-    provider: glm
+    provider: moonshot
+    model: glm-4
 ```
 
 ## Impact
@@ -236,21 +268,24 @@ providers:
 
   # OpenCode workers with different backends
   glm:
-    method: acp  # opencode acp --config ~/.opencode-glm.json
-    opencode_config: ~/.opencode-glm.json
+    method: acp
+    provider: moonshot  # Provider name in opencode.json
+    model: glm-4        # Model name in opencode.json
     best_for: ["bulk", "implementation", "mass-edits"]
     cost: "$0.01/1M tokens"
 
   kimi:
     method: acp
-    opencode_config: ~/.opencode-kimi.json
+    provider: moonshot
+    model: kimi-k2
     best_for: ["large-context", "file-analysis"]
     context_limit: 128000
     cost: "$0.02/1M tokens"
 
   deepseek:
     method: acp
-    opencode_config: ~/.opencode-deepseek.json
+    provider: deepseek
+    model: deepseek-coder
     best_for: ["refactoring", "code-heavy"]
     cost: "$0.01/1M tokens"
 
@@ -278,9 +313,9 @@ User: "Add rate limiting to all API endpoints"
    worker_spawn(provider="kimi", tasks=["T007"])  # Large config file
 
 3. go-ent (ACP Proxy) spawns OpenCode workers:
-   → opencode acp --config ~/.opencode-glm.json (Worker 1)
-   → opencode acp --config ~/.opencode-glm.json (Worker 2)
-   → opencode acp --config ~/.opencode-kimi.json (Worker 3)
+   → OPENCODE_CONFIG=~/.config/opencode/opencode.json opencode acp (Worker 1: GLM)
+   → OPENCODE_CONFIG=~/.config/opencode/opencode.json opencode acp (Worker 2: GLM)
+   → OPENCODE_CONFIG=~/.config/opencode/opencode.json opencode acp (Worker 3: Kimi)
 
 4. OpenCode workers execute tasks with their configured models
    → Worker 1 (GLM): Implements T001-T003
@@ -295,171 +330,60 @@ User: "Add rate limiting to all API endpoints"
    → Approve and archive
 ```
 
-## Phase 3 Enhancement: Dynamic MCP Discovery and Docker Gateway
+## Dependencies and Blockers
 
-### Dynamic MCP Discovery
+### Blocked By
 
-Allows agents to discover and activate MCP servers at runtime without hardcoding configurations.
+This proposal depends on:
+1. **add-execution-engine** - Runtime abstraction for agent execution
+2. **add-background-agents** - Async agent spawning infrastructure
 
-**Problem**: Currently all MCP servers must be pre-configured in Claude Code settings. This creates brittleness and requires manual configuration updates.
+These dependencies must be completed before implementation can begin.
 
-**Solution**: Implement dynamic MCP discovery inspired by Docker's dynamic MCP pattern.
+### Phase 3 Separated
 
-**New MCP Tools**:
+Dynamic MCP Discovery features have been moved to a separate proposal:
+- **add-dynamic-mcp-discovery** - Dynamic MCP server discovery and activation
+- Tools: `mcp_find`, `mcp_add`, `mcp_remove`, `mcp_active`
+- Docker MCP Gateway integration
+- MCP routing rules engine
 
-#### `mcp_find(query: string) -> []MCPServer`
-Search for available MCP servers based on capabilities.
+This separation keeps add-acp-agent-mode focused on core worker orchestration.
 
+## Implementation Notes
+
+### Configuration Corrections (Based on Research)
+
+**OpenCode Configuration:**
+- OpenCode uses a single `opencode.json` config file (not per-provider files)
+- Provider selection via `defaultModel` in config or `--model` CLI flag
+- No `--config` flag exists; use `OPENCODE_CONFIG` environment variable
+
+**Corrected Worker Spawn:**
 ```go
-// internal/mcp/discovery.go
-type MCPServer struct {
-    Name         string
-    Description  string
-    Capabilities []string
-    Transport    string  // "stdio" | "sse" | "http"
-    Command      string  // Launch command
-    Installed    bool
-}
-
-func (d *Discovery) Find(query string) []MCPServer {
-    // Search Docker Hub MCP Registry
-    // Search local .mcp-server-registry/
-    // Search system installed servers
+func (m *WorkerManager) SpawnACP(provider, model string) (*Worker, error) {
+    cmd := exec.Command("opencode", "acp")
+    cmd.Env = append(os.Environ(),
+        fmt.Sprintf("OPENCODE_CONFIG=%s", m.configPath),
+    )
+    // Provider/model bound at session creation
+    return m.startWorker(cmd, provider, model)
 }
 ```
 
-**Example**:
-```
-mcp_find("database migration") ->
-  - mcp-server-postgres (installed: true)
-  - mcp-server-mongodb (installed: false)
-  - mcp-server-sqlite (installed: true)
-```
+### ACP Protocol Corrections
 
-#### `mcp_add(name: string, config: object) -> success`
-Dynamically add an MCP server to the current session.
+**Initialization Sequence:**
+1. Start `opencode acp` subprocess
+2. Send `initialize` request (NOT `acp/initialize`)
+3. Send `authenticate` if required
+4. Send `session/new` with provider/model selection
+5. Send `session/prompt` with tasks
 
-```go
-func (m *Manager) Add(name string, cfg MCPConfig) error {
-    // Validate server exists and is safe
-    // Launch server process
-    // Register tools with go-ent MCP bridge
-    // Send tools/list_changed notification
-}
-```
+**Method Names:**
+- ✅ `initialize` (not `acp/initialize`)
+- ✅ `session/new` (required before prompts)
+- ✅ `session/prompt` (correct)
+- ✅ `session/cancel` (correct)
 
-**Example**:
-```
-mcp_add("mcp-server-postgres", {
-  "connection": "postgresql://localhost/mydb"
-})
-```
-
-#### `mcp_remove(name: string) -> success`
-Remove an MCP server from the current session.
-
-#### `mcp_active() -> []string`
-List currently active MCP servers.
-
-### Docker MCP Gateway Integration
-
-Connects to Docker's MCP Gateway to access cloud-hosted MCP servers without local installation.
-
-**Implementation**:
-```go
-// internal/mcp/gateway.go
-type GatewayClient struct {
-    apiURL    string
-    apiKey    string
-    transport *http.Client
-}
-
-// Query Docker MCP Registry
-func (g *GatewayClient) Search(query string) []RemoteMCP
-
-// Proxy requests to remote MCP server
-func (g *GatewayClient) Proxy(server string, tool string, params any) (any, error)
-```
-
-**Configuration**:
-```yaml
-# .go-ent/mcp-gateway.yaml
-gateway:
-  enabled: true
-  api_url: https://mcp-gateway.docker.com/v1
-  api_key: ${DOCKER_MCP_KEY}
-
-  # Auto-discovery rules
-  discovery:
-    - pattern: "docker*"
-      source: gateway
-    - pattern: "*"
-      source: local
-```
-
-### Dynamic Tool Selection
-
-Automatically activates MCP servers based on task context.
-
-**Rules Engine**:
-```yaml
-# .go-ent/mcp-routing.yaml
-routing:
-  # Database tasks → activate postgres MCP
-  - match: { keywords: ["database", "migration", "schema"] }
-    mcp: mcp-server-postgres
-    auto_activate: true
-
-  # Browser tasks → activate playwright MCP
-  - match: { keywords: ["browser", "web", "scrape"] }
-    mcp: mcp-server-playwright
-    auto_activate: true
-
-  # Cloud tasks → check Docker Gateway first
-  - match: { keywords: ["cloud", "deploy", "container"] }
-    prefer: gateway
-```
-
-**Implementation**:
-```go
-// internal/mcp/selector.go
-type MCPSelector struct {
-    rules   []RoutingRule
-    gateway *GatewayClient
-}
-
-func (s *MCPSelector) SelectForTask(task Task) []string {
-    // Match task against rules
-    // Return recommended MCP servers
-    // Optionally auto-activate
-}
-```
-
-### Benefits
-
-1. **No Manual Configuration**: Agents discover and activate MCPs as needed
-2. **Gateway Access**: Use cloud MCPs without local installation
-3. **Context-Aware Loading**: Only load MCPs relevant to current task
-4. **Session Isolation**: Different tasks can use different MCP combinations
-5. **Reduced Setup Friction**: New users don't need complex MCP configuration
-
-### Example Workflow
-
-```
-User: "Analyze database schema and generate migration"
-
-1. Agent receives task, analyzes keywords
-2. Agent calls mcp_find("database migration")
-3. System returns: mcp-server-postgres (local), mcp-server-prisma (gateway)
-4. Agent calls mcp_add("mcp-server-postgres", {...})
-5. go-ent launches postgres MCP, registers its tools
-6. Agent now has database tools available
-7. Task completes, mcp_remove() cleans up
-```
-
-### Security Considerations
-
-- **MCP Approval**: User must approve first-time MCP activations
-- **Capability Limits**: MCPs can only access resources within their declared capabilities
-- **Gateway Authentication**: Require API key for Docker MCP Gateway
-- **Resource Quotas**: Limit number of concurrent MCPs per session
+See `ACP_RESEARCH_FINDINGS.md` for complete protocol verification details.

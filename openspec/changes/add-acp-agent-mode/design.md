@@ -86,7 +86,10 @@ type ACPClient struct {
 }
 
 func (c *ACPClient) Connect(configPath string) error {
-    c.process = exec.Command("opencode", "acp", "--config", configPath)
+    c.process = exec.Command("opencode", "acp")
+    c.process.Env = append(os.Environ(),
+        fmt.Sprintf("OPENCODE_CONFIG=%s", configPath),
+    )
     c.stdin, _ = c.process.StdinPipe()
     c.stdout, _ = c.process.StdoutPipe()
     c.process.Start()
@@ -94,7 +97,7 @@ func (c *ACPClient) Connect(configPath string) error {
     c.decoder = json.NewDecoder(c.stdout)
     c.encoder = json.NewEncoder(c.stdin)
 
-    // Initialize handshake
+    // Initialize handshake (initialize -> session/new)
     return c.initialize()
 }
 
@@ -117,12 +120,13 @@ func (c *ACPClient) SendPrompt(prompt string) (<-chan Response, error) {
 ### 2. CLI (exec) - For Quick One-Shot Tasks
 
 ```go
-func ExecuteCLI(configPath, prompt string) (string, error) {
-    cmd := exec.Command("opencode",
-        "-p", prompt,
-        "-f", "json",
-        "-q",  // quiet mode
-        "--config", configPath,
+func ExecuteCLI(configPath, provider, model, prompt string) (string, error) {
+    cmd := exec.Command("opencode", "run",
+        "--model", fmt.Sprintf("%s/%s", provider, model),
+        "--prompt", prompt,
+    )
+    cmd.Env = append(os.Environ(),
+        fmt.Sprintf("OPENCODE_CONFIG=%s", configPath),
     )
 
     output, err := cmd.Output()
@@ -239,7 +243,8 @@ func (m *WorkerManager) Spawn(provider string, task *Task) (*Worker, error) {
 providers:
   glm:
     method: acp
-    opencode_config: ~/.opencode-glm.json
+    provider: moonshot
+    model: glm-4
     cost_per_1m_tokens: 0.01
     best_for:
       - bulk_implementation
@@ -247,7 +252,8 @@ providers:
 
   kimi:
     method: acp
-    opencode_config: ~/.opencode-kimi.json
+    provider: moonshot
+    model: kimi-k2
     context_limit: 128000
     cost_per_1m_tokens: 0.02
     best_for:
@@ -256,7 +262,8 @@ providers:
 
   deepseek:
     method: acp
-    opencode_config: ~/.opencode-deepseek.json
+    provider: deepseek
+    model: deepseek-coder
     cost_per_1m_tokens: 0.01
     best_for:
       - refactoring
@@ -270,34 +277,50 @@ providers:
     best_for:
       - simple_tasks
       - quick_fixes
+
+opencode_config_path: ~/.config/opencode/opencode.json
 ```
 
-## OpenCode Configuration Files
+## OpenCode Configuration File
 
 ```json
-// ~/.opencode-glm.json
+// ~/.config/opencode/opencode.json
 {
-  "provider": "openai-compatible",
-  "model": "glm-4",
-  "baseUrl": "https://api.z.ai/v1",
-  "apiKey": "${ZAI_API_KEY}"
-}
-
-// ~/.opencode-kimi.json
-{
-  "provider": "openai-compatible",
-  "model": "moonshot-v1-128k",
-  "baseUrl": "https://api.moonshot.cn/v1",
-  "apiKey": "${MOONSHOT_API_KEY}"
-}
-
-// ~/.opencode-deepseek.json
-{
-  "provider": "deepseek",
-  "model": "deepseek-coder",
-  "apiKey": "${DEEPSEEK_API_KEY}"
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "moonshot": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Moonshot AI",
+      "options": {
+        "baseURL": "https://api.moonshot.cn/v1"
+      },
+      "models": {
+        "glm-4": {
+          "name": "GLM 4.7"
+        },
+        "kimi-k2": {
+          "name": "Kimi K2"
+        }
+      }
+    },
+    "deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DeepSeek",
+      "options": {
+        "baseURL": "https://api.deepseek.com/v1"
+      },
+      "models": {
+        "deepseek-coder": {
+          "name": "DeepSeek Coder"
+        }
+      }
+    }
+  },
+  "defaultModel": "moonshot/glm-4"
 }
 ```
+
+**Note**: Credentials are managed via `opencode auth login` or environment variables (e.g., `MOONSHOT_API_KEY`).
 
 ## Decisions
 
@@ -320,14 +343,15 @@ providers:
 - CLI: Simple, fast for one-shot tasks
 - API: Fastest for trivial queries without OpenCode overhead
 
-### D3: Multiple OpenCode Configs
+### D3: Single OpenCode Config with Multiple Providers
 
-**Decision**: Each provider has its own OpenCode config file.
+**Decision**: Use single `opencode.json` with multiple providers defined.
 
 **Rationale**:
-- OpenCode config determines AI provider
-- Easy to add new providers without code changes
-- User can customize per-provider settings
+- OpenCode's actual design uses single config file
+- Provider/model selection via `defaultModel` or `--model` flag
+- Simpler configuration management
+- Use `OPENCODE_CONFIG` env var for config path
 
 ## Risks / Trade-offs
 

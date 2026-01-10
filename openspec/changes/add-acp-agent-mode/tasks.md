@@ -1,9 +1,21 @@
 # Tasks: Add ACP Proxy Mode for OpenCode Worker Orchestration
 
+## ⚠️ BLOCKED - DO NOT START
+
+This proposal is BLOCKED pending completion of dependencies:
+1. **add-execution-engine** - Must be completed first (runtime abstraction)
+2. **add-background-agents** - Must be completed first (async spawning infrastructure)
+
+**Status**: All tasks marked as BLOCKED until dependencies complete.
+
+**Research Complete**: See `ACP_RESEARCH_FINDINGS.md` for verified OpenCode ACP protocol details.
+
+---
+
 ## Dependencies
-- Extends: add-execution-engine (runtime abstraction)
-- Requires: add-background-agents (async spawning infrastructure)
-- External: OpenCode installed on system (`opencode` binary)
+- **BLOCKS**: add-execution-engine (runtime abstraction) - ⚠️ IN PROGRESS
+- **BLOCKS**: add-background-agents (async spawning infrastructure) - ⚠️ IN PROGRESS
+- **External**: OpenCode installed on system (`opencode` binary)
 
 ## Relationship with add-background-agents
 
@@ -17,6 +29,15 @@ This proposal builds ON TOP of add-background-agents:
 Internal agents (Haiku) → quick exploration, analysis, validation
 OpenCode workers (GLM/Kimi) → bulk implementation, multi-file changes
 
+## Phase 3 Separated
+
+Dynamic MCP Discovery features moved to **add-dynamic-mcp-discovery** proposal:
+- `mcp_find`, `mcp_add`, `mcp_remove`, `mcp_active` tools
+- Docker MCP Gateway integration
+- MCP routing rules engine
+
+---
+
 ## 1. Worker Manager Core
 
 - [ ] 1.1 Create `internal/worker/manager.go` - Worker lifecycle management
@@ -28,20 +49,22 @@ OpenCode workers (GLM/Kimi) → bulk implementation, multi-file changes
 ## 2. OpenCode ACP Communication
 
 - [ ] 2.1 Create `internal/opencode/acp.go` - ACP client for OpenCode
-- [ ] 2.2 Implement JSON-RPC 2.0 transport over stdio
-- [ ] 2.3 Implement `acp/initialize` handshake with OpenCode
-- [ ] 2.4 Implement `session/create` for new tasks
-- [ ] 2.5 Implement `session/prompt` to send work to OpenCode
-- [ ] 2.6 Implement streaming response handling
-- [ ] 2.7 Implement `session/cancel` for graceful termination
+- [ ] 2.2 Implement JSON-RPC 2.0 transport over stdin/stdout (nd-JSON format)
+- [ ] 2.3 Implement `initialize` handshake with capability negotiation
+- [ ] 2.4 Implement `authenticate` request (if required by OpenCode)
+- [ ] 2.5 Implement `session/new` to create session with provider/model
+- [ ] 2.6 Implement `session/prompt` to send work to OpenCode
+- [ ] 2.7 Implement streaming response handling via `session/update` notifications
+- [ ] 2.8 Implement `session/cancel` for graceful termination
+- [ ] 2.9 Handle client requests from OpenCode (`fs/read_text_file`, `fs/write_text_file`, `terminal/*`)
 
 ## 3. OpenCode CLI Communication
 
 - [ ] 3.1 Create `internal/opencode/cli.go` - CLI wrapper for OpenCode
-- [ ] 3.2 Implement `opencode -p "prompt" -f json` execution
-- [ ] 3.3 Parse JSON output from CLI mode
-- [ ] 3.4 Handle CLI errors and timeouts
-- [ ] 3.5 Support custom config files via `--config` flag
+- [ ] 3.2 Implement `opencode run --model <provider/model> --prompt "<prompt>"` execution
+- [ ] 3.3 Set `OPENCODE_CONFIG` environment variable for config path
+- [ ] 3.4 Parse output from CLI mode
+- [ ] 3.5 Handle CLI errors and timeouts
 
 ## 4. Direct Provider API (for simple tasks)
 
@@ -63,10 +86,11 @@ OpenCode workers (GLM/Kimi) → bulk implementation, multi-file changes
 ## 6. Provider Configuration
 
 - [ ] 6.1 Create `internal/config/providers.go` - Provider config loader
-- [ ] 6.2 Support multiple OpenCode config files (per provider)
-- [ ] 6.3 Validate provider connectivity on startup
-- [ ] 6.4 Support environment variable substitution in configs
-- [ ] 6.5 Add provider cost tracking configuration
+- [ ] 6.2 Support single OpenCode config file with multiple providers
+- [ ] 6.3 Load provider/model mappings from `.goent/providers.yaml`
+- [ ] 6.4 Validate provider connectivity on startup
+- [ ] 6.5 Support environment variable substitution in configs
+- [ ] 6.6 Add provider cost tracking configuration
 
 ## 7. MCP Tools for Claude Code
 

@@ -21,16 +21,18 @@ The system SHALL act as an ACP proxy between Claude Code and OpenCode workers (N
 The system SHALL communicate with OpenCode workers via ACP protocol.
 
 #### Scenario: Spawn ACP worker
-- **WHEN** `worker_spawn` is called with `method: "acp"` and provider config
-- **THEN** go-ent executes `opencode acp --config <provider_config>`
-- **AND** go-ent establishes JSON-RPC 2.0 connection over stdio
+- **WHEN** `worker_spawn` is called with `method: "acp"`, provider, and model
+- **THEN** go-ent executes `opencode acp` with `OPENCODE_CONFIG` env var
+- **AND** go-ent establishes JSON-RPC 2.0 connection over stdin/stdout
 - **AND** worker_id is returned for tracking
 
 #### Scenario: ACP initialize handshake
 - **WHEN** OpenCode subprocess starts
-- **THEN** go-ent sends `acp/initialize` request
-- **AND** capabilities are exchanged
-- **AND** session is ready for prompts
+- **THEN** go-ent sends `initialize` request (JSON-RPC method)
+- **AND** capabilities are negotiated (protocol version, features)
+- **AND** go-ent sends `authenticate` if required
+- **AND** go-ent sends `session/new` with provider/model selection
+- **AND** session is ready for `session/prompt` requests
 
 #### Scenario: Send prompt via ACP
 - **WHEN** `worker_prompt` is called with worker_id and prompt
@@ -49,15 +51,17 @@ The system SHALL communicate with OpenCode workers via ACP protocol.
 The system SHALL support CLI communication for quick one-shot tasks.
 
 #### Scenario: Execute via CLI
-- **WHEN** `worker_spawn` is called with `method: "cli"`
-- **THEN** go-ent executes `opencode -p "prompt" -f json --config <provider_config>`
+- **WHEN** `worker_spawn` is called with `method: "cli"`, provider, and model
+- **THEN** go-ent executes `opencode run --model <provider/model> --prompt "<prompt>"`
+- **AND** sets `OPENCODE_CONFIG` environment variable
 - **AND** waits for completion
-- **AND** parses JSON output
+- **AND** parses output
 
-#### Scenario: CLI with custom config
-- **WHEN** provider specifies `opencode_config` path
-- **THEN** `--config` flag is passed to opencode CLI
-- **AND** OpenCode uses the specified AI provider
+#### Scenario: CLI with config
+- **WHEN** OpenCode CLI is executed
+- **THEN** `OPENCODE_CONFIG` env var points to config file path
+- **AND** provider/model is selected via `--model provider/model` flag
+- **AND** OpenCode uses the specified AI provider and model
 
 #### Scenario: CLI error handling
 - **WHEN** OpenCode CLI returns non-zero exit code
@@ -80,26 +84,31 @@ The system SHALL support direct API calls for simple tasks (bypassing OpenCode).
 - **THEN** go-ent can make direct API calls
 - **AND** `base_url` from provider config is used
 
-### Requirement: Multiple OpenCode Configurations
+### Requirement: OpenCode Configuration with Multiple Providers
 
-The system SHALL support multiple OpenCode configurations for different providers.
+The system SHALL use a single OpenCode configuration file with multiple providers.
 
-#### Scenario: GLM provider config
-- **GIVEN** `~/.opencode-glm.json` configured with Z.AI GLM 4.7
-- **WHEN** provider "glm" is selected
-- **THEN** OpenCode is spawned with `--config ~/.opencode-glm.json`
-- **AND** OpenCode uses GLM 4.7 for task execution
+#### Scenario: Single config with multiple providers
+- **GIVEN** `~/.config/opencode/opencode.json` contains multiple provider definitions
+- **WHEN** worker is spawned with specific provider/model
+- **THEN** `OPENCODE_CONFIG` env var points to the config file
+- **AND** provider/model is selected via `--model` flag (CLI) or session config (ACP)
 
-#### Scenario: Kimi provider config
-- **GIVEN** `~/.opencode-kimi.json` configured with Moonshot Kimi K2 (128K context)
-- **WHEN** provider "kimi" is selected
-- **THEN** OpenCode uses Kimi K2
+#### Scenario: GLM provider selection
+- **GIVEN** `opencode.json` has `moonshot/glm-4` configured
+- **WHEN** provider "moonshot" and model "glm-4" are selected
+- **THEN** OpenCode uses GLM 4.7 for task execution
+
+#### Scenario: Kimi provider selection
+- **GIVEN** `opencode.json` has `moonshot/kimi-k2` configured
+- **WHEN** provider "moonshot" and model "kimi-k2" are selected
+- **THEN** OpenCode uses Kimi K2 (128K context)
 - **AND** large context tasks can be handled
 
-#### Scenario: DeepSeek provider config
-- **GIVEN** `~/.opencode-deepseek.json` configured with DeepSeek
-- **WHEN** provider "deepseek" is selected
-- **THEN** OpenCode uses DeepSeek for code-heavy tasks
+#### Scenario: DeepSeek provider selection
+- **GIVEN** `opencode.json` has `deepseek/deepseek-coder` configured
+- **WHEN** provider "deepseek" and model "deepseek-coder" are selected
+- **THEN** OpenCode uses DeepSeek Coder for code-heavy tasks
 
 ### Requirement: Task Routing
 

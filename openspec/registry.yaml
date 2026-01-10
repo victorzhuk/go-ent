@@ -1,12 +1,12 @@
 version: "1.0"
-synced_at: 2026-01-10T19:28:47.342794427+03:00
+synced_at: 2026-01-10T22:50:13.096632522+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
         title: ""
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-acp-agent-mode/tasks.md
-        total: 57
+        total: 60
         completed: 0
         in_progress: 0
         blocked: 0
@@ -34,6 +34,15 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-context-memory/tasks.md
         total: 24
+        completed: 0
+        in_progress: 0
+        blocked: 0
+    add-dynamic-mcp-discovery:
+        id: add-dynamic-mcp-discovery
+        title: ""
+        status: ""
+        tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-dynamic-mcp-discovery/tasks.md
+        total: 69
         completed: 0
         in_progress: 0
         blocked: 0
@@ -80,456 +89,480 @@ tasks:
       content: 1.1 Create `internal/worker/manager.go` - Worker lifecycle management
       status: pending
       priority: medium
-      source_line: 22
-      synced_at: 2026-01-10T19:28:47.341725008+03:00
+      source_line: 43
+      synced_at: 2026-01-10T22:50:13.095642312+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "2"
       content: 1.2 Create `internal/worker/worker.go` - OpenCode worker abstraction
       status: pending
       priority: medium
-      source_line: 23
-      synced_at: 2026-01-10T19:28:47.341729286+03:00
+      source_line: 44
+      synced_at: 2026-01-10T22:50:13.095645718+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "3"
       content: 1.3 Create `internal/worker/pool.go` - Worker pool with concurrency limits
       status: pending
       priority: medium
-      source_line: 24
-      synced_at: 2026-01-10T19:28:47.341731731+03:00
+      source_line: 45
+      synced_at: 2026-01-10T22:50:13.095648604+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "4"
       content: 1.4 Create `internal/worker/config.go` - Load provider configs
       status: pending
       priority: medium
-      source_line: 25
-      synced_at: 2026-01-10T19:28:47.341735317+03:00
+      source_line: 46
+      synced_at: 2026-01-10T22:50:13.095651189+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "5"
       content: 1.5 Implement worker health monitoring and timeout handling
       status: pending
       priority: medium
-      source_line: 26
-      synced_at: 2026-01-10T19:28:47.341737091+03:00
+      source_line: 47
+      synced_at: 2026-01-10T22:50:13.095652411+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "6"
       content: 2.1 Create `internal/opencode/acp.go` - ACP client for OpenCode
       status: pending
       priority: medium
-      source_line: 30
-      synced_at: 2026-01-10T19:28:47.341741329+03:00
+      source_line: 51
+      synced_at: 2026-01-10T22:50:13.095655176+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "7"
-      content: 2.2 Implement JSON-RPC 2.0 transport over stdio
+      content: 2.2 Implement JSON-RPC 2.0 transport over stdin/stdout (nd-JSON format)
       status: pending
       priority: medium
-      source_line: 31
-      synced_at: 2026-01-10T19:28:47.341743032+03:00
+      source_line: 52
+      synced_at: 2026-01-10T22:50:13.095656488+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "8"
-      content: 2.3 Implement `acp/initialize` handshake with OpenCode
+      content: 2.3 Implement `initialize` handshake with capability negotiation
       status: pending
       priority: medium
-      source_line: 32
-      synced_at: 2026-01-10T19:28:47.341744625+03:00
+      source_line: 53
+      synced_at: 2026-01-10T22:50:13.095657751+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "9"
-      content: 2.4 Implement `session/create` for new tasks
+      content: 2.4 Implement `authenticate` request (if required by OpenCode)
       status: pending
       priority: medium
-      source_line: 33
-      synced_at: 2026-01-10T19:28:47.341746037+03:00
+      source_line: 54
+      synced_at: 2026-01-10T22:50:13.095659003+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "10"
-      content: 2.5 Implement `session/prompt` to send work to OpenCode
-      status: pending
-      priority: medium
-      source_line: 34
-      synced_at: 2026-01-10T19:28:47.341748091+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "11"
-      content: 2.6 Implement streaming response handling
-      status: pending
-      priority: medium
-      source_line: 35
-      synced_at: 2026-01-10T19:28:47.341751297+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "12"
-      content: 2.7 Implement `session/cancel` for graceful termination
-      status: pending
-      priority: medium
-      source_line: 36
-      synced_at: 2026-01-10T19:28:47.341753+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "13"
-      content: 3.1 Create `internal/opencode/cli.go` - CLI wrapper for OpenCode
-      status: pending
-      priority: medium
-      source_line: 40
-      synced_at: 2026-01-10T19:28:47.341755074+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "14"
-      content: 3.2 Implement `opencode -p "prompt" -f json` execution
-      status: pending
-      priority: medium
-      source_line: 41
-      synced_at: 2026-01-10T19:28:47.341756697+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "15"
-      content: 3.3 Parse JSON output from CLI mode
-      status: pending
-      priority: medium
-      source_line: 42
-      synced_at: 2026-01-10T19:28:47.34175803+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "16"
-      content: 3.4 Handle CLI errors and timeouts
-      status: pending
-      priority: medium
-      source_line: 43
-      synced_at: 2026-01-10T19:28:47.341759282+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "17"
-      content: 3.5 Support custom config files via `--config` flag
-      status: pending
-      priority: medium
-      source_line: 44
-      synced_at: 2026-01-10T19:28:47.341760835+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "18"
-      content: 4.1 Create `internal/provider/anthropic.go` - Direct Anthropic API
-      status: pending
-      priority: medium
-      source_line: 48
-      synced_at: 2026-01-10T19:28:47.341762809+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "19"
-      content: 4.2 Create `internal/provider/openai_compat.go` - OpenAI-compatible APIs
-      status: pending
-      priority: medium
-      source_line: 49
-      synced_at: 2026-01-10T19:28:47.341764692+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "20"
-      content: 4.3 Implement streaming responses from direct API
-      status: pending
-      priority: medium
-      source_line: 50
-      synced_at: 2026-01-10T19:28:47.341767558+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "21"
-      content: 4.4 Add rate limiting and retry logic
-      status: pending
-      priority: medium
-      source_line: 51
-      synced_at: 2026-01-10T19:28:47.34176889+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "22"
-      content: 5.1 Create `internal/router/router.go` - Task-to-provider routing
+      content: 2.5 Implement `session/new` to create session with provider/model
       status: pending
       priority: medium
       source_line: 55
-      synced_at: 2026-01-10T19:28:47.341770874+03:00
+      synced_at: 2026-01-10T22:50:13.095660536+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "23"
-      content: 5.2 Create `internal/router/rules.go` - Routing rule definitions
+        task_num: "11"
+      content: 2.6 Implement `session/prompt` to send work to OpenCode
       status: pending
       priority: medium
       source_line: 56
-      synced_at: 2026-01-10T19:28:47.341772647+03:00
+      synced_at: 2026-01-10T22:50:13.095662991+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "24"
-      content: 5.3 Load routing rules from `.goent/routing.yaml`
+        task_num: "12"
+      content: 2.7 Implement streaming response handling via `session/update` notifications
       status: pending
       priority: medium
       source_line: 57
-      synced_at: 2026-01-10T19:28:47.34177416+03:00
+      synced_at: 2026-01-10T22:50:13.095664483+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "25"
-      content: 5.4 Implement complexity-based routing (simple → CLI, complex → ACP)
+        task_num: "13"
+      content: 2.8 Implement `session/cancel` for graceful termination
       status: pending
       priority: medium
       source_line: 58
-      synced_at: 2026-01-10T19:28:47.341776534+03:00
+      synced_at: 2026-01-10T22:50:13.095665575+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "26"
-      content: 5.5 Implement context-size routing (large → Kimi 128K)
+        task_num: "14"
+      content: 2.9 Handle client requests from OpenCode (`fs/read_text_file`, `fs/write_text_file`, `terminal/*`)
       status: pending
       priority: medium
       source_line: 59
-      synced_at: 2026-01-10T19:28:47.341778308+03:00
+      synced_at: 2026-01-10T22:50:13.095667219+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "27"
-      content: 5.6 Implement cost-based routing with budget constraints
+        task_num: "15"
+      content: 3.1 Create `internal/opencode/cli.go` - CLI wrapper for OpenCode
       status: pending
       priority: medium
-      source_line: 60
-      synced_at: 2026-01-10T19:28:47.341779911+03:00
+      source_line: 63
+      synced_at: 2026-01-10T22:50:13.095668681+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "28"
-      content: 5.7 Add manual provider override capability
+        task_num: "16"
+      content: 3.2 Implement `opencode run --model <provider/model> --prompt "<prompt>"` execution
       status: pending
       priority: medium
-      source_line: 61
-      synced_at: 2026-01-10T19:28:47.341781674+03:00
+      source_line: 64
+      synced_at: 2026-01-10T22:50:13.095670094+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "29"
-      content: 6.1 Create `internal/config/providers.go` - Provider config loader
+        task_num: "17"
+      content: 3.3 Set `OPENCODE_CONFIG` environment variable for config path
       status: pending
       priority: medium
       source_line: 65
-      synced_at: 2026-01-10T19:28:47.341783678+03:00
+      synced_at: 2026-01-10T22:50:13.095671266+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "30"
-      content: 6.2 Support multiple OpenCode config files (per provider)
+        task_num: "18"
+      content: 3.4 Parse output from CLI mode
       status: pending
       priority: medium
       source_line: 66
-      synced_at: 2026-01-10T19:28:47.341785361+03:00
+      synced_at: 2026-01-10T22:50:13.095672208+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "31"
-      content: 6.3 Validate provider connectivity on startup
+        task_num: "19"
+      content: 3.5 Handle CLI errors and timeouts
       status: pending
       priority: medium
       source_line: 67
-      synced_at: 2026-01-10T19:28:47.341786804+03:00
+      synced_at: 2026-01-10T22:50:13.09567343+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "32"
-      content: 6.4 Support environment variable substitution in configs
+        task_num: "20"
+      content: 4.1 Create `internal/provider/anthropic.go` - Direct Anthropic API
       status: pending
       priority: medium
-      source_line: 68
-      synced_at: 2026-01-10T19:28:47.341788467+03:00
+      source_line: 71
+      synced_at: 2026-01-10T22:50:13.095676967+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "33"
-      content: 6.5 Add provider cost tracking configuration
+        task_num: "21"
+      content: 4.2 Create `internal/provider/openai_compat.go` - OpenAI-compatible APIs
       status: pending
       priority: medium
-      source_line: 69
-      synced_at: 2026-01-10T19:28:47.341789909+03:00
+      source_line: 72
+      synced_at: 2026-01-10T22:50:13.095678359+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "34"
-      content: 7.1 Add MCP tool `worker_spawn` - Spawn OpenCode worker
+        task_num: "22"
+      content: 4.3 Implement streaming responses from direct API
       status: pending
       priority: medium
       source_line: 73
-      synced_at: 2026-01-10T19:28:47.341791733+03:00
+      synced_at: 2026-01-10T22:50:13.095679471+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "35"
-      content: 7.2 Add MCP tool `worker_prompt` - Send prompt to ACP worker
+        task_num: "23"
+      content: 4.4 Add rate limiting and retry logic
       status: pending
       priority: medium
-      source_line: 77
-      synced_at: 2026-01-10T19:28:47.341794067+03:00
+      source_line: 74
+      synced_at: 2026-01-10T22:50:13.095680433+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "36"
-      content: 7.3 Add MCP tool `worker_status` - Check worker status
+        task_num: "24"
+      content: 5.1 Create `internal/router/router.go` - Task-to-provider routing
+      status: pending
+      priority: medium
+      source_line: 78
+      synced_at: 2026-01-10T22:50:13.095681786+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "25"
+      content: 5.2 Create `internal/router/rules.go` - Routing rule definitions
+      status: pending
+      priority: medium
+      source_line: 79
+      synced_at: 2026-01-10T22:50:13.095683028+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "26"
+      content: 5.3 Load routing rules from `.goent/routing.yaml`
+      status: pending
+      priority: medium
+      source_line: 80
+      synced_at: 2026-01-10T22:50:13.09568407+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "27"
+      content: 5.4 Implement complexity-based routing (simple → CLI, complex → ACP)
       status: pending
       priority: medium
       source_line: 81
-      synced_at: 2026-01-10T19:28:47.341796371+03:00
+      synced_at: 2026-01-10T22:50:13.095685713+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "37"
-      content: 7.4 Add MCP tool `worker_output` - Get worker output
+        task_num: "28"
+      content: 5.5 Implement context-size routing (large → Kimi 128K)
       status: pending
       priority: medium
-      source_line: 85
-      synced_at: 2026-01-10T19:28:47.341798375+03:00
+      source_line: 82
+      synced_at: 2026-01-10T22:50:13.095686925+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "38"
-      content: 7.5 Add MCP tool `worker_cancel` - Cancel worker
+        task_num: "29"
+      content: 5.6 Implement cost-based routing with budget constraints
+      status: pending
+      priority: medium
+      source_line: 83
+      synced_at: 2026-01-10T22:50:13.095688027+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "30"
+      content: 5.7 Add manual provider override capability
+      status: pending
+      priority: medium
+      source_line: 84
+      synced_at: 2026-01-10T22:50:13.095689079+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "31"
+      content: 6.1 Create `internal/config/providers.go` - Provider config loader
+      status: pending
+      priority: medium
+      source_line: 88
+      synced_at: 2026-01-10T22:50:13.095690452+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "32"
+      content: 6.2 Support single OpenCode config file with multiple providers
       status: pending
       priority: medium
       source_line: 89
-      synced_at: 2026-01-10T19:28:47.341825556+03:00
+      synced_at: 2026-01-10T22:50:13.095691674+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "39"
-      content: 7.6 Add MCP tool `worker_list` - List active workers
+        task_num: "33"
+      content: 6.3 Load provider/model mappings from `.goent/providers.yaml`
+      status: pending
+      priority: medium
+      source_line: 90
+      synced_at: 2026-01-10T22:50:13.095692846+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "34"
+      content: 6.4 Validate provider connectivity on startup
+      status: pending
+      priority: medium
+      source_line: 91
+      synced_at: 2026-01-10T22:50:13.095693868+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "35"
+      content: 6.5 Support environment variable substitution in configs
+      status: pending
+      priority: medium
+      source_line: 92
+      synced_at: 2026-01-10T22:50:13.09569499+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "36"
+      content: 6.6 Add provider cost tracking configuration
       status: pending
       priority: medium
       source_line: 93
-      synced_at: 2026-01-10T19:28:47.34182768+03:00
+      synced_at: 2026-01-10T22:50:13.095696123+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "40"
-      content: 7.7 Add MCP tool `provider_list` - List configured providers
+        task_num: "37"
+      content: 7.1 Add MCP tool `worker_spawn` - Spawn OpenCode worker
       status: pending
       priority: medium
-      source_line: 96
-      synced_at: 2026-01-10T19:28:47.341829614+03:00
+      source_line: 97
+      synced_at: 2026-01-10T22:50:13.095697345+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "41"
-      content: 7.8 Add MCP tool `provider_recommend` - Get optimal provider for task
+        task_num: "38"
+      content: 7.2 Add MCP tool `worker_prompt` - Send prompt to ACP worker
       status: pending
       priority: medium
-      source_line: 99
-      synced_at: 2026-01-10T19:28:47.341831677+03:00
+      source_line: 101
+      synced_at: 2026-01-10T22:50:13.095707013+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "42"
-      content: 8.1 Create `internal/aggregator/aggregator.go` - Collect parallel results
+        task_num: "39"
+      content: 7.3 Add MCP tool `worker_status` - Check worker status
       status: pending
       priority: medium
       source_line: 105
-      synced_at: 2026-01-10T19:28:47.341834142+03:00
+      synced_at: 2026-01-10T22:50:13.095708606+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "43"
-      content: 8.2 Implement conflict detection (multiple workers editing same file)
-      status: pending
-      priority: medium
-      source_line: 106
-      synced_at: 2026-01-10T19:28:47.341836046+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "44"
-      content: 8.3 Implement result merging strategy
-      status: pending
-      priority: medium
-      source_line: 107
-      synced_at: 2026-01-10T19:28:47.341837388+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "45"
-      content: 8.4 Generate execution summary with per-provider stats
-      status: pending
-      priority: medium
-      source_line: 108
-      synced_at: 2026-01-10T19:28:47.341839001+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "46"
-      content: 8.5 Track cost per worker per provider
+        task_num: "40"
+      content: 7.4 Add MCP tool `worker_output` - Get worker output
       status: pending
       priority: medium
       source_line: 109
-      synced_at: 2026-01-10T19:28:47.341840374+03:00
+      synced_at: 2026-01-10T22:50:13.095710079+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "47"
-      content: 9.1 Integrate with OpenSpec registry for task tracking
+        task_num: "41"
+      content: 7.5 Add MCP tool `worker_cancel` - Cancel worker
       status: pending
       priority: medium
       source_line: 113
-      synced_at: 2026-01-10T19:28:47.341842127+03:00
+      synced_at: 2026-01-10T22:50:13.095711541+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "48"
-      content: 9.2 Update task status in tasks.md after worker completion
+        task_num: "42"
+      content: 7.6 Add MCP tool `worker_list` - List active workers
       status: pending
       priority: medium
-      source_line: 114
-      synced_at: 2026-01-10T19:28:47.34184383+03:00
+      source_line: 117
+      synced_at: 2026-01-10T22:50:13.095712974+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "49"
-      content: 9.3 Integrate with context memory for pattern learning
-      status: pending
-      priority: medium
-      source_line: 115
-      synced_at: 2026-01-10T19:28:47.341845433+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "50"
-      content: 9.4 Add hooks for pre/post worker execution
-      status: pending
-      priority: medium
-      source_line: 116
-      synced_at: 2026-01-10T19:28:47.341846996+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "51"
-      content: 10.1 Unit tests for worker manager
+        task_num: "43"
+      content: 7.7 Add MCP tool `provider_list` - List configured providers
       status: pending
       priority: medium
       source_line: 120
-      synced_at: 2026-01-10T19:28:47.341848579+03:00
+      synced_at: 2026-01-10T22:50:13.095714337+03:00
     - id:
         change_id: add-acp-agent-mode
-        task_num: "52"
-      content: 10.2 Unit tests for ACP communication
-      status: pending
-      priority: medium
-      source_line: 121
-      synced_at: 2026-01-10T19:28:47.341849902+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "53"
-      content: 10.3 Unit tests for CLI communication
-      status: pending
-      priority: medium
-      source_line: 122
-      synced_at: 2026-01-10T19:28:47.341851234+03:00
-    - id:
-        change_id: add-acp-agent-mode
-        task_num: "54"
-      content: 10.4 Integration tests for parallel workers
+        task_num: "44"
+      content: 7.8 Add MCP tool `provider_recommend` - Get optimal provider for task
       status: pending
       priority: medium
       source_line: 123
-      synced_at: 2026-01-10T19:28:47.341852657+03:00
+      synced_at: 2026-01-10T22:50:13.095715729+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "45"
+      content: 8.1 Create `internal/aggregator/aggregator.go` - Collect parallel results
+      status: pending
+      priority: medium
+      source_line: 129
+      synced_at: 2026-01-10T22:50:13.095717442+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "46"
+      content: 8.2 Implement conflict detection (multiple workers editing same file)
+      status: pending
+      priority: medium
+      source_line: 130
+      synced_at: 2026-01-10T22:50:13.095718775+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "47"
+      content: 8.3 Implement result merging strategy
+      status: pending
+      priority: medium
+      source_line: 131
+      synced_at: 2026-01-10T22:50:13.095719717+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "48"
+      content: 8.4 Generate execution summary with per-provider stats
+      status: pending
+      priority: medium
+      source_line: 132
+      synced_at: 2026-01-10T22:50:13.095720849+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "49"
+      content: 8.5 Track cost per worker per provider
+      status: pending
+      priority: medium
+      source_line: 133
+      synced_at: 2026-01-10T22:50:13.095721841+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "50"
+      content: 9.1 Integrate with OpenSpec registry for task tracking
+      status: pending
+      priority: medium
+      source_line: 137
+      synced_at: 2026-01-10T22:50:13.095723083+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "51"
+      content: 9.2 Update task status in tasks.md after worker completion
+      status: pending
+      priority: medium
+      source_line: 138
+      synced_at: 2026-01-10T22:50:13.095724265+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "52"
+      content: 9.3 Integrate with context memory for pattern learning
+      status: pending
+      priority: medium
+      source_line: 139
+      synced_at: 2026-01-10T22:50:13.095725367+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "53"
+      content: 9.4 Add hooks for pre/post worker execution
+      status: pending
+      priority: medium
+      source_line: 140
+      synced_at: 2026-01-10T22:50:13.095726389+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "54"
+      content: 10.1 Unit tests for worker manager
+      status: pending
+      priority: medium
+      source_line: 144
+      synced_at: 2026-01-10T22:50:13.095727501+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "55"
-      content: 10.5 Test provider failover scenarios
+      content: 10.2 Unit tests for ACP communication
       status: pending
       priority: medium
-      source_line: 124
-      synced_at: 2026-01-10T19:28:47.341853979+03:00
+      source_line: 145
+      synced_at: 2026-01-10T22:50:13.095728423+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "56"
-      content: '10.6 Benchmark: ACP vs CLI vs API performance'
+      content: 10.3 Unit tests for CLI communication
       status: pending
       priority: medium
-      source_line: 125
-      synced_at: 2026-01-10T19:28:47.341855442+03:00
+      source_line: 146
+      synced_at: 2026-01-10T22:50:13.095729575+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "57"
+      content: 10.4 Integration tests for parallel workers
+      status: pending
+      priority: medium
+      source_line: 147
+      synced_at: 2026-01-10T22:50:13.095730657+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "58"
+      content: 10.5 Test provider failover scenarios
+      status: pending
+      priority: medium
+      source_line: 148
+      synced_at: 2026-01-10T22:50:13.095731579+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "59"
+      content: '10.6 Benchmark: ACP vs CLI vs API performance'
+      status: pending
+      priority: medium
+      source_line: 149
+      synced_at: 2026-01-10T22:50:13.095732581+03:00
+    - id:
+        change_id: add-acp-agent-mode
+        task_num: "60"
       content: 10.7 Test with actual OpenCode + GLM/Kimi providers
       status: pending
       priority: medium
-      source_line: 126
-      synced_at: 2026-01-10T19:28:47.341857035+03:00
+      source_line: 150
+      synced_at: 2026-01-10T22:50:13.095733823+03:00
     - id:
         change_id: add-ast-operations
         task_num: "1"
@@ -537,7 +570,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 8
-      synced_at: 2026-01-10T19:28:47.341920554+03:00
+      synced_at: 2026-01-10T22:50:13.09579098+03:00
     - id:
         change_id: add-ast-operations
         task_num: "2"
@@ -545,7 +578,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 9
-      synced_at: 2026-01-10T19:28:47.341922607+03:00
+      synced_at: 2026-01-10T22:50:13.095792422+03:00
     - id:
         change_id: add-ast-operations
         task_num: "3"
@@ -553,7 +586,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 10
-      synced_at: 2026-01-10T19:28:47.341924711+03:00
+      synced_at: 2026-01-10T22:50:13.095793715+03:00
     - id:
         change_id: add-ast-operations
         task_num: "4"
@@ -561,7 +594,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 11
-      synced_at: 2026-01-10T19:28:47.341926785+03:00
+      synced_at: 2026-01-10T22:50:13.095795218+03:00
     - id:
         change_id: add-ast-operations
         task_num: "5"
@@ -569,7 +602,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 15
-      synced_at: 2026-01-10T19:28:47.341928849+03:00
+      synced_at: 2026-01-10T22:50:13.09579656+03:00
     - id:
         change_id: add-ast-operations
         task_num: "6"
@@ -577,7 +610,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.341931374+03:00
+      synced_at: 2026-01-10T22:50:13.095797833+03:00
     - id:
         change_id: add-ast-operations
         task_num: "7"
@@ -585,7 +618,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.341932626+03:00
+      synced_at: 2026-01-10T22:50:13.095800177+03:00
     - id:
         change_id: add-ast-operations
         task_num: "8"
@@ -593,7 +626,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 18
-      synced_at: 2026-01-10T19:28:47.341933858+03:00
+      synced_at: 2026-01-10T22:50:13.095801099+03:00
     - id:
         change_id: add-ast-operations
         task_num: "9"
@@ -601,7 +634,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 22
-      synced_at: 2026-01-10T19:28:47.341935782+03:00
+      synced_at: 2026-01-10T22:50:13.095802581+03:00
     - id:
         change_id: add-ast-operations
         task_num: "10"
@@ -609,7 +642,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 23
-      synced_at: 2026-01-10T19:28:47.341937886+03:00
+      synced_at: 2026-01-10T22:50:13.095804054+03:00
     - id:
         change_id: add-ast-operations
         task_num: "11"
@@ -617,7 +650,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.341943697+03:00
+      synced_at: 2026-01-10T22:50:13.095830053+03:00
     - id:
         change_id: add-ast-operations
         task_num: "12"
@@ -625,7 +658,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.34194554+03:00
+      synced_at: 2026-01-10T22:50:13.095831365+03:00
     - id:
         change_id: add-ast-operations
         task_num: "13"
@@ -633,7 +666,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.341947324+03:00
+      synced_at: 2026-01-10T22:50:13.095832598+03:00
     - id:
         change_id: add-ast-operations
         task_num: "14"
@@ -641,7 +674,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 30
-      synced_at: 2026-01-10T19:28:47.341948907+03:00
+      synced_at: 2026-01-10T22:50:13.09583375+03:00
     - id:
         change_id: add-ast-operations
         task_num: "15"
@@ -649,7 +682,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.341950209+03:00
+      synced_at: 2026-01-10T22:50:13.095834762+03:00
     - id:
         change_id: add-ast-operations
         task_num: "16"
@@ -657,7 +690,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.341951411+03:00
+      synced_at: 2026-01-10T22:50:13.095835613+03:00
     - id:
         change_id: add-ast-operations
         task_num: "17"
@@ -665,7 +698,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.341952604+03:00
+      synced_at: 2026-01-10T22:50:13.095836455+03:00
     - id:
         change_id: add-ast-operations
         task_num: "18"
@@ -673,7 +706,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 37
-      synced_at: 2026-01-10T19:28:47.341954066+03:00
+      synced_at: 2026-01-10T22:50:13.095837487+03:00
     - id:
         change_id: add-ast-operations
         task_num: "19"
@@ -681,7 +714,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.341955419+03:00
+      synced_at: 2026-01-10T22:50:13.095838479+03:00
     - id:
         change_id: add-ast-operations
         task_num: "20"
@@ -689,7 +722,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.341958755+03:00
+      synced_at: 2026-01-10T22:50:13.095842857+03:00
     - id:
         change_id: add-ast-operations
         task_num: "21"
@@ -697,7 +730,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 43
-      synced_at: 2026-01-10T19:28:47.341960358+03:00
+      synced_at: 2026-01-10T22:50:13.095843919+03:00
     - id:
         change_id: add-ast-operations
         task_num: "22"
@@ -705,7 +738,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.34196166+03:00
+      synced_at: 2026-01-10T22:50:13.09584485+03:00
     - id:
         change_id: add-ast-operations
         task_num: "23"
@@ -713,7 +746,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 45
-      synced_at: 2026-01-10T19:28:47.341963253+03:00
+      synced_at: 2026-01-10T22:50:13.095845983+03:00
     - id:
         change_id: add-background-agents
         task_num: "1"
@@ -721,7 +754,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 14
-      synced_at: 2026-01-10T19:28:47.342015631+03:00
+      synced_at: 2026-01-10T22:50:13.095886809+03:00
     - id:
         change_id: add-background-agents
         task_num: "2"
@@ -729,7 +762,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 15
-      synced_at: 2026-01-10T19:28:47.342018026+03:00
+      synced_at: 2026-01-10T22:50:13.095888422+03:00
     - id:
         change_id: add-background-agents
         task_num: "3"
@@ -737,7 +770,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.34202021+03:00
+      synced_at: 2026-01-10T22:50:13.095889925+03:00
     - id:
         change_id: add-background-agents
         task_num: "4"
@@ -745,7 +778,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.342022364+03:00
+      synced_at: 2026-01-10T22:50:13.095891187+03:00
     - id:
         change_id: add-background-agents
         task_num: "5"
@@ -753,7 +786,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342025069+03:00
+      synced_at: 2026-01-10T22:50:13.095893+03:00
     - id:
         change_id: add-background-agents
         task_num: "6"
@@ -761,7 +794,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.342027594+03:00
+      synced_at: 2026-01-10T22:50:13.095894944+03:00
     - id:
         change_id: add-background-agents
         task_num: "7"
@@ -769,7 +802,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.342029738+03:00
+      synced_at: 2026-01-10T22:50:13.095896427+03:00
     - id:
         change_id: add-background-agents
         task_num: "8"
@@ -777,7 +810,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 27
-      synced_at: 2026-01-10T19:28:47.342031531+03:00
+      synced_at: 2026-01-10T22:50:13.095897739+03:00
     - id:
         change_id: add-background-agents
         task_num: "9"
@@ -785,7 +818,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 28
-      synced_at: 2026-01-10T19:28:47.342033364+03:00
+      synced_at: 2026-01-10T22:50:13.095899012+03:00
     - id:
         change_id: add-background-agents
         task_num: "10"
@@ -793,7 +826,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 34
-      synced_at: 2026-01-10T19:28:47.342035158+03:00
+      synced_at: 2026-01-10T22:50:13.095900234+03:00
     - id:
         change_id: add-background-agents
         task_num: "11"
@@ -801,7 +834,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342039576+03:00
+      synced_at: 2026-01-10T22:50:13.09590338+03:00
     - id:
         change_id: add-background-agents
         task_num: "12"
@@ -809,7 +842,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.342041259+03:00
+      synced_at: 2026-01-10T22:50:13.095904542+03:00
     - id:
         change_id: add-background-agents
         task_num: "13"
@@ -817,7 +850,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 43
-      synced_at: 2026-01-10T19:28:47.342043223+03:00
+      synced_at: 2026-01-10T22:50:13.095905905+03:00
     - id:
         change_id: add-background-agents
         task_num: "14"
@@ -825,7 +858,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.342044636+03:00
+      synced_at: 2026-01-10T22:50:13.095906946+03:00
     - id:
         change_id: add-background-agents
         task_num: "15"
@@ -833,7 +866,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 45
-      synced_at: 2026-01-10T19:28:47.342046098+03:00
+      synced_at: 2026-01-10T22:50:13.095907968+03:00
     - id:
         change_id: add-background-agents
         task_num: "16"
@@ -841,7 +874,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 49
-      synced_at: 2026-01-10T19:28:47.342047621+03:00
+      synced_at: 2026-01-10T22:50:13.09590902+03:00
     - id:
         change_id: add-background-agents
         task_num: "17"
@@ -849,7 +882,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 50
-      synced_at: 2026-01-10T19:28:47.342048893+03:00
+      synced_at: 2026-01-10T22:50:13.095909952+03:00
     - id:
         change_id: add-background-agents
         task_num: "18"
@@ -857,7 +890,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 51
-      synced_at: 2026-01-10T19:28:47.342050827+03:00
+      synced_at: 2026-01-10T22:50:13.095911024+03:00
     - id:
         change_id: add-context-memory
         task_num: "1"
@@ -865,7 +898,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 8
-      synced_at: 2026-01-10T19:28:47.342083097+03:00
+      synced_at: 2026-01-10T22:50:13.095937143+03:00
     - id:
         change_id: add-context-memory
         task_num: "2"
@@ -873,7 +906,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 9
-      synced_at: 2026-01-10T19:28:47.342085171+03:00
+      synced_at: 2026-01-10T22:50:13.095938586+03:00
     - id:
         change_id: add-context-memory
         task_num: "3"
@@ -881,7 +914,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 10
-      synced_at: 2026-01-10T19:28:47.342087125+03:00
+      synced_at: 2026-01-10T22:50:13.095939918+03:00
     - id:
         change_id: add-context-memory
         task_num: "4"
@@ -889,7 +922,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 11
-      synced_at: 2026-01-10T19:28:47.342089499+03:00
+      synced_at: 2026-01-10T22:50:13.095941471+03:00
     - id:
         change_id: add-context-memory
         task_num: "5"
@@ -897,7 +930,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 12
-      synced_at: 2026-01-10T19:28:47.342090962+03:00
+      synced_at: 2026-01-10T22:50:13.095942513+03:00
     - id:
         change_id: add-context-memory
         task_num: "6"
@@ -905,7 +938,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.342093236+03:00
+      synced_at: 2026-01-10T22:50:13.095944216+03:00
     - id:
         change_id: add-context-memory
         task_num: "7"
@@ -913,7 +946,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.34209506+03:00
+      synced_at: 2026-01-10T22:50:13.095945488+03:00
     - id:
         change_id: add-context-memory
         task_num: "8"
@@ -921,7 +954,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 18
-      synced_at: 2026-01-10T19:28:47.342096833+03:00
+      synced_at: 2026-01-10T22:50:13.095946701+03:00
     - id:
         change_id: add-context-memory
         task_num: "9"
@@ -929,7 +962,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 19
-      synced_at: 2026-01-10T19:28:47.342098396+03:00
+      synced_at: 2026-01-10T22:50:13.095947642+03:00
     - id:
         change_id: add-context-memory
         task_num: "10"
@@ -937,7 +970,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 23
-      synced_at: 2026-01-10T19:28:47.34210034+03:00
+      synced_at: 2026-01-10T22:50:13.095948985+03:00
     - id:
         change_id: add-context-memory
         task_num: "11"
@@ -945,7 +978,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342105199+03:00
+      synced_at: 2026-01-10T22:50:13.095952462+03:00
     - id:
         change_id: add-context-memory
         task_num: "12"
@@ -953,7 +986,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.342107042+03:00
+      synced_at: 2026-01-10T22:50:13.095953754+03:00
     - id:
         change_id: add-context-memory
         task_num: "13"
@@ -961,7 +994,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.342108785+03:00
+      synced_at: 2026-01-10T22:50:13.095954956+03:00
     - id:
         change_id: add-context-memory
         task_num: "14"
@@ -969,7 +1002,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 27
-      synced_at: 2026-01-10T19:28:47.342110509+03:00
+      synced_at: 2026-01-10T22:50:13.095956148+03:00
     - id:
         change_id: add-context-memory
         task_num: "15"
@@ -977,7 +1010,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.342113675+03:00
+      synced_at: 2026-01-10T22:50:13.095957381+03:00
     - id:
         change_id: add-context-memory
         task_num: "16"
@@ -985,7 +1018,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.342115308+03:00
+      synced_at: 2026-01-10T22:50:13.095958473+03:00
     - id:
         change_id: add-context-memory
         task_num: "17"
@@ -993,7 +1026,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.342117091+03:00
+      synced_at: 2026-01-10T22:50:13.095959515+03:00
     - id:
         change_id: add-context-memory
         task_num: "18"
@@ -1001,7 +1034,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 34
-      synced_at: 2026-01-10T19:28:47.342118393+03:00
+      synced_at: 2026-01-10T22:50:13.095960426+03:00
     - id:
         change_id: add-context-memory
         task_num: "19"
@@ -1009,7 +1042,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342120197+03:00
+      synced_at: 2026-01-10T22:50:13.095961719+03:00
     - id:
         change_id: add-context-memory
         task_num: "20"
@@ -1017,7 +1050,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.342139874+03:00
+      synced_at: 2026-01-10T22:50:13.095966087+03:00
     - id:
         change_id: add-context-memory
         task_num: "21"
@@ -1025,7 +1058,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 40
-      synced_at: 2026-01-10T19:28:47.342141567+03:00
+      synced_at: 2026-01-10T22:50:13.095967279+03:00
     - id:
         change_id: add-context-memory
         task_num: "22"
@@ -1033,7 +1066,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.34214306+03:00
+      synced_at: 2026-01-10T22:50:13.095968311+03:00
     - id:
         change_id: add-context-memory
         task_num: "23"
@@ -1041,7 +1074,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 45
-      synced_at: 2026-01-10T19:28:47.342144562+03:00
+      synced_at: 2026-01-10T22:50:13.095969373+03:00
     - id:
         change_id: add-context-memory
         task_num: "24"
@@ -1049,7 +1082,559 @@ tasks:
       status: pending
       priority: medium
       source_line: 46
-      synced_at: 2026-01-10T19:28:47.342145785+03:00
+      synced_at: 2026-01-10T22:50:13.095970846+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "1"
+      content: 1.1 Create `internal/mcp/discovery.go` - MCP discovery service
+      status: pending
+      priority: medium
+      source_line: 15
+      synced_at: 2026-01-10T22:50:13.096007715+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "2"
+      content: 1.2 Create `internal/mcp/registry.go` - Local registry scanner
+      status: pending
+      priority: medium
+      source_line: 16
+      synced_at: 2026-01-10T22:50:13.096009067+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "3"
+      content: 1.3 Implement local registry format (`~/.mcp-server-registry/`)
+      status: pending
+      priority: medium
+      source_line: 17
+      synced_at: 2026-01-10T22:50:13.09601049+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "4"
+      content: 1.4 Implement project registry scanner (`.mcp-server-registry/`)
+      status: pending
+      priority: medium
+      source_line: 18
+      synced_at: 2026-01-10T22:50:13.096014217+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "5"
+      content: 1.5 Implement search/ranking algorithm (keyword matching, TF-IDF)
+      status: pending
+      priority: medium
+      source_line: 19
+      synced_at: 2026-01-10T22:50:13.096015459+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "6"
+      content: 1.6 Add MCP metadata validation
+      status: pending
+      priority: medium
+      source_line: 20
+      synced_at: 2026-01-10T22:50:13.096018144+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "7"
+      content: 2.1 Create `internal/mcp/manager.go` - Session-scoped MCP manager
+      status: pending
+      priority: medium
+      source_line: 24
+      synced_at: 2026-01-10T22:50:13.096019487+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "8"
+      content: 2.2 Create `internal/mcp/session.go` - MCP session state
+      status: pending
+      priority: medium
+      source_line: 25
+      synced_at: 2026-01-10T22:50:13.096020599+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "9"
+      content: 2.3 Implement MCP lifecycle (launch, monitor, shutdown)
+      status: pending
+      priority: medium
+      source_line: 26
+      synced_at: 2026-01-10T22:50:13.096021671+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "10"
+      content: 2.4 Implement stdio transport for local MCPs
+      status: pending
+      priority: medium
+      source_line: 27
+      synced_at: 2026-01-10T22:50:13.096022743+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "11"
+      content: 2.5 Implement tool registration bridge
+      status: pending
+      priority: medium
+      source_line: 28
+      synced_at: 2026-01-10T22:50:13.096025408+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "12"
+      content: 2.6 Send `tools/list_changed` notifications on activation/deactivation
+      status: pending
+      priority: medium
+      source_line: 29
+      synced_at: 2026-01-10T22:50:13.09602677+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "13"
+      content: 2.7 Implement session cleanup on session end
+      status: pending
+      priority: medium
+      source_line: 30
+      synced_at: 2026-01-10T22:50:13.096027852+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "14"
+      content: 3.1 Add MCP tool `mcp_find` - Search for MCP servers
+      status: pending
+      priority: medium
+      source_line: 34
+      synced_at: 2026-01-10T22:50:13.096029095+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "15"
+      content: 3.2 Add MCP tool `mcp_add` - Activate MCP server
+      status: pending
+      priority: medium
+      source_line: 38
+      synced_at: 2026-01-10T22:50:13.096030527+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "16"
+      content: 3.3 Add MCP tool `mcp_remove` - Deactivate MCP server
+      status: pending
+      priority: medium
+      source_line: 42
+      synced_at: 2026-01-10T22:50:13.09603192+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "17"
+      content: 3.4 Add MCP tool `mcp_active` - List active MCPs
+      status: pending
+      priority: medium
+      source_line: 46
+      synced_at: 2026-01-10T22:50:13.096033303+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "18"
+      content: 4.1 Create `internal/mcp/approval.go` - MCP approval system
+      status: pending
+      priority: medium
+      source_line: 51
+      synced_at: 2026-01-10T22:50:13.096034715+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "19"
+      content: 4.2 Implement first-time approval workflow
+      status: pending
+      priority: medium
+      source_line: 52
+      synced_at: 2026-01-10T22:50:13.096035747+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "20"
+      content: 4.3 Store approved MCPs in `~/.config/go-ent/mcp-approved.json`
+      status: pending
+      priority: medium
+      source_line: 53
+      synced_at: 2026-01-10T22:50:13.096040256+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "21"
+      content: 4.4 Implement resource quotas (max concurrent, memory limits)
+      status: pending
+      priority: medium
+      source_line: 54
+      synced_at: 2026-01-10T22:50:13.096041558+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "22"
+      content: 4.5 Add quota enforcement checks
+      status: pending
+      priority: medium
+      source_line: 55
+      synced_at: 2026-01-10T22:50:13.09604246+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "23"
+      content: 5.1 Unit tests for discovery service
+      status: pending
+      priority: medium
+      source_line: 59
+      synced_at: 2026-01-10T22:50:13.096043542+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "24"
+      content: 5.2 Unit tests for MCP manager
+      status: pending
+      priority: medium
+      source_line: 60
+      synced_at: 2026-01-10T22:50:13.096044433+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "25"
+      content: 5.3 Integration tests for tool registration
+      status: pending
+      priority: medium
+      source_line: 61
+      synced_at: 2026-01-10T22:50:13.096045425+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "26"
+      content: 5.4 Test session cleanup
+      status: pending
+      priority: medium
+      source_line: 62
+      synced_at: 2026-01-10T22:50:13.096046237+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "27"
+      content: 5.5 Test approval workflow
+      status: pending
+      priority: medium
+      source_line: 63
+      synced_at: 2026-01-10T22:50:13.096047068+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "28"
+      content: 6.1 Create `internal/mcp/router.go` - MCP routing engine
+      status: pending
+      priority: medium
+      source_line: 71
+      synced_at: 2026-01-10T22:50:13.096048481+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "29"
+      content: 6.2 Create `internal/mcp/rules.go` - Routing rule definitions
+      status: pending
+      priority: medium
+      source_line: 72
+      synced_at: 2026-01-10T22:50:13.096049693+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "30"
+      content: 6.3 Load routing rules from `.go-ent/mcp-routing.yaml`
+      status: pending
+      priority: medium
+      source_line: 73
+      synced_at: 2026-01-10T22:50:13.096050815+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "31"
+      content: 6.4 Implement keyword-based matching
+      status: pending
+      priority: medium
+      source_line: 74
+      synced_at: 2026-01-10T22:50:13.096051727+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "32"
+      content: 6.5 Implement pattern-based matching (regex)
+      status: pending
+      priority: medium
+      source_line: 75
+      synced_at: 2026-01-10T22:50:13.096052709+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "33"
+      content: 6.6 Implement auto-activation logic
+      status: pending
+      priority: medium
+      source_line: 76
+      synced_at: 2026-01-10T22:50:13.0960536+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "34"
+      content: 6.7 Add task context analyzer
+      status: pending
+      priority: medium
+      source_line: 77
+      synced_at: 2026-01-10T22:50:13.096054452+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "35"
+      content: 7.1 Extract keywords from user prompt
+      status: pending
+      priority: medium
+      source_line: 81
+      synced_at: 2026-01-10T22:50:13.096055534+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "36"
+      content: 7.2 Analyze file types in working directory
+      status: pending
+      priority: medium
+      source_line: 82
+      synced_at: 2026-01-10T22:50:13.096056536+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "37"
+      content: 7.3 Match against routing rules
+      status: pending
+      priority: medium
+      source_line: 83
+      synced_at: 2026-01-10T22:50:13.096057378+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "38"
+      content: 7.4 Return recommended MCPs
+      status: pending
+      priority: medium
+      source_line: 84
+      synced_at: 2026-01-10T22:50:13.096066555+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "39"
+      content: 8.1 Unit tests for router
+      status: pending
+      priority: medium
+      source_line: 88
+      synced_at: 2026-01-10T22:50:13.096067547+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "40"
+      content: 8.2 Unit tests for rule matching
+      status: pending
+      priority: medium
+      source_line: 89
+      synced_at: 2026-01-10T22:50:13.096068919+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "41"
+      content: 8.3 Integration tests for auto-activation
+      status: pending
+      priority: medium
+      source_line: 90
+      synced_at: 2026-01-10T22:50:13.096070151+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "42"
+      content: 8.4 Test context analyzer
+      status: pending
+      priority: medium
+      source_line: 91
+      synced_at: 2026-01-10T22:50:13.096071133+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "43"
+      content: 9.1 Create `internal/mcp/gateway.go` - Gateway client
+      status: pending
+      priority: medium
+      source_line: 99
+      synced_at: 2026-01-10T22:50:13.096072576+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "44"
+      content: 9.2 Implement gateway search API
+      status: pending
+      priority: medium
+      source_line: 100
+      synced_at: 2026-01-10T22:50:13.096073458+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "45"
+      content: 9.3 Implement gateway proxy API
+      status: pending
+      priority: medium
+      source_line: 101
+      synced_at: 2026-01-10T22:50:13.096074319+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "46"
+      content: 9.4 Add authentication (API key)
+      status: pending
+      priority: medium
+      source_line: 102
+      synced_at: 2026-01-10T22:50:13.096075181+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "47"
+      content: '9.5 Implement caching for search results (TTL: 5 min)'
+      status: pending
+      priority: medium
+      source_line: 103
+      synced_at: 2026-01-10T22:50:13.096076303+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "48"
+      content: 9.6 Handle gateway errors gracefully
+      status: pending
+      priority: medium
+      source_line: 104
+      synced_at: 2026-01-10T22:50:13.096077205+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "49"
+      content: 10.1 Load gateway config from `.go-ent/mcp-gateway.yaml`
+      status: pending
+      priority: medium
+      source_line: 108
+      synced_at: 2026-01-10T22:50:13.096078447+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "50"
+      content: 10.2 Support enabling/disabling gateway
+      status: pending
+      priority: medium
+      source_line: 109
+      synced_at: 2026-01-10T22:50:13.096079449+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "51"
+      content: 10.3 Support API key via environment variable
+      status: pending
+      priority: medium
+      source_line: 110
+      synced_at: 2026-01-10T22:50:13.096080491+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "52"
+      content: 10.4 Add gateway health check
+      status: pending
+      priority: medium
+      source_line: 111
+      synced_at: 2026-01-10T22:50:13.096081332+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "53"
+      content: 11.1 Implement tool call proxying to gateway
+      status: pending
+      priority: medium
+      source_line: 115
+      synced_at: 2026-01-10T22:50:13.096082515+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "54"
+      content: 11.2 Handle streaming responses from gateway
+      status: pending
+      priority: medium
+      source_line: 116
+      synced_at: 2026-01-10T22:50:13.096083506+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "55"
+      content: 11.3 Add retry logic for gateway failures
+      status: pending
+      priority: medium
+      source_line: 117
+      synced_at: 2026-01-10T22:50:13.096084458+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "56"
+      content: 11.4 Track gateway usage/costs
+      status: pending
+      priority: medium
+      source_line: 118
+      synced_at: 2026-01-10T22:50:13.09608531+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "57"
+      content: 12.1 Unit tests for gateway client
+      status: pending
+      priority: medium
+      source_line: 122
+      synced_at: 2026-01-10T22:50:13.096086302+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "58"
+      content: 12.2 Mock gateway for integration tests
+      status: pending
+      priority: medium
+      source_line: 123
+      synced_at: 2026-01-10T22:50:13.096087364+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "59"
+      content: 12.3 Test proxy mechanism
+      status: pending
+      priority: medium
+      source_line: 124
+      synced_at: 2026-01-10T22:50:13.096088165+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "60"
+      content: 12.4 Test fallback to local when gateway unavailable
+      status: pending
+      priority: medium
+      source_line: 125
+      synced_at: 2026-01-10T22:50:13.096089257+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "61"
+      content: 13.1 Add helpful error messages
+      status: pending
+      priority: medium
+      source_line: 133
+      synced_at: 2026-01-10T22:50:13.096090389+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "62"
+      content: 13.2 Log MCP activation/deactivation
+      status: pending
+      priority: medium
+      source_line: 134
+      synced_at: 2026-01-10T22:50:13.096091311+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "63"
+      content: 13.3 Add metrics (activation count, success rate)
+      status: pending
+      priority: medium
+      source_line: 135
+      synced_at: 2026-01-10T22:50:13.096092373+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "64"
+      content: 13.4 Create example registry entries
+      status: pending
+      priority: medium
+      source_line: 136
+      synced_at: 2026-01-10T22:50:13.096093295+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "65"
+      content: 14.1 Document MCP discovery workflow
+      status: pending
+      priority: medium
+      source_line: 140
+      synced_at: 2026-01-10T22:50:13.096094317+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "66"
+      content: 14.2 Document registry format
+      status: pending
+      priority: medium
+      source_line: 141
+      synced_at: 2026-01-10T22:50:13.096095148+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "67"
+      content: 14.3 Document routing rules format
+      status: pending
+      priority: medium
+      source_line: 142
+      synced_at: 2026-01-10T22:50:13.09609602+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "68"
+      content: 14.4 Document gateway configuration
+      status: pending
+      priority: medium
+      source_line: 143
+      synced_at: 2026-01-10T22:50:13.096096911+03:00
+    - id:
+        change_id: add-dynamic-mcp-discovery
+        task_num: "69"
+      content: 14.5 Create examples for common MCPs
+      status: pending
+      priority: medium
+      source_line: 144
+      synced_at: 2026-01-10T22:50:13.096097813+03:00
     - id:
         change_id: add-execution-engine
         task_num: "1"
@@ -1057,7 +1642,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 4
-      synced_at: 2026-01-10T19:28:47.342184778+03:00
+      synced_at: 2026-01-10T22:50:13.096153317+03:00
     - id:
         change_id: add-execution-engine
         task_num: "2"
@@ -1065,7 +1650,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 5
-      synced_at: 2026-01-10T19:28:47.342187042+03:00
+      synced_at: 2026-01-10T22:50:13.096154359+03:00
     - id:
         change_id: add-execution-engine
         task_num: "3"
@@ -1073,7 +1658,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 6
-      synced_at: 2026-01-10T19:28:47.342188725+03:00
+      synced_at: 2026-01-10T22:50:13.096155852+03:00
     - id:
         change_id: add-execution-engine
         task_num: "4"
@@ -1081,7 +1666,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 7
-      synced_at: 2026-01-10T19:28:47.342193354+03:00
+      synced_at: 2026-01-10T22:50:13.096156753+03:00
     - id:
         change_id: add-execution-engine
         task_num: "5"
@@ -1089,7 +1674,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 10
-      synced_at: 2026-01-10T19:28:47.342195097+03:00
+      synced_at: 2026-01-10T22:50:13.096157875+03:00
     - id:
         change_id: add-execution-engine
         task_num: "6"
@@ -1097,7 +1682,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 11
-      synced_at: 2026-01-10T19:28:47.342197291+03:00
+      synced_at: 2026-01-10T22:50:13.096159007+03:00
     - id:
         change_id: add-execution-engine
         task_num: "7"
@@ -1105,7 +1690,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 12
-      synced_at: 2026-01-10T19:28:47.342198764+03:00
+      synced_at: 2026-01-10T22:50:13.096159989+03:00
     - id:
         change_id: add-execution-engine
         task_num: "8"
@@ -1113,7 +1698,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 13
-      synced_at: 2026-01-10T19:28:47.342200036+03:00
+      synced_at: 2026-01-10T22:50:13.096160881+03:00
     - id:
         change_id: add-execution-engine
         task_num: "9"
@@ -1121,7 +1706,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.342201699+03:00
+      synced_at: 2026-01-10T22:50:13.096161983+03:00
     - id:
         change_id: add-execution-engine
         task_num: "10"
@@ -1129,7 +1714,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.342203322+03:00
+      synced_at: 2026-01-10T22:50:13.096163125+03:00
     - id:
         change_id: add-execution-engine
         task_num: "11"
@@ -1137,7 +1722,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 18
-      synced_at: 2026-01-10T19:28:47.342206819+03:00
+      synced_at: 2026-01-10T22:50:13.096166381+03:00
     - id:
         change_id: add-execution-engine
         task_num: "12"
@@ -1145,7 +1730,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 19
-      synced_at: 2026-01-10T19:28:47.342208061+03:00
+      synced_at: 2026-01-10T22:50:13.096167283+03:00
     - id:
         change_id: add-execution-engine
         task_num: "13"
@@ -1153,7 +1738,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 20
-      synced_at: 2026-01-10T19:28:47.342209394+03:00
+      synced_at: 2026-01-10T22:50:13.096168165+03:00
     - id:
         change_id: add-execution-engine
         task_num: "14"
@@ -1161,7 +1746,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 23
-      synced_at: 2026-01-10T19:28:47.342210956+03:00
+      synced_at: 2026-01-10T22:50:13.096169237+03:00
     - id:
         change_id: add-execution-engine
         task_num: "15"
@@ -1169,7 +1754,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342212239+03:00
+      synced_at: 2026-01-10T22:50:13.096170098+03:00
     - id:
         change_id: add-execution-engine
         task_num: "16"
@@ -1177,7 +1762,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.342213401+03:00
+      synced_at: 2026-01-10T22:50:13.096171+03:00
     - id:
         change_id: add-execution-engine
         task_num: "17"
@@ -1185,7 +1770,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.342214463+03:00
+      synced_at: 2026-01-10T22:50:13.096171771+03:00
     - id:
         change_id: add-execution-engine
         task_num: "18"
@@ -1193,7 +1778,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 29
-      synced_at: 2026-01-10T19:28:47.342216106+03:00
+      synced_at: 2026-01-10T22:50:13.096172883+03:00
     - id:
         change_id: add-execution-engine
         task_num: "19"
@@ -1201,7 +1786,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 30
-      synced_at: 2026-01-10T19:28:47.342217599+03:00
+      synced_at: 2026-01-10T22:50:13.096173895+03:00
     - id:
         change_id: add-execution-engine
         task_num: "20"
@@ -1209,7 +1794,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.342224111+03:00
+      synced_at: 2026-01-10T22:50:13.096178143+03:00
     - id:
         change_id: add-execution-engine
         task_num: "21"
@@ -1217,7 +1802,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.342225514+03:00
+      synced_at: 2026-01-10T22:50:13.096228487+03:00
     - id:
         change_id: add-execution-engine
         task_num: "22"
@@ -1225,7 +1810,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.342227547+03:00
+      synced_at: 2026-01-10T22:50:13.09623008+03:00
     - id:
         change_id: add-execution-engine
         task_num: "23"
@@ -1233,7 +1818,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 34
-      synced_at: 2026-01-10T19:28:47.342228599+03:00
+      synced_at: 2026-01-10T22:50:13.096230822+03:00
     - id:
         change_id: add-execution-engine
         task_num: "24"
@@ -1241,7 +1826,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 37
-      synced_at: 2026-01-10T19:28:47.342230192+03:00
+      synced_at: 2026-01-10T22:50:13.096231914+03:00
     - id:
         change_id: add-execution-engine
         task_num: "25"
@@ -1249,7 +1834,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342231465+03:00
+      synced_at: 2026-01-10T22:50:13.096232705+03:00
     - id:
         change_id: add-execution-engine
         task_num: "26"
@@ -1257,7 +1842,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.342233018+03:00
+      synced_at: 2026-01-10T22:50:13.096233657+03:00
     - id:
         change_id: add-execution-engine
         task_num: "27"
@@ -1265,7 +1850,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 40
-      synced_at: 2026-01-10T19:28:47.342234561+03:00
+      synced_at: 2026-01-10T22:50:13.096234739+03:00
     - id:
         change_id: add-execution-engine
         task_num: "28"
@@ -1273,7 +1858,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 41
-      synced_at: 2026-01-10T19:28:47.342235833+03:00
+      synced_at: 2026-01-10T22:50:13.096235571+03:00
     - id:
         change_id: add-execution-engine
         task_num: "29"
@@ -1281,7 +1866,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.342237416+03:00
+      synced_at: 2026-01-10T22:50:13.096236602+03:00
     - id:
         change_id: add-execution-engine
         task_num: "30"
@@ -1289,7 +1874,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 45
-      synced_at: 2026-01-10T19:28:47.342239089+03:00
+      synced_at: 2026-01-10T22:50:13.096237785+03:00
     - id:
         change_id: add-execution-engine
         task_num: "31"
@@ -1297,7 +1882,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 46
-      synced_at: 2026-01-10T19:28:47.342241213+03:00
+      synced_at: 2026-01-10T22:50:13.096239187+03:00
     - id:
         change_id: add-execution-engine
         task_num: "32"
@@ -1305,7 +1890,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 47
-      synced_at: 2026-01-10T19:28:47.342242545+03:00
+      synced_at: 2026-01-10T22:50:13.096240119+03:00
     - id:
         change_id: add-execution-engine
         task_num: "33"
@@ -1313,7 +1898,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 48
-      synced_at: 2026-01-10T19:28:47.342243818+03:00
+      synced_at: 2026-01-10T22:50:13.096241001+03:00
     - id:
         change_id: add-execution-engine
         task_num: "34"
@@ -1321,7 +1906,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 49
-      synced_at: 2026-01-10T19:28:47.34224499+03:00
+      synced_at: 2026-01-10T22:50:13.096241792+03:00
     - id:
         change_id: add-execution-engine
         task_num: "35"
@@ -1329,7 +1914,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 52
-      synced_at: 2026-01-10T19:28:47.342246533+03:00
+      synced_at: 2026-01-10T22:50:13.096242874+03:00
     - id:
         change_id: add-execution-engine
         task_num: "36"
@@ -1337,7 +1922,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 53
-      synced_at: 2026-01-10T19:28:47.342248006+03:00
+      synced_at: 2026-01-10T22:50:13.096243886+03:00
     - id:
         change_id: add-execution-engine
         task_num: "37"
@@ -1345,7 +1930,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 54
-      synced_at: 2026-01-10T19:28:47.342249378+03:00
+      synced_at: 2026-01-10T22:50:13.096244828+03:00
     - id:
         change_id: add-execution-engine
         task_num: "38"
@@ -1353,7 +1938,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 55
-      synced_at: 2026-01-10T19:28:47.342261721+03:00
+      synced_at: 2026-01-10T22:50:13.096252141+03:00
     - id:
         change_id: add-execution-engine
         task_num: "39"
@@ -1361,7 +1946,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 56
-      synced_at: 2026-01-10T19:28:47.342262944+03:00
+      synced_at: 2026-01-10T22:50:13.096253013+03:00
     - id:
         change_id: add-execution-engine
         task_num: "40"
@@ -1369,7 +1954,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 57
-      synced_at: 2026-01-10T19:28:47.342264216+03:00
+      synced_at: 2026-01-10T22:50:13.096253875+03:00
     - id:
         change_id: add-execution-engine
         task_num: "41"
@@ -1377,7 +1962,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 58
-      synced_at: 2026-01-10T19:28:47.342265458+03:00
+      synced_at: 2026-01-10T22:50:13.096254746+03:00
     - id:
         change_id: add-execution-engine
         task_num: "42"
@@ -1385,7 +1970,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 59
-      synced_at: 2026-01-10T19:28:47.342266931+03:00
+      synced_at: 2026-01-10T22:50:13.096255738+03:00
     - id:
         change_id: add-execution-engine
         task_num: "43"
@@ -1393,7 +1978,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 60
-      synced_at: 2026-01-10T19:28:47.342268394+03:00
+      synced_at: 2026-01-10T22:50:13.09625662+03:00
     - id:
         change_id: add-execution-engine
         task_num: "44"
@@ -1401,7 +1986,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 63
-      synced_at: 2026-01-10T19:28:47.342269887+03:00
+      synced_at: 2026-01-10T22:50:13.096257682+03:00
     - id:
         change_id: add-execution-engine
         task_num: "45"
@@ -1409,7 +1994,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 64
-      synced_at: 2026-01-10T19:28:47.342271059+03:00
+      synced_at: 2026-01-10T22:50:13.096258523+03:00
     - id:
         change_id: add-execution-engine
         task_num: "46"
@@ -1417,7 +2002,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 65
-      synced_at: 2026-01-10T19:28:47.342272211+03:00
+      synced_at: 2026-01-10T22:50:13.096259375+03:00
     - id:
         change_id: add-execution-engine
         task_num: "47"
@@ -1425,7 +2010,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 66
-      synced_at: 2026-01-10T19:28:47.342273423+03:00
+      synced_at: 2026-01-10T22:50:13.096260176+03:00
     - id:
         change_id: add-execution-engine
         task_num: "48"
@@ -1433,7 +2018,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 67
-      synced_at: 2026-01-10T19:28:47.342274656+03:00
+      synced_at: 2026-01-10T22:50:13.096261008+03:00
     - id:
         change_id: add-execution-engine
         task_num: "49"
@@ -1441,7 +2026,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 68
-      synced_at: 2026-01-10T19:28:47.342276248+03:00
+      synced_at: 2026-01-10T22:50:13.0962621+03:00
     - id:
         change_id: add-execution-engine
         task_num: "50"
@@ -1449,7 +2034,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 71
-      synced_at: 2026-01-10T19:28:47.342278072+03:00
+      synced_at: 2026-01-10T22:50:13.096263312+03:00
     - id:
         change_id: add-execution-engine
         task_num: "51"
@@ -1457,7 +2042,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 72
-      synced_at: 2026-01-10T19:28:47.342279655+03:00
+      synced_at: 2026-01-10T22:50:13.096264414+03:00
     - id:
         change_id: add-execution-engine
         task_num: "52"
@@ -1465,7 +2050,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 73
-      synced_at: 2026-01-10T19:28:47.342280797+03:00
+      synced_at: 2026-01-10T22:50:13.096265236+03:00
     - id:
         change_id: add-metrics-system
         task_num: "1"
@@ -1473,7 +2058,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 4
-      synced_at: 2026-01-10T19:28:47.342355937+03:00
+      synced_at: 2026-01-10T22:50:13.096295282+03:00
     - id:
         change_id: add-metrics-system
         task_num: "2"
@@ -1481,7 +2066,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 5
-      synced_at: 2026-01-10T19:28:47.342357641+03:00
+      synced_at: 2026-01-10T22:50:13.096296755+03:00
     - id:
         change_id: add-metrics-system
         task_num: "3"
@@ -1489,7 +2074,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 6
-      synced_at: 2026-01-10T19:28:47.342359384+03:00
+      synced_at: 2026-01-10T22:50:13.096298418+03:00
     - id:
         change_id: add-metrics-system
         task_num: "4"
@@ -1497,7 +2082,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 7
-      synced_at: 2026-01-10T19:28:47.342361227+03:00
+      synced_at: 2026-01-10T22:50:13.096300071+03:00
     - id:
         change_id: add-metrics-system
         task_num: "5"
@@ -1505,7 +2090,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 8
-      synced_at: 2026-01-10T19:28:47.34236273+03:00
+      synced_at: 2026-01-10T22:50:13.096301484+03:00
     - id:
         change_id: add-metrics-system
         task_num: "6"
@@ -1513,7 +2098,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 9
-      synced_at: 2026-01-10T19:28:47.342364513+03:00
+      synced_at: 2026-01-10T22:50:13.096304169+03:00
     - id:
         change_id: add-metrics-system
         task_num: "7"
@@ -1521,7 +2106,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 12
-      synced_at: 2026-01-10T19:28:47.342366056+03:00
+      synced_at: 2026-01-10T22:50:13.096305541+03:00
     - id:
         change_id: add-metrics-system
         task_num: "8"
@@ -1529,7 +2114,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 13
-      synced_at: 2026-01-10T19:28:47.342367279+03:00
+      synced_at: 2026-01-10T22:50:13.096306623+03:00
     - id:
         change_id: add-metrics-system
         task_num: "9"
@@ -1537,7 +2122,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 14
-      synced_at: 2026-01-10T19:28:47.342368531+03:00
+      synced_at: 2026-01-10T22:50:13.096307735+03:00
     - id:
         change_id: add-metrics-system
         task_num: "10"
@@ -1545,7 +2130,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 15
-      synced_at: 2026-01-10T19:28:47.342369873+03:00
+      synced_at: 2026-01-10T22:50:13.096308958+03:00
     - id:
         change_id: add-metrics-system
         task_num: "11"
@@ -1553,7 +2138,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.342374182+03:00
+      synced_at: 2026-01-10T22:50:13.096311653+03:00
     - id:
         change_id: add-metrics-system
         task_num: "12"
@@ -1561,7 +2146,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.342375424+03:00
+      synced_at: 2026-01-10T22:50:13.096312825+03:00
     - id:
         change_id: add-metrics-system
         task_num: "13"
@@ -1569,7 +2154,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 18
-      synced_at: 2026-01-10T19:28:47.342376676+03:00
+      synced_at: 2026-01-10T22:50:13.096313927+03:00
     - id:
         change_id: add-metrics-system
         task_num: "14"
@@ -1577,7 +2162,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 21
-      synced_at: 2026-01-10T19:28:47.342378299+03:00
+      synced_at: 2026-01-10T22:50:13.09631538+03:00
     - id:
         change_id: add-metrics-system
         task_num: "15"
@@ -1585,7 +2170,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 22
-      synced_at: 2026-01-10T19:28:47.342379602+03:00
+      synced_at: 2026-01-10T22:50:13.096316482+03:00
     - id:
         change_id: add-metrics-system
         task_num: "16"
@@ -1593,7 +2178,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 23
-      synced_at: 2026-01-10T19:28:47.342381165+03:00
+      synced_at: 2026-01-10T22:50:13.096317944+03:00
     - id:
         change_id: add-metrics-system
         task_num: "17"
@@ -1601,7 +2186,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342382607+03:00
+      synced_at: 2026-01-10T22:50:13.096319257+03:00
     - id:
         change_id: add-metrics-system
         task_num: "18"
@@ -1609,7 +2194,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.34238382+03:00
+      synced_at: 2026-01-10T22:50:13.096320339+03:00
     - id:
         change_id: add-metrics-system
         task_num: "19"
@@ -1617,7 +2202,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.342385012+03:00
+      synced_at: 2026-01-10T22:50:13.096321391+03:00
     - id:
         change_id: add-metrics-system
         task_num: "20"
@@ -1625,7 +2210,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 27
-      synced_at: 2026-01-10T19:28:47.342393848+03:00
+      synced_at: 2026-01-10T22:50:13.096325659+03:00
     - id:
         change_id: add-metrics-system
         task_num: "21"
@@ -1633,7 +2218,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 30
-      synced_at: 2026-01-10T19:28:47.342395491+03:00
+      synced_at: 2026-01-10T22:50:13.096327041+03:00
     - id:
         change_id: add-metrics-system
         task_num: "22"
@@ -1641,7 +2226,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.342396724+03:00
+      synced_at: 2026-01-10T22:50:13.096328023+03:00
     - id:
         change_id: add-metrics-system
         task_num: "23"
@@ -1649,7 +2234,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.342397856+03:00
+      synced_at: 2026-01-10T22:50:13.096328975+03:00
     - id:
         change_id: add-metrics-system
         task_num: "24"
@@ -1657,7 +2242,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.342399188+03:00
+      synced_at: 2026-01-10T22:50:13.096330207+03:00
     - id:
         change_id: add-metrics-system
         task_num: "25"
@@ -1665,7 +2250,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 34
-      synced_at: 2026-01-10T19:28:47.342400821+03:00
+      synced_at: 2026-01-10T22:50:13.09633175+03:00
     - id:
         change_id: add-metrics-system
         task_num: "26"
@@ -1673,7 +2258,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 35
-      synced_at: 2026-01-10T19:28:47.342402064+03:00
+      synced_at: 2026-01-10T22:50:13.096332892+03:00
     - id:
         change_id: add-metrics-system
         task_num: "27"
@@ -1681,7 +2266,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342403466+03:00
+      synced_at: 2026-01-10T22:50:13.096334135+03:00
     - id:
         change_id: add-metrics-system
         task_num: "28"
@@ -1689,7 +2274,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.342404739+03:00
+      synced_at: 2026-01-10T22:50:13.096335287+03:00
     - id:
         change_id: add-metrics-system
         task_num: "29"
@@ -1697,7 +2282,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 40
-      synced_at: 2026-01-10T19:28:47.342406001+03:00
+      synced_at: 2026-01-10T22:50:13.096336429+03:00
     - id:
         change_id: add-metrics-system
         task_num: "30"
@@ -1705,7 +2290,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 41
-      synced_at: 2026-01-10T19:28:47.342407524+03:00
+      synced_at: 2026-01-10T22:50:13.096337781+03:00
     - id:
         change_id: add-metrics-system
         task_num: "31"
@@ -1713,7 +2298,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 42
-      synced_at: 2026-01-10T19:28:47.342408716+03:00
+      synced_at: 2026-01-10T22:50:13.096338823+03:00
     - id:
         change_id: add-metrics-system
         task_num: "32"
@@ -1721,7 +2306,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 43
-      synced_at: 2026-01-10T19:28:47.342410269+03:00
+      synced_at: 2026-01-10T22:50:13.096340276+03:00
     - id:
         change_id: add-metrics-system
         task_num: "33"
@@ -1729,7 +2314,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.342411531+03:00
+      synced_at: 2026-01-10T22:50:13.09634255+03:00
     - id:
         change_id: add-metrics-system
         task_num: "34"
@@ -1737,7 +2322,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 47
-      synced_at: 2026-01-10T19:28:47.342413204+03:00
+      synced_at: 2026-01-10T22:50:13.096344193+03:00
     - id:
         change_id: add-metrics-system
         task_num: "35"
@@ -1745,7 +2330,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 48
-      synced_at: 2026-01-10T19:28:47.342414497+03:00
+      synced_at: 2026-01-10T22:50:13.096345406+03:00
     - id:
         change_id: add-metrics-system
         task_num: "36"
@@ -1753,7 +2338,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 49
-      synced_at: 2026-01-10T19:28:47.342415869+03:00
+      synced_at: 2026-01-10T22:50:13.096346668+03:00
     - id:
         change_id: add-metrics-system
         task_num: "37"
@@ -1761,7 +2346,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 50
-      synced_at: 2026-01-10T19:28:47.342417082+03:00
+      synced_at: 2026-01-10T22:50:13.09634773+03:00
     - id:
         change_id: add-metrics-system
         task_num: "38"
@@ -1769,7 +2354,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 51
-      synced_at: 2026-01-10T19:28:47.342436919+03:00
+      synced_at: 2026-01-10T22:50:13.096354573+03:00
     - id:
         change_id: add-metrics-system
         task_num: "39"
@@ -1777,7 +2362,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 52
-      synced_at: 2026-01-10T19:28:47.342438512+03:00
+      synced_at: 2026-01-10T22:50:13.096355855+03:00
     - id:
         change_id: add-metrics-system
         task_num: "40"
@@ -1785,7 +2370,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 55
-      synced_at: 2026-01-10T19:28:47.342442359+03:00
+      synced_at: 2026-01-10T22:50:13.096357188+03:00
     - id:
         change_id: add-metrics-system
         task_num: "41"
@@ -1793,7 +2378,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 56
-      synced_at: 2026-01-10T19:28:47.342444653+03:00
+      synced_at: 2026-01-10T22:50:13.09635854+03:00
     - id:
         change_id: add-metrics-system
         task_num: "42"
@@ -1801,7 +2386,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 57
-      synced_at: 2026-01-10T19:28:47.342445966+03:00
+      synced_at: 2026-01-10T22:50:13.096359682+03:00
     - id:
         change_id: add-metrics-system
         task_num: "43"
@@ -1809,7 +2394,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 58
-      synced_at: 2026-01-10T19:28:47.342447639+03:00
+      synced_at: 2026-01-10T22:50:13.096361035+03:00
     - id:
         change_id: add-metrics-system
         task_num: "44"
@@ -1817,7 +2402,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 59
-      synced_at: 2026-01-10T19:28:47.342448871+03:00
+      synced_at: 2026-01-10T22:50:13.096362097+03:00
     - id:
         change_id: add-metrics-system
         task_num: "45"
@@ -1825,7 +2410,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 60
-      synced_at: 2026-01-10T19:28:47.342450254+03:00
+      synced_at: 2026-01-10T22:50:13.096363359+03:00
     - id:
         change_id: add-metrics-system
         task_num: "46"
@@ -1833,7 +2418,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 61
-      synced_at: 2026-01-10T19:28:47.342451606+03:00
+      synced_at: 2026-01-10T22:50:13.096364542+03:00
     - id:
         change_id: add-metrics-system
         task_num: "47"
@@ -1841,7 +2426,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 64
-      synced_at: 2026-01-10T19:28:47.342453189+03:00
+      synced_at: 2026-01-10T22:50:13.096365964+03:00
     - id:
         change_id: add-metrics-system
         task_num: "48"
@@ -1849,7 +2434,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 65
-      synced_at: 2026-01-10T19:28:47.342454482+03:00
+      synced_at: 2026-01-10T22:50:13.096367096+03:00
     - id:
         change_id: add-metrics-system
         task_num: "49"
@@ -1857,7 +2442,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 66
-      synced_at: 2026-01-10T19:28:47.342455754+03:00
+      synced_at: 2026-01-10T22:50:13.096368228+03:00
     - id:
         change_id: add-metrics-system
         task_num: "50"
@@ -1865,7 +2450,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 67
-      synced_at: 2026-01-10T19:28:47.342457066+03:00
+      synced_at: 2026-01-10T22:50:13.096369451+03:00
     - id:
         change_id: add-metrics-system
         task_num: "51"
@@ -1873,7 +2458,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 68
-      synced_at: 2026-01-10T19:28:47.342458269+03:00
+      synced_at: 2026-01-10T22:50:13.096370533+03:00
     - id:
         change_id: add-metrics-system
         task_num: "52"
@@ -1881,7 +2466,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 71
-      synced_at: 2026-01-10T19:28:47.342459551+03:00
+      synced_at: 2026-01-10T22:50:13.096371655+03:00
     - id:
         change_id: add-metrics-system
         task_num: "53"
@@ -1889,7 +2474,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 72
-      synced_at: 2026-01-10T19:28:47.342460803+03:00
+      synced_at: 2026-01-10T22:50:13.096372807+03:00
     - id:
         change_id: add-metrics-system
         task_num: "54"
@@ -1897,7 +2482,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 73
-      synced_at: 2026-01-10T19:28:47.342461976+03:00
+      synced_at: 2026-01-10T22:50:13.096373779+03:00
     - id:
         change_id: add-metrics-system
         task_num: "55"
@@ -1905,7 +2490,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 74
-      synced_at: 2026-01-10T19:28:47.342463308+03:00
+      synced_at: 2026-01-10T22:50:13.096374991+03:00
     - id:
         change_id: add-metrics-system
         task_num: "56"
@@ -1913,7 +2498,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 75
-      synced_at: 2026-01-10T19:28:47.3424645+03:00
+      synced_at: 2026-01-10T22:50:13.096376013+03:00
     - id:
         change_id: add-metrics-system
         task_num: "57"
@@ -1921,7 +2506,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 76
-      synced_at: 2026-01-10T19:28:47.342465773+03:00
+      synced_at: 2026-01-10T22:50:13.096377586+03:00
     - id:
         change_id: add-plugin-system
         task_num: "1"
@@ -1929,7 +2514,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 4
-      synced_at: 2026-01-10T19:28:47.342505076+03:00
+      synced_at: 2026-01-10T22:50:13.096466191+03:00
     - id:
         change_id: add-plugin-system
         task_num: "2"
@@ -1937,7 +2522,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 5
-      synced_at: 2026-01-10T19:28:47.34250692+03:00
+      synced_at: 2026-01-10T22:50:13.096467283+03:00
     - id:
         change_id: add-plugin-system
         task_num: "3"
@@ -1945,7 +2530,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 6
-      synced_at: 2026-01-10T19:28:47.342508723+03:00
+      synced_at: 2026-01-10T22:50:13.096468366+03:00
     - id:
         change_id: add-plugin-system
         task_num: "4"
@@ -1953,7 +2538,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 7
-      synced_at: 2026-01-10T19:28:47.342510376+03:00
+      synced_at: 2026-01-10T22:50:13.096469337+03:00
     - id:
         change_id: add-plugin-system
         task_num: "5"
@@ -1961,7 +2546,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 8
-      synced_at: 2026-01-10T19:28:47.342511999+03:00
+      synced_at: 2026-01-10T22:50:13.096470319+03:00
     - id:
         change_id: add-plugin-system
         task_num: "6"
@@ -1969,7 +2554,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 11
-      synced_at: 2026-01-10T19:28:47.342516688+03:00
+      synced_at: 2026-01-10T22:50:13.096471491+03:00
     - id:
         change_id: add-plugin-system
         task_num: "7"
@@ -1977,7 +2562,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 12
-      synced_at: 2026-01-10T19:28:47.34251798+03:00
+      synced_at: 2026-01-10T22:50:13.096472233+03:00
     - id:
         change_id: add-plugin-system
         task_num: "8"
@@ -1985,7 +2570,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 13
-      synced_at: 2026-01-10T19:28:47.342519253+03:00
+      synced_at: 2026-01-10T22:50:13.096473054+03:00
     - id:
         change_id: add-plugin-system
         task_num: "9"
@@ -1993,7 +2578,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 14
-      synced_at: 2026-01-10T19:28:47.342520575+03:00
+      synced_at: 2026-01-10T22:50:13.096473816+03:00
     - id:
         change_id: add-plugin-system
         task_num: "10"
@@ -2001,7 +2586,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 15
-      synced_at: 2026-01-10T19:28:47.342522338+03:00
+      synced_at: 2026-01-10T22:50:13.096474808+03:00
     - id:
         change_id: add-plugin-system
         task_num: "11"
@@ -2009,7 +2594,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 18
-      synced_at: 2026-01-10T19:28:47.342526176+03:00
+      synced_at: 2026-01-10T22:50:13.096478044+03:00
     - id:
         change_id: add-plugin-system
         task_num: "12"
@@ -2017,7 +2602,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 19
-      synced_at: 2026-01-10T19:28:47.342528109+03:00
+      synced_at: 2026-01-10T22:50:13.096479066+03:00
     - id:
         change_id: add-plugin-system
         task_num: "13"
@@ -2025,7 +2610,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 20
-      synced_at: 2026-01-10T19:28:47.342529562+03:00
+      synced_at: 2026-01-10T22:50:13.096479927+03:00
     - id:
         change_id: add-plugin-system
         task_num: "14"
@@ -2033,7 +2618,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 21
-      synced_at: 2026-01-10T19:28:47.342531105+03:00
+      synced_at: 2026-01-10T22:50:13.096480779+03:00
     - id:
         change_id: add-plugin-system
         task_num: "15"
@@ -2041,7 +2626,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342532868+03:00
+      synced_at: 2026-01-10T22:50:13.096481801+03:00
     - id:
         change_id: add-plugin-system
         task_num: "16"
@@ -2049,7 +2634,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.342534231+03:00
+      synced_at: 2026-01-10T22:50:13.096482592+03:00
     - id:
         change_id: add-plugin-system
         task_num: "17"
@@ -2057,7 +2642,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 26
-      synced_at: 2026-01-10T19:28:47.342535503+03:00
+      synced_at: 2026-01-10T22:50:13.096483354+03:00
     - id:
         change_id: add-plugin-system
         task_num: "18"
@@ -2065,7 +2650,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 27
-      synced_at: 2026-01-10T19:28:47.342536715+03:00
+      synced_at: 2026-01-10T22:50:13.096484105+03:00
     - id:
         change_id: add-plugin-system
         task_num: "19"
@@ -2073,7 +2658,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 30
-      synced_at: 2026-01-10T19:28:47.342538519+03:00
+      synced_at: 2026-01-10T22:50:13.096485187+03:00
     - id:
         change_id: add-plugin-system
         task_num: "20"
@@ -2081,7 +2666,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.342545321+03:00
+      synced_at: 2026-01-10T22:50:13.096489445+03:00
     - id:
         change_id: add-plugin-system
         task_num: "21"
@@ -2089,7 +2674,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.342547475+03:00
+      synced_at: 2026-01-10T22:50:13.096490577+03:00
     - id:
         change_id: add-plugin-system
         task_num: "22"
@@ -2097,7 +2682,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.342549028+03:00
+      synced_at: 2026-01-10T22:50:13.096491419+03:00
     - id:
         change_id: add-plugin-system
         task_num: "23"
@@ -2105,7 +2690,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 36
-      synced_at: 2026-01-10T19:28:47.342550862+03:00
+      synced_at: 2026-01-10T22:50:13.096492471+03:00
     - id:
         change_id: add-plugin-system
         task_num: "24"
@@ -2113,7 +2698,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 37
-      synced_at: 2026-01-10T19:28:47.342552445+03:00
+      synced_at: 2026-01-10T22:50:13.096493362+03:00
     - id:
         change_id: add-plugin-system
         task_num: "25"
@@ -2121,7 +2706,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342553998+03:00
+      synced_at: 2026-01-10T22:50:13.096494214+03:00
     - id:
         change_id: add-plugin-system
         task_num: "26"
@@ -2129,7 +2714,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 41
-      synced_at: 2026-01-10T19:28:47.342555831+03:00
+      synced_at: 2026-01-10T22:50:13.096495286+03:00
     - id:
         change_id: add-plugin-system
         task_num: "27"
@@ -2137,7 +2722,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 42
-      synced_at: 2026-01-10T19:28:47.342557184+03:00
+      synced_at: 2026-01-10T22:50:13.096496097+03:00
     - id:
         change_id: add-plugin-system
         task_num: "28"
@@ -2145,7 +2730,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 43
-      synced_at: 2026-01-10T19:28:47.342558606+03:00
+      synced_at: 2026-01-10T22:50:13.096496899+03:00
     - id:
         change_id: add-plugin-system
         task_num: "29"
@@ -2153,7 +2738,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.342559939+03:00
+      synced_at: 2026-01-10T22:50:13.09649767+03:00
     - id:
         change_id: add-plugin-system
         task_num: "30"
@@ -2161,7 +2746,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 47
-      synced_at: 2026-01-10T19:28:47.342561672+03:00
+      synced_at: 2026-01-10T22:50:13.096498662+03:00
     - id:
         change_id: add-plugin-system
         task_num: "31"
@@ -2169,7 +2754,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 48
-      synced_at: 2026-01-10T19:28:47.342562894+03:00
+      synced_at: 2026-01-10T22:50:13.096499383+03:00
     - id:
         change_id: add-plugin-system
         task_num: "32"
@@ -2177,7 +2762,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 49
-      synced_at: 2026-01-10T19:28:47.342564818+03:00
+      synced_at: 2026-01-10T22:50:13.096500415+03:00
     - id:
         change_id: add-plugin-system
         task_num: "33"
@@ -2185,7 +2770,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 50
-      synced_at: 2026-01-10T19:28:47.34256615+03:00
+      synced_at: 2026-01-10T22:50:13.096501177+03:00
     - id:
         change_id: add-plugin-system
         task_num: "34"
@@ -2193,7 +2778,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 53
-      synced_at: 2026-01-10T19:28:47.342567753+03:00
+      synced_at: 2026-01-10T22:50:13.096502249+03:00
     - id:
         change_id: add-plugin-system
         task_num: "35"
@@ -2201,7 +2786,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 54
-      synced_at: 2026-01-10T19:28:47.342569046+03:00
+      synced_at: 2026-01-10T22:50:13.09650301+03:00
     - id:
         change_id: add-plugin-system
         task_num: "36"
@@ -2209,7 +2794,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 55
-      synced_at: 2026-01-10T19:28:47.342570358+03:00
+      synced_at: 2026-01-10T22:50:13.096503802+03:00
     - id:
         change_id: add-plugin-system
         task_num: "37"
@@ -2217,7 +2802,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 58
-      synced_at: 2026-01-10T19:28:47.342572091+03:00
+      synced_at: 2026-01-10T22:50:13.096504784+03:00
     - id:
         change_id: add-plugin-system
         task_num: "38"
@@ -2225,7 +2810,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 59
-      synced_at: 2026-01-10T19:28:47.34258179+03:00
+      synced_at: 2026-01-10T22:50:13.096511075+03:00
     - id:
         change_id: add-plugin-system
         task_num: "39"
@@ -2233,7 +2818,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 60
-      synced_at: 2026-01-10T19:28:47.342583122+03:00
+      synced_at: 2026-01-10T22:50:13.096511897+03:00
     - id:
         change_id: add-plugin-system
         task_num: "40"
@@ -2241,7 +2826,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 63
-      synced_at: 2026-01-10T19:28:47.342585046+03:00
+      synced_at: 2026-01-10T22:50:13.096514622+03:00
     - id:
         change_id: add-plugin-system
         task_num: "41"
@@ -2249,7 +2834,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 64
-      synced_at: 2026-01-10T19:28:47.342586849+03:00
+      synced_at: 2026-01-10T22:50:13.096515734+03:00
     - id:
         change_id: add-plugin-system
         task_num: "42"
@@ -2257,7 +2842,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 65
-      synced_at: 2026-01-10T19:28:47.342588632+03:00
+      synced_at: 2026-01-10T22:50:13.096516766+03:00
     - id:
         change_id: add-plugin-system
         task_num: "43"
@@ -2265,7 +2850,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 66
-      synced_at: 2026-01-10T19:28:47.342590356+03:00
+      synced_at: 2026-01-10T22:50:13.096517728+03:00
     - id:
         change_id: add-plugin-system
         task_num: "44"
@@ -2273,7 +2858,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 69
-      synced_at: 2026-01-10T19:28:47.342591979+03:00
+      synced_at: 2026-01-10T22:50:13.09651869+03:00
     - id:
         change_id: add-plugin-system
         task_num: "45"
@@ -2281,7 +2866,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 70
-      synced_at: 2026-01-10T19:28:47.342593522+03:00
+      synced_at: 2026-01-10T22:50:13.096519561+03:00
     - id:
         change_id: add-plugin-system
         task_num: "46"
@@ -2289,7 +2874,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 71
-      synced_at: 2026-01-10T19:28:47.342595345+03:00
+      synced_at: 2026-01-10T22:50:13.096520463+03:00
     - id:
         change_id: add-plugin-system
         task_num: "47"
@@ -2297,7 +2882,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 72
-      synced_at: 2026-01-10T19:28:47.3425983+03:00
+      synced_at: 2026-01-10T22:50:13.096521274+03:00
     - id:
         change_id: add-plugin-system
         task_num: "48"
@@ -2305,7 +2890,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 75
-      synced_at: 2026-01-10T19:28:47.342599923+03:00
+      synced_at: 2026-01-10T22:50:13.096522146+03:00
     - id:
         change_id: add-plugin-system
         task_num: "49"
@@ -2313,7 +2898,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 76
-      synced_at: 2026-01-10T19:28:47.342601296+03:00
+      synced_at: 2026-01-10T22:50:13.096522937+03:00
     - id:
         change_id: add-plugin-system
         task_num: "50"
@@ -2321,7 +2906,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 77
-      synced_at: 2026-01-10T19:28:47.342602629+03:00
+      synced_at: 2026-01-10T22:50:13.096523739+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "1"
@@ -2329,7 +2914,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 4
-      synced_at: 2026-01-10T19:28:47.34263559+03:00
+      synced_at: 2026-01-10T22:50:13.096566098+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "2"
@@ -2337,7 +2922,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 5
-      synced_at: 2026-01-10T19:28:47.342637353+03:00
+      synced_at: 2026-01-10T22:50:13.096567401+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "3"
@@ -2345,7 +2930,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 6
-      synced_at: 2026-01-10T19:28:47.342638916+03:00
+      synced_at: 2026-01-10T22:50:13.096568503+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "4"
@@ -2353,7 +2938,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 7
-      synced_at: 2026-01-10T19:28:47.342640279+03:00
+      synced_at: 2026-01-10T22:50:13.096570617+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "5"
@@ -2361,7 +2946,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 8
-      synced_at: 2026-01-10T19:28:47.342641571+03:00
+      synced_at: 2026-01-10T22:50:13.096571558+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "6"
@@ -2369,7 +2954,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 9
-      synced_at: 2026-01-10T19:28:47.342643074+03:00
+      synced_at: 2026-01-10T22:50:13.096576217+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "7"
@@ -2377,7 +2962,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 12
-      synced_at: 2026-01-10T19:28:47.342644607+03:00
+      synced_at: 2026-01-10T22:50:13.096577329+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "8"
@@ -2385,7 +2970,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 13
-      synced_at: 2026-01-10T19:28:47.34264623+03:00
+      synced_at: 2026-01-10T22:50:13.096578491+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "9"
@@ -2393,7 +2978,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 14
-      synced_at: 2026-01-10T19:28:47.342647392+03:00
+      synced_at: 2026-01-10T22:50:13.096579313+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "10"
@@ -2401,7 +2986,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 15
-      synced_at: 2026-01-10T19:28:47.342648755+03:00
+      synced_at: 2026-01-10T22:50:13.096580285+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "11"
@@ -2409,7 +2994,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 16
-      synced_at: 2026-01-10T19:28:47.342653033+03:00
+      synced_at: 2026-01-10T22:50:13.096582579+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "12"
@@ -2417,7 +3002,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 17
-      synced_at: 2026-01-10T19:28:47.342654445+03:00
+      synced_at: 2026-01-10T22:50:13.096583581+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "13"
@@ -2425,7 +3010,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 20
-      synced_at: 2026-01-10T19:28:47.342655968+03:00
+      synced_at: 2026-01-10T22:50:13.096584753+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "14"
@@ -2433,7 +3018,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 21
-      synced_at: 2026-01-10T19:28:47.342657361+03:00
+      synced_at: 2026-01-10T22:50:13.096585695+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "15"
@@ -2441,7 +3026,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 22
-      synced_at: 2026-01-10T19:28:47.342658934+03:00
+      synced_at: 2026-01-10T22:50:13.096586797+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "16"
@@ -2449,7 +3034,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 23
-      synced_at: 2026-01-10T19:28:47.342660386+03:00
+      synced_at: 2026-01-10T22:50:13.096587839+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "17"
@@ -2457,7 +3042,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 24
-      synced_at: 2026-01-10T19:28:47.342661819+03:00
+      synced_at: 2026-01-10T22:50:13.096588871+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "18"
@@ -2465,7 +3050,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 25
-      synced_at: 2026-01-10T19:28:47.342663422+03:00
+      synced_at: 2026-01-10T22:50:13.096589913+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "19"
@@ -2473,7 +3058,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 28
-      synced_at: 2026-01-10T19:28:47.342664865+03:00
+      synced_at: 2026-01-10T22:50:13.096590935+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "20"
@@ -2481,7 +3066,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 29
-      synced_at: 2026-01-10T19:28:47.342671167+03:00
+      synced_at: 2026-01-10T22:50:13.096595062+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "21"
@@ -2489,7 +3074,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 30
-      synced_at: 2026-01-10T19:28:47.342672579+03:00
+      synced_at: 2026-01-10T22:50:13.096596144+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "22"
@@ -2497,7 +3082,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 31
-      synced_at: 2026-01-10T19:28:47.342673842+03:00
+      synced_at: 2026-01-10T22:50:13.096597026+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "23"
@@ -2505,7 +3090,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 32
-      synced_at: 2026-01-10T19:28:47.342675304+03:00
+      synced_at: 2026-01-10T22:50:13.096598058+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "24"
@@ -2513,7 +3098,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 33
-      synced_at: 2026-01-10T19:28:47.342676747+03:00
+      synced_at: 2026-01-10T22:50:13.09659907+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "25"
@@ -2521,7 +3106,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 36
-      synced_at: 2026-01-10T19:28:47.34267823+03:00
+      synced_at: 2026-01-10T22:50:13.096600603+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "26"
@@ -2529,7 +3114,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 37
-      synced_at: 2026-01-10T19:28:47.342679642+03:00
+      synced_at: 2026-01-10T22:50:13.096601645+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "27"
@@ -2537,7 +3122,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 38
-      synced_at: 2026-01-10T19:28:47.342680885+03:00
+      synced_at: 2026-01-10T22:50:13.096602757+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "28"
@@ -2545,7 +3130,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 39
-      synced_at: 2026-01-10T19:28:47.342682077+03:00
+      synced_at: 2026-01-10T22:50:13.096603698+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "29"
@@ -2553,7 +3138,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 40
-      synced_at: 2026-01-10T19:28:47.342683309+03:00
+      synced_at: 2026-01-10T22:50:13.0966046+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "30"
@@ -2561,7 +3146,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 41
-      synced_at: 2026-01-10T19:28:47.342684552+03:00
+      synced_at: 2026-01-10T22:50:13.096605492+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "31"
@@ -2569,7 +3154,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 44
-      synced_at: 2026-01-10T19:28:47.342686064+03:00
+      synced_at: 2026-01-10T22:50:13.096606594+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "32"
@@ -2577,7 +3162,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 45
-      synced_at: 2026-01-10T19:28:47.342687467+03:00
+      synced_at: 2026-01-10T22:50:13.096607586+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "33"
@@ -2585,7 +3170,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 46
-      synced_at: 2026-01-10T19:28:47.342689691+03:00
+      synced_at: 2026-01-10T22:50:13.096608578+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "34"
@@ -2593,7 +3178,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 47
-      synced_at: 2026-01-10T19:28:47.342691104+03:00
+      synced_at: 2026-01-10T22:50:13.096609459+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "35"
@@ -2601,7 +3186,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 48
-      synced_at: 2026-01-10T19:28:47.342692456+03:00
+      synced_at: 2026-01-10T22:50:13.096610361+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "36"
@@ -2609,7 +3194,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 51
-      synced_at: 2026-01-10T19:28:47.342693949+03:00
+      synced_at: 2026-01-10T22:50:13.096611423+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "37"
@@ -2617,7 +3202,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 52
-      synced_at: 2026-01-10T19:28:47.342695212+03:00
+      synced_at: 2026-01-10T22:50:13.096612305+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "38"
@@ -2625,7 +3210,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 53
-      synced_at: 2026-01-10T19:28:47.342704178+03:00
+      synced_at: 2026-01-10T22:50:13.096619057+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "39"
@@ -2633,7 +3218,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 54
-      synced_at: 2026-01-10T19:28:47.342705581+03:00
+      synced_at: 2026-01-10T22:50:13.096620049+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "40"
@@ -2641,7 +3226,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 55
-      synced_at: 2026-01-10T19:28:47.342706903+03:00
+      synced_at: 2026-01-10T22:50:13.096620961+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "41"
@@ -2649,7 +3234,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 56
-      synced_at: 2026-01-10T19:28:47.342708176+03:00
+      synced_at: 2026-01-10T22:50:13.096621822+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "42"
@@ -2657,7 +3242,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 57
-      synced_at: 2026-01-10T19:28:47.342709588+03:00
+      synced_at: 2026-01-10T22:50:13.096622834+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "43"
@@ -2665,7 +3250,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 60
-      synced_at: 2026-01-10T19:28:47.342711201+03:00
+      synced_at: 2026-01-10T22:50:13.096623956+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "44"
@@ -2673,7 +3258,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 61
-      synced_at: 2026-01-10T19:28:47.342712865+03:00
+      synced_at: 2026-01-10T22:50:13.096625118+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "45"
@@ -2681,7 +3266,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 62
-      synced_at: 2026-01-10T19:28:47.342714047+03:00
+      synced_at: 2026-01-10T22:50:13.09662593+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "46"
@@ -2689,7 +3274,7 @@ tasks:
       status: pending
       priority: medium
       source_line: 63
-      synced_at: 2026-01-10T19:28:47.342715209+03:00
+      synced_at: 2026-01-10T22:50:13.096626731+03:00
     - id:
         change_id: add-spec-anchoring
         task_num: "47"
@@ -2697,4 +3282,4 @@ tasks:
       status: pending
       priority: medium
       source_line: 64
-      synced_at: 2026-01-10T19:28:47.342716401+03:00
+      synced_at: 2026-01-10T22:50:13.096627563+03:00
