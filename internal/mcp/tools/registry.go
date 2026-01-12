@@ -155,7 +155,13 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -207,7 +213,13 @@ func registryNextHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -249,7 +261,13 @@ func registryUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -307,7 +325,13 @@ func registryDepsHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -383,7 +407,13 @@ func registrySyncHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	result, err := regStore.RebuildFromSource()
 	if err != nil {
@@ -392,9 +422,13 @@ func registrySyncHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		}, nil, nil
 	}
 
+	// Also generate state.md files after sync
 	msg := "✅ Registry synced from tasks.md files\n\n"
 	data, _ := json.MarshalIndent(result, "", "  ")
 	msg += string(data)
+
+	// Note: state.md files are generated via state_sync tool
+	msg += "\n\n💡 Tip: Run state_sync to generate state.md files from the updated registry"
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: msg}},
@@ -407,7 +441,13 @@ func registryInitHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 	}
 
 	store := spec.NewStore(input.Path)
-	regStore := spec.NewRegistryStore(store)
+	regStore, err := spec.NewRegistryStore(store)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
+		}, nil, nil
+	}
+	defer regStore.Close()
 
 	if regStore.Exists() {
 		return &mcp.CallToolResult{

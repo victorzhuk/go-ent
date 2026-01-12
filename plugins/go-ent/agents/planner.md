@@ -6,8 +6,11 @@ tools:
   grep: true
   glob: true
   mcp__plugin_serena_serena: true
-model: sonnet
+model: main
 color: "#32CD32"
+tags:
+  - "role:planning"
+  - "complexity:standard"
 skills:
   - go-arch
   - go-code

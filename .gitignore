@@ -24,6 +24,8 @@ cmd/go-ent/templates/
 .idea/
 .vscode/
 .zed/
+.claude/
+.opencode/
 *.swp
 *.swo
 *~
@@ -34,3 +36,6 @@ Thumbs.db
 
 # Development MCP override (project-level config for dogfooding)
 .mcp.json
+
+# OpenSpec BoltDB cache (auto-generated)
+openspec/registry.db

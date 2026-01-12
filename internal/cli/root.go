@@ -29,11 +29,13 @@ spec-driven development, and intelligent task execution.`,
 
 	// Add subcommands
 	cmd.AddCommand(newVersionCmd())
+	cmd.AddCommand(newInitCmd())
 	cmd.AddCommand(newRunCmd())
 	cmd.AddCommand(newAgentCmd())
 	cmd.AddCommand(newSkillCmd())
 	cmd.AddCommand(newSpecCmd())
 	cmd.AddCommand(newConfigCmd())
+	cmd.AddCommand(newModelCmd())
 
 	return cmd
 }

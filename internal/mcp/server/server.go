@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
+	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/version"
 )
@@ -44,7 +46,45 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		slog.Info("loaded skills", "count", len(registry.All()), "path", skillsPath)
 	}
 
-	tools.Register(s, registry)
+	pluginsDir := "plugins"
+	exe, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Dir(exe)
+		pluginsDir = filepath.Join(exeDir, "..", "plugins")
+	}
+
+	marketplaceClient := marketplace.NewClient()
+	marketplaceSearcher := marketplace.NewSearcher(marketplaceClient)
+	registryWrapper := &skillRegistryWrapper{registry: registry}
+	pluginManager := plugin.NewManager(pluginsDir, registryWrapper, marketplaceClient)
+
+	if err := pluginManager.Initialize(nil); err != nil {
+		slog.Warn("failed to initialize plugin manager", "error", err)
+	} else {
+		slog.Info("plugin manager initialized", "plugins_dir", pluginsDir)
+	}
+
+	tools.Register(s, registry, pluginManager, marketplaceSearcher)
 
 	return s
+}
+
+type skillRegistryWrapper struct {
+	registry *skill.Registry
+}
+
+func (w *skillRegistryWrapper) RegisterSkill(name, path string) error {
+	return w.registry.RegisterSkill(name, path)
+}
+
+func (w *skillRegistryWrapper) RegisterAgent(name, _ string) error {
+	return nil
+}
+
+func (w *skillRegistryWrapper) UnregisterSkill(name string) error {
+	return w.registry.UnregisterSkill(name)
+}
+
+func (w *skillRegistryWrapper) UnregisterAgent(name string) error {
+	return nil
 }

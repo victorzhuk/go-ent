@@ -4,136 +4,136 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"sort"
-	"strings"
 	"time"
 )
 
 type RegistryStore struct {
-	store *Store
+	store      *Store
+	bolt       *BoltStore
+	stateStore *StateStore
 }
 
-func NewRegistryStore(store *Store) *RegistryStore {
-	return &RegistryStore{store: store}
+func NewRegistryStore(store *Store) (*RegistryStore, error) {
+	boltPath := filepath.Join(store.RootPath(), "openspec", "registry.db")
+	bolt, err := NewBoltStore(boltPath)
+	if err != nil {
+		return nil, fmt.Errorf("create bolt store: %w", err)
+	}
+
+	stateStore := NewStateStore(store, bolt)
+
+	return &RegistryStore{
+		store:      store,
+		bolt:       bolt,
+		stateStore: stateStore,
+	}, nil
+}
+
+func (r *RegistryStore) Close() error {
+	if r.bolt != nil {
+		return r.bolt.Close()
+	}
+	return nil
 }
 
 func (r *RegistryStore) Load() (*Registry, error) {
-	return r.store.LoadRegistry()
-}
+	// Load from BoltDB
+	tasks, err := r.bolt.ListTasks(TaskFilter{})
+	if err != nil {
+		return nil, fmt.Errorf("list tasks from bolt: %w", err)
+	}
 
-func (r *RegistryStore) Save(reg *Registry) error {
-	reg.SyncedAt = time.Now()
-	return r.store.SaveRegistry(reg)
-}
+	changes, err := r.bolt.ListChanges()
+	if err != nil {
+		return nil, fmt.Errorf("list changes from bolt: %w", err)
+	}
 
-func (r *RegistryStore) Exists() bool {
-	return r.store.RegistryExists()
-}
-
-func (r *RegistryStore) Init() error {
 	reg := &Registry{
 		Version:  "1.0",
 		SyncedAt: time.Now(),
 		Changes:  make(map[string]ChangeSummary),
-		Tasks:    []RegistryTask{},
+		Tasks:    tasks,
 	}
-	return r.Save(reg)
+
+	for _, change := range changes {
+		reg.Changes[change.ID] = change
+	}
+
+	return reg, nil
+}
+
+func (r *RegistryStore) Save(reg *Registry) error {
+	// Save is deprecated - use UpdateTask instead
+	// BoltDB operations are transactional and immediate
+	reg.SyncedAt = time.Now()
+	return r.bolt.SetMeta("synced_at", reg.SyncedAt.Format(time.RFC3339))
+}
+
+func (r *RegistryStore) Exists() bool {
+	boltPath := filepath.Join(r.store.RootPath(), "openspec", "registry.db")
+	_, err := os.Stat(boltPath)
+	return err == nil
+}
+
+func (r *RegistryStore) Init() error {
+	// Initialize BoltDB buckets (already done in NewBoltStore)
+	return r.bolt.SetMeta("version", "1.0")
 }
 
 func (r *RegistryStore) ListTasks(filter TaskFilter) ([]RegistryTask, error) {
-	reg, err := r.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	tasks := make([]RegistryTask, 0)
-	for _, task := range reg.Tasks {
-		if filter.ChangeID != "" && task.ID.ChangeID != filter.ChangeID {
-			continue
-		}
-		if filter.Status != "" && task.Status != filter.Status {
-			continue
-		}
-		if filter.Priority != "" && task.Priority != filter.Priority {
-			continue
-		}
-		if filter.Assignee != "" && task.Assignee != filter.Assignee {
-			continue
-		}
-		if filter.Unblocked && len(task.BlockedBy) > 0 {
-			continue
-		}
-
-		tasks = append(tasks, task)
-	}
-
-	if filter.Limit > 0 && len(tasks) > filter.Limit {
-		tasks = tasks[:filter.Limit]
-	}
-
-	return tasks, nil
+	// Use BoltDB O(1) lookup directly
+	return r.bolt.ListTasks(filter)
 }
 
 func (r *RegistryStore) GetTask(id TaskID) (*RegistryTask, error) {
-	reg, err := r.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range reg.Tasks {
-		if reg.Tasks[i].ID.ChangeID == id.ChangeID && reg.Tasks[i].ID.TaskNum == id.TaskNum {
-			return &reg.Tasks[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("task %s not found", id.String())
+	// Use BoltDB O(1) lookup directly
+	return r.bolt.GetTask(id)
 }
 
 func (r *RegistryStore) UpdateTask(id TaskID, updates TaskUpdate) error {
-	reg, err := r.Load()
+	// Get current task to check old status
+	task, err := r.bolt.GetTask(id)
 	if err != nil {
-		return err
+		return fmt.Errorf("get task: %w", err)
 	}
 
-	var found bool
-	for i := range reg.Tasks {
-		if reg.Tasks[i].ID.ChangeID == id.ChangeID && reg.Tasks[i].ID.TaskNum == id.TaskNum {
-			found = true
-			now := time.Now()
+	now := time.Now()
 
-			if updates.Status != nil {
-				oldStatus := reg.Tasks[i].Status
-				reg.Tasks[i].Status = *updates.Status
+	// Handle status transitions
+	if updates.Status != nil {
+		oldStatus := task.Status
+		task.Status = *updates.Status
 
-				if *updates.Status == RegStatusInProgress && oldStatus != RegStatusInProgress {
-					reg.Tasks[i].StartedAt = &now
-				}
-				if *updates.Status == RegStatusCompleted && oldStatus != RegStatusCompleted {
-					reg.Tasks[i].CompletedAt = &now
-				}
-			}
-			if updates.Priority != nil {
-				reg.Tasks[i].Priority = *updates.Priority
-			}
-			if updates.Assignee != nil {
-				reg.Tasks[i].Assignee = *updates.Assignee
-			}
-			if updates.Notes != nil {
-				reg.Tasks[i].Notes = *updates.Notes
-			}
-			break
+		if *updates.Status == RegStatusInProgress && oldStatus != RegStatusInProgress {
+			task.StartedAt = &now
+		}
+		if *updates.Status == RegStatusCompleted && oldStatus != RegStatusCompleted {
+			task.CompletedAt = &now
 		}
 	}
 
-	if !found {
-		return fmt.Errorf("task %s not found", id.String())
+	// Apply other updates
+	if updates.Priority != nil {
+		task.Priority = *updates.Priority
+	}
+	if updates.Assignee != nil {
+		task.Assignee = *updates.Assignee
+	}
+	if updates.Notes != nil {
+		task.Notes = *updates.Notes
 	}
 
-	r.recalculateBlockedBy(reg)
-	r.updateChangeSummaries(reg)
+	// Update in BoltDB (transactional)
+	if err := r.bolt.UpdateTask(task); err != nil {
+		return fmt.Errorf("update task in bolt: %w", err)
+	}
 
-	return r.Save(reg)
+	// Recalculate blocked tasks using BoltDB reverse index
+	if err := r.recalculateBlockedByBolt(task.ID); err != nil {
+		return fmt.Errorf("recalculate blockers: %w", err)
+	}
+
+	return nil
 }
 
 func (r *RegistryStore) NextTask(count int) (*NextTaskResult, error) {
@@ -141,38 +141,24 @@ func (r *RegistryStore) NextTask(count int) (*NextTaskResult, error) {
 		count = 1
 	}
 
-	reg, err := r.Load()
+	// Use BoltDB NextTasks directly
+	candidates, err := r.bolt.NextTasks(count + 10) // Get extras for alternatives
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get next tasks from bolt: %w", err)
 	}
 
-	r.recalculateBlockedBy(reg)
+	// Count blocked tasks
+	allTasks, err := r.bolt.ListTasks(TaskFilter{})
+	if err != nil {
+		return nil, fmt.Errorf("list all tasks: %w", err)
+	}
 
-	candidates := make([]RegistryTask, 0)
 	blockedCount := 0
-
-	for _, task := range reg.Tasks {
-		if task.Status == RegStatusPending && len(task.BlockedBy) == 0 {
-			candidates = append(candidates, task)
-		}
+	for _, task := range allTasks {
 		if len(task.BlockedBy) > 0 {
 			blockedCount++
 		}
 	}
-
-	sort.Slice(candidates, func(i, j int) bool {
-		if candidates[i].Priority != candidates[j].Priority {
-			return priorityValue(candidates[i].Priority) < priorityValue(candidates[j].Priority)
-		}
-
-		progressI := r.changeProgress(reg, candidates[i].ID.ChangeID)
-		progressJ := r.changeProgress(reg, candidates[j].ID.ChangeID)
-		if progressI != progressJ {
-			return progressI > progressJ
-		}
-
-		return candidates[i].ID.TaskNum < candidates[j].ID.TaskNum
-	})
 
 	result := &NextTaskResult{
 		BlockedCount: blockedCount,
@@ -187,10 +173,10 @@ func (r *RegistryStore) NextTask(count int) (*NextTaskResult, error) {
 
 		if len(candidates) > 1 {
 			limit := count
-			if len(candidates) < count {
-				limit = len(candidates)
+			if len(candidates)-1 < count {
+				limit = len(candidates) - 1
 			}
-			result.Alternatives = candidates[1:limit]
+			result.Alternatives = candidates[1 : limit+1]
 		}
 	}
 
@@ -198,90 +184,20 @@ func (r *RegistryStore) NextTask(count int) (*NextTaskResult, error) {
 }
 
 func (r *RegistryStore) AddDependency(task, dependsOn TaskID) error {
-	reg, err := r.Load()
-	if err != nil {
-		return err
-	}
-
-	var taskFound, depFound bool
-	var taskIdx int
-
-	for i := range reg.Tasks {
-		if reg.Tasks[i].ID.ChangeID == task.ChangeID && reg.Tasks[i].ID.TaskNum == task.TaskNum {
-			taskFound = true
-			taskIdx = i
-		}
-		if reg.Tasks[i].ID.ChangeID == dependsOn.ChangeID && reg.Tasks[i].ID.TaskNum == dependsOn.TaskNum {
-			depFound = true
-		}
-	}
-
-	if !taskFound {
-		return fmt.Errorf("task %s not found", task.String())
-	}
-	if !depFound {
-		return fmt.Errorf("dependency task %s not found", dependsOn.String())
-	}
-
-	for _, existing := range reg.Tasks[taskIdx].DependsOn {
-		if existing.ChangeID == dependsOn.ChangeID && existing.TaskNum == dependsOn.TaskNum {
-			return nil
-		}
-	}
-
-	reg.Tasks[taskIdx].DependsOn = append(reg.Tasks[taskIdx].DependsOn, dependsOn)
-
-	if r.hasCycle(reg, task) {
-		return fmt.Errorf("adding dependency would create a cycle")
-	}
-
-	r.recalculateBlockedBy(reg)
-
-	return r.Save(reg)
+	// Use BoltDB AddDependency directly (includes cycle detection)
+	return r.bolt.AddDependency(task, dependsOn)
 }
 
 func (r *RegistryStore) RemoveDependency(task, dependsOn TaskID) error {
-	reg, err := r.Load()
-	if err != nil {
-		return err
-	}
-
-	var found bool
-	for i := range reg.Tasks {
-		if reg.Tasks[i].ID.ChangeID == task.ChangeID && reg.Tasks[i].ID.TaskNum == task.TaskNum {
-			found = true
-			newDeps := make([]TaskID, 0)
-			for _, dep := range reg.Tasks[i].DependsOn {
-				if dep.ChangeID != dependsOn.ChangeID || dep.TaskNum != dependsOn.TaskNum {
-					newDeps = append(newDeps, dep)
-				}
-			}
-			reg.Tasks[i].DependsOn = newDeps
-			break
-		}
-	}
-
-	if !found {
-		return fmt.Errorf("task %s not found", task.String())
-	}
-
-	r.recalculateBlockedBy(reg)
-
-	return r.Save(reg)
+	// Use BoltDB RemoveDependency directly
+	return r.bolt.RemoveDependency(task, dependsOn)
 }
 
 func (r *RegistryStore) GetDependencyGraph(id TaskID) (*DependencyGraph, error) {
-	reg, err := r.Load()
+	task, err := r.bolt.GetTask(id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get task: %w", err)
 	}
-
-	task, err := r.GetTask(id)
-	if err != nil {
-		return nil, err
-	}
-
-	r.recalculateBlockedBy(reg)
 
 	graph := &DependencyGraph{
 		TaskID:        id,
@@ -291,8 +207,9 @@ func (r *RegistryStore) GetDependencyGraph(id TaskID) (*DependencyGraph, error) 
 		BlockingTasks: make([]TaskID, 0),
 	}
 
+	// Get tasks this depends on
 	for _, depID := range task.DependsOn {
-		if dep, err := r.GetTask(depID); err == nil {
+		if dep, err := r.bolt.GetTask(depID); err == nil {
 			graph.DependsOn = append(graph.DependsOn, TaskDependencyInfo{
 				ID:      dep.ID,
 				Content: dep.Content,
@@ -304,15 +221,19 @@ func (r *RegistryStore) GetDependencyGraph(id TaskID) (*DependencyGraph, error) 
 		}
 	}
 
-	for i := range reg.Tasks {
-		for _, depID := range reg.Tasks[i].DependsOn {
-			if depID.ChangeID == id.ChangeID && depID.TaskNum == id.TaskNum {
-				graph.DependedBy = append(graph.DependedBy, TaskDependencyInfo{
-					ID:      reg.Tasks[i].ID,
-					Content: reg.Tasks[i].Content,
-					Status:  reg.Tasks[i].Status,
-				})
-			}
+	// Get tasks that depend on this (using BoltDB reverse index)
+	blockedTasks, err := r.bolt.GetBlockers(id)
+	if err != nil {
+		return nil, fmt.Errorf("get blockers: %w", err)
+	}
+
+	for _, blockedID := range blockedTasks {
+		if blocked, err := r.bolt.GetTask(blockedID); err == nil {
+			graph.DependedBy = append(graph.DependedBy, TaskDependencyInfo{
+				ID:      blocked.ID,
+				Content: blocked.Content,
+				Status:  blocked.Status,
+			})
 		}
 	}
 
@@ -320,13 +241,6 @@ func (r *RegistryStore) GetDependencyGraph(id TaskID) (*DependencyGraph, error) 
 }
 
 func (r *RegistryStore) RebuildFromSource() (*SyncResult, error) {
-	reg := &Registry{
-		Version:  "1.0",
-		SyncedAt: time.Now(),
-		Changes:  make(map[string]ChangeSummary),
-		Tasks:    make([]RegistryTask, 0),
-	}
-
 	result := &SyncResult{
 		SyncedChanges: make([]string, 0),
 		Added:         make([]TaskID, 0),
@@ -339,9 +253,14 @@ func (r *RegistryStore) RebuildFromSource() (*SyncResult, error) {
 	entries, err := os.ReadDir(changesPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return result, r.Save(reg)
+			return result, nil
 		}
 		return nil, fmt.Errorf("read changes dir: %w", err)
+	}
+
+	// Clear existing tasks from BoltDB (full rebuild)
+	if err := r.bolt.ClearTasks(); err != nil {
+		return nil, fmt.Errorf("clear bolt tasks: %w", err)
 	}
 
 	for _, entry := range entries {
@@ -356,7 +275,8 @@ func (r *RegistryStore) RebuildFromSource() (*SyncResult, error) {
 			continue
 		}
 
-		tasks, err := r.parseTasksFile(tasksPath, changeID)
+		// Use StateStore to parse tasks WITH dependencies from HTML comments
+		tasks, err := r.stateStore.ParseTasksWithDependencies(changeID, tasksPath)
 		if err != nil {
 			continue
 		}
@@ -374,33 +294,52 @@ func (r *RegistryStore) RebuildFromSource() (*SyncResult, error) {
 				summary.InProgress++
 			}
 
-			reg.Tasks = append(reg.Tasks, task)
+			// Store task in BoltDB
+			if err := r.bolt.UpdateTask(&task); err != nil {
+				return nil, fmt.Errorf("store task %s: %w", task.ID.String(), err)
+			}
+
+			// Store dependencies
+			for _, depID := range task.DependsOn {
+				if err := r.bolt.AddDependency(task.ID, depID); err != nil {
+					// Ignore cycle errors during initial load - they'll be caught later
+					continue
+				}
+			}
+
 			result.Added = append(result.Added, task.ID)
 		}
 
-		reg.Changes[changeID] = summary
+		// Store change summary
+		if err := r.bolt.UpdateChange(summary); err != nil {
+			return nil, fmt.Errorf("store change summary: %w", err)
+		}
+
 		result.SyncedChanges = append(result.SyncedChanges, changeID)
 	}
 
-	r.recalculateBlockedBy(reg)
+	// Set sync metadata
+	if err := r.bolt.SetMeta("synced_at", time.Now().Format(time.RFC3339)); err != nil {
+		return nil, fmt.Errorf("set sync metadata: %w", err)
+	}
 
-	return result, r.Save(reg)
+	return result, nil
 }
 
 func (r *RegistryStore) Stats() (*RegistryStats, error) {
-	reg, err := r.Load()
+	tasks, err := r.bolt.ListTasks(TaskFilter{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list tasks: %w", err)
 	}
 
 	stats := &RegistryStats{
-		TotalTasks: len(reg.Tasks),
+		TotalTasks: len(tasks),
 		ByStatus:   make(map[string]int),
 		ByPriority: make(map[string]int),
 		ByChange:   make(map[string]int),
 	}
 
-	for _, task := range reg.Tasks {
+	for _, task := range tasks {
 		stats.ByStatus[string(task.Status)]++
 		stats.ByPriority[string(task.Priority)]++
 		stats.ByChange[task.ID.ChangeID]++
@@ -417,140 +356,70 @@ func (r *RegistryStore) Stats() (*RegistryStats, error) {
 	return stats, nil
 }
 
+// parseTasksFile is deprecated - use StateStore.ParseTasksWithDependencies instead
+// Kept for backward compatibility during migration
 func (r *RegistryStore) parseTasksFile(path, changeID string) ([]RegistryTask, error) {
-	data, err := os.ReadFile(path)
+	return r.stateStore.ParseTasksWithDependencies(changeID, path)
+}
+
+// recalculateBlockedBy is deprecated - BoltDB maintains reverse index automatically
+// Kept for backward compatibility during migration
+func (r *RegistryStore) recalculateBlockedBy(reg *Registry) {
+	// BoltDB handles this automatically via the blocking bucket
+	// This method is now a no-op
+}
+
+// recalculateBlockedByBolt updates BlockedBy for a specific task using BoltDB
+func (r *RegistryStore) recalculateBlockedByBolt(taskID TaskID) error {
+	task, err := r.bolt.GetTask(taskID)
 	if err != nil {
-		return nil, fmt.Errorf("read tasks file: %w", err)
+		return err
 	}
 
-	lines := strings.Split(string(data), "\n")
-	tasks := make([]RegistryTask, 0)
-
-	taskPattern := regexp.MustCompile(`^[-*]\s+\[([ xX])\]\s+(.+)$`)
-	taskCounter := 0
-
-	for lineNum, line := range lines {
-		line = strings.TrimSpace(line)
-		matches := taskPattern.FindStringSubmatch(line)
-		if len(matches) != 3 {
+	// Recalculate which dependencies are still blocking this task
+	blockedBy := make([]TaskID, 0)
+	for _, depID := range task.DependsOn {
+		dep, err := r.bolt.GetTask(depID)
+		if err != nil {
 			continue
 		}
-
-		taskCounter++
-		checked := matches[1] == "x" || matches[1] == "X"
-		content := matches[2]
-
-		status := RegStatusPending
-		if checked {
-			status = RegStatusCompleted
+		if dep.Status != RegStatusCompleted {
+			blockedBy = append(blockedBy, depID)
 		}
-
-		task := RegistryTask{
-			ID: TaskID{
-				ChangeID: changeID,
-				TaskNum:  fmt.Sprintf("%d", taskCounter),
-			},
-			Content:    content,
-			Status:     status,
-			Priority:   PriorityMedium,
-			DependsOn:  []TaskID{},
-			SourceLine: lineNum + 1,
-			SyncedAt:   time.Now(),
-		}
-
-		tasks = append(tasks, task)
 	}
 
-	return tasks, nil
+	task.BlockedBy = blockedBy
+	return r.bolt.UpdateTask(task)
 }
 
-func (r *RegistryStore) recalculateBlockedBy(reg *Registry) {
-	for i := range reg.Tasks {
-		reg.Tasks[i].BlockedBy = []TaskID{}
-	}
-
-	for i := range reg.Tasks {
-		for _, depID := range reg.Tasks[i].DependsOn {
-			var depCompleted bool
-			for j := range reg.Tasks {
-				if reg.Tasks[j].ID.ChangeID == depID.ChangeID && reg.Tasks[j].ID.TaskNum == depID.TaskNum {
-					if reg.Tasks[j].Status == RegStatusCompleted {
-						depCompleted = true
-					}
-					break
-				}
-			}
-
-			if !depCompleted {
-				reg.Tasks[i].BlockedBy = append(reg.Tasks[i].BlockedBy, depID)
-			}
-		}
-	}
-}
-
+// updateChangeSummaries is deprecated - BoltDB stores changes separately
+// Kept for backward compatibility during migration
 func (r *RegistryStore) updateChangeSummaries(reg *Registry) {
-	for changeID := range reg.Changes {
-		summary := reg.Changes[changeID]
-		summary.Total = 0
-		summary.Completed = 0
-		summary.InProgress = 0
-		summary.Blocked = 0
+	// BoltDB handles change summaries automatically
+	// This method is now a no-op
+}
 
-		for _, task := range reg.Tasks {
-			if task.ID.ChangeID == changeID {
-				summary.Total++
-				if task.Status == RegStatusCompleted {
-					summary.Completed++
-				} else if task.Status == RegStatusInProgress {
-					summary.InProgress++
-				}
-				if len(task.BlockedBy) > 0 {
-					summary.Blocked++
-				}
-			}
-		}
-
-		reg.Changes[changeID] = summary
+// changeProgress calculates completion percentage for a change
+func (r *RegistryStore) changeProgress(changeID string) (float64, error) {
+	changes, err := r.bolt.ListChanges()
+	if err != nil {
+		return 0, err
 	}
-}
 
-func (r *RegistryStore) changeProgress(reg *Registry, changeID string) float64 {
-	summary, ok := reg.Changes[changeID]
-	if !ok || summary.Total == 0 {
-		return 0
-	}
-	return float64(summary.Completed) / float64(summary.Total)
-}
-
-func (r *RegistryStore) hasCycle(reg *Registry, start TaskID) bool {
-	visited := make(map[string]bool)
-	recStack := make(map[string]bool)
-	return r.detectCycle(reg, start, visited, recStack)
-}
-
-func (r *RegistryStore) detectCycle(reg *Registry, current TaskID, visited, recStack map[string]bool) bool {
-	key := current.String()
-	visited[key] = true
-	recStack[key] = true
-
-	for i := range reg.Tasks {
-		if reg.Tasks[i].ID.ChangeID == current.ChangeID && reg.Tasks[i].ID.TaskNum == current.TaskNum {
-			for _, dep := range reg.Tasks[i].DependsOn {
-				depKey := dep.String()
-				if !visited[depKey] {
-					if r.detectCycle(reg, dep, visited, recStack) {
-						return true
-					}
-				} else if recStack[depKey] {
-					return true
-				}
+	for _, change := range changes {
+		if change.ID == changeID {
+			if change.Total == 0 {
+				return 0, nil
 			}
+			return float64(change.Completed) / float64(change.Total), nil
 		}
 	}
 
-	recStack[key] = false
-	return false
+	return 0, fmt.Errorf("change %s not found", changeID)
 }
+
+// hasCycle, detectCycle - deprecated, BoltDB handles cycle detection in AddDependency
+// Kept for backward compatibility during migration but are no-ops
 
 func priorityValue(p TaskPriority) int {
 	switch p {

@@ -84,6 +84,38 @@ func (r *Registry) Load(skillsPath string) error {
 	})
 }
 
+// RegisterSkill loads a skill from a given path and registers it.
+func (r *Registry) RegisterSkill(name, path string) error {
+	meta, err := r.parser.ParseSkillFile(path)
+	if err != nil {
+		return fmt.Errorf("parse skill file: %w", err)
+	}
+
+	if meta.Name != name {
+		return fmt.Errorf("skill name mismatch: expected %s, got %s", name, meta.Name)
+	}
+
+	for _, s := range r.skills {
+		if s.Name == name {
+			return fmt.Errorf("skill %s already registered", name)
+		}
+	}
+
+	r.skills = append(r.skills, *meta)
+	return nil
+}
+
+// UnregisterSkill removes a skill from the metadata list.
+func (r *Registry) UnregisterSkill(name string) error {
+	for i, s := range r.skills {
+		if s.Name == name {
+			r.skills = append(r.skills[:i], r.skills[i+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("skill %s not found", name)
+}
+
 // MatchForContext returns skill names that match the given context.
 func (r *Registry) MatchForContext(ctx domain.SkillContext) []string {
 	var matched []string

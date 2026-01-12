@@ -9,8 +9,8 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 build:
-	@go build $(LDFLAGS) -o bin/go-ent ./cmd/go-ent
-	@echo "Build complete: bin/go-ent"
+	@go build $(LDFLAGS) -o bin/ent ./cmd/go-ent
+	@echo "Build complete: bin/ent"
 
 test:
 	@go test -race -cover ./...
@@ -23,7 +23,7 @@ fmt:
 
 clean:
 	@rm -rf bin/
-	@rm -f go-ent
+	@rm -f ent
 	@echo "Clean complete"
 
 validate-plugin:

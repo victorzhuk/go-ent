@@ -18,6 +18,10 @@ func NewStore(rootPath string) *Store {
 	return &Store{rootPath: rootPath}
 }
 
+func (s *Store) RootPath() string {
+	return s.rootPath
+}
+
 func (s *Store) SpecPath() string {
 	openspecPath := filepath.Join(s.rootPath, "openspec")
 	if _, err := os.Stat(openspecPath); err == nil {

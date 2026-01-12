@@ -4,10 +4,12 @@ import (
 	"log/slog"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/marketplace"
+	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 )
 
-func Register(s *mcp.Server, skillRegistry *skill.Registry) {
+func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugin.Manager, marketplaceSearcher *marketplace.Searcher) {
 	// Create tool discovery registry
 	toolRegistry := NewToolRegistry(s)
 
@@ -37,6 +39,21 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry) {
 	registerEngineStatus(s)
 	registerEngineBudget(s)
 	registerEngineInterrupt(s)
+
+	// Register plugin tools
+	if pluginManager != nil {
+		registerPluginList(s, pluginManager)
+		registerPluginInstall(s, pluginManager)
+		registerPluginInfo(s, pluginManager)
+	}
+
+	if marketplaceSearcher != nil {
+		registerPluginSearch(s, marketplaceSearcher)
+	}
+
+	// Register state tools
+	registerStateSync(s)
+	registerStateShow(s)
 
 	// Register meta tools (tool discovery system)
 	registerMetaTools(s, toolRegistry)

@@ -6,8 +6,11 @@ tools:
   bash: true
   grep: true
   glob: true
-model: haiku
+model: fast
 color: "#00FFFF"
+tags:
+  - "role:test"
+  - "complexity:light"
 skills:
   - go-test
 ---
