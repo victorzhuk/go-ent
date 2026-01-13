@@ -322,6 +322,10 @@ func (s *BoltStore) updateChangeSummary(tx *bbolt.Tx, changeID string) error {
 				inProgress++
 			case RegStatusBlocked:
 				blocked++
+			case RegStatusPending:
+				if len(task.BlockedBy) > 0 {
+					blocked++
+				}
 			}
 		}
 		return nil
@@ -426,9 +430,6 @@ func matches(f *TaskFilter, task *RegistryTask) bool {
 	}
 	if f.Unblocked && len(task.BlockedBy) > 0 {
 		return false
-	}
-	if f.Limit > 0 && len(task.BlockedBy) == 0 {
-		return true
 	}
 	return true
 }

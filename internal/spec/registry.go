@@ -85,7 +85,6 @@ type TaskFilter struct {
 	Priority  TaskPriority
 	Assignee  string
 	Unblocked bool
-	Limit     int
 }
 
 type TaskUpdate struct {

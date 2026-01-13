@@ -175,7 +175,6 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		Priority:  spec.TaskPriority(input.Priority),
 		Assignee:  input.Assignee,
 		Unblocked: input.Unblocked,
-		Limit:     input.Limit,
 	}
 
 	tasks, err := regStore.ListTasks(filter)

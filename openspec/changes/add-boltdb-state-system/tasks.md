@@ -29,12 +29,12 @@
 - [x] Add openspec/registry.db to .gitignore
 - [x] Add Store.RootPath() method
 
-## 5. Registry Store Integration
-- [ ] Update internal/spec/registry_store.go to use BoltStore <!-- depends: 1.6, 2.8 -->
-- [ ] Replace YAML Load/Save with BoltDB operations
-- [ ] Update RebuildFromSource to use ParseTasksWithDependencies
-- [ ] Preserve existing API compatibility
-- [ ] Update recalculateBlockedBy to use BoltDB reverse index
+## 5. Registry Store Integration ✅
+- [x] Update internal/spec/registry_store.go to use BoltStore <!-- depends: 1.6, 2.8 -->
+- [x] Replace YAML Load/Save with BoltDB operations
+- [x] Update RebuildFromSource to use ParseTasksWithDependencies
+- [x] Preserve existing API compatibility
+- [x] Update recalculateBlockedBy to use BoltDB reverse index
 
 ## 6. Migration Script
 - [ ] Create cmd/migrate-registry/main.go <!-- depends: 5.1 -->
@@ -61,8 +61,8 @@
 - [ ] Update workflow diagrams
 
 ## 9. Testing
-- [ ] Unit tests for BoltStore operations <!-- depends: 1.6 -->
-- [ ] Unit tests for StateStore parsing
+- [x] Unit tests for BoltStore operations <!-- depends: 1.6 -->
+- [x] Unit tests for StateStore parsing
 - [ ] Integration test: tasks.md → BoltDB → state.md
 - [ ] Test dependency parsing edge cases
 - [ ] Test migration script with sample data
