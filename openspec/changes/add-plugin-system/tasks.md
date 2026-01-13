@@ -85,7 +85,7 @@
 ## 15. Fix High Priority Issues
 - [x] Add URL encoding in marketplace client.go:47-58
 - [x] Fix resource leak: close file handles immediately in install.go:85-89
-- [ ] Fix RegisterAgent no-op in server.go:80-82 (error or implement)
+- [x] Fix RegisterAgent no-op in server.go:80-82 (error or implement) ✓ 2026-01-12
 
 ## 16. Fix Medium Priority Issues
 - [ ] Add logging for failed plugin initialization in manager.go:57-60

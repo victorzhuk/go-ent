@@ -70,7 +70,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-plugin-system/tasks.md
         total: 61
-        completed: 43
+        completed: 44
         in_progress: 0
         blocked: 0
     add-spec-anchoring:
@@ -3007,7 +3007,7 @@ tasks:
         change_id: add-plugin-system
         task_num: "57"
       content: Fix RegisterAgent no-op in server.go:80-82 (error or implement)
-      status: pending
+      status: completed
       priority: medium
       source_line: 88
       synced_at: 2026-01-11T08:48:48.818563157+03:00
