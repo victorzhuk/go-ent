@@ -5,7 +5,7 @@
 
 ## 1. Core Infrastructure
 
-- [ ] 1.1 Create `internal/ast/parser.go` - Parse Go files to AST
+- [x] 1.1 Create `internal/ast/parser.go` - Parse Go files to AST ✓ 2026-01-13
 - [ ] 1.2 Create `internal/ast/query.go` - Query AST for patterns
 - [ ] 1.3 Create `internal/ast/transform.go` - Transform AST nodes
 - [ ] 1.4 Create `internal/ast/printer.go` - Print AST back to Go code

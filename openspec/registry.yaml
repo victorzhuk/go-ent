@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 0
+        completed: 1
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -567,7 +567,7 @@ tasks:
         change_id: add-ast-operations
         task_num: "1"
       content: 1.1 Create `internal/ast/parser.go` - Parse Go files to AST
-      status: pending
+      status: completed
       priority: medium
       source_line: 8
       synced_at: 2026-01-11T08:48:48.816981329+03:00
