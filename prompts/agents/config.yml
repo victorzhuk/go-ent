@@ -1,0 +1,192 @@
+# Agent Configuration
+# Used by template engine to generate platform-specific files
+
+# Format:
+# name:
+#   template: prompt template file
+#   description: one-line description
+#   model: fast|main|heavy
+#   tools: [list of tools]
+#   disallow: [tools to deny]
+#   skills: [skill names]
+
+agents:
+  # === ORCHESTRATION ===
+  driver:
+    template: driver.md
+    description: Orchestrator. Coordinates tasks by delegating to specialists.
+    model: main
+    tools: [ read, glob, grep, list, todoread, todowrite, skill, task ]
+    skills: [ ]
+
+  # === IMPLEMENTATION ===
+  coder:
+    template: coder.md
+    description: Go developer. Implements features following Clean Architecture.
+    model: main
+    tools: [ read, write, edit, bash, glob, grep, list, todoread, todowrite, skill ]
+    skills: [ go-code, go-db ]
+
+  # === DEBUGGING ===
+  debugger:
+    template: debugger.md
+    description: Systematic debugging. Multi-step investigation.
+    model: main
+    tools: [ read, write, edit, bash, glob, grep, list, todoread, todowrite, skill ]
+    skills: [ go-code, go-test ]
+
+  debugger-fast:
+    template: debugger.md
+    description: Quick debugging. Single-file fixes.
+    model: fast
+    tools: [ read, write, edit, bash, glob, grep, list ]
+    skills: [ go-code ]
+
+  debugger-heavy:
+    template: debugger.md
+    description: Complex debugging. Concurrency, performance.
+    model: heavy
+    tools: [ read, write, edit, bash, glob, grep, list, todoread, todowrite, skill ]
+    skills: [ go-code, go-perf, go-sec, go-test ]
+
+  # === PLANNING ===
+  planner:
+    template: planner.md
+    description: Task planner. Creates implementation plans.
+    model: main
+    tools: [ read, glob, grep, list, todoread, todowrite, skill ]
+    disallow: [ write, edit ]
+    skills: [ go-arch ]
+
+  planner-fast:
+    template: planner.md
+    description: Quick triage. Assessment and routing.
+    model: fast
+    tools: [ read, grep ]
+    disallow: [ write, edit, bash ]
+    skills: [ ]
+
+  planner-heavy:
+    template: planner.md
+    description: Complex planning. Multi-component architecture.
+    model: heavy
+    tools: [ read, glob, grep, list, todoread, todowrite, skill ]
+    disallow: [ write, edit ]
+    skills: [ go-arch, go-api, go-db ]
+
+  # === REVIEW ===
+  reviewer:
+    template: reviewer.md
+    description: Code reviewer. Quality and security. ≥80% confidence.
+    model: heavy
+    tools: [ read, bash, glob, grep, list, todoread, skill ]
+    disallow: [ write, edit ]
+    skills: [ go-review, go-sec ]
+
+  # === RESEARCH ===
+  researcher:
+    template: researcher.md
+    description: Root cause analysis. Deep code investigation.
+    model: heavy
+    tools: [ read, bash, glob, grep, list, webfetch, websearch, todoread, todowrite, skill ]
+    skills: [ go-code ]
+
+  # === ARCHITECTURE ===
+  architect:
+    template: architect.md
+    description: Systems architect. Design components and data flow.
+    model: heavy
+    tools: [ read, glob, grep, list, todoread, todowrite, skill ]
+    disallow: [ write, edit, bash ]
+    skills: [ go-arch, go-api ]
+
+  decomposer:
+    template: decomposer.md
+    description: Task breakdown. Creates <4h implementable tasks.
+    model: heavy
+    tools: [ read, glob, grep, list, todoread, todowrite, skill ]
+    disallow: [ write, edit ]
+    skills: [ go-arch ]
+
+  # === TESTING ===
+  acceptor:
+    template: acceptor.md
+    description: Acceptance testing. Validates against specs.
+    model: heavy
+    tools: [ read, bash, glob, grep, list, todoread, todowrite, skill ]
+    skills: [ go-test ]
+
+  tester:
+    template: tester.md
+    description: Test specialist. Runs tests, analyzes failures.
+    model: fast
+    tools: [ read, bash, glob, grep, list, todoread, skill ]
+    skills: [ go-test ]
+
+  reproducer:
+    template: reproducer.md
+    description: Bug reproduction. Creates minimal failing tests.
+    model: fast
+    tools: [ read, write, bash, glob, grep, list, todoread, todowrite, skill ]
+    skills: [ go-test ]
+
+  # === TASK ROUTING ===
+  task-fast:
+    template: planner.md
+    description: Quick task assessment. Complexity routing.
+    model: fast
+    tools: [ read, glob, grep, list, todoread, skill ]
+    disallow: [ write, edit ]
+    skills: [ ]
+
+  task-heavy:
+    template: planner.md
+    description: Complex task analysis. Deep reasoning.
+    model: heavy
+    tools: [ read, glob, grep, list, todoread, todowrite, skill ]
+    disallow: [ write, edit ]
+    skills: [ go-arch, go-code, go-api, go-db ]
+
+# Tool mappings for different platforms
+tool_mappings:
+  opencode:
+    read: read
+    write: write
+    edit: edit
+    bash: bash
+    glob: glob
+    grep: grep
+    list: list
+    todoread: todoread
+    todowrite: todowrite
+    skill: skill
+    task: task
+    webfetch: webfetch
+    websearch: websearch
+
+  claude_code:
+    read: Read
+    write: Write
+    edit: Edit
+    bash: Bash
+    glob: Glob
+    grep: Grep
+    list: LS
+    todoread: TodoRead
+    todowrite: TodoWrite
+    skill: Skill
+    task: Task
+    webfetch: WebFetch
+    websearch: WebSearch
+
+# Model mappings
+model_mappings:
+  opencode:
+    fast: fast
+    main: main
+    heavy: heavy
+
+  claude_code:
+    fast: haiku
+    main: sonnet
+    heavy: opus

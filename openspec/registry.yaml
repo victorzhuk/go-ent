@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-11T08:48:48.818657934+03:00
+synced_at: 2026-01-13T00:00:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 1
+        completed: 6
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -82,7 +82,24 @@ changes:
         completed: 0
         in_progress: 0
         blocked: 0
+    refactor-agent-command-skill-system:
+        id: refactor-agent-command-skill-system
+        title: ""
+        status: ""
+        tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/refactor-agent-command-skill-system/tasks.md
+        total: 27
+        completed: 1
+        in_progress: 0
+        blocked: 0
 tasks:
+    - id:
+        change_id: refactor-agent-command-skill-system
+        task_num: "1"
+      content: 1.1 Create JSON schema for agent metadata (2h)
+      status: completed
+      priority: medium
+      source_line: 10
+      synced_at: 2026-01-14T12:00:00.000000000+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "1"
@@ -575,42 +592,42 @@ tasks:
         change_id: add-ast-operations
         task_num: "2"
       content: 1.2 Create `internal/ast/query.go` - Query AST for patterns
-      status: pending
+      status: completed
       priority: medium
       source_line: 9
-      synced_at: 2026-01-11T08:48:48.816982311+03:00
+      synced_at: 2026-01-13T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "3"
       content: 1.3 Create `internal/ast/transform.go` - Transform AST nodes
-      status: pending
+      status: completed
       priority: medium
       source_line: 10
-      synced_at: 2026-01-11T08:48:48.816983273+03:00
+      synced_at: 2026-01-13T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "4"
       content: 1.4 Create `internal/ast/printer.go` - Print AST back to Go code
-      status: pending
+      status: completed
       priority: medium
       source_line: 11
-      synced_at: 2026-01-11T08:48:48.816985908+03:00
+      synced_at: 2026-01-13T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "5"
       content: 2.1 Create `internal/ast/symbols.go` - Symbol table construction
-      status: pending
+      status: completed
       priority: medium
       source_line: 15
-      synced_at: 2026-01-11T08:48:48.81698687+03:00
+      synced_at: 2026-01-13T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "6"
       content: 2.2 Implement find-all-references
-      status: pending
+      status: completed
       priority: medium
       source_line: 16
-      synced_at: 2026-01-11T08:48:48.816987701+03:00
+      synced_at: 2026-01-13T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "7"

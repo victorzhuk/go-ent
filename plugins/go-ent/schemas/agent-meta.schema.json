@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/victorzhuk/go-ent/plugins/go-ent/schemas/agent-meta.schema.json",
+  "title": "Agent Metadata Schema",
+  "description": "Schema for validating agent metadata YAML files in meta/*.yaml",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "model",
+    "color",
+    "tags",
+    "prompts"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the agent",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the agent's purpose",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model category for this agent",
+      "enum": [
+        "main",
+        "fast",
+        "heavy"
+      ]
+    },
+    "color": {
+      "type": "string",
+      "description": "Hex color code for UI display",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "tags": {
+      "type": "object",
+      "description": "Agent classification tags",
+      "required": [
+        "role",
+        "complexity"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "Primary role of the agent",
+          "enum": [
+            "planning",
+            "execution",
+            "review",
+            "debug",
+            "test"
+          ]
+        },
+        "complexity": {
+          "type": "string",
+          "description": "Complexity level of tasks the agent handles",
+          "enum": [
+            "light",
+            "standard",
+            "heavy"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "array",
+      "description": "List of tools this agent has access to",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "skills": {
+      "type": "array",
+      "description": "List of skill IDs this agent uses",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "prompts": {
+      "type": "object",
+      "description": "Prompt configuration for the agent",
+      "required": [
+        "main"
+      ],
+      "properties": {
+        "shared": {
+          "type": "array",
+          "description": "Shared prompt sections used across multiple agents",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "main": {
+          "type": "string",
+          "description": "Primary prompt template for this agent",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "List of agent names this agent depends on",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

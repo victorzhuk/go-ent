@@ -6,14 +6,14 @@
 ## 1. Core Infrastructure
 
 - [x] 1.1 Create `internal/ast/parser.go` - Parse Go files to AST ✓ 2026-01-13
-- [ ] 1.2 Create `internal/ast/query.go` - Query AST for patterns
-- [ ] 1.3 Create `internal/ast/transform.go` - Transform AST nodes
-- [ ] 1.4 Create `internal/ast/printer.go` - Print AST back to Go code
+- [x] 1.2 Create `internal/ast/query.go` - Query AST for patterns ✓ 2026-01-13
+- [x] 1.3 Create `internal/ast/transform.go` - Transform AST nodes ✓ 2026-01-13
+- [x] 1.4 Create `internal/ast/printer.go` - Print AST back to Go code ✓ 2026-01-13
 
 ## 2. Symbol Operations
 
-- [ ] 2.1 Create `internal/ast/symbols.go` - Symbol table construction
-- [ ] 2.2 Implement find-all-references
+- [x] 2.1 Create `internal/ast/symbols.go` - Symbol table construction ✓ 2026-01-13
+- [x] 2.2 Implement find-all-references ✓ 2026-01-13
 - [ ] 2.3 Implement go-to-definition
 - [ ] 2.4 Implement type-aware rename
 
