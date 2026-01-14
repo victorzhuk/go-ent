@@ -1,0 +1,16 @@
+name: {{.Name}}
+description: {{.Description}}
+model: {{.Model}}
+color: "{{.Color}}"
+skills:
+{{- range .Skills }}
+  - {{.}}
+{{- end }}
+tools:
+{{- range .Tools }}
+  - {{.}}
+{{- end }}
+dependencies:
+{{- range .Dependencies }}
+  - {{.}}
+{{- end }}

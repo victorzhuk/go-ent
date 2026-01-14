@@ -1,0 +1,16 @@
+name: reviewer
+description: Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions.
+model: heavy
+color: "#4169E1"
+skills:
+  - go-review
+  - security-core
+  - go-sec
+tools:
+  - read
+  - grep
+  - glob
+  - bash
+  - mcp__plugin_serena_serena
+dependencies:
+  []

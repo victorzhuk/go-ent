@@ -1,0 +1,21 @@
+name: debugger
+description: Standard debugging. Systematic issue investigation and resolution.
+model: main
+color: "#DC143C"
+skills:
+  - go-code
+  - go-perf
+  - go-test
+  - debug-core
+tools:
+  - read
+  - write
+  - edit
+  - bash
+  - glob
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - tester
+  - reviewer
+  - acceptor

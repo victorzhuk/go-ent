@@ -67,17 +67,30 @@ type AgentTags struct {
 	Complexity string `yaml:"complexity"` // light, standard, heavy
 }
 
+// PromptConfig configures how prompts are composed
+type PromptConfig struct {
+	// Shared is a list of shared prompt section names to include
+	// Example: ["shared/_tooling", "shared/_conventions"]
+	Shared []string
+
+	// Main is the path to the agent-specific prompt file
+	// Example: "prompts/agents/coder.md"
+	Main string
+}
+
 // AgentMeta contains parsed agent metadata
 type AgentMeta struct {
-	Name        string
-	Description string
-	Model       string
-	Color       string
-	Skills      []string
-	Tools       []string
-	Tags        AgentTags
-	Body        string
-	FilePath    string
+	Name         string
+	Description  string
+	Model        string
+	Color        string
+	Skills       []string
+	Tools        []string
+	Tags         AgentTags
+	Body         string
+	FilePath     string
+	Dependencies []string
+	Prompts      PromptConfig
 }
 
 // CommandMeta contains parsed command metadata

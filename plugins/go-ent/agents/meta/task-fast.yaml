@@ -1,0 +1,14 @@
+name: task-fast
+description: Quick task assessment and routing. Fast complexity evaluation.
+model: fast
+color: "#87CEEB"
+skills:
+  - arch-core
+tools:
+  - read
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - coder
+  - task-heavy

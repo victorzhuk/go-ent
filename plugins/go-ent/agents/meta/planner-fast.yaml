@@ -1,0 +1,12 @@
+name: planner-fast
+description: Quick feasibility check and triage. Fast initial assessment.
+model: fast
+color: "#90EE90"
+skills:
+  - arch-core
+tools:
+  - read
+  - grep
+dependencies:
+  - planner
+  - architect

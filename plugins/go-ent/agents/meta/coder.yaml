@@ -1,0 +1,22 @@
+name: coder
+description: Go developer. Implements features, writes code.
+model: main
+color: "#32CD32"
+skills:
+  - go-code
+  - go-db
+tools:
+  - read
+  - write
+  - edit
+  - bash
+  - glob
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - tester
+  - reviewer
+  - debugger
+tags:
+  - "role:execution"
+  - "complexity:standard"

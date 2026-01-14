@@ -1,0 +1,14 @@
+name: planner
+description: Task planner. Breaks features into actionable tasks.
+model: main
+color: "#32CD32"
+skills:
+  - go-arch
+  - go-code
+tools:
+  - read
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  []

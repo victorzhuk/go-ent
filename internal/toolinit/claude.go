@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/victorzhuk/go-ent/internal/model"
@@ -165,8 +166,77 @@ func (a *ClaudeAdapter) generateCommands(cfg *GenerateConfig) ([]FileOperation, 
 // generateAgents generates agent files for Claude Code
 func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, error) {
 	var ops []FileOperation
+	processedAgents := make(map[string]bool)
 
-	err := fs.WalkDir(cfg.PluginFS, "plugins/go-ent/agents", func(path string, d fs.DirEntry, err error) error {
+	// First, process split-format agents (meta/*.yaml)
+	metaEntries, err := fs.ReadDir(cfg.PluginFS, "plugins/go-ent/agents/meta")
+	if err == nil {
+		for _, entry := range metaEntries {
+			if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".yaml") {
+				continue
+			}
+
+			agentName := FileNameWithoutExt(entry.Name())
+			processedAgents[agentName] = true
+
+			// Check if this agent is in the filter list (if provided)
+			if len(cfg.Agents) > 0 {
+				found := false
+				for _, a := range cfg.Agents {
+					if a == agentName {
+						found = true
+						break
+					}
+				}
+				if !found {
+					continue
+				}
+			}
+
+			// Read metadata YAML
+			metaPath := filepath.Join("plugins/go-ent/agents/meta", entry.Name())
+			metaContent, err := fs.ReadFile(cfg.PluginFS, metaPath)
+			if err != nil {
+				return nil, fmt.Errorf("read %s: %w", metaPath, err)
+			}
+
+			// Parse metadata
+			meta, err := ParseAgentMetaYAML(string(metaContent), metaPath)
+			if err != nil {
+				return nil, fmt.Errorf("parse metadata %s: %w", metaPath, err)
+			}
+
+			// Set prompt paths for composer
+			meta.Prompts.Main = filepath.Join("plugins/go-ent/agents/prompts/agents", agentName+".md")
+			meta.Prompts.Shared = []string{
+				"_tooling",
+				"_conventions",
+				"_handoffs",
+				"_openspec",
+			}
+
+			// Apply model overrides if configured
+			if len(cfg.ModelOverrides) > 0 {
+				resolver := NewModelResolver(cfg.ModelOverrides)
+				meta.Model = resolver.Resolve(meta)
+			}
+
+			// Transform using composer + template
+			transformed, err := a.TransformAgentWithComposer(cfg.PluginFS, meta)
+			if err != nil {
+				return nil, fmt.Errorf("transform split-format agent %s: %w", agentName, err)
+			}
+
+			ops = append(ops, FileOperation{
+				Path:    filepath.Join("agents", "ent", agentName+".md"),
+				Content: transformed,
+				Mode:    0644,
+			})
+		}
+	}
+
+	// Then, process legacy single-file format (skip if already processed)
+	err = fs.WalkDir(cfg.PluginFS, "plugins/go-ent/agents", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -174,11 +244,21 @@ func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, er
 			return nil
 		}
 
+		// Skip prompts directories
+		if strings.Contains(path, "/prompts/") || strings.Contains(path, "/meta/") {
+			return nil
+		}
+
 		filename := filepath.Base(path)
+		agentName := FileNameWithoutExt(filename)
+
+		// Skip if already processed as split format
+		if processedAgents[agentName] {
+			return nil
+		}
 
 		// Check if this agent is in the filter list (if provided)
 		if len(cfg.Agents) > 0 {
-			agentName := FileNameWithoutExt(filename)
 			found := false
 			for _, a := range cfg.Agents {
 				if a == agentName {
@@ -197,7 +277,7 @@ func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, er
 			return fmt.Errorf("read %s: %w", path, err)
 		}
 
-		// Parse and transform
+		// Parse and transform (legacy format)
 		meta, err := ParseAgentFile(string(content), path)
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", path, err)
@@ -209,6 +289,7 @@ func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, er
 			meta.Model = resolver.Resolve(meta)
 		}
 
+		// Transform using legacy method
 		transformed, err := a.TransformAgent(meta)
 		if err != nil {
 			return fmt.Errorf("transform %s: %w", path, err)
@@ -292,7 +373,7 @@ func (a *ClaudeAdapter) generateSkills(cfg *GenerateConfig) ([]FileOperation, er
 	return ops, err
 }
 
-// TransformAgent transforms an agent file for Claude Code
+// TransformAgent transforms an agent file for Claude Code (legacy format)
 func (a *ClaudeAdapter) TransformAgent(meta *AgentMeta) (string, error) {
 	// Claude Code agent frontmatter format
 	metadata := make(map[string]interface{})
@@ -306,7 +387,11 @@ func (a *ClaudeAdapter) TransformAgent(meta *AgentMeta) (string, error) {
 	}
 	if meta.Model != "" {
 		// Use model resolver to map categories to Claude API model IDs
-		resolver := model.NewResolver(a.cfg.ModelConfig, "claude")
+		var modelConfig *model.Config
+		if a.cfg != nil {
+			modelConfig = a.cfg.ModelConfig
+		}
+		resolver := model.NewResolver(modelConfig, "claude")
 		metadata["model"] = resolver.ResolveAgent(meta.Model)
 	}
 	if meta.Color != "" {
@@ -322,6 +407,68 @@ func (a *ClaudeAdapter) TransformAgent(meta *AgentMeta) (string, error) {
 
 	frontmatter := GenerateFrontmatter(metadata)
 	return frontmatter + "\n" + meta.Body, nil
+}
+
+// TransformAgentWithComposer transforms an agent using composer and template (new format)
+func (a *ClaudeAdapter) TransformAgentWithComposer(pluginFS fs.FS, meta *AgentMeta) (string, error) {
+	// Load and compose prompt
+	composer := NewPromptComposer(pluginFS)
+	body, err := composer.Compose(meta)
+	if err != nil {
+		return "", fmt.Errorf("compose prompt: %w", err)
+	}
+
+	// Prepare template data
+	data := struct {
+		Name         string
+		Description  string
+		Model        string
+		Color        string
+		Skills       []string
+		Tools        []string
+		Dependencies []string
+		Role         string
+		Complexity   string
+	}{
+		Name:         "ent-" + meta.Name,
+		Description:  meta.Description,
+		Color:        meta.Color,
+		Skills:       meta.Skills,
+		Tools:        meta.Tools,
+		Dependencies: meta.Dependencies,
+		Role:         meta.Tags.Role,
+		Complexity:   meta.Tags.Complexity,
+	}
+
+	// Resolve model
+	if meta.Model != "" {
+		var modelConfig *model.Config
+		if a.cfg != nil {
+			modelConfig = a.cfg.ModelConfig
+		}
+		resolver := model.NewResolver(modelConfig, "claude")
+		data.Model = resolver.ResolveAgent(meta.Model)
+	}
+
+	// Load template
+	tmplContent, err := fs.ReadFile(pluginFS, "plugins/go-ent/agents/templates/claude.yaml.tmpl")
+	if err != nil {
+		return "", fmt.Errorf("load template: %w", err)
+	}
+
+	// Parse template
+	tmpl, err := template.New("claude").Parse(string(tmplContent))
+	if err != nil {
+		return "", fmt.Errorf("parse template: %w", err)
+	}
+
+	// Execute template
+	var frontmatterBuf strings.Builder
+	if err := tmpl.Execute(&frontmatterBuf, data); err != nil {
+		return "", fmt.Errorf("execute template: %w", err)
+	}
+
+	return frontmatterBuf.String() + "\n" + body, nil
 }
 
 // TransformCommand transforms a command file for Claude Code

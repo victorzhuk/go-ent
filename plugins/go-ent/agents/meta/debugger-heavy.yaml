@@ -1,0 +1,22 @@
+name: debugger-heavy
+description: Complex debugging. Concurrency, performance, multi-component issues.
+model: heavy
+color: "#8B0000"
+skills:
+  - go-code
+  - go-perf
+  - debug-core
+  - go-sec
+  - go-test
+tools:
+  - read
+  - write
+  - edit
+  - bash
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - reviewer
+  - acceptor
+  - tester

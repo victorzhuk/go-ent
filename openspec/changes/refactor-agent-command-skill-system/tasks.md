@@ -21,13 +21,13 @@
   - Dependencies: none
   - Parallel with: 1.1
 
-- [ ] **1.3** Implement dependency resolution algorithm (1.5h)
+- [x] **1.3** Implement dependency resolution algorithm (1.5h) ✓ 2026-01-14
   - File: `internal/agent/resolver.go`
   - Implement: BFS traversal for transitive dependencies
   - Return topologically sorted list
   - Dependencies: 1.2
 
-- [ ] **1.4** Add cycle detection and validation (0.5h)
+- [x] **1.4** Add cycle detection and validation (0.5h) ✓ 2026-01-14
   - File: `internal/agent/validate.go`
   - Implement: DFS with color marking for cycle detection
   - Validation: Check all dependencies exist, no missing agents
@@ -37,7 +37,7 @@
 
 ## Phase 2: Prompt System (6h)
 
-- [ ] **2.1** Create shared prompt sections (1h)
+- [x] **2.1** Create shared prompt sections (1h) ✓ 2026-01-14
   - Files:
     - `plugins/go-ent/agents/prompts/shared/_tooling.md` - Serena, Bash patterns
     - `plugins/go-ent/agents/prompts/shared/_conventions.md` - Go code style
@@ -47,21 +47,21 @@
   - Dependencies: none
   - Parallel with: 2.3, 2.4
 
-- [ ] **2.2** Extract agent prompts from existing files (2h)
-  - Files: `plugins/go-ent/agents/prompts/agents/*.md` (18 files)
+- [x] **2.2** Extract agent prompts from existing files (2h) ✓ 2026-01-14
+  - Files: `plugins/go-ent/agents/prompts/agents/*.md` (16 files)
   - For each agent: Remove frontmatter, keep body, update to reference shared sections
   - Agents: coder, architect, planner, planner-fast, planner-heavy, decomposer, debugger, debugger-fast, debugger-heavy, tester, reviewer, researcher, reproducer, acceptor, task-fast, task-heavy
   - Dependencies: 2.1
 
-- [ ] **2.3** Create agent metadata files (2h)
-  - Files: `plugins/go-ent/agents/meta/*.yaml` (18 files)
+- [x] **2.3** Create agent metadata files (2h) ✓ 2026-01-14
+  - Files: `plugins/go-ent/agents/meta/*.yaml` (16 files)
   - For each agent: Extract frontmatter → YAML format
   - Map dependencies by analyzing handoff mentions (`@ent:*`)
   - Dependency graph (see proposal.md for full graph)
   - Dependencies: none
   - Parallel with: 2.1
 
-- [ ] **2.4** Create tool-specific frontmatter templates (1h)
+- [x] **2.4** Create tool-specific frontmatter templates (1h) ✓ 2026-01-14
   - Files:
     - `plugins/go-ent/agents/templates/claude.yaml.tmpl` - Claude Code format
     - `plugins/go-ent/agents/templates/opencode.yaml.tmpl` - OpenCode format
@@ -73,31 +73,31 @@
 
 ## Phase 3: Composition Engine (8h)
 
-- [ ] **3.1** Create template engine with include function (2h)
+- [x] **3.1** Create template engine with include function (2h) ✓ 2026-01-14
   - File: `internal/template/funcs.go`
   - Functions: `include(name)`, `if_tool(tool)`, `model(category, tool)`, `list(array)`, `tools(tools, tool)`
   - Template: Use `text/template` with custom FuncMap
   - Dependencies: none
 
-- [ ] **3.2** Implement prompt composer (2h)
+- [x] **3.2** Implement prompt composer (2h) ✓ 2026-01-14
   - File: `internal/agent/composer.go`
   - Type: `PromptComposer` with `Compose(meta *AgentMeta) (string, error)`
   - Logic: Load shared sections → load agent prompt → process includes → return composed
   - Dependencies: 3.1, 2.1
 
-- [ ] **3.3** Update `AgentMeta` struct with dependencies (1h)
+- [x] **3.3** Update `AgentMeta` struct with dependencies (1h) ✓ 2026-01-14
   - File: `internal/toolinit/adapter.go`
   - Add fields: `Dependencies []string`, `Prompts PromptConfig`
   - PromptConfig: `Shared []string`, `Main string`
   - Dependencies: 1.2
 
-- [ ] **3.4** Update Claude adapter for new system (1.5h)
+- [x] **3.4** Update Claude adapter for new system (1.5h) ✓ 2026-01-14
   - File: `internal/toolinit/claude.go`
   - Update: `TransformAgent()` to use composer + templates
   - Load meta → compose prompt → apply template → generate frontmatter + body
   - Dependencies: 3.2, 2.4
 
-- [ ] **3.5** Update OpenCode adapter for new system (1.5h)
+- [x] **3.5** Update OpenCode adapter for new system (1.5h) ✓ 2026-01-14
   - File: `internal/toolinit/opencode.go`
   - Update: `TransformAgent()` to use composer + templates
   - Load meta → compose prompt → apply template → generate frontmatter + body

@@ -1,0 +1,15 @@
+name: acceptor
+description: Validate acceptance criteria and requirements. Ensure spec compliance.
+model: heavy
+color: "#32CD32"
+skills:
+  - go-test
+  - review-core
+tools:
+  - read
+  - bash
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - coder
+  - architect

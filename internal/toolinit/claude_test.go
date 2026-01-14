@@ -37,7 +37,7 @@ func TestClaudeAdapter_TransformAgent(t *testing.T) {
 				Skills:      []string{"go-arch", "go-api"},
 				Body:        "# Architect\n\nSystem design specialist.",
 			},
-			wantName:  "architect",
+			wantName:  "ent-architect",
 			wantDesc:  "System architect",
 			wantModel: "claude-opus-4-5-20250514",
 		},
@@ -49,7 +49,7 @@ func TestClaudeAdapter_TransformAgent(t *testing.T) {
 				Model:       "sonnet",
 				Body:        "# Planner\n\nBreaks down tasks.",
 			},
-			wantName:  "planner",
+			wantName:  "ent-planner",
 			wantDesc:  "Task planner",
 			wantModel: "claude-sonnet-4-5-20250929",
 		},
@@ -61,7 +61,7 @@ func TestClaudeAdapter_TransformAgent(t *testing.T) {
 				Model:       "haiku",
 				Body:        "# Planner Smoke\n\nFast assessment.",
 			},
-			wantName:  "planner-smoke",
+			wantName:  "ent-planner-smoke",
 			wantDesc:  "Quick triage",
 			wantModel: "claude-haiku-4-5-20250429",
 		},
@@ -100,7 +100,7 @@ func TestClaudeAdapter_TransformCommand(t *testing.T) {
 	require.NotEmpty(t, result)
 
 	// Verify frontmatter
-	assert.Contains(t, result, "name: plan")
+	assert.Contains(t, result, "name: ent:plan")
 	assert.Contains(t, result, "description: Create change proposal")
 	// Verify body
 	assert.Contains(t, result, "# Planning Workflow")

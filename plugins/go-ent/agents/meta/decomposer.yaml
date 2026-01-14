@@ -1,0 +1,13 @@
+name: decomposer
+description: Task breakdown and dependency analysis. Creates implementable task graph.
+model: heavy
+color: "#FFD700"
+skills:
+  - arch-core
+tools:
+  - read
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - coder

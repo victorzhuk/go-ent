@@ -1,0 +1,19 @@
+name: architect
+description: System architect. Designs components, layers, data flow.
+model: heavy
+color: "#4169E1"
+skills:
+  - go-arch
+  - go-api
+  - api-design
+tools:
+  - read
+  - glob
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - planner
+  - coder
+tags:
+  - "role:planning"
+  - "complexity:heavy"

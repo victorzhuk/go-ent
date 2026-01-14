@@ -1,0 +1,17 @@
+---
+name: {{.Name}}
+description: "{{.Description}}"
+tools:
+{{- range .Tools }}
+  {{.}}: true
+{{- end }}
+model: {{.Model}}
+color: "{{.Color}}"
+tags:
+  - "role:{{.Role}}"
+  - "complexity:{{.Complexity}}"
+skills:
+{{- range .Skills }}
+  - {{.}}
+{{- end }}
+---

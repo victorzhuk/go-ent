@@ -1,0 +1,13 @@
+name: tester
+description: Test engineer. Writes tests, TDD cycles.
+model: fast
+color: "#00FFFF"
+skills:
+  - go-test
+tools:
+  - read
+  - bash
+  - grep
+  - glob
+dependencies:
+  []

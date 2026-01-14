@@ -1,0 +1,19 @@
+name: planner-heavy
+description: Complex architectural planning. Deep analysis for large-scale changes.
+model: heavy
+color: "#228B22"
+skills:
+  - go-arch
+  - go-api
+  - go-code
+  - go-db
+  - api-design
+tools:
+  - read
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - decomposer
+  - architect
+  - planner

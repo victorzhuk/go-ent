@@ -1,0 +1,18 @@
+name: task-heavy
+description: Complex task analysis. Deep reasoning for difficult implementations.
+model: heavy
+color: "#4B0082"
+skills:
+  - go-arch
+  - go-code
+  - go-api
+  - go-db
+  - debug-core
+tools:
+  - read
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - coder
+  - architect

@@ -1,0 +1,19 @@
+name: debugger-fast
+description: Quick debugging for simple issues. Fast troubleshooting.
+model: fast
+color: "#FF6347"
+skills:
+  - go-code
+  - debug-core
+tools:
+  - read
+  - write
+  - edit
+  - bash
+  - glob
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - tester
+  - coder
+  - reviewer

@@ -1,0 +1,17 @@
+name: reproducer
+description: Create minimal bug reproductions. Write failing tests first.
+model: fast
+color: "#FF6347"
+skills:
+  - go-test
+  - debug-core
+tools:
+  - read
+  - write
+  - bash
+  - grep
+  - glob
+  - mcp__plugin_serena_serena
+dependencies:
+  - researcher
+  - debugger-fast
