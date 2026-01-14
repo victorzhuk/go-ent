@@ -14,7 +14,7 @@
   - Dependencies: none
   - Parallel with: 1.2
 
-- [ ] **1.2** Create dependency graph types and loader (2h)
+- [x] **1.2** Create dependency graph types and loader (2h) ✓ 2026-01-14
   - Files: `internal/agent/deps.go`, `internal/agent/loader.go`
   - Types: `DependencyGraph`, `Node`, `Edge`
   - Loader: Parse `meta/*.yaml` files, build adjacency list

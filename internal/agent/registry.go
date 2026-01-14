@@ -10,14 +10,15 @@ import (
 
 // AgentMeta represents parsed agent metadata from agent markdown files.
 type AgentMeta struct {
-	Name        string
-	Description string
-	Model       string
-	Color       string
-	Skills      []string
-	Tools       map[string]bool
-	Content     string
-	FilePath    string
+	Name         string
+	Description  string
+	Model        string
+	Color        string
+	Skills       []string
+	Tools        map[string]bool
+	Content      string
+	FilePath     string
+	Dependencies []string
 }
 
 // Registry manages agent metadata.
