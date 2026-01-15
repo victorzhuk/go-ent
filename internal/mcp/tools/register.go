@@ -39,6 +39,9 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	registerEngineStatus(s)
 	registerEngineBudget(s)
 	registerEngineInterrupt(s)
+	registerASTParse(s)
+	registerASTQuery(s)
+	registerASTRename(s)
 
 	// Register plugin tools
 	if pluginManager != nil {

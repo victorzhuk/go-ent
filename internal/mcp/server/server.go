@@ -61,7 +61,7 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	marketplaceClient := marketplace.NewClient()
 	marketplaceSearcher := marketplace.NewSearcher(marketplaceClient)
 	registryWrapper := &skillRegistryWrapper{registry: registry, agentRegistry: agentRegistry}
-	pluginManager := plugin.NewManager(pluginsDir, registryWrapper, marketplaceClient)
+	pluginManager := plugin.NewManager(pluginsDir, registryWrapper, marketplaceClient, nil)
 
 	if err := pluginManager.Initialize(nil); err != nil {
 		slog.Warn("failed to initialize plugin manager", "error", err)

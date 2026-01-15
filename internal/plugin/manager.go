@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
@@ -17,6 +18,7 @@ type Manager struct {
 	mu          sync.RWMutex
 	registry    Registry
 	marketplace MarketplaceClient
+	logger      *slog.Logger
 }
 
 type Registry interface {
@@ -30,13 +32,18 @@ type MarketplaceClient interface {
 	Download(ctx context.Context, name, version string) ([]byte, error)
 }
 
-func NewManager(pluginsDir string, registry Registry, marketplace MarketplaceClient) *Manager {
+func NewManager(pluginsDir string, registry Registry, marketplace MarketplaceClient, logger *slog.Logger) *Manager {
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return &Manager{
 		plugins:     make(map[string]*Plugin),
 		pluginsDir:  pluginsDir,
 		enabled:     make(map[string]bool),
 		registry:    registry,
 		marketplace: marketplace,
+		logger:      logger,
 	}
 }
 
@@ -60,6 +67,7 @@ func (m *Manager) Initialize(ctx context.Context) error {
 
 		manifest, err := ParseManifest(manifestPath)
 		if err != nil {
+			m.logger.Warn("failed to parse plugin manifest", "plugin_dir", entry.Name(), "error", err)
 			continue
 		}
 

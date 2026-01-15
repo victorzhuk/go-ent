@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-15T12:00:00.000000000+03:00
+synced_at: 2026-01-15T14:15:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 8
+        completed: 13
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -25,7 +25,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-background-agents/tasks.md
         total: 18
-        completed: 0
+        completed: 3
         in_progress: 0
         blocked: 0
     add-context-memory:
@@ -70,7 +70,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-plugin-system/tasks.md
         total: 61
-        completed: 44
+        completed: 45
         in_progress: 0
         blocked: 0
     add-spec-anchoring:
@@ -101,13 +101,37 @@ tasks:
       source_line: 10
       synced_at: 2026-01-14T12:00:00.000000000+03:00
     - id:
+        change_id: add-background-agents
+        task_num: "1.1"
+      content: Create internal/agent/background/manager.go - Background agent lifecycle manager
+      status: completed
+      priority: medium
+      source_line: 14
+      synced_at: 2026-01-15T17:00:00.000000000+03:00
+    - id:
+        change_id: add-background-agents
+        task_num: "5.1"
+      content: Unit tests for background manager
+      status: completed
+      priority: medium
+      source_line: 49
+      synced_at: 2026-01-15T17:00:00.000000000+03:00
+    - id:
+        change_id: add-background-agents
+        task_num: "5.3"
+      content: Test parallel agent spawning and coordination
+      status: completed
+      priority: medium
+      source_line: 51
+      synced_at: 2026-01-15T17:00:00.000000000+03:00
+    - id:
         change_id: add-acp-agent-mode
         task_num: "1"
       content: 1.1 Create `internal/worker/manager.go` - Worker lifecycle management
-      status: pending
+      status: completed
       priority: medium
       source_line: 43
-      synced_at: 2026-01-11T08:48:48.816884328+03:00
+      synced_at: 2026-01-15T12:00:00.000000000+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "2"
@@ -649,18 +673,18 @@ tasks:
         change_id: add-ast-operations
         task_num: "9"
       content: 3.1 Implement `go_ent_ast_parse` - Parse file and return structure
-      status: pending
+      status: completed
       priority: medium
       source_line: 22
-      synced_at: 2026-01-11T08:48:48.816989956+03:00
+      synced_at: 2026-01-15T14:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "10"
       content: 3.2 Implement `go_ent_ast_query` - Find functions/types/interfaces by pattern
-      status: pending
+      status: completed
       priority: medium
       source_line: 23
-      synced_at: 2026-01-11T08:48:48.816990987+03:00
+      synced_at: 2026-01-15T15:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "11"
@@ -689,18 +713,18 @@ tasks:
         change_id: add-ast-operations
         task_num: "14"
       content: 4.1 Query by function signature pattern
-      status: pending
+      status: completed
       priority: medium
       source_line: 30
-      synced_at: 2026-01-11T08:48:48.816994995+03:00
+      synced_at: 2026-01-15T15:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "15"
       content: 4.2 Query by interface implementation
-      status: pending
+      status: completed
       priority: medium
       source_line: 31
-      synced_at: 2026-01-11T08:48:48.816995656+03:00
+      synced_at: 2026-01-15T15:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "16"
@@ -745,10 +769,10 @@ tasks:
         change_id: add-ast-operations
         task_num: "21"
       content: 6.1 Unit tests for AST parsing
-      status: pending
+      status: completed
       priority: medium
       source_line: 43
-      synced_at: 2026-01-11T08:48:48.817000275+03:00
+      synced_at: 2026-01-15T15:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "22"
@@ -3033,10 +3057,10 @@ tasks:
         change_id: add-plugin-system
         task_num: "58"
       content: Add logging for failed plugin initialization in manager.go:57-60
-      status: pending
+      status: completed
       priority: medium
       source_line: 91
-      synced_at: 2026-01-11T08:48:48.81856468+03:00
+      synced_at: 2026-01-15T14:15:00.000000000+03:00
     - id:
         change_id: add-plugin-system
         task_num: "59"

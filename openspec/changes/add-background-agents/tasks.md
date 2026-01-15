@@ -11,7 +11,7 @@ For **heavy implementation work** (>5 min, multi-file), use OpenCode workers (ad
 
 ## 1. Core Infrastructure
 
-- [ ] 1.1 Create `internal/agent/background/manager.go` - Background agent lifecycle manager
+- [x] 1.1 Create `internal/agent/background/manager.go` - Background agent lifecycle manager ✓
 - [ ] 1.2 Create `internal/agent/background/registry.go` - Track spawned agents with status
 - [ ] 1.3 Create `internal/agent/background/output.go` - Buffer and stream agent outputs
 - [ ] 1.4 Add background agent configuration to config system
@@ -46,6 +46,6 @@ Route internal agents to appropriate models via direct provider API:
 
 ## 5. Testing
 
-- [ ] 5.1 Unit tests for background manager
+- [x] 5.1 Unit tests for background manager ✓
 - [ ] 5.2 Integration tests for MCP tools
-- [ ] 5.3 Test parallel agent spawning and coordination
+- [x] 5.3 Test parallel agent spawning and coordination ✓

@@ -40,7 +40,7 @@ Dynamic MCP Discovery features moved to **add-dynamic-mcp-discovery** proposal:
 
 ## 1. Worker Manager Core
 
-- [ ] 1.1 Create `internal/worker/manager.go` - Worker lifecycle management
+- [x] 1.1 Create `internal/worker/manager.go` - Worker lifecycle management ✓ 2026-01-15
 - [ ] 1.2 Create `internal/worker/worker.go` - OpenCode worker abstraction
 - [ ] 1.3 Create `internal/worker/pool.go` - Worker pool with concurrency limits
 - [ ] 1.4 Create `internal/worker/config.go` - Load provider configs

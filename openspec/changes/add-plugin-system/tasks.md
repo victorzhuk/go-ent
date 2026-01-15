@@ -88,7 +88,7 @@
 - [x] Fix RegisterAgent no-op in server.go:80-82 (error or implement) ✓ 2026-01-12
 
 ## 16. Fix Medium Priority Issues
-- [ ] Add logging for failed plugin initialization in manager.go:57-60
+- [x] Add logging for failed plugin initialization in manager.go:57-60 ✓ 2026-01-15
 - [ ] Cache regex compilation in evaluator.go:194
 - [ ] Implement executeRejectAction in evaluator.go:76
 - [ ] Implement executeModifyAction in evaluator.go:80
