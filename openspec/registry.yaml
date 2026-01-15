@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-13T00:00:00.000000000+03:00
+synced_at: 2026-01-15T12:00:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 7
+        completed: 8
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -640,9 +640,10 @@ tasks:
         change_id: add-ast-operations
         task_num: "8"
       content: 2.4 Implement type-aware rename
-      status: pending
+      status: completed
       priority: medium
       source_line: 18
+      synced_at: 2026-01-15T12:00:00.000000000+03:00
       synced_at: 2026-01-11T08:48:48.816988964+03:00
     - id:
         change_id: add-ast-operations

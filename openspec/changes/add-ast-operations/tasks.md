@@ -15,7 +15,7 @@
 - [x] 2.1 Create `internal/ast/symbols.go` - Symbol table construction ✓ 2026-01-13
 - [x] 2.2 Implement find-all-references ✓ 2026-01-13
 - [x] 2.3 Implement go-to-definition ✓ 2026-01-15
-- [ ] 2.4 Implement type-aware rename
+- [x] 2.4 Implement type-aware rename ✓
 
 ## 3. MCP Tools
 

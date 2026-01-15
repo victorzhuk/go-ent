@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type RenameResult struct {
+	File     *ast.File
+	Modified bool
+}
+
 type Transform struct {
 	fset *token.FileSet
 }
@@ -87,6 +92,75 @@ func (t *Transform) RenameSymbol(f *ast.File, oldName, newName string) (*ast.Fil
 	ast.Walk(renamer, newFile)
 
 	return newFile, nil
+}
+
+func (t *Transform) RenameSymbolAtPos(f *ast.File, pos token.Pos, newName string) (*ast.File, error) {
+	if f == nil {
+		return nil, ErrInvalidSource
+	}
+	if newName == "" {
+		return nil, fmt.Errorf("empty new name")
+	}
+
+	builder := NewBuilder(t.fset)
+	_, err := builder.BuildFile(f)
+	if err != nil {
+		return nil, fmt.Errorf("build symbol table: %w", err)
+	}
+
+	ident := t.findIdentifierAtPos(f, pos)
+	if ident == nil {
+		return nil, fmt.Errorf("symbol not found at position")
+	}
+
+	targetSym := builder.FindSymbol(ident.Name, pos)
+	if targetSym == nil {
+		return nil, fmt.Errorf("symbol not found in scope")
+	}
+
+	if ident.Name == newName {
+		return f, nil
+	}
+
+	refs := builder.FindReferences(ident.Name, pos, false)
+	if len(refs) == 0 {
+		return nil, fmt.Errorf("no references found")
+	}
+
+	newFile := t.copyFile(f)
+	renamer := &typeAwareRenamer{
+		targetSym: targetSym,
+		newName:   newName,
+		refs:      refs,
+		fset:      t.fset,
+	}
+
+	ast.Walk(renamer, newFile)
+
+	return newFile, nil
+}
+
+func (t *Transform) findIdentifierAtPos(f *ast.File, pos token.Pos) *ast.Ident {
+	if pos == token.NoPos {
+		return nil
+	}
+
+	var target *ast.Ident
+	ast.Inspect(f, func(n ast.Node) bool {
+		if target != nil {
+			return false
+		}
+
+		if ident, ok := n.(*ast.Ident); ok {
+			if ident.Pos() <= pos && pos < ident.End() {
+				target = ident
+			}
+		}
+
+		return target == nil
+	})
+
+	return target
 }
 
 func (t *Transform) InlineVariable(f *ast.File, varName string) (*ast.File, error) {
@@ -383,6 +457,46 @@ func (r *renamer) isFieldSelector(sel *ast.SelectorExpr) bool {
 		return ident.Obj == nil || ident.Obj.Kind == ast.Var
 	}
 	return false
+}
+
+type typeAwareRenamer struct {
+	targetSym *Symbol
+	newName   string
+	refs      []Reference
+	fset      *token.FileSet
+}
+
+func (r *typeAwareRenamer) Visit(node ast.Node) ast.Visitor {
+	switch n := node.(type) {
+	case *ast.Ident:
+		pos := n.Pos()
+		for _, ref := range r.refs {
+			if pos == ref.Pos {
+				if n.Name == r.targetSym.Name {
+					n.Name = r.newName
+				}
+				break
+			}
+		}
+		return nil
+
+	case *ast.SelectorExpr:
+		if n.Sel != nil {
+			pos := n.Sel.Pos()
+			for _, ref := range r.refs {
+				if pos == ref.Pos {
+					if n.Sel.Name == r.targetSym.Name {
+						n.Sel = ast.NewIdent(r.newName)
+					}
+					break
+				}
+			}
+		}
+		return nil
+
+	default:
+		return r
+	}
 }
 
 type inliner struct {

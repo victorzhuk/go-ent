@@ -536,7 +536,7 @@ func (b *Builder) FindSymbol(name string, pos token.Pos) *Symbol {
 }
 
 func (b *Builder) FindReferences(name string, pos token.Pos, includeTests bool) []Reference {
-	if b.root == nil {
+	if b.root == nil || b.file == nil {
 		return nil
 	}
 
@@ -547,34 +547,41 @@ func (b *Builder) FindReferences(name string, pos token.Pos, includeTests bool) 
 
 	var refs []Reference
 
-	var walkScope func(scope *Scope)
-	walkScope = func(scope *Scope) {
-		for _, sym := range scope.Symbols {
-			if sym.Name == name && sym.Kind == target.Kind {
-				if !includeTests && b.isTestFile(sym.Pos) {
-					continue
-				}
+	// First add the definition itself
+	refs = append(refs, Reference{
+		Symbol: target,
+		Pos:    target.Pos,
+		Kind:   RefDefinition,
+	})
 
-				kind := RefDefinition
-				if sym != target {
-					kind = b.categorizeReference(sym, target)
+	// Walk the AST to find all usages of this symbol
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.Ident:
+			if node.Name == target.Name && b.isReferenceToSymbol(node, target) {
+				// Skip the definition itself since we already added it
+				if node.Pos() != target.Pos {
+					kind := b.categorizeReferenceByUsage(node)
+					refs = append(refs, Reference{
+						Symbol: target,
+						Pos:    node.Pos(),
+						Kind:   kind,
+					})
 				}
-
+			}
+		case *ast.SelectorExpr:
+			if node.Sel != nil && node.Sel.Name == target.Name && b.isReferenceToSymbol(node.Sel, target) {
+				kind := b.categorizeReferenceByUsage(node.Sel)
 				refs = append(refs, Reference{
-					Symbol: sym,
-					Pos:    sym.Pos,
+					Symbol: target,
+					Pos:    node.Sel.Pos(),
 					Kind:   kind,
 				})
 			}
 		}
-		for _, sym := range scope.Symbols {
-			if sym.Scope != nil && sym.Scope != scope {
-				walkScope(sym.Scope)
-			}
-		}
-	}
+		return true
+	})
 
-	walkScope(b.root)
 	return refs
 }
 
@@ -611,4 +618,131 @@ func (b *Builder) categorizeReference(sym *Symbol, target *Symbol) ReferenceKind
 	}
 
 	return RefRead
+}
+
+func (b *Builder) isReferenceToSymbol(ident *ast.Ident, target *Symbol) bool {
+	if ident == nil || target == nil {
+		return false
+	}
+
+	// Check if this identifier refers to our target symbol
+	// We need to resolve the identifier to its definition and see if it matches our target
+	sym := b.FindSymbol(ident.Name, ident.Pos())
+	return sym == target
+}
+
+func (b *Builder) categorizeReferenceByUsage(ident *ast.Ident) ReferenceKind {
+	if ident == nil {
+		return RefRead
+	}
+
+	// For now, just return RefRead for all references
+	// We can enhance this later to detect write vs read contexts
+	return RefRead
+}
+
+func (b *Builder) identifiesFunction(ident *ast.Ident, target *Symbol) bool {
+	if target.Kind != SymbolFunction {
+		return false
+	}
+
+	if ident.Name != target.Name {
+		return false
+	}
+
+	count := 0
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		if fd, ok := n.(*ast.FuncDecl); ok {
+			if fd.Recv == nil && fd.Name.Name == ident.Name {
+				count++
+				if count > 1 {
+					return false
+				}
+			}
+		}
+		return true
+	})
+
+	return count == 1
+}
+
+func (b *Builder) identifiesMethod(ident *ast.Ident, target *Symbol) bool {
+	if target.Kind != SymbolMethod {
+		return false
+	}
+
+	if ident.Name != target.Name {
+		return false
+	}
+
+	count := 0
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		if fd, ok := n.(*ast.FuncDecl); ok {
+			if fd.Recv != nil && fd.Name.Name == ident.Name {
+				count++
+				if count > 1 {
+					return false
+				}
+			}
+		}
+		return true
+	})
+
+	return count == 1
+}
+
+func (b *Builder) isSelectorMethodReference(ident *ast.Ident, target *Symbol) bool {
+	if target.Kind != SymbolMethod {
+		return false
+	}
+
+	if ident.Name != target.Name {
+		return false
+	}
+
+	count := 0
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		if fd, ok := n.(*ast.FuncDecl); ok {
+			if fd.Recv != nil && fd.Name.Name == ident.Name {
+				count++
+				if count > 1 {
+					return false
+				}
+			}
+		}
+		return true
+	})
+
+	return count == 1
+}
+
+func (b *Builder) identifiesField(ident *ast.Ident, target *Symbol) bool {
+	if target.Kind != SymbolField {
+		return false
+	}
+
+	if ident.Name != target.Name {
+		return false
+	}
+
+	count := 0
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		if st, ok := n.(*ast.StructType); ok {
+			if st.Fields != nil {
+				for _, field := range st.Fields.List {
+					for _, name := range field.Names {
+						if name.Name == ident.Name {
+							count++
+							if count > 1 {
+								return false
+							}
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	return count == 1
 }
