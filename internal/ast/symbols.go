@@ -70,15 +70,20 @@ type Symbol struct {
 }
 
 type Scope struct {
-	Parent  *Scope
-	Symbols map[string]*Symbol
+	Parent   *Scope
+	Children []*Scope
+	Symbols  map[string]*Symbol
 }
 
 func newScope(parent *Scope) *Scope {
-	return &Scope{
+	s := &Scope{
 		Parent:  parent,
 		Symbols: make(map[string]*Symbol),
 	}
+	if parent != nil {
+		parent.Children = append(parent.Children, s)
+	}
+	return s
 }
 
 func (s *Scope) Lookup(name string) *Symbol {
@@ -101,6 +106,7 @@ type Builder struct {
 	fset    *token.FileSet
 	root    *Scope
 	current *Scope
+	file    *ast.File
 }
 
 func NewBuilder(fset *token.FileSet) *Builder {
@@ -114,6 +120,7 @@ func (b *Builder) BuildFile(f *ast.File) (*Scope, error) {
 		return nil, fmt.Errorf("nil file")
 	}
 
+	b.file = f
 	b.root = newScope(nil)
 	b.current = b.root
 
@@ -417,24 +424,110 @@ type Reference struct {
 	Kind   ReferenceKind
 }
 
+type DefinitionResult struct {
+	Name     string
+	Kind     SymbolKind
+	File     string
+	Line     int
+	Column   int
+	Type     string
+	Exported bool
+}
+
+func (b *Builder) FindDefinition(name string, pos token.Pos) *DefinitionResult {
+	if b.fset == nil || b.root == nil {
+		return nil
+	}
+
+	ident := b.findIdentifierAtPos(name, pos)
+	if ident == nil {
+		return nil
+	}
+
+	sym := b.FindSymbol(ident.Name, pos)
+	if sym == nil {
+		return nil
+	}
+
+	posData := b.fset.Position(sym.Pos)
+
+	exported := false
+	if sym.Kind == SymbolType || sym.Kind == SymbolFunction || sym.Kind == SymbolMethod || sym.Kind == SymbolConstant || sym.Kind == SymbolField {
+		exported = isExported(sym.Name)
+	}
+
+	var typeInfo string
+	if sym.Type != nil {
+		typeInfo = formatExpr(sym.Type)
+	}
+
+	return &DefinitionResult{
+		Name:     sym.Name,
+		Kind:     sym.Kind,
+		File:     posData.Filename,
+		Line:     posData.Line,
+		Column:   posData.Column,
+		Type:     typeInfo,
+		Exported: exported,
+	}
+}
+
+func (b *Builder) findIdentifierAtPos(name string, pos token.Pos) *ast.Ident {
+	if b.fset == nil || b.file == nil {
+		return nil
+	}
+
+	var target *ast.Ident
+
+	ast.Inspect(b.file, func(n ast.Node) bool {
+		if target != nil {
+			return false
+		}
+
+		if ident, ok := n.(*ast.Ident); ok {
+			if ident.Name == name {
+				if ident.Pos() <= pos && pos < ident.End() {
+					target = ident
+				}
+			}
+		}
+
+		return target == nil
+	})
+
+	return target
+}
+
+func isExported(name string) bool {
+	if len(name) == 0 {
+		return false
+	}
+	return name[0] >= 'A' && name[0] <= 'Z'
+}
+
 func (b *Builder) FindSymbol(name string, pos token.Pos) *Symbol {
 	if b.root == nil {
 		return nil
 	}
 
 	var target *Symbol
+	visited := make(map[*Scope]bool)
 
 	var walkScope func(scope *Scope)
 	walkScope = func(scope *Scope) {
+		if scope == nil || visited[scope] {
+			return
+		}
+		visited[scope] = true
+
 		if sym := scope.Lookup(name); sym != nil {
-			if target == nil || b.posInScope(pos, sym) {
+			if sym.Pos <= pos && (target == nil || target.Pos < sym.Pos) {
 				target = sym
 			}
 		}
-		for _, sym := range scope.Symbols {
-			if sym.Scope != nil && sym.Scope != scope {
-				walkScope(sym.Scope)
-			}
+
+		for _, child := range scope.Children {
+			walkScope(child)
 		}
 	}
 

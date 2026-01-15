@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-15T00:00:00.000000000+03:00
+synced_at: 2026-01-13T00:00:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 6
+        completed: 7
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -85,10 +85,10 @@ changes:
     refactor-agent-command-skill-system:
         id: refactor-agent-command-skill-system
         title: ""
-        status: completed
+        status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/refactor-agent-command-skill-system/tasks.md
         total: 27
-        completed: 27
+        completed: 1
         in_progress: 0
         blocked: 0
 tasks:
@@ -100,70 +100,6 @@ tasks:
       priority: medium
       source_line: 10
       synced_at: 2026-01-14T12:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "4.1"
-      content: 4.1 Make `--tools` flag required (0.5h)
-      status: completed
-      priority: medium
-      source_line: 111
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "4.2"
-      content: 4.2 Add `--include-deps` and `--no-deps` flags (1h)
-      status: completed
-      priority: medium
-      source_line: 117
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "4.3"
-      content: 4.3 Integrate dependency validation into init flow (1.5h)
-      status: completed
-      priority: medium
-      source_line: 123
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "6.3"
-      content: 6.3 Integration tests for init command (1h)
-      status: completed
-      priority: medium
-      source_line: 195
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "6.4"
-      content: 6.4 Remove old single-file agent support (0.5h)
-      status: completed
-      priority: medium
-      source_line: 205
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "7.1"
-      content: 7.1 Update setup documentation (0.75h)
-      status: completed
-      priority: medium
-      source_line: 215
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "7.2"
-      content: 7.2 Update compatibility guide (0.75h)
-      status: completed
-      priority: medium
-      source_line: 224
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
-    - id:
-        change_id: refactor-agent-command-skill-system
-        task_num: "7.3"
-      content: 7.3 Update plugin README (0.5h)
-      status: completed
-      priority: medium
-      source_line: 233
-      synced_at: 2026-01-15T00:00:00.000000000+03:00
     - id:
         change_id: add-acp-agent-mode
         task_num: "1"
@@ -696,10 +632,10 @@ tasks:
         change_id: add-ast-operations
         task_num: "7"
       content: 2.3 Implement go-to-definition
-      status: pending
+      status: completed
       priority: medium
       source_line: 17
-      synced_at: 2026-01-11T08:48:48.816988333+03:00
+      synced_at: 2026-01-15T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "8"
