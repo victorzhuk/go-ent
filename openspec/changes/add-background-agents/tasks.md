@@ -12,7 +12,7 @@ For **heavy implementation work** (>5 min, multi-file), use OpenCode workers (ad
 ## 1. Core Infrastructure
 
 - [x] 1.1 Create `internal/agent/background/manager.go` - Background agent lifecycle manager ✓
-- [ ] 1.2 Create `internal/agent/background/registry.go` - Track spawned agents with status
+- [x] 1.2 Create `internal/agent/background/registry.go` - Track spawned agents with status ✓ 2026-01-15
 - [ ] 1.3 Create `internal/agent/background/output.go` - Buffer and stream agent outputs
 - [ ] 1.4 Add background agent configuration to config system
 
