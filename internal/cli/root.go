@@ -30,6 +30,7 @@ spec-driven development, and intelligent task execution.`,
 	// Add subcommands
 	cmd.AddCommand(newVersionCmd())
 	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newMigrateCmd())
 	cmd.AddCommand(newRunCmd())
 	cmd.AddCommand(newAgentCmd())
 	cmd.AddCommand(newSkillCmd())

@@ -1,71 +1,117 @@
 # Multi-Platform Agent Setup
 
-This guide explains how to set up agents for both **OpenCode** and **Claude Code**.
+This guide explains how to set up agents for both **OpenCode** and **Claude Code** using the go-ent plugin.
 
 ---
 
 ## Directory Structure
 
 ```
+plugins/go-ent/
+├── agents/
+│   ├── meta/                    # Agent metadata (YAML)
+│   │   ├── coder.yaml
+│   │   ├── planner.yaml
+│   │   └── ...
+│   ├── prompts/
+│   │   ├── agents/              # Agent prompts (markdown)
+│   │   │   ├── coder.md
+│   │   │   ├── planner.md
+│   │   │   └── ...
+│   │   └── shared/              # Shared prompt sections
+│   │       ├── _tooling.md
+│   │       ├── _conventions.md
+│   │       ├── _handoffs.md
+│   │       └── _openspec.md
+│   └── templates/               # Platform-specific templates
+│       ├── claude.yaml.tmpl
+│       └── opencode.yaml.tmpl
+└── commands/
+    ├── flows/                   # Command flows
+    │   ├── plan.md
+    │   ├── task.md
+    │   └── bug.md
+    ├── domains/                 # Domain knowledge
+    │   ├── openspec.md
+    │   ├── generic.md
+    │   └── README.md
+    └── *.md                     # Generated commands
+
 project/
-├── .opencode/
-│   └── agent/
-│       ├── driver.md       # Orchestrator (primary)
-│       ├── coder.md        # Implementation
-│       ├── debugger.md     # Bug investigation
-│       ├── planner.md      # Task planning
-│       ├── reviewer.md     # Code review
-│       ├── researcher.md   # Deep analysis
-│       ├── architect.md    # System design
-│       ├── decomposer.md   # Task breakdown
-│       ├── acceptor.md     # Acceptance testing
-│       └── tester.md       # Test execution
 ├── .claude/
-│   └── agents/
-│       ├── coder.md        # Same agents,
-│       ├── debugger.md     # different format
+│   └── agents/                  # Generated Claude Code agents
+│       ├── coder.md
 │       ├── planner.md
-│       ├── reviewer.md
-│       └── researcher.md
-├── opencode.json           # OpenCode config
-├── CLAUDE.md               # Claude Code config
-└── AGENTS.md               # Shared instructions
+│       └── ...
+├── .opencode/
+│   └── agent/                   # Generated OpenCode agents
+│       ├── coder.md
+│       ├── planner.md
+│       └── ...
+├── .go-ent/
+│   └── config.yaml             # Plugin configuration
+├── CLAUDE.md                    # Claude Code config
+├── opencode.json                # OpenCode config
+└── AGENTS.md                    # Shared instructions
+```
+
+---
+
+## Quick Start
+
+```bash
+# Initialize Claude Code agents
+go-ent init --tool=claude
+
+# Initialize OpenCode agents
+go-ent init --tool=opencode
+
+# Initialize both platforms
+go-ent init --tool=all
 ```
 
 ---
 
 ## OpenCode Setup
 
-### 1. Create Agent Directory
+### 1. Initialize Configuration
 
 ```bash
-mkdir -p .opencode/agent
+go-ent init --tool=opencode
 ```
 
-### 2. Copy OpenCode-format agents
+This creates:
+- `.opencode/agent/` directory
+- Generated agent files with metadata + prompts
+- `opencode.json` configuration
 
-Place `.md` files with this frontmatter style:
+### 2. Agent Metadata Format
+
+Agents are defined in `plugins/go-ent/agents/meta/*.yaml`:
 
 ```yaml
----
 name: coder
-description: "Go developer. Implements features."
-tools:
-  read: true
-  write: true
-  edit: true
-  bash: true
-  grep: true
-  glob: true
-  list: true
-  todoread: true
-  todowrite: true
-  skill: true
+description: Go developer. Implements features, writes code.
 model: main
+color: "#32CD32"
 skills:
   - go-code
   - go-db
----
+tools:
+  - read
+  - write
+  - edit
+  - bash
+  - glob
+  - grep
+  - mcp__plugin_serena_serena
+dependencies:
+  - tester
+  - reviewer
+  - debugger
+tags:
+  - "role:execution"
+  - "complexity:standard"
 ```
 
 ### 3. Configure opencode.json
@@ -110,23 +156,41 @@ skills:
 
 ## Claude Code Setup
 
-### 1. Create Agent Directory
+### 1. Initialize Configuration
 
 ```bash
-mkdir -p .claude/agents
+go-ent init --tool=claude
 ```
 
-### 2. Copy Claude Code-format agents
+This creates:
+- `.claude/agents/` directory
+- Generated agent files with metadata + prompts
+- `CLAUDE.md` configuration
 
-Place `.md` files with this frontmatter style:
+### 2. Agent File Format
+
+Generated agents in `.claude/agents/*.md`:
 
 ```yaml
 ---
 name: coder
-description: Go developer. Implements features following Clean Architecture.
-tools: Read, Write, Edit, Bash, Glob, Grep, LS, TodoRead, TodoWrite
-model: sonnet
-skills: go-code, go-db
+description: "Go developer. Implements features, writes code."
+tools:
+  read: true
+  write: true
+  edit: true
+  bash: true
+  glob: true
+  grep: true
+  mcp__plugin_serena_serena: true
+model: main
+color: "#32CD32"
+tags:
+  - "role:execution"
+  - "complexity:standard"
+skills:
+  - go-code
+  - go-db
 ---
 ```
 
@@ -158,31 +222,186 @@ Use appropriate agents for specialized tasks.
 
 ---
 
+## Dependency Management
+
+Agents can declare dependencies on other agents. The go-ent plugin provides several flags to manage these dependencies.
+
+### Dependency Graph
+
+View dependency relationships:
+
+```bash
+# Show all dependencies
+go-ent agents deps
+
+# Show dependencies for a specific agent
+go-ent agents deps coder
+
+# Show dependency tree
+go-ent agents deps --tree
+```
+
+### Selective Agent Initialization
+
+```bash
+# Initialize specific agents only
+go-ent init --tool=claude --agents coder,tester
+
+# Initialize specific agents and auto-resolve transitive dependencies
+go-ent init --tool=claude --agents coder --include-deps
+
+# Initialize specific agents without dependency validation
+go-ent init --tool=claude --agents coder --no-deps
+```
+
+### Dependency Flags
+
+| Flag | Description |
+|------|-------------|
+| `--agents` | Comma-separated list of agent names to include |
+| `--include-deps` | Auto-resolve transitive dependencies for selected agents |
+| `--no-deps` | Skip dependency validation (use with caution) |
+
+**Note**: `--include-deps` and `--no-deps` are mutually exclusive.
+
+### Example Workflow
+
+```bash
+# You want to add only the coder agent to your project
+go-ent init --tool=claude --agents coder
+
+# Error: agent 'coder' has dependencies: tester, reviewer, debugger
+# Either include dependencies explicitly or use --include-deps
+
+# Option 1: Include all dependencies automatically
+go-ent init --tool=claude --agents coder --include-deps
+
+# Option 2: Include dependencies explicitly
+go-ent init --tool=claude --agents coder,tester,reviewer,debugger
+
+# Option 3: Skip validation (not recommended)
+go-ent init --tool=claude --agents coder --no-deps
+```
+
+---
+
+## Migration from Old Format
+
+The go-ent plugin now uses a split format (metadata + prompts) instead of single-file agents with frontmatter.
+
+### Old Format
+
+Single `.md` files with YAML frontmatter and markdown body:
+
+```markdown
+---
+name: coder
+description: Go developer. Implements features.
+model: main
+skills:
+  - go-code
+  - go-db
+---
+
+You are a senior Go backend developer...
+```
+
+### New Format
+
+Split into three parts:
+
+1. **Metadata** (`meta/*.yaml`):
+```yaml
+name: coder
+description: Go developer. Implements features.
+model: main
+skills:
+  - go-code
+  - go-db
+tools:
+  - read
+  - write
+dependencies:
+  - tester
+  - reviewer
+```
+
+2. **Prompt** (`prompts/agents/*.md`):
+```markdown
+You are a senior Go backend developer...
+```
+
+3. **Shared Sections** (`prompts/shared/*.md`):
+```markdown
+# Tooling Reference
+Common patterns for Serena, Git, Go...
+```
+
+### Manual Migration Steps
+
+1. **Extract metadata** from frontmatter into `meta/agentname.yaml`:
+   - Move `name`, `description`, `model`, `skills`
+   - Add `tools` list
+   - Add `dependencies` list (analyze `@ent:*` references)
+
+2. **Extract body** into `prompts/agents/agentname.md`:
+   - Remove YAML frontmatter
+   - Replace duplicated sections with `{{include "shared/section"}}`
+
+3. **Create shared sections** in `prompts/shared/*.md`:
+   - Extract common tooling patterns
+   - Extract shared conventions
+   - Extract handoff patterns
+
+### Automated Migration
+
+The go-ent plugin provides a migration command:
+
+```bash
+# Check migration status
+go-ent migrate --check
+
+# Perform migration (creates backup)
+go-ent migrate --execute
+
+# Preview changes without executing
+go-ent migrate --dry-run
+```
+
+The migration command:
+- Scans `agents/*.md` files
+- Extracts frontmatter → `meta/*.yaml`
+- Extracts body → `prompts/agents/*.md`
+- Infers dependencies from `@ent:*` references
+- Creates backups before modifying files
+
+---
+
 ## Format Quick Reference
 
 ### Tool Names
 
 | OpenCode | Claude Code |
 |----------|-------------|
-| `read: true` | `Read` |
-| `write: true` | `Write` |
-| `edit: true` | `Edit` |
-| `bash: true` | `Bash` |
-| `grep: true` | `Grep` |
-| `glob: true` | `Glob` |
-| `list: true` | `LS` |
-| `todoread: true` | `TodoRead` |
-| `todowrite: true` | `TodoWrite` |
-| `webfetch: true` | `WebFetch` |
-| `websearch: true` | `WebSearch` |
+| `read` | `read: true` |
+| `write` | `write: true` |
+| `edit` | `edit: true` |
+| `bash` | `bash: true` |
+| `grep` | `grep: true` |
+| `glob` | `glob: true` |
+| `list` | `list: true` |
+| `todoread` | `todoread: true` |
+| `todowrite` | `todowrite: true` |
+| `webfetch` | `webfetch: true` |
+| `websearch` | `websearch: true` |
 
 ### Model Names
 
 | OpenCode | Claude Code |
 |----------|-------------|
-| `fast` | `haiku` |
-| `main` | `sonnet` |
-| `heavy` | `opus` |
+| `fast` | `fast` |
+| `main` | `main` |
+| `heavy` | `heavy` |
 
 ### Permissions
 
@@ -218,86 +437,85 @@ Both platforms can reference a shared `AGENTS.md` for project conventions:
 
 ---
 
-## Conversion Script
+## Advanced Usage
 
-To convert OpenCode agents to Claude Code format:
+### Model Overrides
+
+Override the default model for specific agent patterns:
 
 ```bash
-#!/bin/bash
-# convert-agents.sh
+# Use opus for all heavy agents
+go-ent init --tool=claude --model heavy=opus
 
-SRC=".opencode/agent"
-DST=".claude/agents"
+# Use opus for planning agents tagged with heavy
+go-ent init --tool=claude --model "planning:heavy=opus"
 
-mkdir -p "$DST"
+# Multiple overrides
+go-ent init --tool=claude --model heavy=opus --model fast=haiku
+```
 
-for file in "$SRC"/*.md; do
-    name=$(basename "$file")
-    echo "Converting $name..."
-    
-    # Extract and convert (simplified - use proper YAML parser for production)
-    python3 << EOF
-import yaml
-import re
+### Update Existing Configuration
 
-with open("$file", 'r') as f:
-    content = f.read()
+Update existing configuration without full reinitialization:
 
-# Split frontmatter and body
-parts = content.split('---', 2)
-if len(parts) >= 3:
-    frontmatter = yaml.safe_load(parts[1])
-    body = parts[2]
-    
-    # Convert tools
-    tools_map = {
-        'read': 'Read', 'write': 'Write', 'edit': 'Edit',
-        'bash': 'Bash', 'grep': 'Grep', 'glob': 'Glob',
-        'list': 'LS', 'todoread': 'TodoRead', 'todowrite': 'TodoWrite',
-        'webfetch': 'WebFetch', 'websearch': 'WebSearch', 'skill': None
-    }
-    
-    tools = frontmatter.get('tools', {})
-    if isinstance(tools, dict):
-        tool_list = [tools_map[k] for k, v in tools.items() if v and tools_map.get(k)]
-        tool_list = [t for t in tool_list if t]  # Remove None
-    else:
-        tool_list = []
-    
-    # Convert model
-    model_map = {'fast': 'haiku', 'main': 'sonnet', 'heavy': 'opus'}
-    model = model_map.get(frontmatter.get('model', 'main'), 'sonnet')
-    
-    # Convert skills
-    skills = frontmatter.get('skills', [])
-    if isinstance(skills, list):
-        skills_str = ', '.join(skills)
-    else:
-        skills_str = skills
-    
-    # Build new frontmatter
-    new_fm = {
-        'name': frontmatter.get('name', ''),
-        'description': frontmatter.get('description', '').strip('"'),
-        'tools': ', '.join(tool_list),
-        'model': model
-    }
-    if skills_str:
-        new_fm['skills'] = skills_str
-    
-    # Write output
-    with open("$DST/$name", 'w') as out:
-        out.write('---\n')
-        for k, v in new_fm.items():
-            out.write(f'{k}: {v}\n')
-        out.write('---\n')
-        out.write(body)
+```bash
+# Update all components
+go-ent init --tool=claude --update
 
-print(f"Converted: $name")
-EOF
-done
+# Update only agents
+go-ent init --tool=claude --update --update-filter=agents
 
-echo "Done! Agents written to $DST"
+# Update agents and commands
+go-ent init --tool=claude --update --update-filter=agents,commands
+```
+
+### Preview Changes
+
+Preview what would be generated without writing files:
+
+```bash
+go-ent init --tool=claude --dry-run
+```
+
+### Force Overwrite
+
+Force overwrite existing configuration:
+
+```bash
+go-ent init --tool=claude --force
+```
+
+---
+
+## Commands
+
+The plugin also provides commands for common workflows:
+
+### Plan Workflow
+
+```bash
+# Generate plan command
+go-ent init --tool=claude --update --update-filter=commands
+
+# Use the command
+/go-ent:plan Add user authentication
+```
+
+### Task Execution
+
+```bash
+# Execute specific task
+/go-ent:apply
+```
+
+### Debug Workflow
+
+```bash
+# Generate debug command
+go-ent init --tool=claude --update --update-filter=commands
+
+# Use the command
+/go-ent:bug Fix authentication failing on login
 ```
 
 ---
@@ -320,12 +538,61 @@ claude
 /agents  # Should show custom agents
 ```
 
+### Dependency Validation
+
+```bash
+# Validate all dependencies
+go-ent agents deps
+
+# Check for cycles or missing dependencies
+go-ent agents deps --validate
+```
+
 ---
 
 ## Best Practices
 
-1. **Keep prompts identical** - Only frontmatter differs
-2. **Use rg/fd in prompts** - Works on both platforms
-3. **Reference shared AGENTS.md** - Common conventions
-4. **Test on both platforms** - Ensure compatibility
-5. **Version control both formats** - Track changes
+1. **Use dependency management** - Let the plugin resolve dependencies automatically with `--include-deps`
+2. **Keep prompts modular** - Use shared sections to avoid duplication
+3. **Reference shared AGENTS.md** - Common conventions reduce maintenance
+4. **Test on both platforms** - Ensure compatibility if using both Claude Code and OpenCode
+5. **Version control configuration** - Track `.go-ent/config.yaml`, `CLAUDE.md`, `opencode.json`
+6. **Use model overrides wisely** - Balance speed vs. quality based on task complexity
+7. **Preview before applying** - Use `--dry-run` to check what will be generated
+8. **Update incrementally** - Use `--update` with filters to update specific components
+
+---
+
+## Troubleshooting
+
+### Missing Dependencies Error
+
+```
+Error: agent 'coder' has dependencies: tester, reviewer, debugger
+```
+
+**Solution**: Use `--include-deps` to auto-resolve, or explicitly list all dependencies with `--agents`.
+
+### Tool Not Found
+
+```
+Error: tool not found: some_tool
+```
+
+**Solution**: Check the agent metadata file. The `tools` list must match the platform's available tools.
+
+### Template Rendering Error
+
+```
+Error: template execution failed: template: agent:1:10: executing...
+```
+
+**Solution**: Verify the template syntax in `plugins/go-ent/agents/templates/*.tmpl` and ensure all required fields are present.
+
+### Cycle Detected
+
+```
+Error: dependency cycle detected: coder -> tester -> coder
+```
+
+**Solution**: Remove circular dependencies from agent metadata files. The dependency graph must be a DAG (Directed Acyclic Graph).

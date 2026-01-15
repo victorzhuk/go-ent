@@ -166,9 +166,8 @@ func (a *ClaudeAdapter) generateCommands(cfg *GenerateConfig) ([]FileOperation, 
 // generateAgents generates agent files for Claude Code
 func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, error) {
 	var ops []FileOperation
-	processedAgents := make(map[string]bool)
 
-	// First, process split-format agents (meta/*.yaml)
+	// Process split-format agents (meta/*.yaml)
 	metaEntries, err := fs.ReadDir(cfg.PluginFS, "plugins/go-ent/agents/meta")
 	if err == nil {
 		for _, entry := range metaEntries {
@@ -177,7 +176,6 @@ func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, er
 			}
 
 			agentName := FileNameWithoutExt(entry.Name())
-			processedAgents[agentName] = true
 
 			// Check if this agent is in the filter list (if provided)
 			if len(cfg.Agents) > 0 {
@@ -235,76 +233,7 @@ func (a *ClaudeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, er
 		}
 	}
 
-	// Then, process legacy single-file format (skip if already processed)
-	err = fs.WalkDir(cfg.PluginFS, "plugins/go-ent/agents", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() || !strings.HasSuffix(path, ".md") {
-			return nil
-		}
-
-		// Skip prompts directories
-		if strings.Contains(path, "/prompts/") || strings.Contains(path, "/meta/") {
-			return nil
-		}
-
-		filename := filepath.Base(path)
-		agentName := FileNameWithoutExt(filename)
-
-		// Skip if already processed as split format
-		if processedAgents[agentName] {
-			return nil
-		}
-
-		// Check if this agent is in the filter list (if provided)
-		if len(cfg.Agents) > 0 {
-			found := false
-			for _, a := range cfg.Agents {
-				if a == agentName {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return nil
-			}
-		}
-
-		// Read file content
-		content, err := fs.ReadFile(cfg.PluginFS, path)
-		if err != nil {
-			return fmt.Errorf("read %s: %w", path, err)
-		}
-
-		// Parse and transform (legacy format)
-		meta, err := ParseAgentFile(string(content), path)
-		if err != nil {
-			return fmt.Errorf("parse %s: %w", path, err)
-		}
-
-		// Apply model overrides if configured
-		if len(cfg.ModelOverrides) > 0 {
-			resolver := NewModelResolver(cfg.ModelOverrides)
-			meta.Model = resolver.Resolve(meta)
-		}
-
-		// Transform using legacy method
-		transformed, err := a.TransformAgent(meta)
-		if err != nil {
-			return fmt.Errorf("transform %s: %w", path, err)
-		}
-
-		ops = append(ops, FileOperation{
-			Path:    filepath.Join("agents", "ent", filename),
-			Content: transformed,
-			Mode:    0644,
-		})
-
-		return nil
-	})
-
-	return ops, err
+	return ops, nil
 }
 
 // generateSkills generates skill files for Claude Code
@@ -473,6 +402,12 @@ func (a *ClaudeAdapter) TransformAgentWithComposer(pluginFS fs.FS, meta *AgentMe
 
 // TransformCommand transforms a command file for Claude Code
 func (a *ClaudeAdapter) TransformCommand(meta *CommandMeta) (string, error) {
+	// Process include patterns in command body
+	body := meta.Body
+	if a.cfg != nil {
+		body = processIncludes(meta.Body, a.cfg.PluginFS)
+	}
+
 	// Claude Code command frontmatter format
 	metadata := make(map[string]interface{})
 
@@ -488,7 +423,7 @@ func (a *ClaudeAdapter) TransformCommand(meta *CommandMeta) (string, error) {
 	}
 
 	frontmatter := GenerateFrontmatter(metadata)
-	return frontmatter + "\n" + meta.Body, nil
+	return frontmatter + "\n" + body, nil
 }
 
 // TransformSkill transforms a skill file for Claude Code

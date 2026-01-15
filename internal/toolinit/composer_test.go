@@ -1,8 +1,10 @@
 package toolinit
 
 import (
+	"embed"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,4 +39,26 @@ dependencies:
 	require.Equal(t, []string{"go-code", "go-test"}, meta.Skills)
 	require.Equal(t, []string{"read", "write"}, meta.Tools)
 	require.Equal(t, []string{"planner"}, meta.Dependencies)
+}
+
+func TestProcessIncludes(t *testing.T) {
+	tests := []struct {
+		name       string
+		content    string
+		fs         embed.FS
+		wantResult string
+	}{
+		{
+			name:       "no includes",
+			content:    "# No includes here",
+			wantResult: "# No includes here",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := processIncludes(tt.content, tt.fs)
+			assert.Equal(t, tt.wantResult, result)
+		})
+	}
 }

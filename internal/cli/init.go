@@ -3,13 +3,16 @@ package cli
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	goent "github.com/victorzhuk/go-ent"
+	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/model"
 	"github.com/victorzhuk/go-ent/internal/toolinit"
 )
@@ -18,6 +21,9 @@ import (
 func newInitCmd() *cobra.Command {
 	var (
 		tool          string
+		agents        []string // --agents flag (comma-separated)
+		includeDeps   bool     // --include-deps flag
+		noDeps        bool     // --no-deps flag
 		force         bool
 		dryRun        bool
 		update        bool     // --update flag
@@ -68,6 +74,11 @@ Examples:
 				targetPath = args[0]
 			}
 
+			// Validate mutually exclusive flags
+			if includeDeps && noDeps {
+				return fmt.Errorf("--include-deps and --no-deps are mutually exclusive")
+			}
+
 			// Parse model overrides from --model flags
 			modelOverrides := make(map[string]string)
 			for _, override := range modelOverride {
@@ -78,9 +89,23 @@ Examples:
 				modelOverrides[parts[0]] = parts[1]
 			}
 
+			// Parse agents from --agents flag (comma-separated)
+			var agentsList []string
+			if len(agents) > 0 {
+				for _, a := range agents {
+					if a != "" {
+						parts := strings.Split(a, ",")
+						agentsList = append(agentsList, parts...)
+					}
+				}
+			}
+
 			cfg := InitConfig{
 				Path:           targetPath,
 				Tool:           tool,
+				Agents:         agentsList,
+				IncludeDeps:    includeDeps,
+				NoDeps:         noDeps,
 				Force:          force,
 				DryRun:         dryRun,
 				Verbose:        verbose,
@@ -93,12 +118,18 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVar(&tool, "tool", "", "tool to initialize (claude, opencode, all)")
+	cmd.Flags().StringVar(&tool, "tool", "", "tool to initialize (required: claude, opencode, all)")
+	cmd.Flags().StringArrayVar(&agents, "agents", nil, "agent names to include (comma-separated, e.g., planner,tester)")
+	cmd.Flags().BoolVar(&includeDeps, "include-deps", false, "auto-resolve transitive dependencies")
+	cmd.Flags().BoolVar(&noDeps, "no-deps", false, "skip dependency validation")
 	cmd.Flags().BoolVar(&force, "force", false, "overwrite existing configuration")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "preview changes without writing files")
 	cmd.Flags().BoolVar(&update, "update", false, "update existing configuration")
 	cmd.Flags().StringVar(&updateFilter, "update-filter", "", "filter components to update (agents, skills, commands - comma separated)")
 	cmd.Flags().StringArrayVar(&modelOverride, "model", nil, "override model for agents by tag pattern (e.g., heavy=opus, planning:heavy=opus)")
+
+	// Mark --tool as required
+	cmd.MarkFlagRequired("tool")
 
 	return cmd
 }
@@ -107,6 +138,9 @@ Examples:
 type InitConfig struct {
 	Path           string
 	Tool           string
+	Agents         []string // --agents flag
+	IncludeDeps    bool     // --include-deps flag
+	NoDeps         bool     // --no-deps flag
 	Force          bool
 	DryRun         bool
 	Verbose        bool
@@ -115,29 +149,164 @@ type InitConfig struct {
 	ModelOverrides map[string]string // --model heavy=opus
 }
 
+// ResolveAgentList resolves the list of agents based on requested names and dependency flags.
+func ResolveAgentList(fs fs.FS, requested []string, includeDeps, noDeps bool) ([]string, error) {
+	// If noDeps is set, return requested agents as-is
+	if noDeps {
+		if len(requested) == 0 {
+			return []string{}, nil
+		}
+		return requested, nil
+	}
+
+	// Load agent metadata from fs
+	metaDir := "plugins/go-ent/agents/meta"
+	agentMetas, err := loadAgentMetas(fs, metaDir)
+	if err != nil {
+		return nil, fmt.Errorf("load agent metas: %w", err)
+	}
+
+	// If no specific agents requested, return all agents sorted
+	if len(requested) == 0 {
+		graph := agent.NewDependencyGraph()
+		for name, meta := range agentMetas {
+			graph.AddNode(name, meta)
+		}
+		resolver := agent.NewResolver(graph)
+		allAgents, err := resolver.TopologicalSort()
+		if err != nil {
+			return nil, fmt.Errorf("topological sort: %w", err)
+		}
+		return allAgents, nil
+	}
+
+	// Build dependency graph from all agents
+	graph := agent.NewDependencyGraph()
+	for name, meta := range agentMetas {
+		graph.AddNode(name, meta)
+	}
+
+	// Add edges for dependencies
+	for name, meta := range agentMetas {
+		for _, dep := range meta.Dependencies {
+			graph.AddEdge(name, dep)
+		}
+	}
+
+	// Validate all requested agents exist
+	for _, name := range requested {
+		if !graph.HasNode(name) {
+			return nil, fmt.Errorf("agent not found: %s", name)
+		}
+	}
+
+	// If includeDeps is set, resolve transitive dependencies
+	if includeDeps {
+		resolver := agent.NewResolver(graph)
+		resolved, err := resolver.ResolveDependencies(requested)
+		if err != nil {
+			// Check if it's a missing dependency error and provide better message
+			if strings.Contains(err.Error(), "agent not found:") {
+				return nil, fmt.Errorf("dependency not found: %s", strings.TrimPrefix(err.Error(), "agent not found: "))
+			}
+			return nil, fmt.Errorf("resolve dependencies: %w", err)
+		}
+		return resolved, nil
+	}
+
+	// Otherwise validate that all dependencies exist
+	for _, name := range requested {
+		for _, dep := range agentMetas[name].Dependencies {
+			if !graph.HasNode(dep) {
+				return nil, fmt.Errorf("dependency not found: %s depends on %s", name, dep)
+			}
+		}
+	}
+
+	// Return requested agents
+	return requested, nil
+}
+
+// loadAgentMetas loads agent metadata from the given fs.FS path
+func loadAgentMetas(fsys fs.FS, metaDir string) (map[string]agent.AgentMeta, error) {
+	entries, err := fs.ReadDir(fsys, metaDir)
+	if err != nil {
+		return nil, fmt.Errorf("read dir: %w", err)
+	}
+
+	metas := make(map[string]agent.AgentMeta)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, ".yaml") && !strings.HasSuffix(name, ".yml") {
+			continue
+		}
+
+		path := filepath.Join(metaDir, name)
+		meta, err := loadAgentMeta(fsys, path)
+		if err != nil {
+			return nil, fmt.Errorf("load %s: %w", name, err)
+		}
+		metas[meta.Name] = meta
+	}
+
+	return metas, nil
+}
+
+// loadAgentMeta loads a single agent metadata file from fs.FS
+func loadAgentMeta(fsys fs.FS, path string) (agent.AgentMeta, error) {
+	data, err := fs.ReadFile(fsys, path)
+	if err != nil {
+		return agent.AgentMeta{}, fmt.Errorf("read file: %w", err)
+	}
+
+	var yamlMeta struct {
+		Name         string   `yaml:"name"`
+		Description  string   `yaml:"description"`
+		Model        string   `yaml:"model"`
+		Color        string   `yaml:"color"`
+		Skills       []string `yaml:"skills"`
+		Tools        []string `yaml:"tools"`
+		Dependencies []string `yaml:"dependencies,omitempty"`
+	}
+	if err := yaml.Unmarshal(data, &yamlMeta); err != nil {
+		return agent.AgentMeta{}, fmt.Errorf("unmarshal yaml: %w", err)
+	}
+
+	if yamlMeta.Name == "" {
+		return agent.AgentMeta{}, fmt.Errorf("name is required")
+	}
+
+	tools := make(map[string]bool)
+	for _, tool := range yamlMeta.Tools {
+		tools[tool] = true
+	}
+
+	return agent.AgentMeta{
+		Name:         yamlMeta.Name,
+		Description:  yamlMeta.Description,
+		Model:        yamlMeta.Model,
+		Color:        yamlMeta.Color,
+		Skills:       yamlMeta.Skills,
+		Tools:        tools,
+		Dependencies: yamlMeta.Dependencies,
+	}, nil
+}
+
 // InitTools initializes tool configurations
 func InitTools(ctx context.Context, cfg InitConfig) error {
+	// Validate tool is provided (flag is marked required, but double-check)
+	tool := cfg.Tool
+	if tool == "" {
+		return fmt.Errorf("--tool is required (must be claude, opencode, or all)")
+	}
+
 	// Resolve absolute path
 	absPath, err := filepath.Abs(cfg.Path)
 	if err != nil {
 		return fmt.Errorf("resolve path: %w", err)
-	}
-
-	// Auto-detect tool if not specified
-	tool := cfg.Tool
-	if tool == "" {
-		detected, err := detectTool(absPath)
-		if err != nil {
-			return err
-		}
-		if detected == "" {
-			// No existing config, ask user
-			return fmt.Errorf("no tool specified and no existing configuration found\n\nPlease specify --tool=claude or --tool=opencode")
-		}
-		tool = detected
-		if cfg.Verbose {
-			fmt.Printf("Auto-detected tool: %s\n", tool)
-		}
 	}
 
 	// Validate tool
@@ -163,37 +332,6 @@ func InitTools(ctx context.Context, cfg InitConfig) error {
 	return nil
 }
 
-// detectTool detects which tool configuration exists
-func detectTool(path string) (string, error) {
-	claudePath := filepath.Join(path, ".claude")
-	opencodePath := filepath.Join(path, ".opencode")
-
-	claudeExists := false
-	opencodeExists := false
-
-	if stat, err := os.Stat(claudePath); err == nil && stat.IsDir() {
-		claudeExists = true
-	}
-	if stat, err := os.Stat(opencodePath); err == nil && stat.IsDir() {
-		opencodeExists = true
-	}
-
-	// Both exist - ambiguous
-	if claudeExists && opencodeExists {
-		return "", fmt.Errorf("both .claude and .opencode exist\n\nPlease specify --tool=claude or --tool=opencode")
-	}
-
-	// Return detected tool
-	if claudeExists {
-		return "claude", nil
-	}
-	if opencodeExists {
-		return "opencode", nil
-	}
-
-	return "", nil
-}
-
 // generateToolConfig generates configuration for a specific tool
 func generateToolConfig(ctx context.Context, path, tool string, cfg InitConfig) error {
 	// Create adapter
@@ -216,9 +354,15 @@ func generateToolConfig(ctx context.Context, path, tool string, cfg InitConfig) 
 	}
 
 	// Prepare generation config
+	agentsList, err := ResolveAgentList(goent.PluginFS, cfg.Agents, cfg.IncludeDeps, cfg.NoDeps)
+	if err != nil {
+		return err
+	}
+
 	genCfg := &toolinit.GenerateConfig{
 		Path:           path,
 		PluginFS:       goent.PluginFS,
+		Agents:         agentsList,
 		Force:          cfg.Force,
 		DryRun:         cfg.DryRun,
 		ModelOverrides: cfg.ModelOverrides,

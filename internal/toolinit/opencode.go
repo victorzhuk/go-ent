@@ -12,7 +12,6 @@ import (
 
 	"github.com/victorzhuk/go-ent/internal/model"
 	"github.com/victorzhuk/go-ent/internal/version"
-	"gopkg.in/yaml.v3"
 )
 
 // OpenCodeAdapter implements the Adapter interface for OpenCode
@@ -175,8 +174,6 @@ func (a *OpenCodeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, 
 		return nil, fmt.Errorf("list meta files: %w", err)
 	}
 
-	processedAgents := make(map[string]bool)
-
 	// Process split format agents
 	for _, metaPath := range metaFiles {
 		filename := filepath.Base(metaPath)
@@ -220,82 +217,9 @@ func (a *OpenCodeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, 
 			Content: transformed,
 			Mode:    0644,
 		})
-
-		processedAgents[agentName] = true
 	}
 
-	// Process single-file format agents (backward compatibility)
-	err = fs.WalkDir(cfg.PluginFS, "plugins/go-ent/agents", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Skip directories and non-markdown files
-		if d.IsDir() || !strings.HasSuffix(path, ".md") {
-			return nil
-		}
-
-		// Skip meta and templates directories
-		if strings.Contains(path, "/meta/") || strings.Contains(path, "/templates/") || strings.Contains(path, "/prompts/") {
-			return nil
-		}
-
-		filename := filepath.Base(path)
-		agentName := FileNameWithoutExt(filename)
-
-		// Skip if already processed in split format
-		if processedAgents[agentName] {
-			return nil
-		}
-
-		// Check if this agent is in the filter list (if provided)
-		if len(cfg.Agents) > 0 {
-			found := false
-			for _, a := range cfg.Agents {
-				if a == agentName {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return nil
-			}
-		}
-
-		// Read file content
-		content, err := fs.ReadFile(cfg.PluginFS, path)
-		if err != nil {
-			return fmt.Errorf("read %s: %w", path, err)
-		}
-
-		// Parse and transform (single-file format)
-		meta, err := ParseAgentFile(string(content), path)
-		if err != nil {
-			return fmt.Errorf("parse %s: %w", path, err)
-		}
-
-		// Apply model overrides if configured
-		if len(cfg.ModelOverrides) > 0 {
-			resolver := NewModelResolver(cfg.ModelOverrides)
-			meta.Model = resolver.Resolve(meta)
-		}
-
-		transformed, err := a.TransformAgent(meta)
-		if err != nil {
-			return fmt.Errorf("transform %s: %w", path, err)
-		}
-
-		// OpenCode uses SINGULAR: agent/ (not agents/)
-		ops = append(ops, FileOperation{
-			Path:    filepath.Join("agent", "ent", filename),
-			Content: transformed,
-			Mode:    0644,
-		})
-
-		return nil
-	})
-
-	return ops, err
+	return ops, nil
 }
 
 // generateSkills generates skill files for OpenCode (SINGULAR: skill/)
@@ -465,6 +389,12 @@ func (a *OpenCodeAdapter) transformAgentSingle(meta *AgentMeta) (string, error) 
 
 // TransformCommand transforms a command file for OpenCode
 func (a *OpenCodeAdapter) TransformCommand(meta *CommandMeta) (string, error) {
+	// Process include patterns in command body
+	body := meta.Body
+	if a.cfg != nil {
+		body = processIncludes(meta.Body, a.cfg.PluginFS)
+	}
+
 	// OpenCode command frontmatter format
 	metadata := make(map[string]interface{})
 
@@ -481,7 +411,7 @@ func (a *OpenCodeAdapter) TransformCommand(meta *CommandMeta) (string, error) {
 
 	// Commands in OpenCode are templates with $ARGUMENTS
 	frontmatter := GenerateFrontmatter(metadata)
-	return frontmatter + "\n" + meta.Body, nil
+	return frontmatter + "\n" + body, nil
 }
 
 // TransformSkill transforms a skill file for OpenCode
@@ -534,12 +464,7 @@ func (a *OpenCodeAdapter) loadAgentMetadata(agentName string) (*AgentMeta, error
 		return nil, fmt.Errorf("read agent metadata: %w", err)
 	}
 
-	var meta AgentMeta
-	if err := yaml.Unmarshal(content, &meta); err != nil {
-		return nil, fmt.Errorf("parse agent metadata: %w", err)
-	}
-
-	return &meta, nil
+	return ParseAgentMetaYAML(string(content), metaPath)
 }
 
 // applyTemplate applies the OpenCode template to generate frontmatter

@@ -20,6 +20,7 @@ func newAgentCmd() *cobra.Command {
 
 	cmd.AddCommand(newAgentListCmd())
 	cmd.AddCommand(newAgentInfoCmd())
+	cmd.AddCommand(newAgentDepsCmd())
 
 	return cmd
 }
@@ -83,6 +84,117 @@ func newAgentInfoCmd() *cobra.Command {
 			return printAgentInfo(meta)
 		},
 	}
+}
+
+func newAgentDepsCmd() *cobra.Command {
+	var agentName string
+	var tree bool
+
+	cmd := &cobra.Command{
+		Use:   "deps [agent-name]",
+		Short: "Show agent dependency relationships",
+		Long:  "Display dependency graph showing which agents depend on others",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				agentName = args[0]
+			}
+
+			loader := agent.NewMetaLoader()
+			metaDir := filepath.Join(getAgentsPath(), "meta")
+
+			metas, err := loader.LoadMetaFiles(metaDir)
+			if err != nil {
+				return fmt.Errorf("load agent metadata: %w", err)
+			}
+
+			graph, err := loader.BuildDependencyGraph(metas)
+			if err != nil {
+				return fmt.Errorf("build dependency graph: %w", err)
+			}
+
+			if agentName != "" {
+				if !graph.HasNode(agentName) {
+					return fmt.Errorf("agent not found: %s", agentName)
+				}
+				return printAgentDeps(agentName, graph, tree)
+			}
+
+			return printAllDeps(graph, tree)
+		},
+	}
+
+	cmd.Flags().BoolVar(&tree, "tree", false, "Show tree visualization")
+	return cmd
+}
+
+func printAllDeps(graph *agent.DependencyGraph, tree bool) error {
+	if tree {
+		return printDepsTree(graph)
+	}
+
+	for name := range graph.Nodes {
+		deps := graph.GetAdjacencyList(name)
+		if len(deps) == 0 {
+			fmt.Printf("%s -> (no dependencies)\n", name)
+		} else {
+			fmt.Printf("%s -> %s\n", name, strings.Join(deps, ", "))
+		}
+	}
+	return nil
+}
+
+func printAgentDeps(name string, graph *agent.DependencyGraph, tree bool) error {
+	if tree {
+		return printAgentDepsTree(name, graph)
+	}
+
+	deps := graph.GetAdjacencyList(name)
+	if len(deps) == 0 {
+		fmt.Printf("%s has no dependencies\n", name)
+		return nil
+	}
+
+	fmt.Printf("%s -> %s\n", name, strings.Join(deps, ", "))
+	return nil
+}
+
+func printDepsTree(graph *agent.DependencyGraph) error {
+	for name := range graph.Nodes {
+		deps := graph.GetAdjacencyList(name)
+		if len(deps) == 0 {
+			fmt.Printf("%s\n", name)
+		} else {
+			fmt.Printf("%s\n", name)
+			for i, dep := range deps {
+				prefix := "├── "
+				if i == len(deps)-1 {
+					prefix = "└── "
+				}
+				fmt.Printf("%s%s\n", prefix, dep)
+			}
+		}
+		fmt.Println()
+	}
+	return nil
+}
+
+func printAgentDepsTree(name string, graph *agent.DependencyGraph) error {
+	deps := graph.GetAdjacencyList(name)
+	if len(deps) == 0 {
+		fmt.Printf("%s\n", name)
+		return nil
+	}
+
+	fmt.Printf("%s\n", name)
+	for i, dep := range deps {
+		prefix := "├── "
+		if i == len(deps)-1 {
+			prefix = "└── "
+		}
+		fmt.Printf("%s%s\n", prefix, dep)
+	}
+	return nil
 }
 
 func getAgentsPath() string {

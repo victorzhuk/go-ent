@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -58,69 +59,6 @@ func ParseFrontmatter(content string) (map[string]interface{}, string, error) {
 	}
 
 	return metadata, strings.TrimSpace(parts[1]), nil
-}
-
-// ParseAgentFile parses an agent markdown file
-func ParseAgentFile(content, filePath string) (*AgentMeta, error) {
-	metadata, body, err := ParseFrontmatter(content)
-	if err != nil {
-		return nil, err
-	}
-
-	meta := &AgentMeta{
-		Body:     body,
-		FilePath: filePath,
-	}
-
-	if name, ok := metadata["name"].(string); ok {
-		meta.Name = name
-	}
-	if desc, ok := metadata["description"].(string); ok {
-		meta.Description = desc
-	}
-	if model, ok := metadata["model"].(string); ok {
-		meta.Model = model
-	}
-	if color, ok := metadata["color"].(string); ok {
-		meta.Color = color
-	}
-
-	if skills, ok := metadata["skills"].([]interface{}); ok {
-		for _, s := range skills {
-			if str, ok := s.(string); ok {
-				meta.Skills = append(meta.Skills, str)
-			}
-		}
-	}
-
-	if tools, ok := metadata["tools"].([]interface{}); ok {
-		for _, t := range tools {
-			if str, ok := t.(string); ok {
-				meta.Tools = append(meta.Tools, str)
-			}
-		}
-	}
-
-	// Parse tags array format: ["role:planning", "complexity:heavy"]
-	if tags, ok := metadata["tags"].([]interface{}); ok {
-		for _, tag := range tags {
-			if tagStr, ok := tag.(string); ok {
-				parts := strings.SplitN(tagStr, ":", 2)
-				if len(parts) == 2 {
-					key := strings.TrimSpace(parts[0])
-					value := strings.TrimSpace(parts[1])
-					switch key {
-					case "role":
-						meta.Tags.Role = value
-					case "complexity":
-						meta.Tags.Complexity = value
-					}
-				}
-			}
-		}
-	}
-
-	return meta, nil
 }
 
 // ParseCommandFile parses a command markdown file
@@ -245,4 +183,34 @@ func ParseAgentMetaYAML(content string, filePath string) (*AgentMeta, error) {
 	}
 
 	return result, nil
+}
+
+// processIncludes processes {{include "domains/..."}} patterns in command content
+func processIncludes(content string, filesystem fs.FS) string {
+	includePattern := regexp.MustCompile(`{{include "domains/([^"]+)"}}`)
+
+	matches := includePattern.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return content
+	}
+
+	result := content
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+
+		fullMatch := match[0]
+		domainFile := match[1]
+
+		domainPath := fmt.Sprintf("plugins/go-ent/commands/domains/%s", domainFile)
+		domainContent, err := fs.ReadFile(filesystem, domainPath)
+		if err != nil {
+			continue
+		}
+
+		result = strings.ReplaceAll(result, fullMatch, string(domainContent))
+	}
+
+	return result
 }

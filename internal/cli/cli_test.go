@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,10 +34,7 @@ func executeCommand(t *testing.T, args ...string) (string, string, error) {
 func executeCommandWithCapture(t *testing.T, args ...string) (string, string, error) {
 	t.Helper()
 
-	cmd := cli.NewRootCmd()
-	cmd.SetArgs(args)
-
-	// Capture stdout/stderr at OS level
+	// Create pipes for capturing stdout/stderr
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
 	defer func() {
@@ -46,19 +44,44 @@ func executeCommandWithCapture(t *testing.T, args ...string) (string, string, er
 
 	rOut, wOut, _ := os.Pipe()
 	rErr, wErr, _ := os.Pipe()
+	defer rOut.Close()
+	defer rErr.Close()
+
+	// Redirect both os and cobra output to pipes
 	os.Stdout = wOut
 	os.Stderr = wErr
 
-	err := cmd.Execute()
+	cmd := cli.NewRootCmd()
+	cmd.SetArgs(args)
+	cmd.SetOut(wOut)
+	cmd.SetErr(wErr)
 
+	// Read from pipes in separate goroutines
+	var stdoutBuf, stderrBuf bytes.Buffer
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		io.Copy(&stdoutBuf, rOut)
+	}()
+
+	go func() {
+		defer wg.Done()
+		io.Copy(&stderrBuf, rErr)
+	}()
+
+	// Execute command
+	cmdErr := cmd.Execute()
+
+	// Close write ends to signal EOF to readers
 	wOut.Close()
 	wErr.Close()
 
-	var stdout, stderr bytes.Buffer
-	io.Copy(&stdout, rOut)
-	io.Copy(&stderr, rErr)
+	// Wait for both readers to finish
+	wg.Wait()
 
-	return stdout.String(), stderr.String(), err
+	return stdoutBuf.String(), stderrBuf.String(), cmdErr
 }
 
 func TestVersionCommand(t *testing.T) {

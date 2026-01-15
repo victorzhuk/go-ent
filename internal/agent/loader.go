@@ -81,13 +81,14 @@ func (l *MetaLoader) parseMetaFile(path string) (*AgentMeta, error) {
 	}
 
 	return &AgentMeta{
-		Name:        ym.Name,
-		Description: ym.Description,
-		Model:       ym.Model,
-		Color:       ym.Color,
-		Skills:      ym.Skills,
-		Tools:       tools,
-		FilePath:    path,
+		Name:         ym.Name,
+		Description:  ym.Description,
+		Model:        ym.Model,
+		Color:        ym.Color,
+		Skills:       ym.Skills,
+		Tools:        tools,
+		FilePath:     path,
+		Dependencies: ym.Dependencies,
 	}, nil
 }
 

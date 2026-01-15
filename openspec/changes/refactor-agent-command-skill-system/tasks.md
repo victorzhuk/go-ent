@@ -108,19 +108,19 @@
 
 ## Phase 4: CLI Updates (4h)
 
-- [ ] **4.1** Make `--tools` flag required (0.5h)
+- [x] **4.1** Make `--tools` flag required (0.5h) ✓ 2026-01-15
   - File: `internal/cli/init.go`
   - Remove auto-detection fallback
   - Error if `--tools` not specified: "Error: --tools is required..."
   - Dependencies: none
 
-- [ ] **4.2** Add `--include-deps` and `--no-deps` flags (1h)
+- [x] **4.2** Add `--include-deps` and `--no-deps` flags (1h) ✓ 2026-01-15
   - File: `internal/cli/init.go`
   - Flags: `includeDeps bool`, `noDeps bool`
   - Validation: Mutually exclusive flags
   - Dependencies: 1.3, 1.4
 
-- [ ] **4.3** Integrate dependency validation into init flow (1.5h)
+- [x] **4.3** Integrate dependency validation into init flow (1.5h) ✓ 2026-01-15
   - File: `internal/cli/init.go`
   - Logic:
     1. Load dependency graph
@@ -131,19 +131,19 @@
     3. Generate with resolved agent set
   - Dependencies: 4.1, 4.2
 
-- [ ] **4.4** Add `ent agents deps` subcommand for visualization (1h)
+- [x] **4.4** Add `ent agents deps` subcommand for visualization (1h) ✓ 2026-01-14
   - File: `internal/cli/agent.go`
   - Subcommands:
-    - `ent agents deps` - List all dependencies
-    - `ent agents deps coder` - Show dependencies for specific agent
-    - `ent agents deps --tree` - Tree visualization
+    - `ent agent deps` - List all dependencies
+    - `ent agent deps coder` - Show dependencies for specific agent
+    - `ent agent deps --tree` - Tree visualization
   - Dependencies: 1.2
 
 ---
 
 ## Phase 5: Command Refactoring (4h)
 
-- [ ] **5.1** Create flow templates from existing commands (1.5h)
+- [x] **5.1** Create flow templates from existing commands (1.5h) ✓ 2026-01-14
   - Files:
     - `plugins/go-ent/commands/flows/plan.md` - Planning workflow
     - `plugins/go-ent/commands/flows/task.md` - Task execution workflow
@@ -152,7 +152,7 @@
   - Add `{{include "domains/{{DOMAIN}}"}}` placeholders
   - Dependencies: none
 
-- [ ] **5.2** Extract domain knowledge into separate files (1h)
+- [x] **5.2** Extract domain knowledge into separate files (1h) ✓ 2026-01-14
   - Files:
     - `plugins/go-ent/commands/domains/openspec.md` - OpenSpec-specific rules
     - `plugins/go-ent/commands/domains/generic.md` - Generic project rules
@@ -160,7 +160,7 @@
   - Dependencies: none
   - Parallel with: 5.1
 
-- [ ] **5.3** Update command generation to support includes (1.5h)
+- [x] **5.3** Update command generation to support includes (1.5h) ✓ 2026-01-14
   - File: `internal/toolinit/transform.go`
   - Update: `TransformCommand()` to embed domain includes
   - Logic: Commands reference `{{include "domains/openspec"}}` - agents resolve at runtime
@@ -170,7 +170,7 @@
 
 ## Phase 6: Migration & Testing (4h)
 
-- [ ] **6.1** Create migration command (1.5h)
+- [x] **6.1** Create migration command (1.5h) ✓ 2026-01-14
   - File: `internal/cli/migrate.go`
   - Commands:
     - `ent migrate --check` - Show migration status
@@ -183,7 +183,7 @@
     - Create backups
   - Dependencies: 2.2, 2.3
 
-- [ ] **6.2** Unit tests for dependency resolution (1h)
+- [x] **6.2** Unit tests for dependency resolution (1h) ✓ 2026-01-14
   - Files: `internal/agent/resolver_test.go`, `internal/agent/validate_test.go`
   - Tests:
     - Transitive dependency resolution
@@ -192,7 +192,7 @@
     - Topological sort correctness
   - Dependencies: 1.3, 1.4
 
-- [ ] **6.3** Integration tests for init command (1h)
+- [x] **6.3** Integration tests for init command (1h) ✓ 2026-01-15
   - File: `internal/cli/init_test.go`
   - Tests:
     - `--tools` required
@@ -202,7 +202,7 @@
     - Generated files match expected format
   - Dependencies: 4.3
 
-- [ ] **6.4** Remove old single-file agent support (0.5h)
+- [x] **6.4** Remove old single-file agent support (0.5h) ✓ 2026-01-15
   - Files: `internal/toolinit/transform.go`, `embed.go`
   - Remove: Old `ParseAgentFile()` logic that expects single-file format
   - Update: `embed.go` to include new directory structure
@@ -212,32 +212,32 @@
 
 ## Phase 7: Documentation (2h)
 
-- [ ] **7.1** Update setup documentation (0.75h)
+- [x] **7.1** Update setup documentation (0.75h) ✓ 2026-01-15
   - File: `docs/SETUP_GUIDE.md`
   - Updates:
     - New file structure diagram
-    - `--tools` required in examples
+    - `--tool` required in examples (corrected from `--tools`)
     - Dependency management flags
     - Migration instructions
   - Dependencies: all
 
-- [ ] **7.2** Update compatibility guide (0.75h)
-  - File: `docs/COMPATIBILITY_GUIDE.md`
-  - Updates:
-    - New agent format (meta + prompts + templates)
-    - Command format (flows + domains)
-    - Breaking changes section
-    - Migration script usage
-  - Dependencies: all
+- [x] **7.2** Update compatibility guide (0.75h) ✓ 2026-01-15
+   - File: `docs/COMPATIBILITY_GUIDE.md`
+   - Updates:
+     - New agent format (meta + prompts + templates)
+     - Command format (flows + domains)
+     - Breaking changes section
+     - Migration script usage
+   - Dependencies: all
 
-- [ ] **7.3** Update plugin README (0.5h)
-  - File: `plugins/go-ent/README.md`
-  - Updates:
-    - Architecture overview with new structure
-    - Dependency graph explanation
-    - CLI examples with new flags
-    - Development workflow updates
-  - Dependencies: all
+- [x] **7.3** Update plugin README (0.5h) ✓ 2026-01-15
+   - File: `plugins/go-ent/README.md`
+   - Updates:
+     - Architecture overview with new structure
+     - Dependency graph explanation
+     - CLI examples with new flags
+     - Development workflow updates
+   - Dependencies: all
 
 ---
 
