@@ -128,14 +128,14 @@ func (t *Transform) RenameSymbolAtPos(f *ast.File, pos token.Pos, newName string
 	}
 
 	newFile := t.copyFile(f)
-	renamer := &typeAwareRenamer{
+	typeAwareRenamer := &typeAwareRenamer{
 		targetSym: targetSym,
 		newName:   newName,
 		refs:      refs,
 		fset:      t.fset,
 	}
 
-	ast.Walk(renamer, newFile)
+	ast.Walk(typeAwareRenamer, newFile)
 
 	return newFile, nil
 }

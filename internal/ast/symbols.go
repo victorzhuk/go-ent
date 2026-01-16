@@ -590,9 +590,85 @@ func (b *Builder) isReferenceToSymbol(ident *ast.Ident, target *Symbol) bool {
 	}
 
 	// Check if this identifier refers to our target symbol
-	// We need to resolve the identifier to its definition and see if it matches our target
-	sym := b.FindSymbol(ident.Name, ident.Pos())
-	return sym == target
+	// Handle both variables (with Obj) and fields (with Obj.Decl)
+	// This avoids shadowing issues
+	if ident.Obj == nil && ident.Obj.Decl == nil {
+		return false
+	}
+
+	// For variables, compare Obj pointers directly
+	if ident.Obj != nil {
+		// Find the object for our target symbol
+		targetObj := b.findObjectForSymbol(target)
+		if targetObj == nil {
+			return false
+		}
+		return ident.Obj == targetObj
+	}
+
+	// For fields, compare Obj.Decl pointers
+	if ident.Obj.Decl != nil {
+		// Find the declaration for our target symbol
+		targetDecl := b.findDeclForSymbol(target)
+		if targetDecl == nil {
+			return false
+		}
+		return ident.Obj.Decl == targetDecl
+	}
+
+	return false
+}
+
+func (b *Builder) findObjectForSymbol(sym *Symbol) *ast.Object {
+	if sym == nil || sym.Scope == nil {
+		return nil
+	}
+
+	for _, s := range sym.Scope.Symbols {
+		if s.Name == sym.Name && s.Pos == sym.Pos {
+			var obj *ast.Object
+			ast.Inspect(b.file, func(n ast.Node) bool {
+				if ident, ok := n.(*ast.Ident); ok && ident.Name == s.Name && ident.Pos() == s.Pos {
+					if ident.Obj != nil {
+						obj = ident.Obj
+						return false
+					}
+				}
+				return true
+			})
+			if obj != nil {
+				return obj
+			}
+		}
+	}
+	return nil
+}
+
+func (b *Builder) findDeclForSymbol(sym *Symbol) *ast.Field {
+	if sym == nil || sym.Scope == nil {
+		return nil
+	}
+
+	for _, s := range sym.Scope.Symbols {
+		if s.Name == sym.Name && s.Pos == sym.Pos {
+			var decl *ast.Field
+			ast.Inspect(b.file, func(n ast.Node) bool {
+				if field, ok := n.(*ast.Field); ok {
+					for _, name := range field.Names {
+						if name.Name == s.Name && name.Pos() == s.Pos {
+							decl = field
+							return false
+						}
+					}
+				}
+				return true
+			})
+			if decl != nil {
+				return decl
+			}
+		}
+	}
+	return nil
 }
 
 func (b *Builder) categorizeReferenceByUsage(ident *ast.Ident) ReferenceKind {

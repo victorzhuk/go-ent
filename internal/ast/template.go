@@ -134,6 +134,29 @@ func (e *Engine) RegisterBuiltIns() error {
 				MethodName(param ParamType) ReturnType
 			}`,
 		},
+		{
+			Name: "test",
+			Source: `func TestFunctionName(t *testing.T) {
+				tests := []struct {
+					name    string
+					Param   ParamType
+					want    ReturnType
+					wantErr bool
+				}{
+					{name: "test case", Param: DefaultValue, want: DefaultValue, wantErr: false},
+				}
+				for _, tt := range tests {
+					t.Run(tt.name, func(t *testing.T) {
+						t.Parallel()
+						got, err := FunctionName(tt.Param)
+						if (err != nil) != tt.wantErr {
+							t.Errorf("FunctionName() error = %v, wantErr %v", err, tt.wantErr)
+							return
+						}
+					})
+				}
+			}`,
+		},
 	}
 
 	for _, tmpl := range builtins {
@@ -792,6 +815,283 @@ func GenerateInterfaceImplementation(
 		Name:  &ast.Ident{Name: "main"},
 		Decls: decls,
 	}, nil
+}
+
+func GenerateTestScaffold(funcDecl *ast.FuncDecl) (ast.Node, error) {
+	if funcDecl == nil {
+		return nil, fmt.Errorf("nil function")
+	}
+	if funcDecl.Name == nil {
+		return nil, fmt.Errorf("function has no name")
+	}
+
+	testName := "Test" + funcDecl.Name.Name
+
+	testStructFields := generateTestStructFields(funcDecl.Type)
+
+	testCases := generateTestCases(funcDecl.Type)
+
+	testFuncDecl := &ast.FuncDecl{
+		Name: &ast.Ident{Name: testName},
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{{Name: "t"}},
+						Type:  &ast.StarExpr{X: &ast.Ident{Name: "testing"}},
+					},
+				},
+			},
+		},
+		Body: generateTestBody(funcDecl.Name.Name, funcDecl.Type, testStructFields, testCases),
+	}
+
+	return testFuncDecl, nil
+}
+
+func generateTestStructFields(ft *ast.FuncType) []*ast.Field {
+	fields := []*ast.Field{
+		{
+			Names: []*ast.Ident{{Name: "name"}},
+			Type:  &ast.Ident{Name: "string"},
+		},
+	}
+
+	if ft.Params != nil && len(ft.Params.List) > 0 {
+		for _, param := range ft.Params.List {
+			if len(param.Names) > 0 {
+				fieldName := param.Names[0].Name
+				fields = append(fields, &ast.Field{
+					Names: []*ast.Ident{{Name: fieldName}},
+					Type:  param.Type,
+				})
+			}
+		}
+	}
+
+	wantErrField := &ast.Field{
+		Names: []*ast.Ident{{Name: "wantErr"}},
+		Type:  &ast.Ident{Name: "bool"},
+	}
+	fields = append(fields, wantErrField)
+
+	return fields
+}
+
+func generateTestCases(ft *ast.FuncType) []ast.Expr {
+	cases := []ast.Expr{}
+
+	successCaseValues := []ast.Expr{
+		&ast.BasicLit{Kind: token.STRING, Value: `"success case"`},
+	}
+
+	if ft.Params != nil && len(ft.Params.List) > 0 {
+		for _, param := range ft.Params.List {
+			successCaseValues = append(successCaseValues, generateZeroValue(param.Type))
+		}
+	}
+
+	successCaseValues = append(successCaseValues, &ast.Ident{Name: "false"})
+
+	cases = append(cases, &ast.CompositeLit{
+		Elts: successCaseValues,
+	})
+
+	errorCaseValues := []ast.Expr{
+		&ast.BasicLit{Kind: token.STRING, Value: `"error case"`},
+	}
+
+	if ft.Params != nil && len(ft.Params.List) > 0 {
+		for _, param := range ft.Params.List {
+			errorCaseValues = append(errorCaseValues, generateZeroValue(param.Type))
+		}
+	}
+
+	errorCaseValues = append(errorCaseValues, &ast.Ident{Name: "true"})
+
+	cases = append(cases, &ast.CompositeLit{
+		Elts: errorCaseValues,
+	})
+
+	return cases
+}
+
+func generateTestBody(funcName string, ft *ast.FuncType, fields []*ast.Field, testCases []ast.Expr) *ast.BlockStmt {
+	stmts := []ast.Stmt{}
+
+	testStructType := &ast.StructType{Fields: &ast.FieldList{List: fields}}
+
+	testsDecl := &ast.GenDecl{
+		Tok: token.VAR,
+		Specs: []ast.Spec{
+			&ast.ValueSpec{
+				Names: []*ast.Ident{{Name: "tests"}},
+				Type: &ast.ArrayType{
+					Elt: testStructType,
+				},
+				Values: []ast.Expr{
+					&ast.CompositeLit{
+						Elts: testCases,
+					},
+				},
+			},
+		},
+	}
+	stmts = append(stmts, &ast.DeclStmt{Decl: testsDecl})
+
+	rangeStmt := &ast.RangeStmt{
+		Key:   &ast.Ident{Name: "_"},
+		Value: &ast.Ident{Name: "tt"},
+		X:     &ast.Ident{Name: "tests"},
+		Tok:   token.DEFINE,
+		Body:  generateRangeBody(funcName, ft),
+	}
+	stmts = append(stmts, rangeStmt)
+
+	return &ast.BlockStmt{List: stmts}
+}
+
+func generateRangeBody(funcName string, ft *ast.FuncType) *ast.BlockStmt {
+	stmts := []ast.Stmt{}
+
+	tRunCall := &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "t"},
+			Sel: &ast.Ident{Name: "Run"},
+		},
+		Args: []ast.Expr{
+			&ast.SelectorExpr{
+				X:   &ast.Ident{Name: "tt"},
+				Sel: &ast.Ident{Name: "name"},
+			},
+			&ast.FuncLit{
+				Type: &ast.FuncType{
+					Params: &ast.FieldList{
+						List: []*ast.Field{
+							{
+								Names: []*ast.Ident{{Name: "t"}},
+								Type:  &ast.StarExpr{X: &ast.Ident{Name: "testing"}},
+							},
+						},
+					},
+				},
+				Body: generateFuncLitBody(funcName, ft),
+			},
+		},
+	}
+	stmts = append(stmts, &ast.ExprStmt{X: tRunCall})
+
+	return &ast.BlockStmt{List: stmts}
+}
+
+func generateFuncLitBody(funcName string, ft *ast.FuncType) *ast.BlockStmt {
+	stmts := []ast.Stmt{}
+
+	parallelCall := &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "t"},
+			Sel: &ast.Ident{Name: "Parallel"},
+		},
+	}
+	stmts = append(stmts, &ast.ExprStmt{X: parallelCall})
+
+	callArgs := []ast.Expr{}
+	if ft.Params != nil && len(ft.Params.List) > 0 {
+		for _, param := range ft.Params.List {
+			if len(param.Names) > 0 {
+				callArgs = append(callArgs, &ast.SelectorExpr{
+					X:   &ast.Ident{Name: "tt"},
+					Sel: &ast.Ident{Name: param.Names[0].Name},
+				})
+			}
+		}
+	}
+
+	var lhs []ast.Expr
+	if hasErrorReturn(ft) {
+		lhs = []ast.Expr{
+			&ast.Ident{Name: "got"},
+			&ast.Ident{Name: "err"},
+		}
+	} else if hasMultipleReturns(ft) {
+		lhs = []ast.Expr{&ast.Ident{Name: "got"}}
+	}
+
+	funcCall := &ast.CallExpr{
+		Fun:  &ast.Ident{Name: funcName},
+		Args: callArgs,
+	}
+
+	var callStmt ast.Stmt
+	if len(lhs) > 0 {
+		callStmt = &ast.AssignStmt{
+			Lhs: lhs,
+			Tok: token.DEFINE,
+			Rhs: []ast.Expr{funcCall},
+		}
+	} else {
+		callStmt = &ast.ExprStmt{X: funcCall}
+	}
+	stmts = append(stmts, callStmt)
+
+	if hasErrorReturn(ft) {
+		errorCheck := generateErrorCheck()
+		stmts = append(stmts, errorCheck)
+	}
+
+	return &ast.BlockStmt{List: stmts}
+}
+
+func generateErrorCheck() *ast.IfStmt {
+	return &ast.IfStmt{
+		Cond: &ast.BinaryExpr{
+			X: &ast.ParenExpr{
+				X: &ast.Ident{Name: "err"},
+			},
+			Op: token.NEQ,
+			Y: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "tt"},
+				Sel: &ast.Ident{Name: "wantErr"},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.ExprStmt{
+					X: &ast.CallExpr{
+						Fun: &ast.SelectorExpr{
+							X:   &ast.Ident{Name: "t"},
+							Sel: &ast.Ident{Name: "Errorf"},
+						},
+						Args: []ast.Expr{
+							&ast.BasicLit{Kind: token.STRING, Value: `"%s() error = %v, wantErr %v"`},
+							&ast.Ident{Name: "FunctionName"},
+							&ast.Ident{Name: "err"},
+							&ast.SelectorExpr{
+								X:   &ast.Ident{Name: "tt"},
+								Sel: &ast.Ident{Name: "wantErr"},
+							},
+						},
+					},
+				},
+				&ast.ReturnStmt{},
+			},
+		},
+	}
+}
+
+func hasErrorReturn(ft *ast.FuncType) bool {
+	if ft.Results == nil || len(ft.Results.List) == 0 {
+		return false
+	}
+	lastResult := ft.Results.List[len(ft.Results.List)-1]
+	if ident, ok := lastResult.Type.(*ast.Ident); ok && ident.Name == "error" {
+		return true
+	}
+	return false
+}
+
+func hasMultipleReturns(ft *ast.FuncType) bool {
+	return ft.Results != nil && len(ft.Results.List) > 0
 }
 
 func generateMethodBody(ft *ast.FuncType) *ast.BlockStmt {

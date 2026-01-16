@@ -44,6 +44,7 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	registerASTRefs(s)
 	registerASTRename(s)
 	registerASTExtract(s)
+	registerASTGenerate(s)
 
 	// Register plugin tools
 	if pluginManager != nil {

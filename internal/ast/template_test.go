@@ -704,3 +704,146 @@ func TestExtractPlaceholders(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateTestScaffold(t *testing.T) {
+	tests := []struct {
+		name        string
+		funcSrc     string
+		wantErr     bool
+		errContains string
+		checkOutput func(t *testing.T, node ast.Node)
+	}{
+		{
+			name: "simple function with error return",
+			funcSrc: `package test
+func CreateUser(email string) (*User, error) {
+	return nil, nil
+}`,
+			wantErr: false,
+			checkOutput: func(t *testing.T, node ast.Node) {
+				fn, ok := node.(*ast.FuncDecl)
+				require.True(t, ok)
+				assert.Equal(t, "TestCreateUser", fn.Name.Name)
+				assert.NotNil(t, fn.Body)
+			},
+		},
+		{
+			name: "function with multiple params",
+			funcSrc: `package test
+func Add(a, b int) int {
+	return a + b
+}`,
+			wantErr: false,
+			checkOutput: func(t *testing.T, node ast.Node) {
+				fn, ok := node.(*ast.FuncDecl)
+				require.True(t, ok)
+				assert.Equal(t, "TestAdd", fn.Name.Name)
+				assert.NotNil(t, fn.Body)
+			},
+		},
+		{
+			name: "function without returns",
+			funcSrc: `package test
+func Print(s string) {
+	fmt.Println(s)
+}`,
+			wantErr: false,
+			checkOutput: func(t *testing.T, node ast.Node) {
+				fn, ok := node.(*ast.FuncDecl)
+				require.True(t, ok)
+				assert.Equal(t, "TestPrint", fn.Name.Name)
+			},
+		},
+		{
+			name:        "nil function",
+			funcSrc:     "",
+			wantErr:     true,
+			errContains: "nil function",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var funcDecl *ast.FuncDecl
+			if tt.funcSrc != "" {
+				fset := token.NewFileSet()
+				f, err := parser.ParseFile(fset, "", tt.funcSrc, parser.AllErrors)
+				require.NoError(t, err)
+
+				for _, decl := range f.Decls {
+					if fn, ok := decl.(*ast.FuncDecl); ok {
+						funcDecl = fn
+						break
+					}
+				}
+				require.NotNil(t, funcDecl)
+			}
+
+			node, err := GenerateTestScaffold(funcDecl)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, node)
+				if tt.checkOutput != nil {
+					tt.checkOutput(t, node)
+				}
+			}
+		})
+	}
+}
+
+func TestGenerateTestScaffold_TableDrivenStructure(t *testing.T) {
+	funcSrc := `package test
+func Greet(name string) string {
+	return "Hello, " + name
+}`
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "", funcSrc, parser.AllErrors)
+	require.NoError(t, err)
+
+	var funcDecl *ast.FuncDecl
+	for _, decl := range f.Decls {
+		if fn, ok := decl.(*ast.FuncDecl); ok {
+			funcDecl = fn
+			break
+		}
+	}
+	require.NotNil(t, funcDecl)
+
+	node, err := GenerateTestScaffold(funcDecl)
+	require.NoError(t, err)
+
+	fn, ok := node.(*ast.FuncDecl)
+	require.True(t, ok)
+
+	assert.Equal(t, "TestGreet", fn.Name.Name)
+	assert.NotNil(t, fn.Body)
+
+	testDecl, ok := fn.Body.List[0].(*ast.DeclStmt)
+	require.True(t, ok)
+
+	varDecl, ok := testDecl.Decl.(*ast.GenDecl)
+	require.True(t, ok)
+	require.Equal(t, token.VAR, varDecl.Tok)
+
+	valueSpec, ok := varDecl.Specs[0].(*ast.ValueSpec)
+	require.True(t, ok)
+	assert.Equal(t, "tests", valueSpec.Names[0].Name)
+
+	arrayType, ok := valueSpec.Type.(*ast.ArrayType)
+	require.True(t, ok)
+
+	structType, ok := arrayType.Elt.(*ast.StructType)
+	require.True(t, ok)
+	require.NotNil(t, structType.Fields)
+
+	assert.Equal(t, "name", structType.Fields.List[0].Names[0].Name)
+}
