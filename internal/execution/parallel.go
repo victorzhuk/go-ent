@@ -68,7 +68,6 @@ func (p *ParallelStrategy) Execute(ctx context.Context, engine *Engine, task *Ta
 
 	// Process tasks in waves (by dependency level)
 	for _, taskID := range sorted {
-		taskID := taskID // Capture for goroutine
 		parallelTask := p.findTask(tasks, taskID)
 		if parallelTask == nil {
 			continue

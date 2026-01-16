@@ -117,8 +117,6 @@ func pluginSearchHandler(searcher *marketplace.Searcher) func(ctx context.Contex
 			sb.WriteString(fmt.Sprintf("**Total Results**: %d\n\n", len(plugins)))
 		}
 
-		results := make([]PluginSearchResult, 0, len(plugins))
-
 		for i, p := range plugins {
 			sb.WriteString(fmt.Sprintf("## %d. %s\n\n", i+1, p.Name))
 			sb.WriteString(fmt.Sprintf("**Version**: %s\n", p.Version))
@@ -160,20 +158,6 @@ func pluginSearchHandler(searcher *marketplace.Searcher) func(ctx context.Contex
 			}
 
 			sb.WriteString("\n")
-
-			results = append(results, PluginSearchResult{
-				Name:        p.Name,
-				Version:     p.Version,
-				Description: p.Description,
-				Author:      p.Author,
-				Category:    p.Category,
-				Downloads:   p.Downloads,
-				Rating:      p.Rating,
-				Tags:        p.Tags,
-				Skills:      p.Skills,
-				Agents:      p.Agents,
-				Rules:       p.Rules,
-			})
 		}
 
 		sb.WriteString("---\n\n")

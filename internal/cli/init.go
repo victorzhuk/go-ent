@@ -129,7 +129,7 @@ Examples:
 	cmd.Flags().StringArrayVar(&modelOverride, "model", nil, "override model for agents by tag pattern (e.g., heavy=opus, planning:heavy=opus)")
 
 	// Mark --tool as required
-	cmd.MarkFlagRequired("tool")
+	_ = cmd.MarkFlagRequired("tool")
 
 	return cmd
 }

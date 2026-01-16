@@ -161,7 +161,7 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -218,7 +218,7 @@ func registryNextHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -266,7 +266,7 @@ func registryUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -330,7 +330,7 @@ func registryDepsHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	if !regStore.Exists() {
 		return &mcp.CallToolResult{
@@ -412,7 +412,7 @@ func registrySyncHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	result, err := regStore.RebuildFromSource()
 	if err != nil {
@@ -446,7 +446,7 @@ func registryInitHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating registry store: %v", err)}},
 		}, nil, nil
 	}
-	defer regStore.Close()
+	defer func() { _ = regStore.Close() }()
 
 	if regStore.Exists() {
 		return &mcp.CallToolResult{

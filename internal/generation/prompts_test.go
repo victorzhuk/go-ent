@@ -1,5 +1,7 @@
 package generation
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -29,14 +31,14 @@ func TestLoadPromptTemplate(t *testing.T) {
 			setup: func(t *testing.T) string {
 				dir := t.TempDir()
 				promptsDir := filepath.Join(dir, "prompts")
-				if err := os.MkdirAll(promptsDir, 0755); err != nil {
+				if err := os.MkdirAll(promptsDir, 0750); err != nil {
 					t.Fatal(err)
 				}
 
 				customPrompt := `# Custom Prompt
 {{.SpecContent}}
 `
-				if err := os.WriteFile(filepath.Join(promptsDir, "usecase.md"), []byte(customPrompt), 0644); err != nil {
+				if err := os.WriteFile(filepath.Join(promptsDir, "usecase.md"), []byte(customPrompt), 0600); err != nil {
 					t.Fatal(err)
 				}
 				return dir

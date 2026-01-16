@@ -118,8 +118,8 @@ func GenerateFrontmatter(metadata map[string]interface{}) string {
 	var buf bytes.Buffer
 	encoder := yaml.NewEncoder(&buf)
 	encoder.SetIndent(2)
-	encoder.Encode(metadata)
-	encoder.Close()
+	_ = encoder.Encode(metadata)
+	_ = encoder.Close()
 
 	return "---\n" + buf.String() + "---\n"
 }

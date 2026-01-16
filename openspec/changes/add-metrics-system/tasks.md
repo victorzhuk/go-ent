@@ -1,38 +1,38 @@
 # Tasks: Add Metrics and Performance Monitoring
 
 ## 1. Metrics Storage
-- [ ] 1.1 Create `internal/metrics/store.go`
-- [ ] 1.2 Define `Metric` struct with all fields
-- [ ] 1.3 Implement in-memory ring buffer (last 1000 entries)
-- [ ] 1.4 Add persistent storage option (SQLite or JSON file)
-- [ ] 1.5 Implement retention policy (delete old entries)
-- [ ] 1.6 Add thread-safe read/write with RWMutex
+- [x] 1.1 Create `internal/metrics/store.go` ✓ 2026-01-15
+- [x] 1.2 Define `Metric` struct with all fields ✓ 2026-01-15
+- [x] 1.3 Implement in-memory ring buffer (last 1000 entries) ✓ 2026-01-15
+- [x] 1.4 Add persistent storage option (SQLite or JSON file) ✓ 2026-01-15
+- [x] 1.5 Implement retention policy (delete old entries) ✓ 2026-01-15
+- [x] 1.6 Add thread-safe read/write with RWMutex ✓ 2026-01-15
 
 ## 2. Metrics Collection
-- [ ] 2.1 Create `internal/metrics/collector.go`
-- [ ] 2.2 Implement pre-execution hook
-- [ ] 2.3 Implement post-execution hook
-- [ ] 2.4 Add async write to avoid blocking
-- [ ] 2.5 Extract token counts from MCP responses
-- [ ] 2.6 Measure execution duration
-- [ ] 2.7 Track success/failure status
+- [x] 2.1 Create `internal/metrics/collector.go` ✓ 2026-01-15
+- [x] 2.2 Implement pre-execution hook ✓ 2026-01-15
+- [x] 2.3 Implement post-execution hook ✓ 2026-01-15
+- [x] 2.4 Add async write to avoid blocking ✓ 2026-01-15
+- [x] 2.5 Extract token counts from MCP responses ✓ 2026-01-15
+- [x] 2.6 Measure execution duration ✓ 2026-01-15
+- [x] 2.7 Track success/failure status ✓ 2026-01-15
 
 ## 3. Aggregation and Statistics
-- [ ] 3.1 Create `internal/metrics/aggregator.go`
-- [ ] 3.2 Implement average calculation
-- [ ] 3.3 Implement percentile calculation (p50, p95, p99)
-- [ ] 3.4 Add time-based grouping (hour, day, week)
-- [ ] 3.5 Add filtering by tool name
-- [ ] 3.6 Add filtering by session ID
-- [ ] 3.7 Calculate success rate percentage
+- [x] 3.1 Create `internal/metrics/aggregator.go` ✓ 2026-01-15
+- [x] 3.2 Implement average calculation ✓ 2026-01-15
+- [x] 3.3 Implement percentile calculation (p50, p95, p99) ✓ 2026-01-15
+- [x] 3.4 Add time-based grouping (hour, day, week) ✓ 2026-01-15
+- [x] 3.5 Add filtering by tool name ✓ 2026-01-15
+- [x] 3.6 Add filtering by session ID ✓ 2026-01-15
+- [x] 3.7 Calculate success rate percentage ✓ 2026-01-15
 
 ## 4. Export Capabilities
-- [ ] 4.1 Create `internal/metrics/exporter.go`
-- [ ] 4.2 Implement JSON export
-- [ ] 4.3 Implement CSV export
-- [ ] 4.4 Implement Prometheus format export
-- [ ] 4.5 Add HTTP endpoint for Prometheus scraping (optional)
-- [ ] 4.6 Add file export with timestamp
+- [x] 4.1 Create `internal/metrics/exporter.go` ✓ 2026-01-15
+- [x] 4.2 Implement JSON export ✓ 2026-01-15
+- [x] 4.3 Implement CSV export ✓ 2026-01-15
+- [x] 4.4 Implement Prometheus format export ✓ 2026-01-15
+- [x] 4.5 Add HTTP endpoint for Prometheus scraping (optional) ✓ 2026-01-15 (skipped - optional)
+- [x] 4.6 Add file export with timestamp ✓ 2026-01-15
 
 ## 5. MCP Tools Implementation
 - [ ] 5.1 Implement `metrics_show` tool
@@ -52,13 +52,13 @@
 - [ ] 6.6 Handle metrics store errors gracefully
 
 ## 7. Testing
-- [ ] 7.1 Test metrics collection accuracy
-- [ ] 7.2 Test retention policy (old entries deleted)
-- [ ] 7.3 Test aggregation calculations
-- [ ] 7.4 Test export formats (JSON, CSV, Prometheus)
-- [ ] 7.5 Test filtering and querying
-- [ ] 7.6 Test concurrent writes (thread-safety)
-- [ ] 7.7 Performance test (overhead <1ms)
+- [x] 7.1 Test metrics collection accuracy ✓ 2026-01-15
+- [x] 7.2 Test retention policy (old entries deleted) ✓
+- [x] 7.3 Test aggregation calculations ✓ 2026-01-15
+- [x] 7.4 Test export formats (JSON, CSV, Prometheus) ✓ 2026-01-15
+- [x] 7.5 Test filtering and querying ✓
+- [x] 7.6 Test concurrent writes (thread-safety) ✓
+- [x] 7.7 Performance test (overhead <1ms) ✓ 2026-01-15
 
 ## 8. Validation
 - [ ] 8.1 Measure token reduction for simple tasks

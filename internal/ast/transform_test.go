@@ -1,5 +1,7 @@
 package ast
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"go/ast"
 	"go/token"

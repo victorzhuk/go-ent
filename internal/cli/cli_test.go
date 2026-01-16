@@ -1,5 +1,7 @@
 package cli_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"bytes"
 	"io"
@@ -44,8 +46,8 @@ func executeCommandWithCapture(t *testing.T, args ...string) (string, string, er
 
 	rOut, wOut, _ := os.Pipe()
 	rErr, wErr, _ := os.Pipe()
-	defer rOut.Close()
-	defer rErr.Close()
+	defer func() { _ = rOut.Close() }()
+	defer func() { _ = rErr.Close() }()
 
 	// Redirect both os and cobra output to pipes
 	os.Stdout = wOut
@@ -63,20 +65,20 @@ func executeCommandWithCapture(t *testing.T, args ...string) (string, string, er
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		io.Copy(&stdoutBuf, rOut)
+		_, _ = io.Copy(&stdoutBuf, rOut)
 	}()
 
 	go func() {
 		defer wg.Done()
-		io.Copy(&stderrBuf, rErr)
+		_, _ = io.Copy(&stderrBuf, rErr)
 	}()
 
 	// Execute command
 	cmdErr := cmd.Execute()
 
 	// Close write ends to signal EOF to readers
-	wOut.Close()
-	wErr.Close()
+	_ = wOut.Close()
+	_ = wErr.Close()
 
 	// Wait for both readers to finish
 	wg.Wait()
@@ -193,7 +195,7 @@ func TestSpecCommands(t *testing.T) {
 	t.Run("spec init", func(t *testing.T) {
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() { _ = os.Chdir(oldWd) }()
 
 		require.NoError(t, os.Chdir(tmpDir))
 
@@ -226,7 +228,7 @@ func TestConfigCommands(t *testing.T) {
 	t.Run("config init", func(t *testing.T) {
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() { _ = os.Chdir(oldWd) }()
 
 		require.NoError(t, os.Chdir(tmpDir))
 

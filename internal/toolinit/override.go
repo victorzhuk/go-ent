@@ -19,7 +19,7 @@ func NewModelResolver(overrides map[string]string) *ModelResolver {
 // 3. role alone (e.g., planning)
 // 4. default from meta.Model
 func (r *ModelResolver) Resolve(meta *AgentMeta) string {
-	if r.Overrides == nil || len(r.Overrides) == 0 {
+	if len(r.Overrides) == 0 {
 		return meta.Model
 	}
 

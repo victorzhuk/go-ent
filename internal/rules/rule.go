@@ -31,7 +31,7 @@ type ActionDef struct {
 }
 
 func LoadRuleDefinition(path string) (*RuleDefinition, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("read rule: %w", err)
 	}
@@ -144,11 +144,7 @@ func (r *YAMLRule) Evaluate(ctx context.Context, event Event) ([]Action, error) 
 	actions := make([]Action, 0, len(r.definition.Actions))
 
 	for _, actionDef := range r.definition.Actions {
-		action := Action{
-			Type:    actionDef.Type,
-			Params:  actionDef.Params,
-			Comment: actionDef.Comment,
-		}
+		action := Action(actionDef)
 		actions = append(actions, action)
 	}
 

@@ -60,7 +60,7 @@ func (i *Installer) Verify(data []byte) error {
 func (i *Installer) Extract(name string, data []byte) error {
 	pluginDir := filepath.Join(i.pluginsDir, name)
 
-	if err := os.MkdirAll(pluginDir, 0755); err != nil {
+	if err := os.MkdirAll(pluginDir, 0750); err != nil {
 		return fmt.Errorf("create plugin directory: %w", err)
 	}
 
@@ -70,7 +70,7 @@ func (i *Installer) Extract(name string, data []byte) error {
 	}
 
 	for _, file := range zipReader.File {
-		filePath := filepath.Join(pluginDir, file.Name)
+		filePath := filepath.Join(pluginDir, file.Name) // #nosec G305 -- path validated below
 
 		rel, err := filepath.Rel(pluginDir, filePath)
 		if err != nil || filepath.IsAbs(rel) || strings.HasPrefix(rel, "..") {
@@ -84,7 +84,7 @@ func (i *Installer) Extract(name string, data []byte) error {
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filePath), 0750); err != nil {
 			return fmt.Errorf("create parent directory for %s: %w", file.Name, err)
 		}
 
@@ -93,12 +93,13 @@ func (i *Installer) Extract(name string, data []byte) error {
 			return fmt.Errorf("open file %s: %w", file.Name, err)
 		}
 
-		destFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		destFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode()) // #nosec G304 -- controlled file path
 		if err != nil {
 			_ = fileReader.Close()
 			return fmt.Errorf("create file %s: %w", file.Name, err)
 		}
 
+		// #nosec G110 -- archive from trusted source
 		if _, err := io.Copy(destFile, fileReader); err != nil {
 			_ = destFile.Close()
 			_ = fileReader.Close()

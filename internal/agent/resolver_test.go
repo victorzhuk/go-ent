@@ -1,5 +1,7 @@
 package agent
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"testing"
 
@@ -321,11 +323,12 @@ func TestTopologicalOrdering_DependenciesBeforeDependents(t *testing.T) {
 
 	idxA, idxB, idxC := -1, -1, -1
 	for i, name := range result {
-		if name == "a" {
+		switch name {
+		case "a":
 			idxA = i
-		} else if name == "b" {
+		case "b":
 			idxB = i
-		} else if name == "c" {
+		case "c":
 			idxC = i
 		}
 	}

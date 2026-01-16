@@ -1,5 +1,7 @@
 package generation
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -34,7 +36,7 @@ func TestLoadConfig(t *testing.T) {
 			setupConfig: func(t *testing.T) string {
 				dir := t.TempDir()
 				openspecDir := filepath.Join(dir, "openspec")
-				if err := os.MkdirAll(openspecDir, 0755); err != nil {
+				if err := os.MkdirAll(openspecDir, 0750); err != nil {
 					t.Fatal(err)
 				}
 
@@ -53,7 +55,7 @@ components:
     archetype: custom
     output: internal/test/
 `
-				if err := os.WriteFile(filepath.Join(openspecDir, "generation.yaml"), []byte(configYAML), 0644); err != nil {
+				if err := os.WriteFile(filepath.Join(openspecDir, "generation.yaml"), []byte(configYAML), 0600); err != nil {
 					t.Fatal(err)
 				}
 				return dir

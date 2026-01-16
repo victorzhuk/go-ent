@@ -20,12 +20,12 @@ func NewCodeMode(sandbox *Sandbox) *CodeMode {
 	vm := goja.New()
 
 	// Disable dangerous globals
-	vm.Set("require", goja.Undefined())
-	vm.Set("process", goja.Undefined())
-	vm.Set("global", goja.Undefined())
+	_ = vm.Set("require", goja.Undefined())
+	_ = vm.Set("process", goja.Undefined())
+	_ = vm.Set("global", goja.Undefined())
 
 	// Set up safe globals
-	vm.Set("console", vm.NewObject()) // Stub console
+	_ = vm.Set("console", vm.NewObject()) // Stub console
 
 	timeout := sandbox.GetLimits().MaxExecTime
 	if timeout == 0 {
@@ -144,10 +144,10 @@ func (c *CodeMode) Reset() {
 	c.vm = goja.New()
 
 	// Re-disable dangerous globals
-	c.vm.Set("require", goja.Undefined())
-	c.vm.Set("process", goja.Undefined())
-	c.vm.Set("global", goja.Undefined())
+	_ = c.vm.Set("require", goja.Undefined())
+	_ = c.vm.Set("process", goja.Undefined())
+	_ = c.vm.Set("global", goja.Undefined())
 
 	// Set up safe globals
-	c.vm.Set("console", c.vm.NewObject())
+	_ = c.vm.Set("console", c.vm.NewObject())
 }

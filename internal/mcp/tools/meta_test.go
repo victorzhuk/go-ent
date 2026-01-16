@@ -1,5 +1,7 @@
 package tools
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"testing"
@@ -154,7 +156,7 @@ func TestToolFind(t *testing.T) {
 
 			registerTestTools(s, registry)
 
-			registry.BuildIndex()
+			_ = registry.BuildIndex()
 
 			if tt.query == "" {
 				results := registry.Find(tt.query, tt.limit)
@@ -203,7 +205,7 @@ func TestToolFindRelevanceScoring(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	results := registry.Find("spec validate", 10)
 	require.Greater(t, len(results), 0, "Should find at least one result")
@@ -222,7 +224,7 @@ func TestToolFindLimitBehavior(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	tests := []struct {
 		name  string
@@ -253,7 +255,7 @@ func TestToolFindHandler(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	handler := makeToolFindHandler(registry)
 	ctx := context.Background()
@@ -334,7 +336,7 @@ func TestToolDescribe(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	tests := []struct {
 		name        string
@@ -423,7 +425,7 @@ func TestToolDescribeAllTools(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	allTools := []string{
 		"spec_init", "spec_create", "spec_update", "spec_delete",
@@ -461,7 +463,7 @@ func TestToolDescribeHandler(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	handler := makeToolDescribeHandler(registry)
 	ctx := context.Background()
@@ -633,7 +635,7 @@ func TestToolLoad(t *testing.T) {
 			registry := NewToolRegistry(s)
 
 			registerTestTools(s, registry)
-			registry.BuildIndex()
+			_ = registry.BuildIndex()
 
 			err := registry.Load(tt.toolsToLoad)
 
@@ -661,7 +663,7 @@ func TestToolLoadIdempotent(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	err := registry.Load([]string{"spec_init"})
 	require.NoError(t, err)
@@ -686,7 +688,7 @@ func TestToolLoadHandler(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	handler := makeToolLoadHandler(registry)
 	ctx := context.Background()
@@ -763,14 +765,13 @@ func TestToolLoadConcurrent(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	tools := []string{"spec_init", "spec_validate", "registry_list", "workflow_start"}
 
 	done := make(chan bool, len(tools))
 
 	for _, tool := range tools {
-		tool := tool
 		go func() {
 			err := registry.Load([]string{tool})
 			assert.NoError(t, err)
@@ -800,7 +801,7 @@ func TestToolActive(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	active := registry.Active()
 	assert.Equal(t, 0, len(active), "Initially no tools should be active")
@@ -832,7 +833,7 @@ func TestToolActiveHandler(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	handler := makeToolActiveHandler(registry)
 	ctx := context.Background()
@@ -885,7 +886,7 @@ func TestToolActiveWithDescriptions(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	err := registry.Load([]string{"spec_init", "tool_find"})
 	require.NoError(t, err)
@@ -929,7 +930,7 @@ func TestIsActive(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	assert.False(t, registry.IsActive("spec_init"))
 	assert.False(t, registry.IsActive("nonexistent"))
@@ -952,7 +953,7 @@ func TestToolActiveOrder(t *testing.T) {
 	registry := NewToolRegistry(s)
 
 	registerTestTools(s, registry)
-	registry.BuildIndex()
+	_ = registry.BuildIndex()
 
 	tools := []string{"spec_init", "spec_validate", "registry_list", "workflow_start"}
 	err := registry.Load(tools)

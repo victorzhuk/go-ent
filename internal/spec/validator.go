@@ -94,7 +94,7 @@ func NewValidator() *Validator {
 
 // ValidateSpec validates a single spec file.
 func (v *Validator) ValidateSpec(path string, strict bool) (*ValidationResult, error) {
-	content, err := os.ReadFile(path)
+	content, err := os.ReadFile(path) // #nosec G304 -- controlled file path
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
@@ -269,27 +269,6 @@ func (v *Validator) buildSummary(result *ValidationResult) string {
 }
 
 // FindLineNumber finds the line number of a pattern in content.
-func findLineNumber(lines []string, pattern string) int {
-	for i, line := range lines {
-		if strings.Contains(line, pattern) {
-			return i + 1
-		}
-	}
-	return 0
-}
-
-// CountRequirements counts ### Requirement: headers in content.
-func countRequirements(content string) int {
-	re := regexp.MustCompile(`(?m)^###\s+Requirement:\s+`)
-	return len(re.FindAllString(content, -1))
-}
-
-// CountScenarios counts #### Scenario: headers in content.
-func countScenarios(content string) int {
-	re := regexp.MustCompile(`(?m)^####\s+Scenario:\s+`)
-	return len(re.FindAllString(content, -1))
-}
-
 // ParseRequirements extracts requirement names and their line numbers.
 func parseRequirements(lines []string) map[string]int {
 	result := make(map[string]int)
@@ -327,11 +306,11 @@ func findNextRequirementLine(lines []string, startLine int) int {
 
 // ReadFileLines reads a file and returns its lines.
 func ReadFileLines(path string) ([]string, error) {
-	file, err := os.Open(path)
+	file, err := os.Open(path) // #nosec G304 -- controlled file path
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)

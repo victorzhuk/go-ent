@@ -1,5 +1,7 @@
 package cli_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -25,7 +27,7 @@ func TestConfigWithRealFiles(t *testing.T) {
 		assert.FileExists(t, cfgPath)
 
 		// Verify config is valid YAML
-		data, err := os.ReadFile(cfgPath)
+		data, err := os.ReadFile(cfgPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 		assert.Contains(t, string(data), "version:")
 		assert.Contains(t, string(data), "agents:")
@@ -77,7 +79,7 @@ func TestConfigWithRealFiles(t *testing.T) {
 
 		// Read original budget
 		cfgPath := filepath.Join(tmpDir, ".go-ent", "config.yaml")
-		origData, err := os.ReadFile(cfgPath)
+		origData, err := os.ReadFile(cfgPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 
 		// Modify budget (path as third argument)
@@ -87,7 +89,7 @@ func TestConfigWithRealFiles(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify file was modified
-		newData, err := os.ReadFile(cfgPath)
+		newData, err := os.ReadFile(cfgPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 		assert.NotEqual(t, string(origData), string(newData))
 		assert.Contains(t, string(newData), "daily: 50")
@@ -105,20 +107,20 @@ func TestConfigWithRealFiles(t *testing.T) {
 		info, err := os.Stat(cfgDir)
 		require.NoError(t, err)
 		assert.True(t, info.IsDir())
-		assert.Equal(t, os.FileMode(0755), info.Mode().Perm())
+		assert.Equal(t, os.FileMode(0750), info.Mode().Perm())
 
 		// Verify file permissions
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
 		info, err = os.Stat(cfgPath)
 		require.NoError(t, err)
 		assert.False(t, info.IsDir())
-		assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
+		assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
 	})
 
 	t.Run("config in nested directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		nestedDir := filepath.Join(tmpDir, "project", "subdir")
-		require.NoError(t, os.MkdirAll(nestedDir, 0755))
+		require.NoError(t, os.MkdirAll(nestedDir, 0750))
 
 		cmd := cli.NewRootCmd()
 		cmd.SetArgs([]string{"config", "init", nestedDir})
@@ -169,7 +171,7 @@ func TestConfigWithRealFiles(t *testing.T) {
 		require.NoError(t, cmd4.Execute())
 
 		// Verify all changes
-		data, err := os.ReadFile(cfgPath)
+		data, err := os.ReadFile(cfgPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 		assert.Contains(t, string(data), "daily: 100")
 		assert.Contains(t, string(data), "monthly: 2000")
@@ -224,8 +226,8 @@ func TestConfigEdgeCases(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		readonlyDir := filepath.Join(tmpDir, "readonly")
-		require.NoError(t, os.MkdirAll(readonlyDir, 0555))
-		defer os.Chmod(readonlyDir, 0755) // cleanup
+		require.NoError(t, os.MkdirAll(readonlyDir, 0555)) // #nosec G301 -- intentionally readonly for test
+		defer func() { _ = os.Chmod(readonlyDir, 0750) }() // #nosec G302 -- cleanup after readonly test
 
 		cmd := cli.NewRootCmd()
 		cmd.SetArgs([]string{"config", "init", readonlyDir})
@@ -248,7 +250,7 @@ func TestConfigEdgeCases(t *testing.T) {
 		realDir := filepath.Join(tmpDir, "real")
 		linkDir := filepath.Join(tmpDir, "link")
 
-		require.NoError(t, os.MkdirAll(realDir, 0755))
+		require.NoError(t, os.MkdirAll(realDir, 0750))
 		require.NoError(t, os.Symlink(realDir, linkDir))
 
 		cmd := cli.NewRootCmd()
@@ -281,7 +283,7 @@ func TestConfigEdgeCases(t *testing.T) {
 
 		// File should still exist and be valid
 		assert.FileExists(t, cfgPath)
-		data, err := os.ReadFile(cfgPath)
+		data, err := os.ReadFile(cfgPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 		assert.Contains(t, string(data), "version:")
 	})

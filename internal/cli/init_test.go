@@ -1,5 +1,7 @@
 package cli_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"bytes"
 	"context"
@@ -360,7 +362,7 @@ func TestInitCommand_DryRun(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -376,7 +378,7 @@ func TestInitCommand_DryRun(t *testing.T) {
 		tmpDir := t.TempDir()
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() { _ = os.Chdir(oldWd) }()
 
 		require.NoError(t, os.Chdir(tmpDir))
 
@@ -391,7 +393,7 @@ func TestInitCommand_DryRun(t *testing.T) {
 		tmpDir := t.TempDir()
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() { _ = os.Chdir(oldWd) }()
 
 		require.NoError(t, os.Chdir(tmpDir))
 
@@ -405,7 +407,7 @@ func TestInitCommand_DryRun(t *testing.T) {
 		tmpDir := t.TempDir()
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() { _ = os.Chdir(oldWd) }()
 
 		require.NoError(t, os.Chdir(tmpDir))
 
@@ -427,11 +429,11 @@ func TestInitCommand_CustomPath(t *testing.T) {
 	tmpDir := t.TempDir()
 	customPath := filepath.Join(tmpDir, "my-project")
 
-	require.NoError(t, os.MkdirAll(customPath, 0755))
+	require.NoError(t, os.MkdirAll(customPath, 0750))
 
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -450,7 +452,7 @@ func TestInitCommand_VerboseFlag(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -466,7 +468,7 @@ func TestInitCommand_ModelOverride(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -482,7 +484,7 @@ func TestInitCommand_ModelOverride(t *testing.T) {
 
 	assert.FileExists(t, agentFile)
 
-	content, err := os.ReadFile(agentFile)
+	content, err := os.ReadFile(agentFile) // #nosec G304 -- test file
 	require.NoError(t, err)
 	contentStr := string(content)
 
@@ -495,16 +497,16 @@ func TestInitCommand_ExistingConfigWithForce(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
 	targetDir := filepath.Join(tmpDir, ".claude")
-	require.NoError(t, os.MkdirAll(targetDir, 0755))
+	require.NoError(t, os.MkdirAll(targetDir, 0750))
 
 	existingFile := filepath.Join(targetDir, "agents", "ent", "planner.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(existingFile), 0755))
-	require.NoError(t, os.WriteFile(existingFile, []byte("old content"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Dir(existingFile), 0750))
+	require.NoError(t, os.WriteFile(existingFile, []byte("old content"), 0600))
 
 	_, stderr, err := executeCommandWithCapture(t,
 		"init", "--tool=claude", "--no-deps", "--agents", "planner")
@@ -513,7 +515,7 @@ func TestInitCommand_ExistingConfigWithForce(t *testing.T) {
 	assert.Contains(t, err.Error(), "already exists")
 	assert.Empty(t, stderr)
 
-	oldContent, _ := os.ReadFile(existingFile)
+	oldContent, _ := os.ReadFile(existingFile) // #nosec G304 -- test file
 	assert.Equal(t, "old content", string(oldContent))
 
 	newStdout, newStderr, err := executeCommandWithCapture(t,
@@ -523,7 +525,7 @@ func TestInitCommand_ExistingConfigWithForce(t *testing.T) {
 	assert.NotEmpty(t, newStdout)
 	assert.Empty(t, newStderr)
 
-	newContent, err := os.ReadFile(existingFile)
+	newContent, err := os.ReadFile(existingFile) // #nosec G304 -- test file
 	require.NoError(t, err)
 	assert.NotEqual(t, "old content", string(newContent))
 }
@@ -532,7 +534,7 @@ func TestInitCommand_DryRunOutputFormat(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -649,7 +651,7 @@ func TestInitCommand_DirectoryStructure(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -686,12 +688,12 @@ func testInitCmdExecute(t *testing.T, cfg cli.InitConfig) (string, string, error
 
 	err := cli.InitTools(context.Background(), cfg)
 
-	wOut.Close()
-	wErr.Close()
+	_ = wOut.Close()
+	_ = wErr.Close()
 
 	var outBuf, errBuf bytes.Buffer
-	io.Copy(&outBuf, rOut)
-	io.Copy(&errBuf, rErr)
+	_, _ = io.Copy(&outBuf, rOut)
+	_, _ = io.Copy(&errBuf, rErr)
 
 	return outBuf.String(), errBuf.String(), err
 }
@@ -719,7 +721,7 @@ func TestInitCommand_SpecificTools(t *testing.T) {
 			tmpDir := t.TempDir()
 			oldWd, err := os.Getwd()
 			require.NoError(t, err)
-			defer os.Chdir(oldWd)
+			defer func() { _ = os.Chdir(oldWd) }()
 
 			require.NoError(t, os.Chdir(tmpDir))
 
@@ -776,11 +778,11 @@ dependencies:
 
 	dir := t.TempDir()
 	metaDir := filepath.Join(dir, "plugins", "go-ent", "agents", "meta")
-	require.NoError(t, os.MkdirAll(metaDir, 0755))
+	require.NoError(t, os.MkdirAll(metaDir, 0750))
 
 	for name, content := range metas {
 		path := filepath.Join(metaDir, name)
-		require.NoError(t, os.WriteFile(path, []byte(content), 0644))
+		require.NoError(t, os.WriteFile(path, []byte(content), 0600))
 	}
 
 	return os.DirFS(dir)
@@ -809,11 +811,11 @@ dependencies:
 
 	dir := t.TempDir()
 	metaDir := filepath.Join(dir, "plugins", "go-ent", "agents", "meta")
-	require.NoError(t, os.MkdirAll(metaDir, 0755))
+	require.NoError(t, os.MkdirAll(metaDir, 0750))
 
 	for name, content := range metas {
 		path := filepath.Join(metaDir, name)
-		require.NoError(t, os.WriteFile(path, []byte(content), 0644))
+		require.NoError(t, os.WriteFile(path, []byte(content), 0600))
 	}
 
 	return os.DirFS(dir)
@@ -823,7 +825,7 @@ func TestInitCommand_GeneratedAgentContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(oldWd)
+	defer func() { _ = os.Chdir(oldWd) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -841,7 +843,7 @@ func TestInitCommand_GeneratedAgentContent(t *testing.T) {
 	assert.Empty(t, outStderr)
 
 	agentFile := filepath.Join(tmpDir, ".claude", "agents", "ent", "planner.md")
-	content, err := os.ReadFile(agentFile)
+	content, err := os.ReadFile(agentFile) // #nosec G304 -- test file
 	require.NoError(t, err)
 	contentStr := string(content)
 

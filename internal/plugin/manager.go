@@ -48,7 +48,7 @@ func NewManager(pluginsDir string, registry Registry, marketplace MarketplaceCli
 }
 
 func (m *Manager) Initialize(ctx context.Context) error {
-	if err := os.MkdirAll(m.pluginsDir, 0755); err != nil {
+	if err := os.MkdirAll(m.pluginsDir, 0750); err != nil {
 		return fmt.Errorf("create plugins directory: %w", err)
 	}
 

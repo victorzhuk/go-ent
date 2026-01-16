@@ -36,7 +36,7 @@ type ComponentEntry struct {
 func LoadEntInfo(dir string) (*EntInfo, error) {
 	infoPath := filepath.Join(dir, "ent.info.yaml")
 
-	data, err := os.ReadFile(infoPath)
+	data, err := os.ReadFile(infoPath) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil // No info file exists
@@ -61,7 +61,7 @@ func SaveEntInfo(dir string, info *EntInfo) error {
 		return fmt.Errorf("marshal info: %w", err)
 	}
 
-	if err := os.WriteFile(infoPath, data, 0644); err != nil {
+	if err := os.WriteFile(infoPath, data, 0600); err != nil {
 		return fmt.Errorf("write info file: %w", err)
 	}
 
@@ -88,12 +88,12 @@ func BuildComponentManifest(ops []FileOperation) ComponentManifest {
 			Hash: HashContent(op.Content),
 		}
 
-		// Determine component type from path (with ent/ namespace)
-		if strings.HasPrefix(op.Path, "agents/ent/") || strings.HasPrefix(op.Path, "agent/ent/") {
+		switch {
+		case strings.HasPrefix(op.Path, "agents/ent/") || strings.HasPrefix(op.Path, "agent/ent/"):
 			manifest.Agents = append(manifest.Agents, entry)
-		} else if strings.HasPrefix(op.Path, "commands/ent/") || strings.HasPrefix(op.Path, "command/ent/") {
+		case strings.HasPrefix(op.Path, "commands/ent/") || strings.HasPrefix(op.Path, "command/ent/"):
 			manifest.Commands = append(manifest.Commands, entry)
-		} else if strings.HasPrefix(op.Path, "skills/ent/") || strings.HasPrefix(op.Path, "skill/ent/") {
+		case strings.HasPrefix(op.Path, "skills/ent/") || strings.HasPrefix(op.Path, "skill/ent/"):
 			manifest.Skills = append(manifest.Skills, entry)
 		}
 	}

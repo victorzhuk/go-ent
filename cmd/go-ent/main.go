@@ -32,7 +32,7 @@ func main() {
 
 		// Run in CLI mode
 		if err := cli.Execute(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 		return

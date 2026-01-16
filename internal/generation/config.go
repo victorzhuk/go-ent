@@ -50,7 +50,7 @@ func LoadConfig(projectRoot string) (*GenerationConfig, error) {
 		return nil, fmt.Errorf("stat generation.yaml: %w", err)
 	}
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(configPath) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("read generation.yaml: %w", err)
 	}

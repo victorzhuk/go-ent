@@ -1,5 +1,7 @@
 package tools
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"os"
@@ -34,7 +36,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -66,7 +68,7 @@ func TestASTParse_WithoutPositions(t *testing.T) {
 func hello() {}
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -97,7 +99,7 @@ func broken( {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -137,7 +139,7 @@ func TestASTParse_EmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(""), 0644)
+	err := os.WriteFile(testFile, []byte(""), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -177,7 +179,7 @@ func (f *FileWriter) Close() error {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -225,7 +227,7 @@ func (a *AuthService) Login(username, password string) error {
 	}
 
 	for filename, content := range testFiles {
-		err := os.WriteFile(filepath.Join(tmpDir, filename), []byte(content), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, filename), []byte(content), 0600)
 		require.NoError(t, err)
 	}
 
@@ -266,7 +268,7 @@ var (
 )
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{
@@ -308,7 +310,7 @@ func bidirectional() chan int {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(testCode), 0644)
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
 	require.NoError(t, err)
 
 	input := ASTParseInput{

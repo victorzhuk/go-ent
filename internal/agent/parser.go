@@ -20,11 +20,11 @@ func NewParser() *Parser {
 
 // ParseAgentFile parses an agent markdown file and extracts metadata.
 func (p *Parser) ParseAgentFile(path string) (*AgentMeta, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("open: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	frontmatter, content, err := p.extractFrontmatterAndContent(f)
 	if err != nil {

@@ -1,5 +1,7 @@
 package template
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"embed"
 	"os"
@@ -71,7 +73,7 @@ Project: project
 
 			require.NoError(t, err)
 
-			got, err := os.ReadFile(outputPath)
+			got, err := os.ReadFile(outputPath) // #nosec G304 -- test file
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantContent, string(got))
 		})
@@ -103,7 +105,7 @@ func TestProcessAll(t *testing.T) {
 
 		// Verify basic file was created (tmpl extension is stripped)
 		outputPath := filepath.Join(tmpDir, "basic")
-		got, err := os.ReadFile(outputPath)
+		got, err := os.ReadFile(outputPath) // #nosec G304 -- test file
 		require.NoError(t, err)
 
 		// Verify substitution worked

@@ -1,5 +1,7 @@
 package cli_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -139,8 +141,8 @@ func TestErrorHandling(t *testing.T) {
 
 			tmpDir := t.TempDir()
 			readonlyDir := filepath.Join(tmpDir, "readonly")
-			require.NoError(t, os.MkdirAll(readonlyDir, 0555))
-			defer os.Chmod(readonlyDir, 0755)
+			require.NoError(t, os.MkdirAll(readonlyDir, 0555)) // #nosec G301 -- intentionally readonly for test
+			defer func() { _ = os.Chmod(readonlyDir, 0750) }() // #nosec G302 -- cleanup after readonly test
 
 			cmd := cli.NewRootCmd()
 			cmd.SetArgs([]string{"config", "init", readonlyDir})

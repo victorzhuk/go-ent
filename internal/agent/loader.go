@@ -61,7 +61,7 @@ func (l *MetaLoader) LoadMetaFiles(metaDir string) (map[string]AgentMeta, error)
 
 // parseMetaFile parses a single agent metadata YAML file.
 func (l *MetaLoader) parseMetaFile(path string) (*AgentMeta, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}

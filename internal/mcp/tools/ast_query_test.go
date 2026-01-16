@@ -1,5 +1,7 @@
 package tools
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"os"
@@ -296,7 +298,7 @@ func TestASTQuery_Scope(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	internalDir := filepath.Join(tmpDir, "internal", "service")
-	require.NoError(t, os.MkdirAll(internalDir, 0755))
+	require.NoError(t, os.MkdirAll(internalDir, 0750))
 
 	writeFile(t, internalDir, "handler.go", `package service
 
@@ -306,7 +308,7 @@ func HandleInternal() error {
 `)
 
 	cmdDir := filepath.Join(tmpDir, "cmd", "server")
-	require.NoError(t, os.MkdirAll(cmdDir, 0755))
+	require.NoError(t, os.MkdirAll(cmdDir, 0750))
 
 	writeFile(t, cmdDir, "main.go", `package main
 
@@ -364,7 +366,7 @@ func HandleCommand() error {
 
 func writeFile(t *testing.T, dir, name, content string) string {
 	path := filepath.Join(dir, name)
-	err := os.WriteFile(path, []byte(content), 0644)
+	err := os.WriteFile(path, []byte(content), 0600)
 	require.NoError(t, err)
 	return path
 }

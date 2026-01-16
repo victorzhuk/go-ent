@@ -115,7 +115,7 @@ func loopStartHandler(ctx context.Context, req *mcp.CallToolRequest, input LoopS
 		if err == nil && existing.Status == spec.LoopStatusRunning {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("Loop already running. Use loop_cancel to stop it first."),
+					Text: "Loop already running. Use loop_cancel to stop it first.",
 				}},
 			}, nil, nil
 		}
@@ -129,7 +129,7 @@ func loopStartHandler(ctx context.Context, req *mcp.CallToolRequest, input LoopS
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("✅ Loop started\n\n")
+	msg := "✅ Loop started\n\n"
 	msg += fmt.Sprintf("Task: %s\n", loop.Task)
 	msg += fmt.Sprintf("Max iterations: %d\n", loop.MaxIter)
 	msg += fmt.Sprintf("Status: %s\n", loop.Status)
@@ -241,7 +241,7 @@ func loopSetHandler(ctx context.Context, req *mcp.CallToolRequest, input LoopSet
 		}
 	}
 
-	msg := fmt.Sprintf("✅ Loop state updated\n\n")
+	msg := "✅ Loop state updated\n\n"
 	msg += fmt.Sprintf("Iteration: %d/%d\n", loop.Iteration, loop.MaxIter)
 	msg += fmt.Sprintf("Status: %s\n", loop.Status)
 
@@ -286,7 +286,7 @@ func loopCancelHandler(ctx context.Context, req *mcp.CallToolRequest, input Loop
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("✅ Loop cancelled\n\n")
+	msg := "✅ Loop cancelled\n\n"
 	msg += fmt.Sprintf("Task: %s\n", loop.Task)
 	msg += fmt.Sprintf("Completed iterations: %d/%d\n", loop.Iteration, loop.MaxIter)
 	msg += fmt.Sprintf("Total adjustments: %d\n", len(loop.Adjustments))

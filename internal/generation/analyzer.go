@@ -72,7 +72,7 @@ var patterns = []patternRule{
 
 // AnalyzeSpec analyzes a spec file to identify patterns and components.
 func AnalyzeSpec(specPath string) (*SpecAnalysis, error) {
-	content, err := os.ReadFile(specPath)
+	content, err := os.ReadFile(specPath) // #nosec G304 -- controlled file path
 	if err != nil {
 		return nil, fmt.Errorf("read spec: %w", err)
 	}

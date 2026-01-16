@@ -1,5 +1,7 @@
 package generation
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -101,7 +103,7 @@ The system SHALL store data in repository.
 			// Create temp spec file
 			dir := t.TempDir()
 			specPath := filepath.Join(dir, "spec.md")
-			if err := os.WriteFile(specPath, []byte(tt.specContent), 0644); err != nil {
+			if err := os.WriteFile(specPath, []byte(tt.specContent), 0600); err != nil {
 				t.Fatal(err)
 			}
 

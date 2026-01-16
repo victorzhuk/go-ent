@@ -1,5 +1,7 @@
 package tools
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"encoding/json"
 	"testing"

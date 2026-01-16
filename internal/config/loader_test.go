@@ -1,5 +1,7 @@
 package config
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -31,7 +33,7 @@ func TestLoad(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		cfgDir := filepath.Join(tmpDir, ".go-ent")
-		require.NoError(t, os.MkdirAll(cfgDir, 0755))
+		require.NoError(t, os.MkdirAll(cfgDir, 0750))
 
 		yamlContent := `version: "1.0"
 
@@ -57,7 +59,7 @@ models:
   sonnet: claude-sonnet-4-5-20251101
 `
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
-		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0644))
+		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0600))
 
 		cfg, err := Load(tmpDir)
 		require.NoError(t, err)
@@ -77,7 +79,7 @@ models:
 
 		tmpDir := t.TempDir()
 		cfgDir := filepath.Join(tmpDir, ".go-ent")
-		require.NoError(t, os.MkdirAll(cfgDir, 0755))
+		require.NoError(t, os.MkdirAll(cfgDir, 0750))
 
 		invalidYAML := `version: "1.0"
 agents:
@@ -86,7 +88,7 @@ agents:
     - this is invalid
 `
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
-		require.NoError(t, os.WriteFile(cfgPath, []byte(invalidYAML), 0644))
+		require.NoError(t, os.WriteFile(cfgPath, []byte(invalidYAML), 0600))
 
 		cfg, err := Load(tmpDir)
 		assert.Error(t, err)
@@ -99,7 +101,7 @@ agents:
 
 		tmpDir := t.TempDir()
 		cfgDir := filepath.Join(tmpDir, ".go-ent")
-		require.NoError(t, os.MkdirAll(cfgDir, 0755))
+		require.NoError(t, os.MkdirAll(cfgDir, 0750))
 
 		invalidConfig := `version: "1.0"
 
@@ -119,7 +121,7 @@ models:
   opus: claude-opus-4-5-20251101
 `
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
-		require.NoError(t, os.WriteFile(cfgPath, []byte(invalidConfig), 0644))
+		require.NoError(t, os.WriteFile(cfgPath, []byte(invalidConfig), 0600))
 
 		cfg, err := Load(tmpDir)
 		assert.Error(t, err)

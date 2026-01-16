@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
+	bboltErrors "go.etcd.io/bbolt/errors"
 )
 
 const (
@@ -31,7 +32,7 @@ func NewBoltStore(path string) (*BoltStore, error) {
 	}
 
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("create directory: %w", err)
 	}
 
@@ -42,7 +43,7 @@ func NewBoltStore(path string) (*BoltStore, error) {
 
 	store := &BoltStore{path: path, db: db}
 	if err := store.initBuckets(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("init buckets: %w", err)
 	}
 
@@ -361,13 +362,13 @@ func (s *BoltStore) UpdateChange(summary ChangeSummary) error {
 func (s *BoltStore) ClearTasks() error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		// Drop and recreate buckets
-		if err := tx.DeleteBucket([]byte(BucketTasks)); err != nil && err != bbolt.ErrBucketNotFound {
+		if err := tx.DeleteBucket([]byte(BucketTasks)); err != nil && !errors.Is(err, bboltErrors.ErrBucketNotFound) {
 			return fmt.Errorf("delete tasks bucket: %w", err)
 		}
-		if err := tx.DeleteBucket([]byte(BucketDeps)); err != nil && err != bbolt.ErrBucketNotFound {
+		if err := tx.DeleteBucket([]byte(BucketDeps)); err != nil && !errors.Is(err, bboltErrors.ErrBucketNotFound) {
 			return fmt.Errorf("delete deps bucket: %w", err)
 		}
-		if err := tx.DeleteBucket([]byte(BucketBlocking)); err != nil && err != bbolt.ErrBucketNotFound {
+		if err := tx.DeleteBucket([]byte(BucketBlocking)); err != nil && !errors.Is(err, bboltErrors.ErrBucketNotFound) {
 			return fmt.Errorf("delete blocking bucket: %w", err)
 		}
 

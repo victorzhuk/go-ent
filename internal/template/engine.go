@@ -41,15 +41,15 @@ func (e *Engine) Process(templatePath string, vars TemplateVars, outputPath stri
 		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0750); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	outFile, err := os.Create(outputPath)
+	outFile, err := os.Create(outputPath) // #nosec G304 -- controlled file path
 	if err != nil {
 		return fmt.Errorf("failed to create output file %s: %w", outputPath, err)
 	}
-	defer outFile.Close()
+	defer func() { _ = outFile.Close() }()
 
 	if err := tmpl.Execute(outFile, vars); err != nil {
 		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)

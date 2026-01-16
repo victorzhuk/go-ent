@@ -1,5 +1,7 @@
 package spec
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -473,7 +475,7 @@ func TestWriteRootStateMd(t *testing.T) {
 
 			require.NoError(t, err)
 
-			content, err := os.ReadFile(outputPath)
+			content, err := os.ReadFile(outputPath) // #nosec G304 -- test file
 			require.NoError(t, err)
 
 			contentStr := string(content)
@@ -608,7 +610,7 @@ Some text here.
 			tmpDir := t.TempDir()
 			tasksPath := filepath.Join(tmpDir, "tasks.md")
 
-			err := os.WriteFile(tasksPath, []byte(tt.tasksContent), 0644)
+			err := os.WriteFile(tasksPath, []byte(tt.tasksContent), 0600)
 			require.NoError(t, err)
 
 			bolt := setupBoltStore(t)
@@ -680,7 +682,7 @@ func TestStateStore_ParseTasksWithDependencies_ContentTrimming(t *testing.T) {
 - [ ] Task with multiple <!-- depends: 1, 2 --> dependencies
 `
 
-	err := os.WriteFile(tasksPath, []byte(content), 0644)
+	err := os.WriteFile(tasksPath, []byte(content), 0600)
 	require.NoError(t, err)
 
 	bolt := setupBoltStore(t)
@@ -764,7 +766,7 @@ func TestStateStore_WriteChangeStateMd_RecentActivity(t *testing.T) {
 
 	require.NoError(t, err)
 
-	content, err := os.ReadFile(outputPath)
+	content, err := os.ReadFile(outputPath) // #nosec G304 -- test file
 	require.NoError(t, err)
 
 	contentStr := string(content)

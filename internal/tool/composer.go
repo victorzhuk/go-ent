@@ -61,7 +61,7 @@ func (c *Composer) Save(tool *ComposedTool) error {
 
 	// Ensure .go-ent/composed-tools directory exists
 	dir := c.composedToolsDir()
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return fmt.Errorf("create composed-tools dir: %w", err)
 	}
 
@@ -73,7 +73,7 @@ func (c *Composer) Save(tool *ComposedTool) error {
 
 	// Write to file
 	path := c.toolPath(tool.Name)
-	if err := os.WriteFile(path, data, 0644); err != nil {
+	if err := os.WriteFile(path, data, 0600); err != nil {
 		return fmt.Errorf("write tool file: %w", err)
 	}
 
@@ -99,7 +99,7 @@ func (c *Composer) Load(name string) (*ComposedTool, error) {
 	defer c.mu.Unlock()
 
 	path := c.toolPath(name)
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("tool not found: %s", name)
@@ -192,7 +192,7 @@ func (c *Composer) toolPath(name string) string {
 // loadFromDisk loads a tool from disk without locking (internal use).
 func (c *Composer) loadFromDisk(name string) (*ComposedTool, error) {
 	path := c.toolPath(name)
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, err
 	}

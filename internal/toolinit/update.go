@@ -87,13 +87,13 @@ func CalculateUpdateDiff(installed *EntInfo, newOps []FileOperation, componentFi
 
 	newMap := make(map[string]string) // path -> hash
 	for _, op := range newOps {
-		// Apply component filter (with ent/ namespace)
-		shouldInclude := false
-		if strings.HasPrefix(op.Path, "agents/ent/") || strings.HasPrefix(op.Path, "agent/ent/") {
+		var shouldInclude bool
+		switch {
+		case strings.HasPrefix(op.Path, "agents/ent/") || strings.HasPrefix(op.Path, "agent/ent/"):
 			shouldInclude = componentFilter.Agents
-		} else if strings.HasPrefix(op.Path, "commands/ent/") || strings.HasPrefix(op.Path, "command/ent/") {
+		case strings.HasPrefix(op.Path, "commands/ent/") || strings.HasPrefix(op.Path, "command/ent/"):
 			shouldInclude = componentFilter.Commands
-		} else if strings.HasPrefix(op.Path, "skills/ent/") || strings.HasPrefix(op.Path, "skill/ent/") {
+		case strings.HasPrefix(op.Path, "skills/ent/") || strings.HasPrefix(op.Path, "skill/ent/"):
 			shouldInclude = componentFilter.Skills
 		}
 
@@ -161,31 +161,34 @@ func (d *UpdateDiff) FormatDiff() string {
 	skills := struct{ new, mod, rem []string }{}
 
 	for _, path := range d.NewFiles {
-		if strings.Contains(path, "agent") {
+		switch {
+		case strings.Contains(path, "agent"):
 			agents.new = append(agents.new, path)
-		} else if strings.Contains(path, "command") {
+		case strings.Contains(path, "command"):
 			commands.new = append(commands.new, path)
-		} else if strings.Contains(path, "skill") {
+		case strings.Contains(path, "skill"):
 			skills.new = append(skills.new, path)
 		}
 	}
 
 	for _, path := range d.Modified {
-		if strings.Contains(path, "agent") {
+		switch {
+		case strings.Contains(path, "agent"):
 			agents.mod = append(agents.mod, path)
-		} else if strings.Contains(path, "command") {
+		case strings.Contains(path, "command"):
 			commands.mod = append(commands.mod, path)
-		} else if strings.Contains(path, "skill") {
+		case strings.Contains(path, "skill"):
 			skills.mod = append(skills.mod, path)
 		}
 	}
 
 	for _, path := range d.Removed {
-		if strings.Contains(path, "agent") {
+		switch {
+		case strings.Contains(path, "agent"):
 			agents.rem = append(agents.rem, path)
-		} else if strings.Contains(path, "command") {
+		case strings.Contains(path, "command"):
 			commands.rem = append(commands.rem, path)
-		} else if strings.Contains(path, "skill") {
+		case strings.Contains(path, "skill"):
 			skills.rem = append(skills.rem, path)
 		}
 	}

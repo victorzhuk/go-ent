@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-15T14:15:00.000000000+03:00
+synced_at: 2026-01-15T20:00:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 13
+        completed: 15
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -697,18 +697,18 @@ tasks:
         change_id: add-ast-operations
         task_num: "12"
       content: 3.4 Implement `go_ent_ast_refs` - Find all references to symbol
-      status: pending
+      status: completed
       priority: medium
       source_line: 25
-      synced_at: 2026-01-11T08:48:48.816993332+03:00
+      synced_at: 2026-01-15T19:30:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "13"
       content: 3.5 Implement `go_ent_ast_extract` - Extract code to new function
-      status: pending
+      status: completed
       priority: medium
       source_line: 26
-      synced_at: 2026-01-11T08:48:48.816994203+03:00
+      synced_at: 2026-01-15T20:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "14"

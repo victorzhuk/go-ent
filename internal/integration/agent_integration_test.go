@@ -1,5 +1,7 @@
 package integration
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"os"
@@ -93,7 +95,7 @@ func TestSkillRegistry_WithConfigPaths(t *testing.T) {
 
 	// Create skills directory structure
 	skillsPath := store.SkillsPath()
-	require.NoError(t, os.MkdirAll(filepath.Join(skillsPath, "go-code"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(skillsPath, "go-code"), 0750))
 
 	// Create a test skill
 	skillContent := `---
@@ -106,7 +108,7 @@ description: "Go code implementation. Auto-activates for: implement, code, go."
 Handles Go code implementation tasks.
 `
 	skillFile := filepath.Join(skillsPath, "go-code", "SKILL.md")
-	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0644))
+	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0600))
 
 	// Load skills
 	registry := skill.NewRegistry()
@@ -185,8 +187,8 @@ func TestStore_AgentAndSkillPaths(t *testing.T) {
 	assert.Equal(t, expectedSkills, skillsPath)
 
 	// Create directories
-	require.NoError(t, os.MkdirAll(agentsPath, 0755))
-	require.NoError(t, os.MkdirAll(skillsPath, 0755))
+	require.NoError(t, os.MkdirAll(agentsPath, 0750))
+	require.NoError(t, os.MkdirAll(skillsPath, 0750))
 
 	// Verify they exist
 	_, err := os.Stat(agentsPath)
@@ -303,7 +305,7 @@ func TestCompleteWorkflow_WithAllComponents(t *testing.T) {
 
 	// Create skill
 	skillsPath := store.SkillsPath()
-	require.NoError(t, os.MkdirAll(filepath.Join(skillsPath, "go-code"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(skillsPath, "go-code"), 0750))
 
 	skillContent := `---
 name: go-code
@@ -312,7 +314,7 @@ description: "Go implementation. Auto-activates for: implement, code."
 	require.NoError(t, os.WriteFile(
 		filepath.Join(skillsPath, "go-code", "SKILL.md"),
 		[]byte(skillContent),
-		0644,
+		0600,
 	))
 
 	// Initialize components

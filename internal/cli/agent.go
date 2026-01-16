@@ -42,7 +42,7 @@ func newAgentListCmd() *cobra.Command {
 
 			agents := registry.All()
 			if len(agents) == 0 {
-				fmt.Fprintln(os.Stderr, "No agents found")
+				_, _ = fmt.Fprintln(os.Stderr, "No agents found")
 				return nil
 			}
 
@@ -215,14 +215,14 @@ func getAgentsPath() string {
 
 func printAgentsTable(agents []agent.AgentMeta) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	defer w.Flush()
+	defer func() { _ = w.Flush() }()
 
-	fmt.Fprintln(w, "NAME\tMODEL\tDESCRIPTION")
-	fmt.Fprintln(w, "----\t-----\t-----------")
+	_, _ = fmt.Fprintln(w, "NAME\tMODEL\tDESCRIPTION")
+	_, _ = fmt.Fprintln(w, "----\t-----\t-----------")
 
 	for _, a := range agents {
 		desc := truncate(a.Description, 60)
-		fmt.Fprintf(w, "%s\t%s\t%s\n", a.Name, a.Model, desc)
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", a.Name, a.Model, desc)
 	}
 
 	return nil

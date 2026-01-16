@@ -81,7 +81,7 @@ func (a *OpenCodeAdapter) Generate(ctx context.Context, cfg *GenerateConfig) err
 
 	for _, op := range ops {
 		targetPath := filepath.Join(targetDir, op.Path)
-		if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0750); err != nil {
 			return fmt.Errorf("create directory %s: %w", filepath.Dir(targetPath), err)
 		}
 		if err := os.WriteFile(targetPath, []byte(op.Content), op.Mode); err != nil {
@@ -155,7 +155,7 @@ func (a *OpenCodeAdapter) generateCommands(cfg *GenerateConfig) ([]FileOperation
 		ops = append(ops, FileOperation{
 			Path:    filepath.Join("command", "ent", filename),
 			Content: transformed,
-			Mode:    0644,
+			Mode:    0600,
 		})
 
 		return nil
@@ -215,7 +215,7 @@ func (a *OpenCodeAdapter) generateAgents(cfg *GenerateConfig) ([]FileOperation, 
 		ops = append(ops, FileOperation{
 			Path:    filepath.Join("agent", "ent", outputFilename),
 			Content: transformed,
-			Mode:    0644,
+			Mode:    0600,
 		})
 	}
 
@@ -284,7 +284,7 @@ func (a *OpenCodeAdapter) generateSkills(cfg *GenerateConfig) ([]FileOperation, 
 		ops = append(ops, FileOperation{
 			Path:    filepath.Join("skill", "ent", flatName, "SKILL.md"),
 			Content: transformed,
-			Mode:    0644,
+			Mode:    0600,
 		})
 
 		return nil

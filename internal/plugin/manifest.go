@@ -47,7 +47,7 @@ type Plugin struct {
 }
 
 func ParseManifest(path string) (*Manifest, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("read manifest: %w", err)
 	}

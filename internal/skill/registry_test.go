@@ -1,5 +1,7 @@
 package skill
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"os"
@@ -153,7 +155,7 @@ func TestRegistry_Load(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skill1 := filepath.Join(tmpDir, "skill1", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill1), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill1), 0750))
 	require.NoError(t, os.WriteFile(skill1, []byte(`---
 name: skill1
 description: "Test skill 1. Auto-activates for: test, example."
@@ -161,10 +163,10 @@ description: "Test skill 1. Auto-activates for: test, example."
 
 # Skill 1
 Content here.
-`), 0644))
+`), 0600))
 
 	skill2 := filepath.Join(tmpDir, "skill2", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill2), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill2), 0750))
 	require.NoError(t, os.WriteFile(skill2, []byte(`---
 name: skill2
 description: "Test skill 2. Auto-activates for: demo, sample."
@@ -172,7 +174,7 @@ description: "Test skill 2. Auto-activates for: demo, sample."
 
 # Skill 2
 Content here.
-`), 0644))
+`), 0600))
 
 	r := NewRegistry()
 	err := r.Load(tmpDir)
@@ -269,14 +271,14 @@ func TestRegistry_MatchForContext_MetadataSkills(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
 	require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill. Auto-activates for: architecture, design, planning."
 ---
 
 # Test Skill
-`), 0644))
+`), 0600))
 
 	r := NewRegistry()
 	require.NoError(t, r.Load(tmpDir))
@@ -433,12 +435,12 @@ func TestRegistry_Get(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
 	require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
 ---
-`), 0644))
+`), 0600))
 
 	r := NewRegistry()
 	require.NoError(t, r.Load(tmpDir))
@@ -457,12 +459,12 @@ func TestRegistry_All(t *testing.T) {
 
 	for i := 1; i <= 3; i++ {
 		skillPath := filepath.Join(tmpDir, "skill"+string(rune('0'+i)), "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0755))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: skill`+string(rune('0'+i))+`
 description: "Test"
 ---
-`), 0644))
+`), 0600))
 	}
 
 	r := NewRegistry()

@@ -68,7 +68,7 @@ func scoreArchetypes(analysis *SpecAnalysis) []archetypeScore {
 	if len(result) > 0 && result[0].Score > 0 {
 		maxScore := result[0].Score
 		for i := range result {
-			result[i].Score = result[i].Score / maxScore
+			result[i].Score /= maxScore
 		}
 	}
 

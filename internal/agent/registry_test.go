@@ -1,5 +1,7 @@
 package agent
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -29,7 +31,7 @@ name: test-agent
 description: "Test agent"
 model: gpt-4
 ---
-`), 0644)
+`), 0600)
 				require.NoError(t, err)
 				return path
 			},
@@ -46,7 +48,7 @@ name: different-agent
 description: "Test agent"
 model: gpt-4
 ---
-`), 0644)
+`), 0600)
 				require.NoError(t, err)
 				return path
 			},
@@ -73,7 +75,7 @@ name: test-agent
 description: "Test agent"
 model: gpt-4
 ---
-`), 0644)
+`), 0600)
 				require.NoError(t, err)
 				return path
 			},
@@ -119,7 +121,7 @@ name: test-agent
 description: "Test agent"
 model: gpt-4
 ---
-`), 0644)
+`), 0600)
 	require.NoError(t, err)
 
 	r := NewRegistry()

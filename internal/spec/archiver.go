@@ -60,7 +60,7 @@ func (a *Archiver) Archive(changeID string, skipSpecs bool, dryRun bool) (*Archi
 	// Move change to archive
 	if !dryRun {
 		// Ensure archive directory exists
-		if err := os.MkdirAll(filepath.Dir(archivePath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(archivePath), 0750); err != nil {
 			return nil, fmt.Errorf("create archive dir: %w", err)
 		}
 
@@ -106,7 +106,7 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 		}
 
 		// Read delta spec
-		deltaContent, err := os.ReadFile(path)
+		deltaContent, err := os.ReadFile(path) // #nosec G304 -- controlled file path
 		if err != nil {
 			return fmt.Errorf("read delta spec: %w", err)
 		}
@@ -122,10 +122,9 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 		var baseContent string
 
 		if _, err := os.Stat(baseSpecPath); os.IsNotExist(err) {
-			// Create new spec file if it doesn't exist
-			baseContent = fmt.Sprintf("# %s Specification\n\n", strings.Title(capabilityDir))
+			baseContent = fmt.Sprintf("# %s Specification\n\n", capitalizeFirst(capabilityDir))
 		} else {
-			content, err := os.ReadFile(baseSpecPath)
+			content, err := os.ReadFile(baseSpecPath) // #nosec G304 -- controlled file path
 			if err != nil {
 				return fmt.Errorf("read base spec: %w", err)
 			}
@@ -140,10 +139,10 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 
 		// Write updated spec
 		if !dryRun {
-			if err := os.MkdirAll(filepath.Dir(baseSpecPath), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(baseSpecPath), 0750); err != nil {
 				return fmt.Errorf("create spec dir: %w", err)
 			}
-			if err := os.WriteFile(baseSpecPath, []byte(merged), 0644); err != nil {
+			if err := os.WriteFile(baseSpecPath, []byte(merged), 0600); err != nil {
 				return fmt.Errorf("write spec: %w", err)
 			}
 		}
@@ -157,6 +156,17 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 	}
 
 	return updatedSpecs, nil
+}
+
+func capitalizeFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	r := []rune(s)
+	if r[0] >= 'a' && r[0] <= 'z' {
+		r[0] -= 32
+	}
+	return string(r)
 }
 
 // ValidateBeforeArchive validates a change before archiving.

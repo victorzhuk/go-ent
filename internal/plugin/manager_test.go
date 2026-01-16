@@ -1,5 +1,7 @@
 package plugin
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"log/slog"
@@ -41,13 +43,13 @@ func TestManager_Initialize_LogsParseFailures(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	invalidPluginDir := filepath.Join(tmpDir, "invalid-plugin")
-	require.NoError(t, os.Mkdir(invalidPluginDir, 0755))
+	require.NoError(t, os.Mkdir(invalidPluginDir, 0750))
 
 	invalidManifestPath := filepath.Join(invalidPluginDir, ManifestFile)
-	require.NoError(t, os.WriteFile(invalidManifestPath, []byte("invalid yaml"), 0644))
+	require.NoError(t, os.WriteFile(invalidManifestPath, []byte("invalid yaml"), 0600))
 
 	validPluginDir := filepath.Join(tmpDir, "valid-plugin")
-	require.NoError(t, os.Mkdir(validPluginDir, 0755))
+	require.NoError(t, os.Mkdir(validPluginDir, 0750))
 
 	validManifestPath := filepath.Join(validPluginDir, ManifestFile)
 	validManifest := `name: valid-plugin
@@ -59,7 +61,7 @@ skills:
   - name: test-skill
     path: skills/test.md
 `
-	require.NoError(t, os.WriteFile(validManifestPath, []byte(validManifest), 0644))
+	require.NoError(t, os.WriteFile(validManifestPath, []byte(validManifest), 0600))
 
 	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelWarn,

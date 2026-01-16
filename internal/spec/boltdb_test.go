@@ -1,5 +1,7 @@
 package spec
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"testing"
@@ -16,7 +18,7 @@ func setupBoltStore(t *testing.T) *BoltStore {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		store.Close()
+		_ = store.Close()
 	})
 
 	return store
@@ -68,7 +70,6 @@ func TestBoltStore_GetTask(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -847,7 +848,7 @@ func TestBoltStore_NewBoltStore(t *testing.T) {
 		_, err = os.Stat(dbPath)
 		assert.NoError(t, err)
 
-		store.Close()
+		_ = store.Close()
 	})
 
 	t.Run("error on empty path", func(t *testing.T) {
@@ -867,7 +868,7 @@ func TestBoltStore_NewBoltStore(t *testing.T) {
 
 		store, err := NewBoltStore(dbPath)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task := createTestTask("1", "change-1", RegStatusPending, PriorityMedium)
 		err = store.UpdateTask(task)

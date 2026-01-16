@@ -21,7 +21,7 @@ const (
 func Load(projectRoot string) (*Config, error) {
 	cfgPath := filepath.Join(projectRoot, configDir, configFile)
 
-	data, err := os.ReadFile(cfgPath)
+	data, err := os.ReadFile(cfgPath) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		if os.IsNotExist(err) {
 			return DefaultConfig(), nil

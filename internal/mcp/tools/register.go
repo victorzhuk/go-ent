@@ -41,7 +41,9 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	registerEngineInterrupt(s)
 	registerASTParse(s)
 	registerASTQuery(s)
+	registerASTRefs(s)
 	registerASTRename(s)
+	registerASTExtract(s)
 
 	// Register plugin tools
 	if pluginManager != nil {
@@ -60,6 +62,9 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 
 	// Register meta tools (tool discovery system)
 	registerMetaTools(s, toolRegistry)
+
+	// Register metrics tools
+	registerMetricsShow(s)
 
 	// Build search index
 	if err := toolRegistry.BuildIndex(); err != nil {

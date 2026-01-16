@@ -1,5 +1,7 @@
 package spec
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"testing"
 	"time"

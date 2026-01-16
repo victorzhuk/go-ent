@@ -122,7 +122,7 @@ func workflowStartHandler(ctx context.Context, req *mcp.CallToolRequest, input W
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("✅ Workflow started\n\n")
+	msg := "✅ Workflow started\n\n"
 	msg += fmt.Sprintf("ID: %s\n", workflow.ID)
 	msg += fmt.Sprintf("Change: %s\n", workflow.ChangeID)
 	msg += fmt.Sprintf("Phase: %s\n", workflow.Phase)
@@ -169,7 +169,7 @@ func workflowApproveHandler(ctx context.Context, req *mcp.CallToolRequest, input
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("✅ Wait point approved\n\n")
+	msg := "✅ Wait point approved\n\n"
 	msg += fmt.Sprintf("Phase: %s\n", workflow.Phase)
 	msg += fmt.Sprintf("Status: %s (ready to continue)\n", workflow.Status)
 

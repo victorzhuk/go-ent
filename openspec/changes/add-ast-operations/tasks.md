@@ -21,9 +21,9 @@
 
 - [x] 3.1 Implement `go_ent_ast_parse` - Parse file and return structure ✓ 2026-01-15
 - [x] 3.2 Implement `go_ent_ast_query` - Find functions/types/interfaces by pattern ✓ 2026-01-15
-- [x] 3.3 Implement `go_ent_ast_rename` - Safe symbol rename across files ✓ 2026-01-15
-- [ ] 3.4 Implement `go_ent_ast_refs` - Find all references to symbol
-- [ ] 3.5 Implement `go_ent_ast_extract` - Extract code to new function
+- [ ] 3.3 Implement `go_ent_ast_rename` - Safe symbol rename across files
+- [x] 3.4 Implement `go_ent_ast_refs` - Find all references to symbol ✓ 2026-01-15
+- [x] 3.5 Implement `go_ent_ast_extract` - Extract code to new function ✓ 2026-01-15
 
 ## 4. Structural Queries
 

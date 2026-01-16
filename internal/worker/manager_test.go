@@ -1,5 +1,7 @@
 package worker
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"testing"

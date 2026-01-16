@@ -34,7 +34,7 @@ type PromptTemplate struct {
 func LoadPromptTemplate(projectRoot, templateType string) (*PromptTemplate, error) {
 	templatePath := filepath.Join(projectRoot, "prompts", templateType+".md")
 
-	content, err := os.ReadFile(templatePath)
+	content, err := os.ReadFile(templatePath) // #nosec G304 -- controlled file path
 	if err != nil {
 		// If template doesn't exist, return built-in default
 		if os.IsNotExist(err) {

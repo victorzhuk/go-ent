@@ -129,10 +129,9 @@ func makeAgentExecuteHandler(registry *skill.Registry) func(context.Context, *mc
 			result.Model = input.ForceModel
 		}
 
-		complexity := "unknown"
 		analyzer := agent.NewComplexity()
 		complexityResult := analyzer.Analyze(task)
-		complexity = complexityResult.Level.String()
+		complexity := complexityResult.Level.String()
 
 		response := AgentExecuteResponse{
 			Role:       result.Role.String(),
@@ -153,7 +152,7 @@ func makeAgentExecuteHandler(registry *skill.Registry) func(context.Context, *mc
 		}
 
 		msg := fmt.Sprintf("✅ Agent selected for execution\n\n```json\n%s\n```\n\n", string(data))
-		msg += fmt.Sprintf("**Next Steps:**\n")
+		msg += "**Next Steps:**\n"
 		msg += fmt.Sprintf("- The %s agent (%s) will handle this task\n", result.Role, result.Model)
 		msg += fmt.Sprintf("- Complexity level: %s\n", complexity)
 		msg += fmt.Sprintf("- Reason: %s\n", result.Reason)

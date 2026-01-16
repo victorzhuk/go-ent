@@ -288,9 +288,10 @@ func (r *RegistryStore) RebuildFromSource() (*SyncResult, error) {
 		}
 
 		for _, task := range tasks {
-			if task.Status == RegStatusCompleted {
+			switch task.Status {
+			case RegStatusCompleted:
 				summary.Completed++
-			} else if task.Status == RegStatusInProgress {
+			case RegStatusInProgress:
 				summary.InProgress++
 			}
 
@@ -358,17 +359,6 @@ func (r *RegistryStore) Stats() (*RegistryStats, error) {
 
 // parseTasksFile is deprecated - use StateStore.ParseTasksWithDependencies instead
 // Kept for backward compatibility during migration
-func (r *RegistryStore) parseTasksFile(path, changeID string) ([]RegistryTask, error) {
-	return r.stateStore.ParseTasksWithDependencies(changeID, path)
-}
-
-// recalculateBlockedBy is deprecated - BoltDB maintains reverse index automatically
-// Kept for backward compatibility during migration
-func (r *RegistryStore) recalculateBlockedBy(reg *Registry) {
-	// BoltDB handles this automatically via the blocking bucket
-	// This method is now a no-op
-}
-
 // recalculateBlockedByBolt updates BlockedBy for a specific task using BoltDB
 func (r *RegistryStore) recalculateBlockedByBolt(taskID TaskID) error {
 	task, err := r.bolt.GetTask(taskID)
@@ -390,32 +380,6 @@ func (r *RegistryStore) recalculateBlockedByBolt(taskID TaskID) error {
 
 	task.BlockedBy = blockedBy
 	return r.bolt.UpdateTask(task)
-}
-
-// updateChangeSummaries is deprecated - BoltDB stores changes separately
-// Kept for backward compatibility during migration
-func (r *RegistryStore) updateChangeSummaries(reg *Registry) {
-	// BoltDB handles change summaries automatically
-	// This method is now a no-op
-}
-
-// changeProgress calculates completion percentage for a change
-func (r *RegistryStore) changeProgress(changeID string) (float64, error) {
-	changes, err := r.bolt.ListChanges()
-	if err != nil {
-		return 0, err
-	}
-
-	for _, change := range changes {
-		if change.ID == changeID {
-			if change.Total == 0 {
-				return 0, nil
-			}
-			return float64(change.Completed) / float64(change.Total), nil
-		}
-	}
-
-	return 0, fmt.Errorf("change %s not found", changeID)
 }
 
 // hasCycle, detectCycle - deprecated, BoltDB handles cycle detection in AddDependency

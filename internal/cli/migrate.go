@@ -161,11 +161,12 @@ func checkMigrationStatus(projectPath string, legacyAgents []string) map[string]
 		metaExists, _ := os.Stat(metaFile)
 		promptExists, _ := os.Stat(promptFile)
 
-		if metaExists != nil && promptExists != nil {
+		switch {
+		case metaExists != nil && promptExists != nil:
 			st.Status = "migrated"
-		} else if metaExists != nil || promptExists != nil {
+		case metaExists != nil || promptExists != nil:
 			st.Status = "partially_migrated"
-		} else {
+		default:
 			st.Status = "needs_migration"
 		}
 
@@ -262,7 +263,7 @@ func executeMigrateAgents(projectPath string, legacyAgents []string, status map[
 }
 
 func performMigration(agentPath, projectPath string) error {
-	content, err := os.ReadFile(agentPath)
+	content, err := os.ReadFile(agentPath) // #nosec G304 -- controlled file path
 	if err != nil {
 		return fmt.Errorf("read agent file: %w", err)
 	}
@@ -344,7 +345,7 @@ func performMigration(agentPath, projectPath string) error {
 	}
 
 	metaPath := filepath.Join(projectPath, "agents", "meta", agentName+".yaml")
-	if err := os.MkdirAll(filepath.Dir(metaPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(metaPath), 0750); err != nil {
 		return fmt.Errorf("create meta dir: %w", err)
 	}
 
@@ -353,16 +354,16 @@ func performMigration(agentPath, projectPath string) error {
 		return fmt.Errorf("marshal metadata: %w", err)
 	}
 
-	if err := os.WriteFile(metaPath, metaYAML, 0644); err != nil {
+	if err := os.WriteFile(metaPath, metaYAML, 0600); err != nil {
 		return fmt.Errorf("write meta file: %w", err)
 	}
 
 	promptPath := filepath.Join(projectPath, "agents", "prompts", "agents", agentName+".md")
-	if err := os.MkdirAll(filepath.Dir(promptPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(promptPath), 0750); err != nil {
 		return fmt.Errorf("create prompt dir: %w", err)
 	}
 
-	if err := os.WriteFile(promptPath, []byte(body+"\n"), 0644); err != nil {
+	if err := os.WriteFile(promptPath, []byte(body+"\n"), 0600); err != nil {
 		return fmt.Errorf("write prompt file: %w", err)
 	}
 
@@ -390,28 +391,28 @@ func inferDependencies(body string) []string {
 }
 
 func createBackup(backupDir string, files []string) error {
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
+	if err := os.MkdirAll(backupDir, 0750); err != nil {
 		return fmt.Errorf("create backup dir: %w", err)
 	}
 
 	for _, file := range files {
-		src, err := os.Open(file)
+		src, err := os.Open(file) // #nosec G304 -- controlled file path
 		if err != nil {
 			continue
 		}
-		defer src.Close()
+		defer func() { _ = src.Close() }()
 
 		dstPath := filepath.Join(backupDir, filepath.Base(file))
-		dst, err := os.Create(dstPath)
+		dst, err := os.Create(dstPath) // #nosec G304 -- controlled file path
 		if err != nil {
-			src.Close()
+			_ = src.Close()
 			continue
 		}
-		defer dst.Close()
+		defer func() { _ = dst.Close() }()
 
 		if _, err := io.Copy(dst, src); err != nil {
-			src.Close()
-			dst.Close()
+			_ = src.Close()
+			_ = dst.Close()
 			continue
 		}
 	}

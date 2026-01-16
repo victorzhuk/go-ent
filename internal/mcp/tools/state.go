@@ -80,7 +80,7 @@ func stateSyncHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating bolt store: %v", err)}},
 		}, nil, nil
 	}
-	defer bolt.Close()
+	defer func() { _ = bolt.Close() }()
 
 	stateStore := spec.NewStateStore(store, bolt)
 
@@ -114,8 +114,8 @@ func stateSyncHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 	}
 
 	result := fmt.Sprintf("✓ Synced %d changes\n", len(changes))
-	result += fmt.Sprintf("✓ Generated state.md files\n")
-	result += fmt.Sprintf("✓ BoltDB registry updated\n")
+	result += "✓ Generated state.md files\n"
+	result += "✓ BoltDB registry updated\n"
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: result}},
@@ -138,7 +138,7 @@ func stateShowHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error creating bolt store: %v", err)}},
 		}, nil, nil
 	}
-	defer bolt.Close()
+	defer func() { _ = bolt.Close() }()
 
 	stateStore := spec.NewStateStore(store, bolt)
 

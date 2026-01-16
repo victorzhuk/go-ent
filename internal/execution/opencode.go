@@ -143,7 +143,7 @@ func (r *OpenCodeRunner) executeSubprocess(ctx context.Context, prompt string, r
 	args = append(args, "--prompt", prompt)
 
 	// If context has project path, use it as working directory
-	cmd := exec.CommandContext(ctx, r.binaryPath, args...)
+	cmd := exec.CommandContext(ctx, r.binaryPath, args...) // #nosec G204 -- controlled binary path from config
 	if req.Context != nil && req.Context.ProjectPath != "" {
 		cmd.Dir = req.Context.ProjectPath
 	}

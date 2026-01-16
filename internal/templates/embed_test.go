@@ -1,5 +1,7 @@
 package templates_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"testing"
 

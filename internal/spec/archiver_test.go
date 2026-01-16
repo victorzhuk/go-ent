@@ -1,5 +1,7 @@
 package spec
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -21,16 +23,16 @@ func TestArchive(t *testing.T) {
 	archivePath := filepath.Join(changesPath, "archive")
 	specsPath := filepath.Join(specPath, "specs")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
-	require.NoError(t, os.MkdirAll(archivePath, 0755))
-	require.NoError(t, os.MkdirAll(specsPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
+	require.NoError(t, os.MkdirAll(archivePath, 0750))
+	require.NoError(t, os.MkdirAll(specsPath, 0750))
 
 	// Create a test change
 	changeID := "test-feature"
 	changePath := filepath.Join(changesPath, changeID)
-	require.NoError(t, os.MkdirAll(changePath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(changePath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -65,13 +67,13 @@ func TestArchive_DryRun(t *testing.T) {
 	specPath := filepath.Join(tmpDir, "openspec")
 	changesPath := filepath.Join(specPath, "changes")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
 
 	// Create a test change
 	changeID := "test-feature"
 	changePath := filepath.Join(changesPath, changeID)
-	require.NoError(t, os.MkdirAll(changePath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
+	require.NoError(t, os.MkdirAll(changePath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -93,7 +95,7 @@ func TestArchive_NonexistentChange(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	specPath := filepath.Join(tmpDir, "openspec")
-	require.NoError(t, os.MkdirAll(specPath, 0755))
+	require.NoError(t, os.MkdirAll(specPath, 0750))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -114,8 +116,8 @@ func TestMergeDeltas(t *testing.T) {
 	specsPath := filepath.Join(specPath, "specs")
 	authSpecPath := filepath.Join(specsPath, "auth")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
-	require.NoError(t, os.MkdirAll(authSpecPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
+	require.NoError(t, os.MkdirAll(authSpecPath, 0750))
 
 	// Create base spec
 	baseSpec := `# Authentication Specification
@@ -126,15 +128,15 @@ func TestMergeDeltas(t *testing.T) {
 - WHEN user provides valid credentials
 - THEN user is authenticated
 `
-	require.NoError(t, os.WriteFile(filepath.Join(authSpecPath, "spec.md"), []byte(baseSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(authSpecPath, "spec.md"), []byte(baseSpec), 0600))
 
 	// Create a change with delta
 	changeID := "add-2fa"
 	changePath := filepath.Join(changesPath, changeID)
 	changeDeltaPath := filepath.Join(changePath, "specs", "auth")
-	require.NoError(t, os.MkdirAll(changeDeltaPath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(changeDeltaPath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0600))
 
 	deltaSpec := `## ADDED Requirements
 
@@ -144,7 +146,7 @@ func TestMergeDeltas(t *testing.T) {
 - WHEN user enables 2FA
 - THEN user account requires 2FA
 `
-	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -154,7 +156,7 @@ func TestMergeDeltas(t *testing.T) {
 	assert.Contains(t, result.UpdatedSpecs, "auth")
 
 	// Verify spec was updated
-	mergedSpec, err := os.ReadFile(filepath.Join(authSpecPath, "spec.md"))
+	mergedSpec, err := os.ReadFile(filepath.Join(authSpecPath, "spec.md")) // #nosec G304 -- test file
 	require.NoError(t, err)
 
 	mergedContent := string(mergedSpec)
@@ -172,16 +174,16 @@ func TestMergeDeltas_NewSpec(t *testing.T) {
 	changesPath := filepath.Join(specPath, "changes")
 	specsPath := filepath.Join(specPath, "specs")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
-	require.NoError(t, os.MkdirAll(specsPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
+	require.NoError(t, os.MkdirAll(specsPath, 0750))
 
 	// Create a change with delta for a new spec
 	changeID := "add-notifications"
 	changePath := filepath.Join(changesPath, changeID)
 	changeDeltaPath := filepath.Join(changePath, "specs", "notifications")
-	require.NoError(t, os.MkdirAll(changeDeltaPath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(changeDeltaPath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0600))
 
 	deltaSpec := `## ADDED Requirements
 
@@ -191,7 +193,7 @@ func TestMergeDeltas_NewSpec(t *testing.T) {
 - WHEN event occurs
 - THEN email is sent
 `
-	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -205,7 +207,7 @@ func TestMergeDeltas_NewSpec(t *testing.T) {
 	_, err = os.Stat(newSpecPath)
 	assert.NoError(t, err, "New spec should be created")
 
-	newSpec, err := os.ReadFile(newSpecPath)
+	newSpec, err := os.ReadFile(newSpecPath) // #nosec G304 -- test file
 	require.NoError(t, err)
 	assert.Contains(t, string(newSpec), "Email notifications")
 }
@@ -218,15 +220,15 @@ func TestValidateBeforeArchive(t *testing.T) {
 	specPath := filepath.Join(tmpDir, "openspec")
 	changesPath := filepath.Join(specPath, "changes")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
 
 	// Create a valid change
 	changeID := "valid-change"
 	changePath := filepath.Join(changesPath, changeID)
 	changeDeltaPath := filepath.Join(changePath, "specs", "test")
-	require.NoError(t, os.MkdirAll(changeDeltaPath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(changeDeltaPath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0600))
 
 	validDelta := `## ADDED Requirements
 
@@ -236,7 +238,7 @@ func TestValidateBeforeArchive(t *testing.T) {
 - WHEN feature is used
 - THEN it works
 `
-	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(validDelta), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(validDelta), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -258,29 +260,29 @@ func TestMergeDeltas_DryRun(t *testing.T) {
 	specsPath := filepath.Join(specPath, "specs")
 	authSpecPath := filepath.Join(specsPath, "auth")
 
-	require.NoError(t, os.MkdirAll(changesPath, 0755))
-	require.NoError(t, os.MkdirAll(authSpecPath, 0755))
+	require.NoError(t, os.MkdirAll(changesPath, 0750))
+	require.NoError(t, os.MkdirAll(authSpecPath, 0750))
 
 	// Create base spec
 	baseSpec := `# Authentication Specification
 
 ### Requirement: User login
 `
-	require.NoError(t, os.WriteFile(filepath.Join(authSpecPath, "spec.md"), []byte(baseSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(authSpecPath, "spec.md"), []byte(baseSpec), 0600))
 
 	// Create a change with delta
 	changeID := "test-change"
 	changePath := filepath.Join(changesPath, changeID)
 	changeDeltaPath := filepath.Join(changePath, "specs", "auth")
-	require.NoError(t, os.MkdirAll(changeDeltaPath, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(changeDeltaPath, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(changePath, "tasks.md"), []byte("# Tasks"), 0600))
 
 	deltaSpec := `## ADDED Requirements
 
 ### Requirement: New feature
 `
-	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(changeDeltaPath, "spec.md"), []byte(deltaSpec), 0600))
 
 	store := NewStore(tmpDir)
 	archiver := NewArchiver(store)
@@ -291,7 +293,7 @@ func TestMergeDeltas_DryRun(t *testing.T) {
 	assert.Contains(t, result.UpdatedSpecs, "auth")
 
 	// Verify spec was NOT actually updated in dry run
-	spec, err := os.ReadFile(filepath.Join(authSpecPath, "spec.md"))
+	spec, err := os.ReadFile(filepath.Join(authSpecPath, "spec.md")) // #nosec G304 -- test file
 	require.NoError(t, err)
 	assert.Equal(t, baseSpec, string(spec), "Spec should not be modified in dry run")
 }

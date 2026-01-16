@@ -41,7 +41,7 @@ func newSkillListCmd() *cobra.Command {
 
 			skills := registry.All()
 			if len(skills) == 0 {
-				fmt.Fprintln(os.Stderr, "No skills found")
+				_, _ = fmt.Fprintln(os.Stderr, "No skills found")
 				return nil
 			}
 
@@ -103,14 +103,14 @@ func getSkillsPath() string {
 
 func printSkillsTable(skills []skill.SkillMeta) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	defer w.Flush()
+	_ = w.Flush() // intentionally ignore error in defer
 
-	fmt.Fprintln(w, "NAME\tDESCRIPTION")
-	fmt.Fprintln(w, "----\t-----------")
+	_, _ = fmt.Fprintln(w, "NAME\tDESCRIPTION")
+	_, _ = fmt.Fprintln(w, "----\t-----------")
 
 	for _, s := range skills {
 		desc := extractShortDescription(s.Description)
-		fmt.Fprintf(w, "%s\t%s\n", s.Name, desc)
+		_, _ = fmt.Fprintf(w, "%s\t%s\n", s.Name, desc)
 	}
 
 	return nil

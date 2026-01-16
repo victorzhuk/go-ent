@@ -1,5 +1,7 @@
 package tools
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"os"
@@ -262,7 +264,7 @@ func TestAgentExecuteWithSkills(t *testing.T) {
 
 	tempDir := t.TempDir()
 	skillsDir := filepath.Join(tempDir, "skills")
-	require.NoError(t, os.MkdirAll(skillsDir, 0755))
+	require.NoError(t, os.MkdirAll(skillsDir, 0750))
 
 	skillFile := filepath.Join(skillsDir, "SKILL.md")
 	skillContent := `---
@@ -276,7 +278,7 @@ description: "Test skill for testing. Auto-activates for: test, testing."
 
 Test actions here`
 
-	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0644))
+	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0600))
 
 	registry := skill.NewRegistry()
 	err := registry.Load(skillsDir)
@@ -305,7 +307,7 @@ func TestSkillInfo(t *testing.T) {
 
 	tempDir := t.TempDir()
 	skillsDir := filepath.Join(tempDir, "skills")
-	require.NoError(t, os.MkdirAll(skillsDir, 0755))
+	require.NoError(t, os.MkdirAll(skillsDir, 0750))
 
 	skillFile := filepath.Join(skillsDir, "SKILL.md")
 	skillContent := `---
@@ -320,7 +322,7 @@ description: "Test skill for unit testing. Auto-activates for: test, unit-test."
 1. Run tests
 2. Generate report`
 
-	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0644))
+	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0600))
 
 	registry := skill.NewRegistry()
 	err := registry.Load(skillsDir)
@@ -454,11 +456,11 @@ func TestRuntimeStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for k, v := range tt.envVars {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			}
 			defer func() {
 				for k := range tt.envVars {
-					os.Unsetenv(k)
+					_ = os.Unsetenv(k)
 				}
 			}()
 
@@ -587,7 +589,7 @@ func TestAgentToolsIntegration(t *testing.T) {
 
 	tempDir := t.TempDir()
 	skillsDir := filepath.Join(tempDir, "skills")
-	require.NoError(t, os.MkdirAll(skillsDir, 0755))
+	require.NoError(t, os.MkdirAll(skillsDir, 0750))
 
 	skillFile := filepath.Join(skillsDir, "SKILL.md")
 	skillContent := `---
@@ -601,7 +603,7 @@ description: "Run Go tests. Auto-activates for: test, go test."
 
 Run: go test ./...`
 
-	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0644))
+	require.NoError(t, os.WriteFile(skillFile, []byte(skillContent), 0600))
 
 	registry := skill.NewRegistry()
 	err := registry.Load(skillsDir)

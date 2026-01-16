@@ -48,7 +48,7 @@ func newConfigInitCmd() *cobra.Command {
 
 			// Create .go-ent directory
 			cfgDir := filepath.Join(projectRoot, ".go-ent")
-			if err := os.MkdirAll(cfgDir, 0755); err != nil {
+			if err := os.MkdirAll(cfgDir, 0750); err != nil {
 				return fmt.Errorf("create config directory: %w", err)
 			}
 
@@ -62,7 +62,7 @@ func newConfigInitCmd() *cobra.Command {
 			}
 
 			// Write config file
-			if err := os.WriteFile(cfgPath, data, 0644); err != nil {
+			if err := os.WriteFile(cfgPath, data, 0600); err != nil {
 				return fmt.Errorf("write config file: %w", err)
 			}
 
@@ -164,7 +164,7 @@ Supported keys:
 				return fmt.Errorf("marshal config: %w", err)
 			}
 
-			if err := os.WriteFile(cfgPath, data, 0644); err != nil {
+			if err := os.WriteFile(cfgPath, data, 0600); err != nil {
 				return fmt.Errorf("write config: %w", err)
 			}
 

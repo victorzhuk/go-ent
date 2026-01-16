@@ -146,51 +146,51 @@ func (s *StateStore) WriteChangeStateMd(changeID string, outputPath string) erro
 		return err
 	}
 
-	f, err := os.Create(outputPath)
+	f, err := os.Create(outputPath) // #nosec G304 -- controlled file path
 	if err != nil {
 		return fmt.Errorf("create file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
-	fmt.Fprintf(f, "# State: %s\n\n", changeID)
-	fmt.Fprintf(f, "> Updated: %s\n\n", state.Updated.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(f, "# State: %s\n\n", changeID)
+	_, _ = fmt.Fprintf(f, "> Updated: %s\n\n", state.Updated.Format(time.RFC3339))
 
-	fmt.Fprintf(f, "## Progress\n")
-	fmt.Fprintf(f, "%d/%d complete (%d%%)\n\n",
+	_, _ = fmt.Fprintf(f, "## Progress\n")
+	_, _ = fmt.Fprintf(f, "%d/%d complete (%d%%)\n\n",
 		state.Progress.Completed, state.Progress.Total, state.Progress.Percent)
 
 	if state.CurrentTask != nil {
-		fmt.Fprintf(f, "## Current Task\n")
-		fmt.Fprintf(f, "**T%s**: %s\n", state.CurrentTask.ID.TaskNum, state.CurrentTask.Content)
-		fmt.Fprintf(f, "- Line: tasks.md:%d\n", state.CurrentTask.Line)
-		fmt.Fprintf(f, "- Status: %s\n\n", state.CurrentTask.Status)
+		_, _ = fmt.Fprintf(f, "## Current Task\n")
+		_, _ = fmt.Fprintf(f, "**T%s**: %s\n", state.CurrentTask.ID.TaskNum, state.CurrentTask.Content)
+		_, _ = fmt.Fprintf(f, "- Line: tasks.md:%d\n", state.CurrentTask.Line)
+		_, _ = fmt.Fprintf(f, "- Status: %s\n\n", state.CurrentTask.Status)
 	} else {
-		fmt.Fprintf(f, "## Current Task\nNone (all tasks complete or blocked)\n\n")
+		_, _ = fmt.Fprintf(f, "## Current Task\nNone (all tasks complete or blocked)\n\n")
 	}
 
-	fmt.Fprintf(f, "## Blockers\n")
+	_, _ = fmt.Fprintf(f, "## Blockers\n")
 	if len(state.Blockers) == 0 {
-		fmt.Fprintf(f, "None\n\n")
+		_, _ = fmt.Fprintf(f, "None\n\n")
 	} else {
 		for _, blocker := range state.Blockers {
-			fmt.Fprintf(f, "- **T%s**: %s\n", blocker.ID.TaskNum, blocker.Content)
+			_, _ = fmt.Fprintf(f, "- **T%s**: %s\n", blocker.ID.TaskNum, blocker.Content)
 		}
-		fmt.Fprintf(f, "\n")
+		_, _ = fmt.Fprintf(f, "\n")
 	}
 
-	fmt.Fprintf(f, "## Recent Activity\n")
+	_, _ = fmt.Fprintf(f, "## Recent Activity\n")
 	if len(state.RecentActivity) == 0 {
-		fmt.Fprintf(f, "No recent activity\n\n")
+		_, _ = fmt.Fprintf(f, "No recent activity\n\n")
 	} else {
-		fmt.Fprintf(f, "| Task | Action | Time |\n")
-		fmt.Fprintf(f, "|------|--------|------|\n")
+		_, _ = fmt.Fprintf(f, "| Task | Action | Time |\n")
+		_, _ = fmt.Fprintf(f, "|------|--------|------|\n")
 		for _, activity := range state.RecentActivity {
-			fmt.Fprintf(f, "| T%s | %s | %s |\n",
+			_, _ = fmt.Fprintf(f, "| T%s | %s | %s |\n",
 				activity.TaskID.TaskNum,
 				activity.Action,
 				activity.Time.Format("15:04"))
 		}
-		fmt.Fprintf(f, "\n")
+		_, _ = fmt.Fprintf(f, "\n")
 	}
 
 	return nil
@@ -202,37 +202,37 @@ func (s *StateStore) WriteRootStateMd(outputPath string) error {
 		return err
 	}
 
-	f, err := os.Create(outputPath)
+	f, err := os.Create(outputPath) // #nosec G304 -- controlled file path
 	if err != nil {
 		return fmt.Errorf("create file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
-	fmt.Fprintf(f, "# OpenSpec State\n\n")
-	fmt.Fprintf(f, "> Updated: %s\n\n", state.Updated.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(f, "# OpenSpec State\n\n")
+	_, _ = fmt.Fprintf(f, "> Updated: %s\n\n", state.Updated.Format(time.RFC3339))
 
-	fmt.Fprintf(f, "## Active Changes\n\n")
-	fmt.Fprintf(f, "| Change | Progress | Blocked |\n")
-	fmt.Fprintf(f, "|--------|----------|---------||\n")
+	_, _ = fmt.Fprintf(f, "## Active Changes\n\n")
+	_, _ = fmt.Fprintf(f, "| Change | Progress | Blocked |\n")
+	_, _ = fmt.Fprintf(f, "|--------|----------|---------||\n")
 	for _, change := range state.ActiveChanges {
 		percent := 0
 		if change.Total > 0 {
 			percent = (change.Completed * 100) / change.Total
 		}
-		fmt.Fprintf(f, "| %s | %d%% (%d/%d) | %d |\n",
+		_, _ = fmt.Fprintf(f, "| %s | %d%% (%d/%d) | %d |\n",
 			change.ID, percent, change.Completed, change.Total, change.Blocked)
 	}
-	fmt.Fprintf(f, "\n")
+	_, _ = fmt.Fprintf(f, "\n")
 
-	fmt.Fprintf(f, "## Recommended Next\n")
+	_, _ = fmt.Fprintf(f, "## Recommended Next\n")
 	if len(state.RecommendedTasks) == 0 {
-		fmt.Fprintf(f, "No unblocked tasks available\n\n")
+		_, _ = fmt.Fprintf(f, "No unblocked tasks available\n\n")
 	} else {
 		for i, task := range state.RecommendedTasks {
-			fmt.Fprintf(f, "%d. **%s** - %s (%s priority)\n",
+			_, _ = fmt.Fprintf(f, "%d. **%s** - %s (%s priority)\n",
 				i+1, task.ID.String(), task.Content, task.Priority)
 		}
-		fmt.Fprintf(f, "\n")
+		_, _ = fmt.Fprintf(f, "\n")
 	}
 
 	return nil
@@ -257,11 +257,11 @@ func ParseDependencies(line string) []string {
 }
 
 func (s *StateStore) ParseTasksWithDependencies(changeID string, tasksPath string) ([]RegistryTask, error) {
-	f, err := os.Open(tasksPath)
+	f, err := os.Open(tasksPath) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("open tasks.md: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var tasks []RegistryTask
 	scanner := bufio.NewScanner(f)

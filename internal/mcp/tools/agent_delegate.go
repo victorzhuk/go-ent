@@ -104,16 +104,16 @@ func agentDelegateHandler(ctx context.Context, req *mcp.CallToolRequest, input A
 		DelegationID: delegationID,
 	}
 
-	msg := fmt.Sprintf("✅ **Task Delegated**\n\n")
+	msg := "✅ **Task Delegated**\n\n"
 	msg += fmt.Sprintf("**From**: %s agent\n", fromRole)
 	msg += fmt.Sprintf("**To**: %s agent\n\n", toRole)
 	msg += fmt.Sprintf("**Task**: %s\n\n", input.Task)
 	msg += fmt.Sprintf("**Reason**: %s\n\n", reason)
 	msg += fmt.Sprintf("**Delegation ID**: `%s`\n\n", delegationID)
-	msg += fmt.Sprintf("---\n\n")
-	msg += fmt.Sprintf("**Next Steps**:\n")
+	msg += "---\n\n"
+	msg += "**Next Steps**:\n"
 	msg += fmt.Sprintf("- The %s agent will handle this task\n", toRole)
-	msg += fmt.Sprintf("- Use `agent_execute` to configure the agent\n")
+	msg += "- Use `agent_execute` to configure the agent\n"
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: msg}},

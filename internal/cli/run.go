@@ -31,7 +31,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 	}
 
 	if cfg.Verbose {
-		fmt.Fprintf(os.Stderr, "Analyzing task: %s\n", cfg.Task)
+		_, _ = fmt.Fprintf(os.Stderr, "Analyzing task: %s\n", cfg.Task)
 	}
 
 	taskType := parseTaskType(cfg.TaskType)
@@ -51,7 +51,7 @@ func Run(ctx context.Context, cfg RunConfig) error {
 		skillsPath = filepath.Join(exeDir, "..", "plugins", "go-ent", "skills")
 	}
 	if err := registry.Load(skillsPath); err != nil && cfg.Verbose {
-		fmt.Fprintf(os.Stderr, "Warning: failed to load skills: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Warning: failed to load skills: %v\n", err)
 	}
 
 	selector := agent.NewSelector(agent.Config{

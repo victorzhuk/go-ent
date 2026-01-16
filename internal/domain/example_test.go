@@ -1,5 +1,7 @@
 package domain_test
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"context"
 	"errors"

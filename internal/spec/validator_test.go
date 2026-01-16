@@ -1,5 +1,7 @@
 package spec
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"os"
 	"path/filepath"
@@ -240,10 +242,10 @@ No scenarios here.
 `
 
 	validPath := filepath.Join(tmpDir, "valid.md")
-	require.NoError(t, os.WriteFile(validPath, []byte(validSpec), 0644))
+	require.NoError(t, os.WriteFile(validPath, []byte(validSpec), 0600))
 
 	invalidPath := filepath.Join(tmpDir, "invalid.md")
-	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidSpec), 0644))
+	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidSpec), 0600))
 
 	validator := NewValidator()
 
@@ -274,9 +276,9 @@ func TestValidateChange(t *testing.T) {
 
 	// Create valid change structure
 	validChange := filepath.Join(tmpDir, "valid-change")
-	require.NoError(t, os.MkdirAll(filepath.Join(validChange, "specs"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(validChange, "proposal.md"), []byte("# Proposal"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(validChange, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(validChange, "specs"), 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(validChange, "proposal.md"), []byte("# Proposal"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(validChange, "tasks.md"), []byte("# Tasks"), 0600))
 
 	deltaSpec := `## ADDED Requirements
 
@@ -286,12 +288,12 @@ func TestValidateChange(t *testing.T) {
 - WHEN feature is used
 - THEN it works
 `
-	require.NoError(t, os.WriteFile(filepath.Join(validChange, "specs", "feature.md"), []byte(deltaSpec), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(validChange, "specs", "feature.md"), []byte(deltaSpec), 0600))
 
 	// Create invalid change (missing proposal.md)
 	invalidChange := filepath.Join(tmpDir, "invalid-change")
-	require.NoError(t, os.MkdirAll(filepath.Join(invalidChange, "specs"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(invalidChange, "tasks.md"), []byte("# Tasks"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(invalidChange, "specs"), 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(invalidChange, "tasks.md"), []byte("# Tasks"), 0600))
 
 	validator := NewValidator()
 

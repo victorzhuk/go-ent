@@ -15,7 +15,7 @@ func TestAgentMetaSchema(t *testing.T) {
 
 	schemaPath := filepath.Join("..", "plugins", "go-ent", "schemas", "agent-meta.schema.json")
 
-	schemaData, err := os.ReadFile(schemaPath)
+	schemaData, err := os.ReadFile(schemaPath) // #nosec G304 -- test file
 	require.NoError(t, err)
 
 	var schema map[string]any
@@ -62,7 +62,7 @@ func TestAgentMetaSchemaStructure(t *testing.T) {
 
 	schemaPath := filepath.Join("..", "plugins", "go-ent", "schemas", "agent-meta.schema.json")
 
-	schemaData, err := os.ReadFile(schemaPath)
+	schemaData, err := os.ReadFile(schemaPath) // #nosec G304 -- test file
 	require.NoError(t, err)
 
 	var schema map[string]any

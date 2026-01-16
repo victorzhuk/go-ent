@@ -125,7 +125,7 @@ func generateComponentHandler(ctx context.Context, req *mcp.CallToolRequest, inp
 		}, nil, nil
 	}
 
-	msg := fmt.Sprintf("# Component Generation Analysis\n\n")
+	msg := "# Component Generation Analysis\n\n"
 	msg += fmt.Sprintf("**Spec:** %s\n", input.SpecPath)
 	msg += fmt.Sprintf("**Component:** %s\n", componentName)
 	msg += fmt.Sprintf("**Recommended Archetype:** %s (confidence: %.2f)\n\n", analysis.Archetype, analysis.Confidence)

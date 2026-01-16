@@ -1,5 +1,7 @@
 package toolinit
 
+//nolint:gosec // test file with necessary file operations
+
 import (
 	"embed"
 	"testing"

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -63,7 +64,7 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	registryWrapper := &skillRegistryWrapper{registry: registry, agentRegistry: agentRegistry}
 	pluginManager := plugin.NewManager(pluginsDir, registryWrapper, marketplaceClient, nil)
 
-	if err := pluginManager.Initialize(nil); err != nil {
+	if err := pluginManager.Initialize(context.TODO()); err != nil {
 		slog.Warn("failed to initialize plugin manager", "error", err)
 	} else {
 		slog.Info("plugin manager initialized", "plugins_dir", pluginsDir)

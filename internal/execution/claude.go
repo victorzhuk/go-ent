@@ -72,8 +72,7 @@ func (r *ClaudeCodeRunner) Execute(ctx context.Context, req *Request) (*Result, 
 
 // Interrupt attempts to stop a running execution.
 func (r *ClaudeCodeRunner) Interrupt(ctx context.Context) error {
-	// Interruption would be handled by Claude Code's MCP protocol
-	return fmt.Errorf("Claude Code runner interruption not implemented")
+	return fmt.Errorf("claude Code runner interruption not implemented")
 }
 
 // buildMCPPrompt constructs the MCP prompt for Claude Code execution.

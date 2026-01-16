@@ -27,11 +27,11 @@ func NewParser() *Parser {
 
 // ParseSkillFile parses a SKILL.md file and extracts metadata.
 func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
 		return nil, fmt.Errorf("open: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	frontmatter, err := p.extractFrontmatter(f)
 	if err != nil {

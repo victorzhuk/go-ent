@@ -205,19 +205,19 @@ func newSpecShowCmd() *cobra.Command {
 
 func printSpecTable(items []spec.ListItem, itemType string) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	defer w.Flush()
+	_ = w.Flush() // intentionally ignore error in defer
 
 	if itemType == "change" {
-		fmt.Fprintln(w, "ID\tSTATUS\tNAME")
-		fmt.Fprintln(w, "--\t------\t----")
+		_, _ = fmt.Fprintln(w, "ID\tSTATUS\tNAME")
+		_, _ = fmt.Fprintln(w, "--\t------\t----")
 		for _, item := range items {
-			fmt.Fprintf(w, "%s\t%s\t%s\n", item.ID, item.Status, item.Name)
+			_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", item.ID, item.Status, item.Name)
 		}
 	} else {
-		fmt.Fprintln(w, "ID\tNAME")
-		fmt.Fprintln(w, "--\t----")
+		_, _ = fmt.Fprintln(w, "ID\tNAME")
+		_, _ = fmt.Fprintln(w, "--\t----")
 		for _, item := range items {
-			fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Name)
+			_, _ = fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Name)
 		}
 	}
 
