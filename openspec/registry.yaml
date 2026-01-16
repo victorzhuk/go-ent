@@ -1,5 +1,5 @@
 version: "1.0"
-synced_at: 2026-01-15T20:00:00.000000000+03:00
+synced_at: 2026-01-16T12:00:00.000000000+03:00
 changes:
     add-acp-agent-mode:
         id: add-acp-agent-mode
@@ -16,7 +16,7 @@ changes:
         status: ""
         tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
         total: 23
-        completed: 15
+        completed: 19
         in_progress: 0
         blocked: 0
     add-background-agents:
@@ -668,7 +668,6 @@ tasks:
       priority: medium
       source_line: 18
       synced_at: 2026-01-15T12:00:00.000000000+03:00
-      synced_at: 2026-01-11T08:48:48.816988964+03:00
     - id:
         change_id: add-ast-operations
         task_num: "9"
@@ -689,10 +688,10 @@ tasks:
         change_id: add-ast-operations
         task_num: "11"
       content: 3.3 Implement `go_ent_ast_rename` - Safe symbol rename across files
-      status: pending
+      status: completed
       priority: medium
       source_line: 24
-      synced_at: 2026-01-11T08:48:48.81699242+03:00
+      synced_at: 2026-01-16T00:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "12"
@@ -729,34 +728,34 @@ tasks:
         change_id: add-ast-operations
         task_num: "16"
       content: 4.3 Query by struct field type
-      status: pending
+      status: completed
       priority: medium
       source_line: 32
-      synced_at: 2026-01-11T08:48:48.816996277+03:00
+      synced_at: 2026-01-16T12:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "17"
       content: 4.4 Query by import dependency
-      status: pending
+      status: completed
       priority: medium
       source_line: 33
-      synced_at: 2026-01-11T08:48:48.816996858+03:00
+      synced_at: 2026-01-16T12:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "18"
       content: 5.1 Create AST template system
-      status: pending
+      status: completed
       priority: medium
       source_line: 37
-      synced_at: 2026-01-11T08:48:48.8169976+03:00
+      synced_at: 2026-01-16T12:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "19"
       content: 5.2 Generate interface implementations
-      status: pending
+      status: completed
       priority: medium
       source_line: 38
-      synced_at: 2026-01-11T08:48:48.816998241+03:00
+      synced_at: 2026-01-16T12:00:00.000000000+03:00
     - id:
         change_id: add-ast-operations
         task_num: "20"

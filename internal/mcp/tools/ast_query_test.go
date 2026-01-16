@@ -290,6 +290,350 @@ func TestFunc() {}
 
 		assert.Contains(t, textContent.Text, "No matches found")
 	})
+
+	t.Run("find structs by field type string", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "models.go", `package main
+
+type User struct {
+	Name string
+	Age  int
+}
+
+type Product struct {
+	Name  string
+	Price float64
+}
+
+type Config struct {
+	MaxConn int
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "string",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 2 matches")
+		assert.Contains(t, textContent.Text, "User")
+		assert.Contains(t, textContent.Text, "Product")
+		assert.NotContains(t, textContent.Text, "Config")
+	})
+
+	t.Run("find structs by wildcard field type", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "types.go", `package main
+
+type Handler struct {
+	Config map[string]any
+	Logger interface{}
+}
+
+type Server struct {
+	Handler
+	Port int
+}
+
+type Simple struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "*",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 3 matches")
+		assert.Contains(t, textContent.Text, "Handler")
+		assert.Contains(t, textContent.Text, "Server")
+		assert.Contains(t, textContent.Text, "Simple")
+	})
+
+	t.Run("find structs by pointer field type", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "client.go", `package main
+
+import "net/http"
+
+type Service struct {
+	client *http.Client
+}
+
+type AnotherService struct {
+	cfg *Config
+}
+
+type Simple struct {
+	str string
+}
+
+type Config struct {
+	Debug bool
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "*http.Client",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 1 match")
+		assert.Contains(t, textContent.Text, "Service")
+		assert.NotContains(t, textContent.Text, "AnotherService")
+		assert.NotContains(t, textContent.Text, "Simple")
+	})
+
+	t.Run("struct field query single file", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		aPath := writeFile(t, tmpDir, "a.go", `package main
+type A struct {
+	Name string
+}
+`)
+		writeFile(t, tmpDir, "b.go", `package main
+type B struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			File:      aPath,
+			Type:      "struct_field",
+			FieldType: "string",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 1 match")
+		assert.Contains(t, textContent.Text, "A")
+		assert.NotContains(t, textContent.Text, "B")
+	})
+
+	t.Run("struct field query package with multiple files", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "handlers.go", `package main
+type HandlerA struct {
+	Name string
+}
+type HandlerB struct {
+	Config map[string]any
+}
+`)
+		writeFile(t, tmpDir, "services.go", `package main
+type ServiceA struct {
+	Name string
+}
+type ServiceB struct {
+	HandlerA
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "string",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 2 matches")
+		assert.Contains(t, textContent.Text, "HandlerA")
+		assert.Contains(t, textContent.Text, "ServiceA")
+		assert.NotContains(t, textContent.Text, "HandlerB")
+		assert.NotContains(t, textContent.Text, "ServiceB")
+	})
+
+	t.Run("struct field query no results", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "types.go", `package main
+type User struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "*http.Client",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "No matches found")
+	})
+
+	t.Run("struct field query missing field_type", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "test.go", `package main
+type Test struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			Package: tmpDir,
+			Type:    "struct_field",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Error:")
+		assert.Contains(t, textContent.Text, "field type required")
+	})
+
+	t.Run("find structs by slice field type", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "collections.go", `package main
+
+type Items struct {
+	Values []string
+}
+
+type Numbers struct {
+	Values []int
+}
+
+type Simple struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "[]string",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 1 match")
+		assert.Contains(t, textContent.Text, "Items")
+		assert.NotContains(t, textContent.Text, "Numbers")
+		assert.NotContains(t, textContent.Text, "Simple")
+	})
+
+	t.Run("find structs by map field type", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		writeFile(t, tmpDir, "configs.go", `package main
+
+type ConfigA struct {
+	Settings map[string]any
+}
+
+type ConfigB struct {
+	Values map[int]string
+}
+
+type Simple struct {
+	Name string
+}
+`)
+
+		input := ASTQueryInput{
+			Package:   tmpDir,
+			Type:      "struct_field",
+			FieldType: "map[string]any",
+		}
+
+		req := &mcp.CallToolRequest{}
+		result, _, err := astQueryHandler(context.Background(), req, input)
+
+		require.NoError(t, err)
+		require.Len(t, result.Content, 1)
+
+		textContent, ok := result.Content[0].(*mcp.TextContent)
+		require.True(t, ok)
+
+		assert.Contains(t, textContent.Text, "Found 1 match")
+		assert.Contains(t, textContent.Text, "ConfigA")
+		assert.NotContains(t, textContent.Text, "ConfigB")
+		assert.NotContains(t, textContent.Text, "Simple")
+	})
 }
 
 func TestASTQuery_Scope(t *testing.T) {

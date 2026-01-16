@@ -427,3 +427,162 @@ func normalizeSignature(sig string) string {
 	sig = strings.ReplaceAll(sig, "\n", "")
 	return sig
 }
+
+func FindStructsByFieldType(files map[string]*ast.File, fieldType string) []Result {
+	if files == nil || fieldType == "" {
+		return nil
+	}
+
+	var results []Result
+	for filename, f := range files {
+		ast.Inspect(f, func(n ast.Node) bool {
+			ts, ok := n.(*ast.TypeSpec)
+			if !ok {
+				return true
+			}
+
+			structType, ok := ts.Type.(*ast.StructType)
+			if !ok {
+				return true
+			}
+
+			if structType.Fields == nil {
+				return true
+			}
+
+			for _, field := range structType.Fields.List {
+				fieldTypeStr := formatExpr(field.Type)
+				if fieldType == "*" || fieldTypeStr == fieldType {
+					var fieldName string
+					if len(field.Names) > 0 {
+						fieldName = field.Names[0].Name
+					}
+
+					results = append(results, Result{
+						File:      filename,
+						Line:      0,
+						Name:      ts.Name.Name,
+						Signature: fmt.Sprintf("%s %s", fieldName, fieldTypeStr),
+						Type:      "struct_field",
+					})
+					break
+				}
+			}
+
+			return false
+		})
+	}
+
+	return results
+}
+
+func (q *Query) FindStructsByFieldType(files map[string]*ast.File, fieldType string) []Result {
+	if files == nil || fieldType == "" {
+		return nil
+	}
+
+	results := FindStructsByFieldType(files, fieldType)
+	for i := range results {
+		if f, ok := files[results[i].File]; ok {
+			results[i].Line = q.line(f, results[i].Name)
+		}
+	}
+	return results
+}
+
+func FindByImportDependency(files map[string]*ast.File, importPath string) []Result {
+	if files == nil || importPath == "" {
+		return nil
+	}
+
+	var results []Result
+	for filename, f := range files {
+		ast.Inspect(f, func(n ast.Node) bool {
+			genDecl, ok := n.(*ast.GenDecl)
+			if !ok || genDecl.Tok != token.IMPORT {
+				return true
+			}
+
+			for _, imp := range genDecl.Specs {
+				importSpec, ok := imp.(*ast.ImportSpec)
+				if !ok {
+					continue
+				}
+
+				importPathValue := strings.Trim(importSpec.Path.Value, `"`)
+
+				if matchImportPath(importPath, importPathValue) {
+					results = append(results, Result{
+						File:      filename,
+						Line:      0,
+						Name:      "",
+						Signature: importPathValue,
+						Type:      "import_dependency",
+					})
+					break
+				}
+			}
+
+			return false
+		})
+	}
+
+	return results
+}
+
+func (q *Query) FindByImportDependency(files map[string]*ast.File, importPath string) []Result {
+	if files == nil || importPath == "" {
+		return nil
+	}
+
+	results := FindByImportDependency(files, importPath)
+	for i := range results {
+		if f, ok := files[results[i].File]; ok {
+			results[i].Line = q.lineForImport(f, results[i].Signature)
+		}
+	}
+	return results
+}
+
+func (q *Query) lineForImport(f *ast.File, importPath string) int {
+	if q.fset == nil {
+		return 0
+	}
+
+	var line int
+	ast.Inspect(f, func(n ast.Node) bool {
+		genDecl, ok := n.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.IMPORT {
+			return true
+		}
+
+		for _, imp := range genDecl.Specs {
+			importSpec, ok := imp.(*ast.ImportSpec)
+			if !ok {
+				continue
+			}
+
+			importPathValue := strings.Trim(importSpec.Path.Value, `"`)
+			if importPathValue == importPath {
+				line = q.fset.Position(importSpec.Pos()).Line
+				return false
+			}
+		}
+
+		return true
+	})
+	return line
+}
+
+func matchImportPath(pattern, importPath string) bool {
+	if pattern == "*" {
+		return true
+	}
+
+	if strings.HasSuffix(pattern, "*") {
+		prefix := strings.TrimSuffix(pattern, "*")
+		return strings.HasPrefix(importPath, prefix)
+	}
+
+	return importPath == pattern
+}

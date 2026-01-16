@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -13,11 +15,12 @@ import (
 )
 
 type ASTRenameInput struct {
-	File    string `json:"file"`
-	Line    int    `json:"line"`
-	Column  int    `json:"column"`
-	NewName string `json:"new_name"`
-	DryRun  bool   `json:"dry_run"`
+	File      string `json:"file"`
+	Line      int    `json:"line"`
+	Column    int    `json:"column"`
+	NewName   string `json:"new_name"`
+	DryRun    bool   `json:"dry_run"`
+	FilesOnly bool   `json:"files_only,omitempty"`
 }
 
 type renameChange struct {
@@ -38,7 +41,7 @@ type renameResult struct {
 func registerASTRename(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "go_ent_ast_rename",
-		Description: "Safely rename a Go symbol (function, variable, type, etc.) using type-aware refactoring. Finds all references across the file and updates them atomically.",
+		Description: "Safely rename a Go symbol (function, variable, type, etc.) using type-aware refactoring. Finds all references across all files in the codebase and updates them atomically.",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -61,6 +64,10 @@ func registerASTRename(s *mcp.Server) {
 				"dry_run": map[string]any{
 					"type":        "boolean",
 					"description": "Preview changes without applying (default: false)",
+				},
+				"files_only": map[string]any{
+					"type":        "boolean",
+					"description": "Only list affected files without modifying (default: false)",
 				},
 			},
 			"required": []string{"file", "line", "column", "new_name"},
@@ -114,7 +121,6 @@ func renameSymbol(input ASTRenameInput) (*renameResult, error) {
 	file := parser.FileSet().File(f.Pos())
 	pos := file.LineStart(input.Line) + token.Pos(input.Column-1)
 
-	transform := astpkg.NewTransform(parser.FileSet())
 	ident := findIdentifierAtPos(parser.FileSet(), f, pos)
 	if ident == nil {
 		return nil, fmt.Errorf("symbol not found at %s:%d:%d", input.File, input.Line, input.Column)
@@ -144,33 +150,27 @@ func renameSymbol(input ASTRenameInput) (*renameResult, error) {
 		}, nil
 	}
 
-	refs := builder.FindReferences(ident.Name, pos, false)
-	if len(refs) == 0 {
+	affectedFiles, err := findAffectedFiles(input.File, ident.Name, pos)
+	if err != nil {
+		return nil, fmt.Errorf("find affected files: %w", err)
+	}
+
+	if len(affectedFiles) == 0 {
 		return nil, fmt.Errorf("no references found")
 	}
 
-	newFile, err := transform.RenameSymbolAtPos(f, pos, input.NewName)
-	if err != nil {
-		return nil, fmt.Errorf("rename symbol: %w", err)
+	if input.FilesOnly {
+		return &renameResult{
+			SymbolName: ident.Name,
+			SymbolKind: targetSym.Kind.String(),
+			Changes:    fileChangesToRenameChanges(affectedFiles),
+			Applied:    false,
+		}, nil
 	}
 
-	printer := astpkg.NewPrinter(parser.FileSet())
-	oldContent, err := printer.PrintFile(f)
+	changes, err := applyRenameToFiles(affectedFiles, ident.Name, input.NewName, input.DryRun)
 	if err != nil {
-		return nil, fmt.Errorf("print original file: %w", err)
-	}
-
-	newContent, err := printer.PrintFile(newFile)
-	if err != nil {
-		return nil, fmt.Errorf("print renamed file: %w", err)
-	}
-
-	changes := computeChanges(parser.FileSet(), oldContent, newContent, input.File)
-
-	if !input.DryRun {
-		if err := printer.WriteFile(newFile, input.File); err != nil {
-			return nil, fmt.Errorf("write file: %w", err)
-		}
+		return nil, fmt.Errorf("apply rename: %w", err)
 	}
 
 	return &renameResult{
@@ -270,4 +270,147 @@ func formatRenameResult(result *renameResult) string {
 	}
 
 	return sb.String()
+}
+
+type fileChange struct {
+	filePath string
+	oldName  string
+}
+
+func findAffectedFiles(sourceFile, symbolName string, pos token.Pos) ([]fileChange, error) {
+	var affected []fileChange
+
+	fset := token.NewFileSet()
+
+	goFiles, err := findGoFilesInDir(sourceFile)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, goFile := range goFiles {
+		f, err := parser.ParseFile(fset, goFile, nil, parser.AllErrors)
+		if err != nil {
+			continue
+		}
+
+		builder := astpkg.NewBuilder(fset)
+		scope, err := builder.BuildFile(f)
+		if err != nil {
+			continue
+		}
+
+		if containsSymbolReference(builder, fset, f, symbolName, scope) {
+			affected = append(affected, fileChange{
+				filePath: goFile,
+				oldName:  symbolName,
+			})
+		}
+	}
+
+	return affected, nil
+}
+
+func containsSymbolReference(builder *astpkg.Builder, fset *token.FileSet, f *ast.File, symbolName string, scope *astpkg.Scope) bool {
+	var found bool
+
+	ast.Inspect(f, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		if ident, ok := n.(*ast.Ident); ok {
+			if ident.Name == symbolName {
+				found = true
+			}
+		}
+
+		return !found
+	})
+
+	return found
+}
+
+func findGoFilesInDir(startFile string) ([]string, error) {
+	var files []string
+
+	dir := filepath.Dir(startFile)
+
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			name := d.Name()
+			if name == ".git" || name == "vendor" || name == "node_modules" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if strings.HasSuffix(path, ".go") {
+			files = append(files, path)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func applyRenameToFiles(affectedFiles []fileChange, oldName, newName string, dryRun bool) ([]renameChange, error) {
+	var allChanges []renameChange
+
+	for _, fc := range affectedFiles {
+		fset := token.NewFileSet()
+		f, err := parser.ParseFile(fset, fc.filePath, nil, parser.AllErrors)
+		if err != nil {
+			continue
+		}
+
+		printer := astpkg.NewPrinter(fset)
+		oldContent, err := printer.PrintFile(f)
+		if err != nil {
+			continue
+		}
+
+		transform := astpkg.NewTransform(fset)
+		newFile, err := transform.RenameSymbol(f, oldName, newName)
+		if err != nil {
+			continue
+		}
+
+		newContent, err := printer.PrintFile(newFile)
+		if err != nil {
+			continue
+		}
+
+		fileChanges := computeChanges(fset, oldContent, newContent, fc.filePath)
+		allChanges = append(allChanges, fileChanges...)
+
+		if !dryRun {
+			if err := printer.WriteFile(newFile, fc.filePath); err != nil {
+				return allChanges, fmt.Errorf("write file %s: %w", fc.filePath, err)
+			}
+		}
+	}
+
+	return allChanges, nil
+}
+
+func fileChangesToRenameChanges(affectedFiles []fileChange) []renameChange {
+	changes := make([]renameChange, 0, len(affectedFiles))
+	for _, fc := range affectedFiles {
+		changes = append(changes, renameChange{
+			File:    fc.filePath,
+			Line:    0,
+			OldText: fc.oldName,
+			NewText: "(files_only mode: use without files_only to see changes)",
+		})
+	}
+	return changes
 }

@@ -19,12 +19,13 @@ type ASTQueryInput struct {
 	Pattern   string `json:"pattern,omitempty"`
 	Signature string `json:"signature,omitempty"`
 	Interface string `json:"interface,omitempty"`
+	FieldType string `json:"field_type,omitempty"`
 }
 
 func registerASTQuery(s *mcp.Server) {
 	tool := &mcp.Tool{
 		Name:        "go_ent_ast_query",
-		Description: "Query Go AST to find functions, types, and interfaces by pattern, signature, or interface implementation",
+		Description: "Query Go AST to find functions, types, and interfaces by pattern, signature, interface implementation, or struct field type",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -38,8 +39,8 @@ func registerASTQuery(s *mcp.Server) {
 				},
 				"type": map[string]any{
 					"type":        "string",
-					"description": "Query type: function, implements",
-					"enum":        []string{"function", "implements"},
+					"description": "Query type: function, implements, struct_field",
+					"enum":        []string{"function", "implements", "struct_field"},
 				},
 				"pattern": map[string]any{
 					"type":        "string",
@@ -52,6 +53,10 @@ func registerASTQuery(s *mcp.Server) {
 				"interface": map[string]any{
 					"type":        "string",
 					"description": "Interface name to find implementations (e.g., 'io.Reader')",
+				},
+				"field_type": map[string]any{
+					"type":        "string",
+					"description": "Struct field type to search (e.g., 'string', '*http.Client', '[]string')",
 				},
 			},
 			"oneOf": []map[string]any{
@@ -189,6 +194,8 @@ func executeQuery(query *astpkg.Query, files map[string]*ast.File, input ASTQuer
 		return queryFunctions(query, files, input)
 	case "implements":
 		return queryImplementations(query, files, input)
+	case "struct_field":
+		return queryStructFields(query, files, input)
 	default:
 		return nil, fmt.Errorf("invalid query type: %s", input.Type)
 	}
@@ -211,6 +218,13 @@ func queryImplementations(query *astpkg.Query, files map[string]*ast.File, input
 	return query.FindImplementations(files, input.Interface), nil
 }
 
+func queryStructFields(query *astpkg.Query, files map[string]*ast.File, input ASTQueryInput) ([]astpkg.Result, error) {
+	if input.FieldType == "" {
+		return nil, fmt.Errorf("field type required for struct_field query")
+	}
+	return query.FindStructsByFieldType(files, input.FieldType), nil
+}
+
 func formatQueryResults(results []astpkg.Result) string {
 	if len(results) == 0 {
 		return "No matches found\n"
@@ -223,6 +237,8 @@ func formatQueryResults(results []astpkg.Result) string {
 		switch r.Type {
 		case "implementation":
 			sb.WriteString(fmt.Sprintf("  - %s implements %s (%s:%d)\n", r.Name, r.Signature, filepath.Base(r.File), r.Line))
+		case "struct_field":
+			sb.WriteString(fmt.Sprintf("  - %s has field %s (%s:%d)\n", r.Name, r.Signature, filepath.Base(r.File), r.Line))
 		default:
 			sb.WriteString(fmt.Sprintf("  - %s (%s:%d)\n", r.Name, filepath.Base(r.File), r.Line))
 		}

@@ -350,7 +350,7 @@ func (r *renamer) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.File:
 		r.visitDecls(n.Decls)
-		return nil
+		return r
 
 	case *ast.Ident:
 		if n.Name == r.oldName {
@@ -364,6 +364,8 @@ func (r *renamer) Visit(node ast.Node) ast.Visitor {
 		if n.Name.Name == r.oldName {
 			n.Name = ast.NewIdent(r.newName)
 		}
+		return r
+	case *ast.BlockStmt:
 		return r
 
 	case *ast.GenDecl:
