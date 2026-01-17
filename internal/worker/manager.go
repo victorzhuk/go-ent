@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -79,6 +80,10 @@ type Worker struct {
 	StartedAt time.Time
 	Output    string
 	Mutex     sync.Mutex
+
+	cmd        *exec.Cmd
+	cancel     context.CancelFunc
+	configPath string
 }
 
 type ResultAggregator struct {

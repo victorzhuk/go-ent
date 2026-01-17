@@ -7,7 +7,7 @@ changes:
     status: in_progress
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-acp-agent-mode/tasks.md
     total: 60
-    completed: 1
+    completed: 2
     in_progress: 0
     blocked: 0
   add-ast-operations:
@@ -137,10 +137,10 @@ tasks:
     change_id: add-acp-agent-mode
     task_num: '2'
   content: 1.2 Create `internal/worker/worker.go` - OpenCode worker abstraction
-  status: pending
+  status: completed
   priority: medium
   source_line: 44
-  synced_at: 2026-01-11 08:48:48.816886+03:00
+  synced_at: 2026-01-17 12:00:00+03:00
 - id:
     change_id: add-acp-agent-mode
     task_num: '3'
