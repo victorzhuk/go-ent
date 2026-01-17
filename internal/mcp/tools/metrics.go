@@ -886,6 +886,46 @@ func metricsExportHandler(_ context.Context, _ *mcp.CallToolRequest, input Metri
 	}, nil, nil
 }
 
+func registerMetricsReset(s *mcp.Server) {
+	tool := &mcp.Tool{
+		Name:        "metrics_reset",
+		Description: "Clear all metrics from the store (for testing purposes). WARNING: This operation cannot be undone.",
+		InputSchema: map[string]any{
+			"type": "object",
+		},
+	}
+
+	mcp.AddTool(s, tool, metricsResetHandler)
+}
+
+func metricsResetHandler(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
+	if metricsStore == nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: "Metrics store not initialized"}},
+		}, nil, nil
+	}
+
+	previousCount := metricsStore.Count()
+
+	if err := metricsStore.Clear(); err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to clear metrics: %v", err)}},
+		}, nil, nil
+	}
+
+	result := map[string]interface{}{
+		"success":        true,
+		"message":        "All metrics cleared from store",
+		"previous_count": previousCount,
+		"current_count":  0,
+	}
+
+	resultJSON, _ := json.MarshalIndent(result, "", "  ")
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: string(resultJSON)}},
+	}, nil, nil
+}
+
 func parseTimeRange(startStr, endStr string) (*time.Time, *time.Time, error) {
 	var start, end *time.Time
 	var err error

@@ -1706,3 +1706,89 @@ func TestMetricsExport_CombinedFilters(t *testing.T) {
 	assert.Equal(t, "tool_a", metricsList[0].ToolName)
 	assert.Equal(t, 100, metricsList[0].TokensIn)
 }
+
+func TestMetricsReset_Success(t *testing.T) {
+	// t.Parallel()
+
+	store, err := metrics.NewStore(t.TempDir()+"/metrics.json", 24*time.Hour)
+	require.NoError(t, err)
+	defer func() { _ = store.Close() }()
+
+	InitMetricsStore(store)
+
+	for i := 0; i < 5; i++ {
+		_ = store.Add(metrics.Metric{
+			SessionID: "test-session",
+			ToolName:  "test_tool",
+			TokensIn:  100 + i,
+			TokensOut: 200 + i,
+			Duration:  time.Duration(i+1) * time.Second,
+			Success:   true,
+			Timestamp: time.Now(),
+		})
+	}
+
+	assert.Equal(t, 5, store.Count())
+
+	result, _, err := metricsResetHandler(context.Background(), nil, struct{}{})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Content, 1)
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	require.True(t, ok, "expected TextContent")
+
+	var resetResult map[string]any
+	err = json.Unmarshal([]byte(textContent.Text), &resetResult)
+	require.NoError(t, err)
+	assert.Equal(t, true, resetResult["success"])
+	assert.Equal(t, "All metrics cleared from store", resetResult["message"])
+	assert.Equal(t, float64(5), resetResult["previous_count"])
+	assert.Equal(t, float64(0), resetResult["current_count"])
+
+	assert.Equal(t, 0, store.Count())
+}
+
+func TestMetricsReset_EmptyStore(t *testing.T) {
+	// t.Parallel()
+
+	store, err := metrics.NewStore(t.TempDir()+"/metrics.json", 24*time.Hour)
+	require.NoError(t, err)
+	defer func() { _ = store.Close() }()
+
+	InitMetricsStore(store)
+
+	assert.Equal(t, 0, store.Count())
+
+	result, _, err := metricsResetHandler(context.Background(), nil, struct{}{})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Content, 1)
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	require.True(t, ok, "expected TextContent")
+
+	var resetResult map[string]any
+	err = json.Unmarshal([]byte(textContent.Text), &resetResult)
+	require.NoError(t, err)
+	assert.Equal(t, true, resetResult["success"])
+	assert.Equal(t, float64(0), resetResult["previous_count"])
+	assert.Equal(t, float64(0), resetResult["current_count"])
+
+	assert.Equal(t, 0, store.Count())
+}
+
+func TestMetricsReset_StoreNil(t *testing.T) {
+	// t.Parallel()
+
+	metricsStore = nil
+
+	result, _, err := metricsResetHandler(context.Background(), nil, struct{}{})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Content, 1)
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	require.True(t, ok, "expected TextContent")
+	assert.Contains(t, textContent.Text, "Metrics store not initialized")
+}

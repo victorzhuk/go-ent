@@ -38,7 +38,7 @@
 - [x] 5.1 Implement `metrics_show` tool ✓ 2026-01-17
 - [x] 5.2 Implement `metrics_summary` tool ✓ 2026-01-17
 - [x] 5.3 Implement `metrics_export` tool ✓ 2026-01-17
-- [ ] 5.4 Implement `metrics_reset` tool (testing only)
+- [x] 5.4 Implement `metrics_reset` tool (testing only) ✓ 2026-01-17
 - [x] 5.5 Add formatted table output ✓ 2026-01-17
 - [ ] 5.6 Add chart/graph ASCII visualization (optional)
 - [ ] 5.7 Register tools in `register.go`
@@ -68,7 +68,7 @@
 - [ ] 8.5 Test Prometheus integration
 
 ## 9. Documentation
-- [ ] 9.1 Document metrics schema
+- [x] 9.1 Document metrics schema ✓ 2026-01-17
 - [ ] 9.2 Add usage examples for each tool
 - [ ] 9.3 Document export formats
 - [ ] 9.4 Add privacy and opt-out instructions

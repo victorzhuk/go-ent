@@ -76,6 +76,7 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	registerMetricsShow(s)
 	registerMetricsSummary(s)
 	registerMetricsExport(s)
+	registerMetricsReset(s)
 
 	// Build search index
 	if err := toolRegistry.BuildIndex(); err != nil {
