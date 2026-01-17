@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"regexp"
 	"strconv"
@@ -54,6 +55,12 @@ func (e *Exporter) ExportJSON(filter Filter, filename string) ([]byte, error) {
 		if err := e.exportToFile(data, filename); err != nil {
 			return nil, fmt.Errorf("export file: %w", err)
 		}
+		slog.Info("metrics exported",
+			"format", "json",
+			"filename", filename,
+			"records", len(metrics),
+			"file_size_bytes", len(data),
+		)
 	}
 
 	return data, nil
@@ -96,6 +103,12 @@ func (e *Exporter) ExportCSV(filter Filter, filename string) ([]byte, error) {
 		if err := e.exportToFile(buf.Bytes(), filename); err != nil {
 			return nil, fmt.Errorf("export file: %w", err)
 		}
+		slog.Info("metrics exported",
+			"format", "csv",
+			"filename", filename,
+			"records", len(metrics),
+			"file_size_bytes", buf.Len(),
+		)
 	}
 
 	return buf.Bytes(), nil
@@ -134,6 +147,12 @@ func (e *Exporter) ExportPrometheus(filter Filter, filename string) ([]byte, err
 		if err := e.exportToFile(buf.Bytes(), filename); err != nil {
 			return nil, fmt.Errorf("export file: %w", err)
 		}
+		slog.Info("metrics exported",
+			"format", "prometheus",
+			"filename", filename,
+			"records", len(metrics),
+			"file_size_bytes", buf.Len(),
+		)
 	}
 
 	return buf.Bytes(), nil

@@ -1,5 +1,5 @@
 version: '1.0'
-synced_at: 2026-01-16 12:00:00+03:00
+synced_at: '2026-01-17T19:00:00+03:00'
 changes:
   add-acp-agent-mode:
     id: add-acp-agent-mode
@@ -61,7 +61,7 @@ changes:
     status: in_progress
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-metrics-system/tasks.md
     total: 57
-    completed: 33
+    completed: 41
     in_progress: 0
     blocked: 0
   add-plugin-system:
@@ -2458,10 +2458,10 @@ tasks:
     change_id: add-metrics-system
     task_num: '39'
   content: 6.6 Handle metrics store errors gracefully
-  status: pending
+  status: completed
   priority: medium
   source_line: 52
-  synced_at: 2026-01-11 08:48:48.818359+03:00
+  synced_at: '2026-01-17T19:00:00+03:00'
 - id:
     change_id: add-metrics-system
     task_num: '40'

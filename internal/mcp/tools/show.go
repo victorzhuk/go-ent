@@ -35,7 +35,9 @@ func registerShow(s *mcp.Server) {
 		},
 	}
 
-	mcp.AddTool(s, tool, specShowHandler)
+	baseHandler := specShowHandler
+	handler := WithMetrics[SpecShowInput, any]("spec_show", baseHandler)
+	mcp.AddTool(s, tool, handler)
 }
 
 func specShowHandler(ctx context.Context, req *mcp.CallToolRequest, input SpecShowInput) (*mcp.CallToolResult, any, error) {

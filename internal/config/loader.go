@@ -78,6 +78,9 @@ func Load(projectRoot string) (*Config, error) {
 // Agents Section:
 //   - GOENT_AGENTS_DEFAULT: Override default agent role (architect|senior|developer|...)
 //
+// Metrics Section:
+//   - GOENT_METRICS_ENABLED: Enable or disable metrics collection (true|false)
+//
 // # Error Handling
 //
 // Invalid environment variable values will cause LoadWithEnv to return an error:
@@ -128,6 +131,14 @@ func LoadWithEnv(projectRoot string, getenv func(string) string) (*Config, error
 			return nil, fmt.Errorf("invalid GOENT_AGENTS_DEFAULT: %s", v)
 		}
 		cfg.Agents.Default = role
+	}
+
+	if v := getenv("GOENT_METRICS_ENABLED"); v != "" {
+		var val bool
+		if _, err := fmt.Sscanf(v, "%t", &val); err != nil {
+			return nil, fmt.Errorf("invalid GOENT_METRICS_ENABLED: %w", err)
+		}
+		cfg.Metrics.Enabled = val
 	}
 
 	if err := cfg.Validate(); err != nil {

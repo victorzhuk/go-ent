@@ -1,0 +1,24 @@
+[
+  {
+    "SessionID": "session-1",
+    "ToolName": "tool_a",
+    "TokensIn": 100,
+    "TokensOut": 50,
+    "Duration": 100000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T12:10:29.511939027+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "tool_a",
+    "TokensIn": 300,
+    "TokensOut": 150,
+    "Duration": 300000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T11:10:29.511939027+03:00",
+    "Metadata": null
+  }
+]

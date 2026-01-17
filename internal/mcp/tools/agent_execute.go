@@ -76,7 +76,8 @@ func registerAgentExecute(s *mcp.Server, registry *skill.Registry) {
 		},
 	}
 
-	handler := makeAgentExecuteHandler(registry)
+	baseHandler := makeAgentExecuteHandler(registry)
+	handler := WithMetrics[AgentExecuteInput, any]("agent_execute", baseHandler)
 	mcp.AddTool(s, tool, handler)
 }
 

@@ -1,0 +1,13 @@
+[
+  {
+    "SessionID": "session-1",
+    "ToolName": "tool_a",
+    "TokensIn": 100,
+    "TokensOut": 50,
+    "Duration": 100000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933086098+03:00",
+    "Metadata": null
+  }
+]

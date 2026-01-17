@@ -35,21 +35,21 @@
 - [x] 4.6 Add file export with timestamp ✓ 2026-01-15
 
 ## 5. MCP Tools Implementation
-- [ ] 5.1 Implement `metrics_show` tool
-- [ ] 5.2 Implement `metrics_summary` tool
-- [ ] 5.3 Implement `metrics_export` tool
+- [x] 5.1 Implement `metrics_show` tool ✓ 2026-01-17
+- [x] 5.2 Implement `metrics_summary` tool ✓ 2026-01-17
+- [x] 5.3 Implement `metrics_export` tool ✓ 2026-01-17
 - [ ] 5.4 Implement `metrics_reset` tool (testing only)
-- [ ] 5.5 Add formatted table output
+- [x] 5.5 Add formatted table output ✓ 2026-01-17
 - [ ] 5.6 Add chart/graph ASCII visualization (optional)
 - [ ] 5.7 Register tools in `register.go`
 
 ## 6. Integration
-- [ ] 6.1 Add metrics collector middleware to MCP server
-- [ ] 6.2 Hook into tool execution pipeline
+- [x] 6.1 Add metrics collector middleware to MCP server ✓ 2026-01-17
+- [x] 6.2 Hook into tool execution pipeline ✓ 2026-01-17
 - [ ] 6.3 Add metrics config to project settings
-- [ ] 6.4 Implement opt-out mechanism
-- [ ] 6.5 Add logging for metrics system status
-- [ ] 6.6 Handle metrics store errors gracefully
+- [x] 6.4 Implement opt-out mechanism ✓ 2026-01-17
+- [x] 6.5 Add logging for metrics system status ✓ 2026-01-17
+- [x] 6.6 Handle metrics store errors gracefully ✓ 2026-01-17
 
 ## 7. Testing
 - [x] 7.1 Test metrics collection accuracy ✓ 2026-01-15

@@ -701,6 +701,7 @@ Don't mix concerns across layers.
 - **Skill Definitions:** `plugins/go-ent/skills/*/SKILL.md`
 - **Agent Definitions:** `plugins/go-ent/agents/*.md`
 - **Command Definitions:** `plugins/go-ent/commands/*.md`
+- **Metrics System:** `docs/METRICS.md` (opt-out, data collection details)
 
 ## Version History
 

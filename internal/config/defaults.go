@@ -45,6 +45,9 @@ import "github.com/victorzhuk/go-ent/internal/domain"
 //
 // Skills:
 //   - Enabled: [go-code, go-arch, go-api, go-db, go-test] (core Go enterprise skills)
+//
+// Metrics:
+//   - enabled: true (metrics collection enabled by default)
 func DefaultConfig() *Config {
 	return &Config{
 		Version: "1.0",
@@ -107,6 +110,9 @@ func DefaultConfig() *Config {
 				MaxGoroutines: 100,
 				MaxCPUPercent: 80,
 			},
+		},
+		Metrics: MetricsConfig{
+			Enabled: true,
 		},
 	}
 }

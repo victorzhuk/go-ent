@@ -124,7 +124,8 @@ func registerEngineExecute(s *mcp.Server, registry *skill.Registry) {
 		},
 	}
 
-	handler := makeEngineExecuteHandler(registry)
+	baseHandler := makeEngineExecuteHandler(registry)
+	handler := WithMetrics[EngineExecuteInput, any]("engine_execute", baseHandler)
 	mcp.AddTool(s, tool, handler)
 }
 

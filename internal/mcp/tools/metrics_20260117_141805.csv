@@ -1,0 +1,2 @@
+SessionID,ToolName,TokensIn,TokensOut,Duration,Success,ErrorMsg,Timestamp
+session-1,test_tool,100,50,100ms,true,,2026-01-17T14:18:05+03:00

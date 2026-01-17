@@ -5,12 +5,15 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/agent/background"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
+	"github.com/victorzhuk/go-ent/internal/metrics"
 	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/version"
@@ -28,6 +31,32 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		},
 		nil,
 	)
+
+	cfg, err := config.Load(".")
+	if err != nil {
+		slog.Warn("failed to load config, using defaults", "error", err)
+		cfg = config.DefaultConfig()
+	}
+
+	tools.SetMetricsEnabled(cfg.Metrics.Enabled)
+	if !cfg.Metrics.Enabled {
+		slog.Info("metrics collection disabled by configuration")
+	}
+
+	metricsStore, err := metrics.NewStore("data/metrics.json", 7*24*time.Hour)
+	if err != nil {
+		slog.Warn("failed to initialize metrics store", "error", err)
+		tools.InitMetricsStore(nil)
+	} else {
+		slog.Info("metrics system initialized",
+			"enabled", true,
+			"storage", "file",
+			"storage_path", "data/metrics.json",
+			"retention_days", 7,
+			"max_entries", 1000,
+		)
+		tools.InitMetricsStore(metricsStore)
+	}
 
 	// Initialize skill registry
 	registry := skill.NewRegistry()

@@ -1,0 +1,9 @@
+# HELP tool_tokens_total Total tokens consumed per tool
+# TYPE tool_tokens_total gauge
+# HELP tool_duration_seconds Tool execution duration in seconds
+# TYPE tool_duration_seconds gauge
+# HELP tool_success_total Total tool execution success count
+# TYPE tool_success_total counter
+tool_tokens_total{session="session-1",tool="test_tool",success="1"} 150
+tool_duration_seconds{session="session-1",tool="test_tool",success="1"} 0.100
+tool_success_total{session="session-1",tool="test_tool",success="1"} 1

@@ -2,6 +2,17 @@ package config
 
 import "github.com/victorzhuk/go-ent/internal/domain"
 
+// MetricsConfig configures metrics collection and privacy settings.
+type MetricsConfig struct {
+	// Enabled enables metrics collection (default: true)
+	Enabled bool `yaml:"enabled" env:"GOENT_METRICS_ENABLED"`
+}
+
+// Validate validates the metrics configuration.
+func (m *MetricsConfig) Validate() error {
+	return nil
+}
+
 // Config represents the complete go-ent configuration.
 // Supports hierarchical loading from project-level (.go-ent/config.yaml)
 // with environment variable overrides.
@@ -26,6 +37,9 @@ type Config struct {
 
 	// Background configures background agent execution.
 	Background BackgroundConfig `yaml:"background,omitempty"`
+
+	// Metrics configures metrics collection and privacy settings.
+	Metrics MetricsConfig `yaml:"metrics,omitempty"`
 }
 
 // RuntimeConfig configures execution environment preferences.
@@ -97,6 +111,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.Background.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Metrics.Validate(); err != nil {
 		return err
 	}
 

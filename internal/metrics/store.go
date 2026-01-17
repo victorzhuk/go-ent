@@ -3,6 +3,7 @@ package metrics
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
@@ -58,6 +59,12 @@ func NewStore(path string, retention time.Duration) (*Store, error) {
 		closed:    false,
 	}
 
+	slog.Debug("metrics store initialized",
+		"storage_path", path,
+		"retention_hours", int(retention.Hours()),
+		"max_entries", defaultRingBufferSize,
+	)
+
 	if err := s.load(); err != nil {
 		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("load: %w", err)
@@ -90,6 +97,12 @@ func (s *Store) Add(m Metric) error {
 	if s.count < defaultRingBufferSize {
 		s.count++
 	}
+
+	slog.Debug("metric added",
+		"tool", m.ToolName,
+		"session_id", m.SessionID,
+		"total_entries", s.count,
+	)
 
 	if err := s.saveLocked(); err != nil {
 		return fmt.Errorf("save: %w", err)
@@ -185,6 +198,7 @@ func (s *Store) applyRetention() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	originalCount := s.count
 	cutoff := time.Now().Add(-s.retention)
 	filtered := s.filterLocked(func(m Metric) bool {
 		return m.Timestamp.After(cutoff) || m.Timestamp.Equal(cutoff)
@@ -197,6 +211,15 @@ func (s *Store) applyRetention() error {
 		s.ring[s.head] = m
 		s.head = (s.head + 1) % defaultRingBufferSize
 		s.count++
+	}
+
+	deleted := originalCount - s.count
+	if deleted > 0 {
+		slog.Info("metrics retention applied",
+			"deleted_count", deleted,
+			"retention_hours", int(s.retention.Hours()),
+			"remaining_entries", s.count,
+		)
 	}
 
 	if err := s.saveLocked(); err != nil {

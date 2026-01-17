@@ -54,7 +54,8 @@ func registerAgentSpawn(s *mcp.Server, manager *background.Manager) {
 		},
 	}
 
-	handler := makeAgentSpawnHandler(manager)
+	baseHandler := makeAgentSpawnHandler(manager)
+	handler := WithMetrics[AgentSpawnInput, any]("go_ent_agent_spawn", baseHandler)
 	mcp.AddTool(s, tool, handler)
 }
 

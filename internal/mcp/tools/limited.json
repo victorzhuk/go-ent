@@ -1,0 +1,112 @@
+[
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 100,
+    "TokensOut": 50,
+    "Duration": 100000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 101,
+    "TokensOut": 51,
+    "Duration": 101000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 102,
+    "TokensOut": 52,
+    "Duration": 102000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 103,
+    "TokensOut": 53,
+    "Duration": 103000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 104,
+    "TokensOut": 54,
+    "Duration": 104000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 105,
+    "TokensOut": 55,
+    "Duration": 105000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 106,
+    "TokensOut": 56,
+    "Duration": 106000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 107,
+    "TokensOut": 57,
+    "Duration": 107000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 108,
+    "TokensOut": 58,
+    "Duration": 108000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  },
+  {
+    "SessionID": "session-1",
+    "ToolName": "test_tool",
+    "TokensIn": 109,
+    "TokensOut": 59,
+    "Duration": 109000000,
+    "Success": true,
+    "ErrorMsg": "",
+    "Timestamp": "2026-01-17T14:09:56.933938794+03:00",
+    "Metadata": null
+  }
+]
