@@ -67,14 +67,14 @@
 ## Deferred to v2
 
 ### Code-Mode and Tool Composition
-- [ ] Create `internal/execution/sandbox.go`
-- [ ] Implement resource limits (memory, CPU, timeout)
-- [ ] Create `internal/execution/codemode.go`
-- [ ] Integrate JavaScript VM (goja or v8go)
-- [ ] Implement safe API surface
-- [ ] Create `internal/tool/composer.go`
-- [ ] Implement composed tool registry
-- [ ] Add persistence to `.go-ent/composed-tools/`
+- [x] Create `internal/execution/sandbox.go`
+- [x] Implement resource limits (memory, CPU, timeout)
+- [x] Create `internal/execution/codemode.go`
+- [x] Integrate JavaScript VM (goja or v8go)
+- [x] Implement safe API surface
+- [x] Create `internal/tool/composer.go`
+- [x] Implement composed tool registry
+- [x] Add persistence to `.go-ent/composed-tools/`
 - [ ] Unit tests for sandbox and code-mode
 
 ### Context Management

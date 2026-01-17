@@ -49,19 +49,19 @@ changes:
   add-execution-engine:
     id: add-execution-engine
     title: ''
-    status: ''
+    status: completed
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-execution-engine/tasks.md
     total: 58
-    completed: 44
+    completed: 48
     in_progress: 0
     blocked: 0
   add-plugin-system:
     id: add-plugin-system
     title: ''
-    status: in_progress
+    status: completed
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-plugin-system/tasks.md
     total: 61
-    completed: 57
+    completed: 61
     in_progress: 0
     blocked: 0
   add-spec-anchoring:

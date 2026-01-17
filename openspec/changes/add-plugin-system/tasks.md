@@ -69,12 +69,12 @@
 - [x] Unit tests for plugin manager ✓ 2026-01-16
 - [x] Unit tests for marketplace client ✓ 2026-01-16
 - [x] Integration tests for plugin loading ✓ 2026-01-16
-- [ ] E2E test with sample plugin
+- [x] E2E test with sample plugin ✓ 2026-01-17
 
 ## 13. Documentation
-- [ ] Plugin development guide
-- [ ] Manifest format reference
-- [ ] Marketplace usage guide
+- [x] Plugin development guide ✓ 2026-01-17
+- [x] Manifest format reference ✓ 2026-01-17
+- [x] Marketplace usage guide ✓ 2026-01-17
 
 ## 14. Fix Critical Issues (Security + Broken Functionality)
 - [x] Fix path traversal vulnerability in install.go:72

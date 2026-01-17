@@ -47,6 +47,8 @@ No runtime abstraction - can't execute tasks via OpenCode or CLI, only MCP.
 - [x] ExecutionHistory tracking in WorkflowState
 - [x] Integration tests passing
 
+**Note**: All v1 success criteria are complete. Additionally, several v2 deferred features (sandbox, codemode, tool composer) are already implemented ahead of schedule.
+
 ## Clarified Design Decisions
 
 ### Runtime Fallback Strategy
@@ -80,12 +82,22 @@ OpenCode is a CLI tool (not REST API). Integration uses subprocess pattern:
 - ✅ ExecutionHistory tracking in WorkflowState
 - ✅ Integration tests
 
-### Deferred (v2)
-- Code-mode JavaScript sandbox for dynamic tool composition
-- Tool composition registry for cross-session reuse
-- Context summarization for long-running executions
-- Resource limits and sandbox enforcement
-- Full execution state management for interrupts
+### Implemented (Bonus - v2 features)
+The following features were planned for v2 but are already implemented:
+- ✅ Code-mode JavaScript sandbox for dynamic tool composition (internal/execution/sandbox.go, codemode.go)
+- ✅ Resource limits (memory, CPU, timeout)
+- ✅ JavaScript VM integration (goja)
+- ✅ Safe API surface
+- ✅ Tool composition registry for cross-session reuse (internal/tool/composer.go)
+- ✅ Persistence to `.go-ent/composed-tools/`
+
+### Remaining (v2)
+- ⏳ Unit tests for sandbox and code-mode
+- ⏳ Context summarization for long executions (LLM-based)
+- ⏳ Context limit handling with LLM-based summarization
+- ⏳ Full execution state persistence
+- ⏳ Interrupt/resume functionality
+- ⏳ Execution ID tracking for interrupts
 
 ## Impact
 
