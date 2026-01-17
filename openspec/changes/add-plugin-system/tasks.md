@@ -66,9 +66,9 @@
 - [x] Create internal/mcp/tools/plugin_info.go
 
 ## 12. Testing
-- [ ] Unit tests for plugin manager
-- [ ] Unit tests for marketplace client
-- [ ] Integration tests for plugin loading
+- [x] Unit tests for plugin manager ✓ 2026-01-16
+- [x] Unit tests for marketplace client ✓ 2026-01-16
+- [x] Integration tests for plugin loading ✓ 2026-01-16
 - [ ] E2E test with sample plugin
 
 ## 13. Documentation
@@ -89,6 +89,6 @@
 
 ## 16. Fix Medium Priority Issues
 - [x] Add logging for failed plugin initialization in manager.go:57-60 ✓ 2026-01-15
-- [ ] Cache regex compilation in evaluator.go:194
-- [ ] Implement executeRejectAction in evaluator.go:76
-- [ ] Implement executeModifyAction in evaluator.go:80
+- [x] Cache regex compilation in evaluator.go:194 ✓ 2026-01-16
+- [x] Implement executeRejectAction in evaluator.go:76 ✓ 2026-01-16
+- [x] Implement executeModifyAction in evaluator.go:80 ✓ 2026-01-16

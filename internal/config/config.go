@@ -23,6 +23,9 @@ type Config struct {
 
 	// Skills configures enabled skills and custom skill directories.
 	Skills SkillsConfig `yaml:"skills"`
+
+	// Background configures background agent execution.
+	Background BackgroundConfig `yaml:"background,omitempty"`
 }
 
 // RuntimeConfig configures execution environment preferences.
@@ -90,6 +93,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.Models.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Background.Validate(); err != nil {
 		return err
 	}
 

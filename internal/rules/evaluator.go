@@ -7,7 +7,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var regexCache sync.Map
 
 type Evaluator struct {
 	engine *Engine
@@ -31,9 +34,9 @@ func (e *Evaluator) MatchRules(ctx context.Context, event Event) ([]Rule, error)
 	return matched, nil
 }
 
-func (e *Evaluator) ExecuteActions(ctx context.Context, actions []Action) error {
+func (e *Evaluator) ExecuteActions(ctx context.Context, event *Event, actions []Action) error {
 	for _, action := range actions {
-		if err := e.executeAction(ctx, action); err != nil {
+		if err := e.executeAction(ctx, event, action); err != nil {
 			return fmt.Errorf("execute action %s: %w", action.Type, err)
 		}
 	}
@@ -41,14 +44,14 @@ func (e *Evaluator) ExecuteActions(ctx context.Context, actions []Action) error 
 	return nil
 }
 
-func (e *Evaluator) executeAction(ctx context.Context, action Action) error {
+func (e *Evaluator) executeAction(ctx context.Context, event *Event, action Action) error {
 	switch action.Type {
 	case "log":
 		return e.executeLogAction(action)
 	case "reject":
 		return e.executeRejectAction(action)
 	case "modify":
-		return e.executeModifyAction(action)
+		return e.executeModifyAction(event, action)
 	case "approve":
 		return nil
 	default:
@@ -77,23 +80,50 @@ func (e *Evaluator) executeLogAction(action Action) error {
 	return nil
 }
 
-// executeRejectAction handles reject actions for events
-// TODO: Implement reject action
-// This should:
-// - Record the rejection decision
-// - Optionally notify relevant parties
-// - Prevent the event from proceeding
 func (e *Evaluator) executeRejectAction(action Action) error {
-	return nil
+	reason, ok := action.Params["reason"].(string)
+	if !ok || reason == "" {
+		if action.Comment != "" {
+			reason = action.Comment
+		} else {
+			reason = "rejected by rule"
+		}
+	}
+
+	return fmt.Errorf("reject action: %s", reason)
 }
 
-// executeModifyAction handles modify actions for events
-// TODO: Implement modify action
-// This should:
-// - Apply modifications to the event data
-// - Validate modified data
-// - Log the modification for audit purposes
-func (e *Evaluator) executeModifyAction(action Action) error {
+func (e *Evaluator) executeModifyAction(event *Event, action Action) error {
+	if event == nil {
+		return fmt.Errorf("event is nil")
+	}
+
+	if event.Context == nil {
+		return fmt.Errorf("event context is nil")
+	}
+
+	field, ok := action.Params["field"].(string)
+	if !ok || field == "" {
+		return fmt.Errorf("modify action requires field parameter")
+	}
+
+	value, ok := action.Params["value"]
+	if !ok {
+		return fmt.Errorf("modify action requires value parameter")
+	}
+
+	if _, exists := event.Context[field]; !exists {
+		return fmt.Errorf("field %s does not exist in event context", field)
+	}
+
+	event.Context[field] = value
+
+	if action.Comment != "" {
+		fmt.Printf("[MODIFY] %s: set %s = %v\n", action.Comment, field, value)
+	} else {
+		fmt.Printf("[MODIFY] set %s = %v\n", field, value)
+	}
+
 	return nil
 }
 
@@ -199,6 +229,22 @@ func compareContains(a, b interface{}) bool {
 	return strings.Contains(aStr, bStr)
 }
 
+func getCompiledRegex(pattern string) (*regexp.Regexp, error) {
+	if cached, ok := regexCache.Load(pattern); ok {
+		if regex, ok := cached.(*regexp.Regexp); ok {
+			return regex, nil
+		}
+	}
+
+	compiled, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+
+	regexCache.Store(pattern, compiled)
+	return compiled, nil
+}
+
 func compareRegex(a, b interface{}) bool {
 	aStr := fmt.Sprintf("%v", a)
 	bStr := fmt.Sprintf("%v", b)
@@ -207,12 +253,12 @@ func compareRegex(a, b interface{}) bool {
 		return false
 	}
 
-	matched, err := regexp.MatchString(bStr, aStr)
+	re, err := getCompiledRegex(bStr)
 	if err != nil {
 		return false
 	}
 
-	return matched
+	return re.MatchString(aStr)
 }
 
 func compareIn(a, b interface{}) bool {

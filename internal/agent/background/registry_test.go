@@ -364,8 +364,8 @@ func TestRegistry_IntegrationWithManager(t *testing.T) {
 		mgr := NewManager(nil, DefaultConfig())
 		reg := NewRegistry(mgr)
 
-		agent1, _ := mgr.Spawn(context.TODO(), "task1")
-		agent2, _ := mgr.Spawn(context.TODO(), "task2")
+		agent1, _ := mgr.Spawn(context.TODO(), "task1", SpawnOpts{})
+		agent2, _ := mgr.Spawn(context.TODO(), "task2", SpawnOpts{})
 
 		agent1.Start()
 		time.Sleep(10 * time.Millisecond)

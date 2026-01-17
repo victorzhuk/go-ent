@@ -4,12 +4,13 @@ import (
 	"log/slog"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/agent/background"
 	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 )
 
-func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugin.Manager, marketplaceSearcher *marketplace.Searcher) {
+func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugin.Manager, marketplaceSearcher *marketplace.Searcher, backgroundManager *background.Manager) {
 	// Create tool discovery registry
 	toolRegistry := NewToolRegistry(s)
 
@@ -31,6 +32,13 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	registerAgentStatus(s)
 	registerAgentList(s)
 	registerAgentDelegate(s)
+	if backgroundManager != nil {
+		registerAgentSpawn(s, backgroundManager)
+		registerAgentBgList(s, backgroundManager)
+		registerAgentBgStatus(s, backgroundManager)
+		registerAgentBgOutput(s, backgroundManager)
+		registerAgentBgKill(s, backgroundManager)
+	}
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)
 	registerRuntimeList(s)

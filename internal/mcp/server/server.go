@@ -8,6 +8,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent"
+	"github.com/victorzhuk/go-ent/internal/agent/background"
 	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
 	"github.com/victorzhuk/go-ent/internal/plugin"
@@ -70,7 +71,10 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		slog.Info("plugin manager initialized", "plugins_dir", pluginsDir)
 	}
 
-	tools.Register(s, registry, pluginManager, marketplaceSearcher)
+	backgroundManager := background.NewManager(nil, background.DefaultConfig())
+	slog.Info("background agent manager initialized", "default_role", background.DefaultConfig().DefaultRole, "default_model", background.DefaultConfig().DefaultModel)
+
+	tools.Register(s, registry, pluginManager, marketplaceSearcher, backgroundManager)
 
 	return s
 }

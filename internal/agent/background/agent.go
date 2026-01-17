@@ -143,3 +143,35 @@ func (a *Agent) Duration() time.Duration {
 	}
 	return time.Since(a.StartedAt)
 }
+
+// Snapshot represents a thread-safe snapshot of an agent's state.
+type Snapshot struct {
+	ID          string
+	Role        string
+	Model       string
+	Task        string
+	Status      Status
+	CreatedAt   time.Time
+	StartedAt   time.Time
+	CompletedAt time.Time
+	Output      string
+	Error       error
+}
+
+// GetSnapshot returns a thread-safe snapshot of the agent's current state.
+func (a *Agent) GetSnapshot() Snapshot {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return Snapshot{
+		ID:          a.ID,
+		Role:        a.Role,
+		Model:       a.Model,
+		Task:        a.Task,
+		Status:      a.Status,
+		CreatedAt:   a.CreatedAt,
+		StartedAt:   a.StartedAt,
+		CompletedAt: a.CompletedAt,
+		Output:      a.Output,
+		Error:       a.Error,
+	}
+}
