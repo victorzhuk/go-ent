@@ -71,6 +71,6 @@
 - [x] 9.1 Document metrics schema ✓ 2026-01-17
 - [x] 9.2 Add usage examples for each tool ✓ 2026-01-17
 - [x] 9.3 Document export formats ✓ 2026-01-17
-- [ ] 9.4 Add privacy and opt-out instructions
-- [ ] 9.5 Create dashboard examples
+- [x] 9.4 Add privacy and opt-out instructions ✓ 2026-01-17
+- [x] 9.5 Create dashboard examples ✓ 2026-01-17
 - [ ] 9.6 Document Prometheus integration

@@ -439,6 +439,155 @@ mcp__go_ent__metrics_export(format="prometheus", limit=1000)
 
 See [Usage Examples](#usage-examples) for filter documentation.
 
+## Dashboard Examples
+
+This section provides ready-to-use examples for visualizing go-ent metrics in monitoring tools.
+
+### Grafana Dashboard
+
+Use these panel configurations to build a Grafana dashboard for go-ent metrics.
+
+**Panel 1: Tool Execution Rate**
+```json
+{
+  "title": "Tool Execution Rate",
+  "targets": [
+    {
+      "expr": "sum(rate(tool_success_total{instance=\"go-ent\"}[5m])) by (tool)",
+      "legendFormat": "{{tool}}"
+    }
+  ],
+  "description": "Tool executions per second (5m rate)",
+  "type": "graph"
+}
+```
+
+**Panel 2: Average Duration by Tool**
+```json
+{
+  "title": "Average Tool Duration",
+  "targets": [
+    {
+      "expr": "avg(tool_duration_seconds{instance=\"go-ent\"}) by (tool)",
+      "legendFormat": "{{tool}}"
+    }
+  ],
+  "description": "Average execution time per tool",
+  "type": "graph"
+}
+```
+
+**Panel 3: Success Rate Gauge**
+```json
+{
+  "title": "Success Rate",
+  "targets": [
+    {
+      "expr": "avg(success_rate{instance=\"go-ent\"}) by (tool)",
+      "legendFormat": "{{tool}}"
+    }
+  ],
+  "description": "Success percentage by tool",
+  "type": "gauge"
+}
+```
+
+### Prometheus Queries
+
+Use these PromQL queries in Prometheus or Grafana to analyze go-ent metrics.
+
+**Total token usage:**
+```promql
+sum(tool_tokens_total{instance="go-ent"})
+```
+
+**Top 5 tools by execution count:**
+```promql
+topk(5, sum(rate(tool_success_total{instance="go-ent"}[1h])) by (tool))
+```
+
+**Average duration (last hour):**
+```promql
+avg(tool_duration_seconds{instance="go-ent"}[1h:])
+```
+
+**Success rate (last 24h):**
+```promql
+sum(increase(tool_success_total{instance="go-ent",success="1"}[24h])) / sum(increase(tool_success_total{instance="go-ent"}[24h])) * 100
+```
+
+**Error rate by tool:**
+```promql
+sum(rate(tool_success_total{instance="go-ent",success="0"}[5m])) by (tool)
+```
+
+### Alert Examples
+
+Use these alert definitions in Prometheus to monitor go-ent performance.
+
+**High error rate alert:**
+```yaml
+groups:
+  - name: go-ent_metrics
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(tool_success_total{instance="go-ent",success="0"}[5m])) > 0.1
+        for: 5m
+        annotations:
+          summary: "High error rate detected for go-ent tools"
+        labels:
+          severity: warning
+```
+
+**Tool timeout alert:**
+```yaml
+- alert: SlowToolExecution
+  expr: avg(tool_duration_seconds{instance="go-ent"}) by (tool) > 30
+  for: 5m
+  annotations:
+    summary: "Tool {{ $labels.tool }} taking longer than 30s average"
+  labels:
+    severity: critical
+```
+
+### Quick Start Guide
+
+Follow these steps to set up monitoring for go-ent metrics.
+
+**1. Export metrics to Prometheus format:**
+```bash
+mcp__go_ent__metrics_export(format="prometheus", filename="metrics_for_prometheus")
+```
+
+**2. Start Prometheus with metrics file:**
+```bash
+prometheus --config.file=prometheus.yml
+```
+
+**3. Import dashboard into Grafana:**
+- Create new dashboard
+- Paste JSON configuration from examples above
+- Set Prometheus data source
+
+**Example prometheus.yml:**
+```yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'go-ent-metrics'
+    file_sd_configs:
+      - files:
+        - 'data/metrics_for_prometheus.prom'
+```
+
+**Tips:**
+- Use `file_sd_configs` for static metrics files
+- Set appropriate `scrape_interval` based on metrics update frequency
+- Configure Grafana to auto-refresh every 15-30 seconds for near real-time monitoring
+- Use dashboard variables to filter by tool name or time range
+
 ## Common Patterns
 
 **ISO 8601 timestamps:**
