@@ -14,6 +14,7 @@ type SkillMeta struct {
 	Name             string
 	Description      string
 	Triggers         []string
+	ExplicitTriggers []Trigger
 	FilePath         string
 	Version          string
 	Author           string
@@ -23,14 +24,23 @@ type SkillMeta struct {
 	QualityScore     float64
 }
 
+// Trigger represents an explicit trigger for skill activation.
+type Trigger struct {
+	Pattern     string   `yaml:"pattern,omitempty"`
+	Keywords    []string `yaml:"keywords,omitempty"`
+	FilePattern string   `yaml:"filePattern,omitempty"`
+	Weight      float64  `yaml:"weight,omitempty"`
+}
+
 // skillMetaV2 represents v2 frontmatter structure for unmarshaling.
 type skillMetaV2 struct {
-	Name         string   `yaml:"name"`
-	Description  string   `yaml:"description"`
-	Version      string   `yaml:"version"`
-	Author       string   `yaml:"author"`
-	Tags         []string `yaml:"tags"`
-	AllowedTools []string `yaml:"allowedTools"`
+	Name         string    `yaml:"name"`
+	Description  string    `yaml:"description"`
+	Version      string    `yaml:"version"`
+	Author       string    `yaml:"author"`
+	Tags         []string  `yaml:"tags"`
+	AllowedTools []string  `yaml:"allowedTools"`
+	Triggers     []Trigger `yaml:"triggers"`
 }
 
 // Parser handles parsing of SKILL.md files.
@@ -58,6 +68,15 @@ func (p *Parser) parseFrontmatterV2(frontmatter string) (*skillMetaV2, error) {
 
 	if meta.Name == "" {
 		return nil, fmt.Errorf("missing name in frontmatter")
+	}
+
+	for i := range meta.Triggers {
+		if meta.Triggers[i].Weight == 0 {
+			meta.Triggers[i].Weight = 0.7
+		}
+		if meta.Triggers[i].Weight < 0.0 || meta.Triggers[i].Weight > 1.0 {
+			return nil, fmt.Errorf("trigger weight must be between 0.0 and 1.0, got %f", meta.Triggers[i].Weight)
+		}
 	}
 
 	return &meta, nil
@@ -91,7 +110,19 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			return nil, fmt.Errorf("parse v2: %w", err)
 		}
 
-		triggers := p.extractTriggers(v2Meta.Description)
+		var explicitTriggers []Trigger
+		var triggers []string
+
+		if len(v2Meta.Triggers) > 0 {
+			// Use explicit triggers from frontmatter
+			explicitTriggers = v2Meta.Triggers
+			triggers = p.triggersToStrings(explicitTriggers)
+		} else {
+			// Fallback to description-based extraction with weight 0.5
+			descriptionTriggers := p.extractTriggers(v2Meta.Description)
+			triggers = descriptionTriggers
+			explicitTriggers = p.stringsToTriggers(descriptionTriggers, 0.5)
+		}
 
 		result = &SkillMeta{
 			Name:             v2Meta.Name,
@@ -101,6 +132,7 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			Tags:             v2Meta.Tags,
 			AllowedTools:     v2Meta.AllowedTools,
 			Triggers:         triggers,
+			ExplicitTriggers: explicitTriggers,
 			FilePath:         path,
 			StructureVersion: "v2",
 		}
@@ -200,5 +232,43 @@ func (p *Parser) extractTriggers(description string) []string {
 		}
 	}
 
+	return triggers
+}
+
+// triggersToStrings converts explicit triggers to string format for backward compatibility.
+func (p *Parser) triggersToStrings(explicit []Trigger) []string {
+	result := make([]string, 0, len(explicit)*3)
+
+	for _, t := range explicit {
+		if t.Pattern != "" {
+			result = append(result, strings.ToLower(t.Pattern))
+		}
+		for _, kw := range t.Keywords {
+			if kw != "" {
+				result = append(result, strings.ToLower(kw))
+			}
+		}
+		if t.FilePattern != "" {
+			result = append(result, strings.ToLower(t.FilePattern))
+		}
+	}
+
+	return result
+}
+
+// stringToTrigger converts a description-based trigger to an explicit Trigger with fallback weight.
+func (p *Parser) stringToTrigger(keyword string, weight float64) Trigger {
+	return Trigger{
+		Keywords: []string{keyword},
+		Weight:   weight,
+	}
+}
+
+// stringsToTriggers converts description-based triggers to explicit triggers with fallback weight.
+func (p *Parser) stringsToTriggers(strings []string, weight float64) []Trigger {
+	triggers := make([]Trigger, 0, len(strings))
+	for _, s := range strings {
+		triggers = append(triggers, p.stringToTrigger(s, weight))
+	}
 	return triggers
 }

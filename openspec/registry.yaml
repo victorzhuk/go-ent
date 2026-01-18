@@ -4,17 +4,17 @@ synced_at: '2026-01-17T20:30:00+03:00'
 changes:
   add-acp-agent-mode:
     id: add-acp-agent-mode
-    title: ''
-    status: blocked
+    title: 'Add ACP Proxy Mode for OpenCode Worker Orchestration'
+    status: ready
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-acp-agent-mode/tasks.md
     total: 60
     completed: 2
     in_progress: 0
-    blocked: 0
+    blocked: 58
   add-ast-operations:
     id: add-ast-operations
     title: ''
-    status: completed
+    status: pending
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-ast-operations/tasks.md
     total: 25
     completed: 25
@@ -23,7 +23,7 @@ changes:
   add-background-agents:
     id: add-background-agents
     title: ''
-    status: completed
+    status: pending
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-background-agents/tasks.md
     total: 18
     completed: 18
@@ -32,120 +32,188 @@ changes:
   add-boltdb-state-system:
     id: add-boltdb-state-system
     title: 'Add BoltDB Registry with state.md System'
-    status: completed
+    status: pending
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-boltdb-state-system/tasks.md
     total: 56
     completed: 44
     in_progress: 0
     blocked: 12
-  add-context-memory:
-    id: add-context-memory
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-context-memory/tasks.md
-    total: 24
-    completed: 0
-    in_progress: 0
-    blocked: 0
-  add-dynamic-mcp-discovery:
-    id: add-dynamic-mcp-discovery
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-dynamic-mcp-discovery/tasks.md
-    total: 69
-    completed: 0
-    in_progress: 0
-    blocked: 0
+
+
   add-plugin-system:
     id: add-plugin-system
     title: ''
-    status: completed
+    status: pending
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-plugin-system/tasks.md
     total: 61
     completed: 61
     in_progress: 0
     blocked: 0
-  add-spec-anchoring:
-    id: add-spec-anchoring
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-spec-anchoring/tasks.md
-    total: 47
-    completed: 0
-    in_progress: 0
-    blocked: 0
-  align-flow-architecture:
-    id: align-flow-architecture
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/align-flow-architecture/tasks.md
-    total: 166
-    completed: 0
-    in_progress: 0
-    blocked: 0
+
+
   execution-engine-v2:
     id: execution-engine-v2
     title: Complete Execution Engine (v2 Features)
-    status: ''
+    status: ready
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/execution-engine-v2/tasks.md
-    total: 100
+    total: 108
     completed: 0
     in_progress: 0
     blocked: 0
-  fix-opencode-agent-metadata-parsing:
-    id: fix-opencode-agent-metadata-parsing
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/fix-opencode-agent-metadata-parsing/tasks.md
-    total: 0
-    completed: 0
-    in_progress: 0
-    blocked: 0
-  integrate-driver-into-adapters:
-    id: integrate-driver-into-adapters
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/integrate-driver-into-adapters/tasks.md
-    total: 9
-    completed: 0
-    in_progress: 0
-    blocked: 0
+    phases:
+      '1':
+        name: Foundation
+        tasks: 28
+        status: ready
+        description: Unit tests for existing v2 features
+      '2':
+        name: Context Management  
+        tasks: 28
+        status: pending
+        description: Context summarization and limit handling
+      '3':
+        name: State Persistence
+        tasks: 36
+        status: pending  
+        description: Execution state persistence and interrupt/resume
+      '4':
+        name: Integration
+        tasks: 16
+        status: pending
+        description: End-to-end testing and validation
+
+
   refactor-agent-command-skill-system:
     id: refactor-agent-command-skill-system
     title: ''
-    status: completed
+    status: pending
     tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/refactor-agent-command-skill-system/tasks.md
     total: 27
     completed: 27
     in_progress: 0
     blocked: 0
-  reorganize-plugin-source-layout:
-    id: reorganize-plugin-source-layout
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/reorganize-plugin-source-layout/tasks.md
+
+  refactor-skill-system:
+    id: refactor-skill-system
+    title: 'Skill System Refactoring'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/refactor-skill-system/tasks.md
+    total: 31
+    completed: 31
+    in_progress: 0
+    blocked: 0
+
+  skill-explicit-triggers:
+    id: skill-explicit-triggers
+    title: 'Explicit Skill Triggers'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-explicit-triggers/tasks.md
+    total: 4
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-error-messages:
+    id: skill-error-messages
+    title: 'Enhanced Skill Validation Error Messages'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-error-messages/tasks.md
+    total: 7
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-quality-scoring:
+    id: skill-quality-scoring
+    title: 'Research-Aligned Quality Scoring'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-quality-scoring/tasks.md
+    total: 15
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-validation-rules:
+    id: skill-validation-rules
+    title: 'Enhanced Validation Rules'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-validation-rules/tasks.md
     total: 11
     completed: 0
     in_progress: 0
     blocked: 0
-  split-marketplace-plugins-by-type:
-    id: split-marketplace-plugins-by-type
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/split-marketplace-plugins-by-type/tasks.md
-    total: 16
+
+  skill-weighted-matching:
+    id: skill-weighted-matching
+    title: 'Weighted Trigger Matching'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-weighted-matching/tasks.md
+    total: 5
     completed: 0
     in_progress: 0
     blocked: 0
-  upgrade-template-engine:
-    id: upgrade-template-engine
-    title: ''
-    status: ''
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/upgrade-template-engine/tasks.md
-    total: 12
+
+  skill-templates:
+    id: skill-templates
+    title: 'Skill Templates'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-templates/tasks.md
+    total: 4
     completed: 0
     in_progress: 0
     blocked: 0
+
+  skill-lint-tool:
+    id: skill-lint-tool
+    title: 'Skill Linting Tool'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-lint-tool/tasks.md
+    total: 4
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-dependencies:
+    id: skill-dependencies
+    title: 'Skill Dependencies and Delegation'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-dependencies/tasks.md
+    total: 4
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-context-matching:
+    id: skill-context-matching
+    title: 'Context-Aware Skill Matching'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-context-matching/tasks.md
+    total: 4
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-progressive-load:
+    id: skill-progressive-load
+    title: 'Progressive Skill Loading'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-progressive-load/tasks.md
+    total: 4
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  skill-migration:
+    id: skill-migration
+    title: 'Skill Migration to New Standards'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-migration/tasks.md
+    total: 21
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+
 archived:
   add-metrics-system:
     id: add-metrics-system
@@ -169,6 +237,105 @@ archived:
     blocked: 0
     archived_at: '2026-01-17T20:07:00+03:00'
     completion_percentage: 89.66
+  add-context-memory:
+    id: add-context-memory
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-add-context-memory/tasks.md
+    total: 24
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  add-dynamic-mcp-discovery:
+    id: add-dynamic-mcp-discovery
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-add-dynamic-mcp-discovery/tasks.md
+    total: 69
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  add-spec-anchoring:
+    id: add-spec-anchoring
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-add-spec-anchoring/tasks.md
+    total: 47
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  align-flow-architecture:
+    id: align-flow-architecture
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-align-flow-architecture/tasks.md
+    total: 166
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  fix-opencode-agent-metadata-parsing:
+    id: fix-opencode-agent-metadata-parsing
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-fix-opencode-agent-metadata-parsing/tasks.md
+    total: 0
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  integrate-driver-into-adapters:
+    id: integrate-driver-into-adapters
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-integrate-driver-into-adapters/tasks.md
+    total: 9
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  reorganize-plugin-source-layout:
+    id: reorganize-plugin-source-layout
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-reorganize-plugin-source-layout/tasks.md
+    total: 11
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  split-marketplace-plugins-by-type:
+    id: split-marketplace-plugins-by-type
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-split-marketplace-plugins-by-type/tasks.md
+    total: 16
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
+  upgrade-template-engine:
+    id: upgrade-template-engine
+    title: ''
+    status: ''
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/archive/2026-01-18-upgrade-template-engine/tasks.md
+    total: 12
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-18T00:00:00+03:00'
+    completion_percentage: 0
 
 tasks:
   - id:

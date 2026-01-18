@@ -239,3 +239,360 @@ Test role
 	assert.Equal(t, "Test Author", result.Author)
 	assert.Equal(t, []string{"writing tests"}, result.Triggers)
 }
+
+func TestParser_ParseSkillFile_V2WithExplicitTriggers(t *testing.T) {
+	p := NewParser()
+
+	content := `---
+name: go-code
+description: 'Testing patterns with testify, testcontainers'
+version: '1.0.0'
+author: Test Author
+triggers:
+  - pattern: "write.*test"
+    keywords:
+      - testing
+      - tdd
+    weight: 0.8
+  - pattern: "test.*framework"
+    weight: 0.7
+---
+<role>
+Test role
+</role>`
+
+	tmpDir := t.TempDir()
+	path := filepath.Join(tmpDir, "skill.md")
+	err := os.WriteFile(path, []byte(content), 0o644)
+	require.NoError(t, err)
+
+	result, err := p.ParseSkillFile(path)
+
+	require.NoError(t, err)
+	assert.Equal(t, "go-code", result.Name)
+	assert.Equal(t, "Testing patterns with testify, testcontainers", result.Description)
+	assert.Equal(t, "v2", result.StructureVersion)
+	assert.Equal(t, path, result.FilePath)
+	assert.Equal(t, "1.0.0", result.Version)
+	assert.Equal(t, "Test Author", result.Author)
+	assert.Len(t, result.ExplicitTriggers, 2)
+	assert.Equal(t, "write.*test", result.ExplicitTriggers[0].Pattern)
+	assert.Equal(t, []string{"testing", "tdd"}, result.ExplicitTriggers[0].Keywords)
+	assert.Equal(t, 0.8, result.ExplicitTriggers[0].Weight)
+	assert.Equal(t, "test.*framework", result.ExplicitTriggers[1].Pattern)
+	assert.Equal(t, 0.7, result.ExplicitTriggers[1].Weight)
+	assert.Contains(t, result.Triggers, "write.*test")
+	assert.Contains(t, result.Triggers, "testing")
+	assert.Contains(t, result.Triggers, "tdd")
+	assert.Contains(t, result.Triggers, "test.*framework")
+}
+
+func TestParser_ParseSkillFile_V2FallbackTriggers(t *testing.T) {
+	p := NewParser()
+
+	content := `---
+name: go-code
+description: 'Testing patterns. Auto-activates for: writing tests, TDD.'
+version: '1.0.0'
+author: Test Author
+---
+<role>
+Test role
+</role>`
+
+	tmpDir := t.TempDir()
+	path := filepath.Join(tmpDir, "skill.md")
+	err := os.WriteFile(path, []byte(content), 0o644)
+	require.NoError(t, err)
+
+	result, err := p.ParseSkillFile(path)
+
+	require.NoError(t, err)
+	assert.Equal(t, "go-code", result.Name)
+	assert.Equal(t, "Testing patterns. Auto-activates for: writing tests, TDD.", result.Description)
+	assert.Equal(t, "v2", result.StructureVersion)
+	assert.Equal(t, []string{"writing tests", "tdd"}, result.Triggers)
+	assert.Len(t, result.ExplicitTriggers, 2)
+	assert.Equal(t, []string{"writing tests"}, result.ExplicitTriggers[0].Keywords)
+	assert.Equal(t, 0.5, result.ExplicitTriggers[0].Weight)
+	assert.Equal(t, []string{"tdd"}, result.ExplicitTriggers[1].Keywords)
+	assert.Equal(t, 0.5, result.ExplicitTriggers[1].Weight)
+}
+
+func TestParser_triggersToStrings(t *testing.T) {
+	p := NewParser()
+
+	triggers := []Trigger{
+		{
+			Pattern:  "write.*test",
+			Keywords: []string{"testing", "tdd"},
+		},
+		{
+			FilePattern: "**/*_test.go",
+			Weight:      0.7,
+		},
+	}
+
+	result := p.triggersToStrings(triggers)
+
+	assert.Contains(t, result, "write.*test")
+	assert.Contains(t, result, "testing")
+	assert.Contains(t, result, "tdd")
+	assert.Contains(t, result, "**/*_test.go")
+}
+
+func TestParser_stringsToTriggers(t *testing.T) {
+	p := NewParser()
+
+	strings := []string{"testing", "tdd", "write code"}
+	result := p.stringsToTriggers(strings, 0.5)
+
+	assert.Len(t, result, 3)
+	assert.Equal(t, []string{"testing"}, result[0].Keywords)
+	assert.Equal(t, 0.5, result[0].Weight)
+	assert.Equal(t, []string{"tdd"}, result[1].Keywords)
+	assert.Equal(t, 0.5, result[1].Weight)
+	assert.Equal(t, []string{"write code"}, result[2].Keywords)
+	assert.Equal(t, 0.5, result[2].Weight)
+}
+
+func TestParser_ParseSkillFile_ExplicitTriggerWeightValidation(t *testing.T) {
+	p := NewParser()
+
+	tests := []struct {
+		name        string
+		content     string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "default weight when not specified",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+  - pattern: "another"
+---
+<role>test</role>`,
+			wantErr: false,
+		},
+		{
+			name: "valid weight at lower bound 0.0",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: 0.0
+---
+<role>test</role>`,
+			wantErr: false,
+		},
+		{
+			name: "valid weight at upper bound 1.0",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: 1.0
+---
+<role>test</role>`,
+			wantErr: false,
+		},
+		{
+			name: "valid weight in middle range",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: 0.5
+---
+<role>test</role>`,
+			wantErr: false,
+		},
+		{
+			name: "error on negative weight",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: -0.1
+---
+<role>test</role>`,
+			wantErr:     true,
+			errContains: "weight must be between 0.0 and 1.0",
+		},
+		{
+			name: "error on weight greater than 1.0",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: 1.1
+---
+<role>test</role>`,
+			wantErr:     true,
+			errContains: "weight must be between 0.0 and 1.0",
+		},
+		{
+			name: "error on large negative weight",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: -10.0
+---
+<role>test</role>`,
+			wantErr:     true,
+			errContains: "weight must be between 0.0 and 1.0",
+		},
+		{
+			name: "error on large weight",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "test"
+    weight: 100.0
+---
+<role>test</role>`,
+			wantErr:     true,
+			errContains: "weight must be between 0.0 and 1.0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			path := filepath.Join(tmpDir, "skill.md")
+			err := os.WriteFile(path, []byte(tt.content), 0o644)
+			require.NoError(t, err)
+
+			result, err := p.ParseSkillFile(path)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, result)
+				if len(result.ExplicitTriggers) > 0 {
+					if result.ExplicitTriggers[0].Weight == 0 {
+						assert.Equal(t, 0.7, result.ExplicitTriggers[0].Weight, "default weight should be 0.7")
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestParser_ParseSkillFile_ExplicitTriggersEdgeCases(t *testing.T) {
+	p := NewParser()
+
+	tests := []struct {
+		name    string
+		content string
+		verify  func(t *testing.T, meta *SkillMeta)
+	}{
+		{
+			name: "trigger with only pattern",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "write.*test"
+---
+<role>test</role>`,
+			verify: func(t *testing.T, meta *SkillMeta) {
+				assert.Len(t, meta.ExplicitTriggers, 1)
+				assert.Equal(t, "write.*test", meta.ExplicitTriggers[0].Pattern)
+				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
+				assert.Empty(t, meta.ExplicitTriggers[0].Keywords)
+				assert.Empty(t, meta.ExplicitTriggers[0].FilePattern)
+			},
+		},
+		{
+			name: "trigger with only keywords",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - keywords:
+      - testing
+      - tdd
+---
+<role>test</role>`,
+			verify: func(t *testing.T, meta *SkillMeta) {
+				assert.Len(t, meta.ExplicitTriggers, 1)
+				assert.Equal(t, []string{"testing", "tdd"}, meta.ExplicitTriggers[0].Keywords)
+				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
+				assert.Empty(t, meta.ExplicitTriggers[0].Pattern)
+			},
+		},
+		{
+			name: "trigger with only filePattern",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - filePattern: "**/*_test.go"
+---
+<role>test</role>`,
+			verify: func(t *testing.T, meta *SkillMeta) {
+				assert.Len(t, meta.ExplicitTriggers, 1)
+				assert.Equal(t, "**/*_test.go", meta.ExplicitTriggers[0].FilePattern)
+				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
+				assert.Empty(t, meta.ExplicitTriggers[0].Pattern)
+			},
+		},
+		{
+			name: "multiple triggers with mixed fields",
+			content: `---
+name: test-skill
+description: Test description
+triggers:
+  - pattern: "write.*test"
+    keywords:
+      - testing
+    weight: 0.9
+  - filePattern: "**/*.go"
+    weight: 0.6
+  - keywords:
+      - go code
+---
+<role>test</role>`,
+			verify: func(t *testing.T, meta *SkillMeta) {
+				assert.Len(t, meta.ExplicitTriggers, 3)
+				assert.Equal(t, "write.*test", meta.ExplicitTriggers[0].Pattern)
+				assert.Equal(t, []string{"testing"}, meta.ExplicitTriggers[0].Keywords)
+				assert.Equal(t, 0.9, meta.ExplicitTriggers[0].Weight)
+				assert.Equal(t, "**/*.go", meta.ExplicitTriggers[1].FilePattern)
+				assert.Equal(t, 0.6, meta.ExplicitTriggers[1].Weight)
+				assert.Equal(t, []string{"go code"}, meta.ExplicitTriggers[2].Keywords)
+				assert.Equal(t, 0.7, meta.ExplicitTriggers[2].Weight)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			path := filepath.Join(tmpDir, "skill.md")
+			err := os.WriteFile(path, []byte(tt.content), 0o644)
+			require.NoError(t, err)
+
+			result, err := p.ParseSkillFile(path)
+			require.NoError(t, err)
+			tt.verify(t, result)
+		})
+	}
+}

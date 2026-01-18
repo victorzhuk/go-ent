@@ -29,8 +29,9 @@ Implement v2 features for the execution engine to enable long-running executions
 
 ## Dependencies
 
-- Requires: `add-execution-engine` (v1 features)
-- Blocks: P7 (long-running-workflows), P8 (advanced-orchestration)
+- Requires: `add-execution-engine` (v1 features) - ✅ COMPLETED
+- Requires: `add-boltdb-state-system` (state persistence) - ⚠️ PARTIAL (12 blocked tasks)
+- Blocks: P7 (long-running-workflows), P8 (advanced-orchestration), `add-acp-agent-mode` (worker orchestration)
 
 ## Success Criteria
 
@@ -46,7 +47,29 @@ Implement v2 features for the execution engine to enable long-running executions
 
 ## Implementation Status
 
-**Not Started**
+**📋 Phased Implementation Ready** - Broken down into 4 manageable phases:
+
+### Phase 1: Foundation (28 tasks) - ⭐ READY TO START
+**Unit tests for existing v2 features** - No dependencies, can start immediately
+- Sandbox resource limits and error handling
+- Code-mode VM integration and safe API surface
+
+### Phase 2: Context Management (28 tasks) - 🚀 CAN START AFTER PHASE 1  
+**Context summarization and limit handling** - Core v2 functionality
+- LLM-based context summarization
+- Automatic context limit detection and handling
+
+### Phase 3: State Persistence (36 tasks) - ⚠️ DEPENDENT
+**Execution state persistence and interrupt/resume** - May use file fallback if add-boltdb-state-system blocked
+- Execution state serialization and storage
+- Interrupt/resume functionality with execution ID tracking
+
+### Phase 4: Integration (16 tasks) - 🎯 FINAL PHASE
+**End-to-end testing and validation** - Requires all previous phases
+- Full integration test suite
+- Performance benchmarks and documentation
+
+**Estimated Timeline**: 4-6 weeks | **Critical Path**: Phases 1→2→4 (Phase 3 optional with file fallback)
 
 ## Impact
 

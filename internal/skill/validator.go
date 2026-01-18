@@ -91,6 +91,7 @@ func NewValidator() *Validator {
 			validateConstraints,
 			validateEdgeCases,
 			validateOutputFormat,
+			validateExplicitTriggers,
 		},
 	}
 }

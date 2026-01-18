@@ -1,20 +1,18 @@
 # Tasks: Add ACP Proxy Mode for OpenCode Worker Orchestration
 
-## ⚠️ BLOCKED - DO NOT START
+## ✅ READY TO START
 
-This proposal is BLOCKED pending completion of dependencies:
-1. **add-execution-engine** - Must be completed first (runtime abstraction)
-2. **add-background-agents** - Must be completed first (async spawning infrastructure)
+**Dependencies Resolved**:
+1. **execution-engine-v2** - ✅ Runtime abstraction available (v1 features complete)
+2. **add-background-agents** - ✅ Async spawning infrastructure complete
 
-**Status**: All tasks marked as BLOCKED until dependencies complete.
-
-**Research Complete**: See `ACP_RESEARCH_FINDINGS.md` for verified OpenCode ACP protocol details.
+**Status**: Ready for implementation. Research complete in `ACP_RESEARCH_FINDINGS.md`.
 
 ---
 
 ## Dependencies
-- **BLOCKS**: add-execution-engine (runtime abstraction) - ⚠️ IN PROGRESS
-- **BLOCKS**: add-background-agents (async spawning infrastructure) - ⚠️ IN PROGRESS
+- **Requires**: execution-engine-v2 (runtime abstraction) - ✅ COMPLETED (v1 features available)
+- **Requires**: add-background-agents (async spawning infrastructure) - ✅ COMPLETED
 - **External**: OpenCode installed on system (`opencode` binary)
 
 ## Relationship with add-background-agents

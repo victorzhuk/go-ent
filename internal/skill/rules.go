@@ -407,3 +407,28 @@ func validateOutputFormat(ctx *ValidationContext) []ValidationIssue {
 
 	return nil
 }
+
+// validateExplicitTriggers checks if skills use explicit triggers (SK012).
+func validateExplicitTriggers(ctx *ValidationContext) []ValidationIssue {
+	if ctx.Meta.StructureVersion == "v1" {
+		return nil
+	}
+
+	if len(ctx.Meta.ExplicitTriggers) > 0 {
+		return nil
+	}
+
+	return []ValidationIssue{{
+		Rule:     "SK012",
+		Severity: SeverityInfo,
+		Message: `Consider using explicit triggers for better control (SK012)
+
+Example:
+triggers:
+  - pattern: "implement.*go"
+    weight: 0.9
+  - keywords: ["go code", "golang"]
+    weight: 0.8`,
+		Line: findLineNumber(ctx.Lines, `name:`),
+	}}
+}

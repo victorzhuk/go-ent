@@ -1057,3 +1057,148 @@ func hasSeverity(issues []ValidationIssue, severity Severity) bool {
 	}
 	return false
 }
+
+func TestValidateExplicitTriggers_SK012(t *testing.T) {
+	tests := []struct {
+		name     string
+		meta     *SkillMeta
+		content  string
+		wantWarn bool
+		verify   func(t *testing.T, issues []ValidationIssue)
+	}{
+		{
+			name: "v1 skill skips SK012 validation",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Auto-activates for: testing, TDD",
+				StructureVersion: "v1",
+				Triggers:         []string{"testing", "tdd"},
+			},
+			content:  "---\nname: test-skill\ndescription: Auto-activates for: testing, TDD\n---",
+			wantWarn: false,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK012", issue.Rule)
+				}
+			},
+		},
+		{
+			name: "v2 with explicit triggers does not trigger SK012",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Go testing patterns",
+				StructureVersion: "v2",
+				ExplicitTriggers: []Trigger{
+					{
+						Pattern:  "write.*test",
+						Keywords: []string{"testing", "tdd"},
+						Weight:   0.8,
+					},
+				},
+			},
+			content:  "---\nname: test-skill\ndescription: Go testing patterns\n---\n<role>test</role>",
+			wantWarn: false,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK012", issue.Rule)
+				}
+			},
+		},
+		{
+			name: "v2 with description-based triggers triggers SK012",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Go testing patterns. Auto-activates for: testing, TDD",
+				StructureVersion: "v2",
+				Triggers:         []string{"testing", "tdd"},
+				ExplicitTriggers: nil,
+			},
+			content:  "---\nname: test-skill\ndescription: Go testing patterns. Auto-activates for: testing, TDD\n---\n<role>test</role>",
+			wantWarn: true,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				found := false
+				for _, issue := range issues {
+					if issue.Rule == "SK012" {
+						found = true
+						assert.Equal(t, SeverityInfo, issue.Severity)
+						assert.Contains(t, issue.Message, "Consider using explicit triggers for better control")
+						assert.Contains(t, issue.Message, "triggers:")
+						assert.Contains(t, issue.Message, "pattern:")
+						assert.Contains(t, issue.Message, "weight:")
+						assert.Contains(t, issue.Message, "keywords:")
+					}
+				}
+				assert.True(t, found, "expected to find SK012 issue")
+			},
+		},
+		{
+			name: "v2 with empty explicit triggers list triggers SK012",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Go testing patterns",
+				StructureVersion: "v2",
+				ExplicitTriggers: []Trigger{},
+			},
+			content:  "---\nname: test-skill\ndescription: Go testing patterns\ntriggers: []\n---\n<role>test</role>",
+			wantWarn: true,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				found := false
+				for _, issue := range issues {
+					if issue.Rule == "SK012" {
+						found = true
+						assert.Equal(t, SeverityInfo, issue.Severity)
+					}
+				}
+				assert.True(t, found, "expected to find SK012 issue")
+			},
+		},
+		{
+			name: "v2 with multiple explicit triggers does not trigger SK012",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Go testing patterns",
+				StructureVersion: "v2",
+				ExplicitTriggers: []Trigger{
+					{
+						Pattern: "write.*test",
+						Weight:  0.9,
+					},
+					{
+						Keywords: []string{"testing", "tdd"},
+						Weight:   0.8,
+					},
+				},
+			},
+			content:  "---\nname: test-skill\ndescription: Go testing patterns\n---\n<role>test</role>",
+			wantWarn: false,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK012", issue.Rule)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+
+			issues := validateExplicitTriggers(ctx)
+
+			if tt.wantWarn {
+				assert.True(t, hasSeverity(issues, SeverityInfo), "expected info warning")
+			} else {
+				assert.False(t, hasSeverity(issues, SeverityInfo), "unexpected info warning for SK012")
+			}
+
+			if tt.verify != nil {
+				tt.verify(t, issues)
+			}
+		})
+	}
+}
