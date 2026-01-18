@@ -14,6 +14,8 @@ type Registry struct {
 	skills        []SkillMeta
 	runtimeSkills map[string]domain.Skill
 	parser        *Parser
+	validator     *Validator
+	scorer        *QualityScorer
 }
 
 // NewRegistry creates a new skill registry.
@@ -22,6 +24,8 @@ func NewRegistry() *Registry {
 		skills:        make([]SkillMeta, 0),
 		runtimeSkills: make(map[string]domain.Skill),
 		parser:        NewParser(),
+		validator:     NewValidator(),
+		scorer:        NewQualityScorer(),
 	}
 }
 
@@ -79,6 +83,12 @@ func (r *Registry) Load(skillsPath string) error {
 			return fmt.Errorf("parse %s: %w", path, err)
 		}
 
+		content, err := os.ReadFile(path) // #nosec G304 -- controlled skill file path
+		if err != nil {
+			return fmt.Errorf("read %s: %w", path, err)
+		}
+
+		meta.QualityScore = r.scorer.Score(meta, string(content))
 		r.skills = append(r.skills, *meta)
 		return nil
 	})
@@ -214,4 +224,68 @@ func (r *Registry) matchesContext(skill SkillMeta, terms []string) bool {
 	}
 
 	return false
+}
+
+// ValidateSkill validates a single skill by name.
+func (r *Registry) ValidateSkill(name string) (*ValidationResult, error) {
+	meta, err := r.Get(name)
+	if err != nil {
+		return nil, fmt.Errorf("get skill metadata: %w", err)
+	}
+
+	content, err := os.ReadFile(meta.FilePath) // #nosec G304 -- controlled skill file path
+	if err != nil {
+		return nil, fmt.Errorf("read skill file: %w", err)
+	}
+
+	result := r.validator.Validate(meta, string(content))
+	return result, nil
+}
+
+// ValidateAll validates all loaded skills and returns aggregate result.
+func (r *Registry) ValidateAll() (*ValidationResult, error) {
+	if len(r.skills) == 0 {
+		return &ValidationResult{
+			Valid:  true,
+			Issues: []ValidationIssue{},
+			Score:  0,
+		}, nil
+	}
+
+	var allIssues []ValidationIssue
+	totalScore := 0.0
+
+	for _, skill := range r.skills {
+		result, err := r.ValidateSkill(skill.Name)
+		if err != nil {
+			return nil, fmt.Errorf("validate skill %s: %w", skill.Name, err)
+		}
+
+		allIssues = append(allIssues, result.Issues...)
+		totalScore += result.Score
+	}
+
+	avgScore := totalScore / float64(len(r.skills))
+	valid := true
+	for _, issue := range allIssues {
+		if issue.Severity == SeverityError {
+			valid = false
+			break
+		}
+	}
+
+	return &ValidationResult{
+		Valid:  valid,
+		Issues: allIssues,
+		Score:  avgScore,
+	}, nil
+}
+
+// GetQualityReport returns a map of skill names to quality scores.
+func (r *Registry) GetQualityReport() map[string]float64 {
+	report := make(map[string]float64, len(r.skills))
+	for _, skill := range r.skills {
+		report[skill.Name] = skill.QualityScore
+	}
+	return report
 }

@@ -231,6 +231,8 @@ You are a specialized agent for...
 
 ### Adding a New Skill
 
+**Legacy (v1) Format** - Still supported for backward compatibility:
+
 1. Create `plugins/go-ent/skills/go-skillname/SKILL.md`:
 
 ```markdown
@@ -259,6 +261,457 @@ This skill auto-activates when:
 2. Test by working on code that should trigger it
 
 3. Verify skill content appears in agent context when active
+
+**New skills should use v2 format** - see [Skill Authoring (v2 Format)](#skill-authoring-v2-format) below.
+
+---
+
+## Skill Authoring (v2 Format)
+
+### Overview
+
+The v2 skill format provides structured, validated, and high-quality skill definitions with automatic quality scoring. Skills in v2 format include:
+
+- **Required XML sections**: `<role>`, `<instructions>`, `<constraints>`, `<edge_cases>`, `<examples>`, `<output_format>`
+- **Enhanced frontmatter**: `version`, `author`, `tags` fields
+- **Validation**: Automatic checking for required sections and content
+- **Quality scoring**: 0-100 scale with detailed breakdown
+- **MCP tools**: `skill_validate` and `skill_quality` for inspection
+
+### File Location
+
+Place new skills in:
+```
+plugins/go-ent/skills/{category}/{skill-name}/SKILL.md
+```
+
+Example:
+```
+plugins/go-ent/skills/go/go-code/SKILL.md
+plugins/go-ent/skills/core/arch-core/SKILL.md
+```
+
+### Skill Structure (v2 Format)
+
+A v2 skill file has this structure:
+
+```markdown
+---
+name: go-code
+description: "Modern Go implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration."
+version: "2.0.0"
+author: "go-ent"
+tags: ["go", "code", "implementation"]
+---
+
+# Go Code Patterns
+
+<role>
+Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
+</role>
+
+<instructions>
+[Detailed task instructions and patterns]
+</instructions>
+
+<constraints>
+[What to include, what to exclude, boundaries]
+</constraints>
+
+<edge_cases>
+[5+ scenarios with handling instructions]
+</edge_cases>
+
+<examples>
+<example>
+<input>Example input</input>
+<output>Example output</output>
+</example>
+</examples>
+
+<output_format>
+[Expected output structure and format]
+</output_format>
+```
+
+### Frontmatter Fields
+
+| Field      | Required | Description                               | Example                          |
+|------------|----------|-------------------------------------------|----------------------------------|
+| `name`     | Yes      | Skill identifier                          | `go-code`                        |
+| `description` | Yes   | What this skill does + auto-activation triggers | `"Modern Go patterns. Auto-activates for: writing code, implementing features"` |
+| `version`  | No       | Semantic version                          | `"2.0.0"`                        |
+| `author`   | No       | Attribution                               | `"go-ent"`                       |
+| `tags`     | No       | Categorization array                      | `["go", "code", "implementation"]` |
+
+**Triggers**: Extracted from `description` text following "Auto-activates for:" or "Activates when:"
+
+### XML Sections
+
+#### `<role>` - Expert Persona Definition
+
+Define the AI's expertise and focus:
+
+```xml
+<role>
+Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
+</role>
+```
+
+**Purpose**: Sets the persona and expertise level
+**Content**: Expert identity, principles to follow, quality expectations
+
+#### `<instructions>` - Task Instructions
+
+Provide detailed, actionable guidance:
+
+```xml
+<instructions>
+
+## Bootstrap Pattern
+
+```go
+func main() {
+    // Code example
+}
+```
+
+**Why this pattern**:
+- Reason 1
+- Reason 2
+
+## Error Handling
+
+```go
+// Code example
+```
+
+**Rules**:
+- Rule 1
+- Rule 2
+</instructions>
+```
+
+**Purpose**: Core knowledge and patterns
+**Content**: Code examples, explanations, rules, patterns
+**Format**: Markdown with code blocks, lists, emphasis
+
+#### `<constraints>` - Boundaries and Requirements
+
+Define what to include and exclude:
+
+```xml
+<constraints>
+- Include clean, idiomatic Go code following standard conventions
+- Include proper error wrapping with context using `%w` verb
+- Include context propagation as first parameter throughout layers
+- Exclude magic numbers (use named constants instead)
+- Exclude global mutable state (pass dependencies explicitly)
+- Exclude panic in production code (use error handling instead)
+- Bound to clean layered architecture: Transport → UseCase → Domain ← Repository
+</constraints>
+```
+
+**Purpose**: Set clear boundaries and requirements
+**Content**: Include rules, exclude rules, architectural boundaries
+**Format**: Bullet list starting with "Include" or "Exclude"
+
+#### `<edge_cases>` - Edge Case Handling
+
+Document 5+ scenarios with handling instructions:
+
+```xml
+<edge_cases>
+If input is unclear or ambiguous: Ask clarifying questions to understand the specific requirement before proceeding with implementation.
+
+If context is missing for a feature: Request additional information about architecture decisions, existing patterns, or integration points.
+
+If performance concerns arise: Delegate to go-perf skill for profiling, optimization strategies, and benchmarking guidance.
+
+If architecture questions emerge: Delegate to go-arch skill for system design, layer boundaries, and structural decisions.
+
+If testing requirements are needed: Delegate to go-test skill for test coverage, table-driven tests, and mocking strategies.
+</edge_cases>
+```
+
+**Purpose**: Handle edge cases and delegations
+**Content**: 5+ scenarios with "If X: Y" format
+**Format**: Each scenario on separate line
+
+#### `<examples>` - Input/Output Pairs
+
+Provide 2-3 concrete examples:
+
+```xml
+<examples>
+<example>
+<input>Refactor main() to use bootstrap pattern with graceful shutdown</input>
+<output>
+```go
+func main() {
+    if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
+        slog.Error("fatal", "error", err)
+        os.Exit(1)
+    }
+}
+```
+</example>
+
+<example>
+<input>Fix error handling in this function - it's not wrapping errors properly</input>
+<output>
+```go
+// Before
+func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+    return nil, err
+}
+
+// After
+func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+    if err != nil {
+        return fmt.Errorf("query user %s: %w", id, err)
+    }
+}
+```
+</example>
+</examples>
+```
+
+**Purpose**: Demonstrate skill application
+**Content**: 2-3 examples with `<input>` and `<output>` tags
+**Format**: Realistic user requests and responses
+
+#### `<output_format>` - Expected Output Structure
+
+Define expected output format:
+
+```xml
+<output_format>
+Provide production-ready Go code following established patterns:
+
+1. **Code Structure**: Clean, idiomatic Go with proper package organization
+2. **Naming**: Short, natural variable names (cfg, repo, ctx, req, resp)
+3. **Error Handling**: Wrapped errors with lowercase context using `%w`
+4. **Context**: Always first parameter, propagated through all layers
+5. **Interfaces**: Minimal interfaces at consumer side, return structs
+
+Focus on practical implementation with minimal abstractions unless complexity demands it.
+</output_format>
+```
+
+**Purpose**: Guide output structure and format
+**Content**: Format requirements, structure expectations, emphasis
+**Format**: Clear, actionable guidelines
+
+### Backward Compatibility
+
+**v1 format** (no XML tags) still works:
+- Detected by absence of `<role>` and `<instructions>` tags
+- Loaded as legacy format
+- No validation or quality scoring
+
+**v2 format**:
+- Detected by presence of `<role>` or `<instructions>` tags
+- Fully validated and scored
+- Enhanced metadata (version, author, tags)
+
+### Quality Scoring
+
+Quality scores range from 0-100 and are computed automatically:
+
+| Category        | Points | Criteria                                                                 |
+|-----------------|--------|--------------------------------------------------------------------------|
+| **Frontmatter** | 20     | name (5), description (5), version (5), tags (5)                         |
+| **Structure**   | 30     | `<role>` (10), `<instructions>` (10), `<examples>` (10)                  |
+| **Content**     | 30     | 2+ examples (15), `<edge_cases>` (15)                                    |
+| **Triggers**    | 20     | 3+ triggers (20), 1-2 triggers (6.67 each)                               |
+
+**Thresholds**:
+- ≥ 90: Excellent quality (template skills)
+- ≥ 80: Good quality (acceptable for production)
+- < 80: Needs improvement (add sections, examples, triggers)
+
+### Validation
+
+Validate skills with strict mode:
+
+```bash
+make skill-validate
+```
+
+This checks:
+- Required frontmatter fields
+- Well-formed XML tags
+- Required XML sections
+- Proper example format
+- Edge cases present
+- Semantic version format
+
+### Quality Report
+
+Generate quality report:
+
+```bash
+make skill-quality
+```
+
+Output example:
+```
+Skill Quality Report
+===================
+
+go-code: Score 95/100 ✓
+  Frontmatter: 20/20
+  Structure: 30/30
+  Content: 30/30
+  Triggers: 15/20
+
+go-arch: Score 88/100 ✓
+  Frontmatter: 20/20
+  Structure: 30/30
+  Content: 25/30 (edge_cases missing 1 case)
+  Triggers: 13/20
+
+my-new-skill: Score 65/100 ✗
+  Frontmatter: 15/20 (version missing)
+  Structure: 20/30 (examples missing)
+  Content: 15/30 (edge_cases missing)
+  Triggers: 15/20
+
+Summary: 2/3 skills meet quality threshold (≥80)
+```
+
+### MCP Tools
+
+#### skill_validate
+
+Validate a single skill or all skills:
+
+```
+mcp__go_ent__skill_validate
+  skill_id: string (optional) - Skill name to validate, or validate all
+  strict: boolean (optional) - Enable strict validation (default: false)
+```
+
+Example via Claude Code:
+```
+Use skill_validate with skill_id="go-code", strict=true
+```
+
+#### skill_quality
+
+Get quality report with threshold:
+
+```
+mcp__go_ent__skill_quality
+  skill_id: string (optional) - Skill name to check, or report all
+  threshold: number (optional) - Minimum score (default: 80)
+```
+
+Example via Claude Code:
+```
+Use skill_quality with skill_id="go-arch", threshold=90
+```
+
+### Migration Checklist
+
+Migrating from v1 to v2 format:
+
+1. **Use go-code as template**
+   ```bash
+   cp plugins/go-ent/skills/go/go-code/SKILL.md plugins/go-ent/skills/your-category/your-skill/SKILL.md
+   ```
+
+2. **Update frontmatter**
+   ```yaml
+   ---
+   name: your-skill
+   description: "Your skill description. Auto-activates for: trigger1, trigger2, trigger3"
+   version: "2.0.0"
+   author: "your-name"
+   tags: ["category", "keyword"]
+   ---
+   ```
+
+3. **Add required XML sections**
+   - `<role>` - Expert persona
+   - `<instructions>` - Core patterns and guidance
+   - `<constraints>` - Include/exclude rules
+   - `<edge_cases>` - 5+ handling scenarios
+   - `<examples>` - 2-3 input/output pairs
+   - `<output_format>` - Expected output structure
+
+4. **Preserve existing content**
+   - Keep all existing patterns, examples, and knowledge
+   - Format as markdown within appropriate sections
+   - Ensure code blocks have language tags
+
+5. **Validate with strict mode**
+   ```bash
+   make skill-validate
+   ```
+
+6. **Check quality score**
+   ```bash
+   make skill-quality
+   ```
+   Target ≥ 80 (≥ 90 for template/skills)
+
+7. **Test with real work**
+   - Use Claude Code to trigger the skill
+   - Verify skill content appears in context
+   - Check output quality and relevance
+
+### Example: Creating a New Skill
+
+1. **Create directory and file**
+   ```bash
+   mkdir -p plugins/go-ent/skills/go/web-async
+   cp plugins/go-ent/skills/go/go-code/SKILL.md plugins/go-ent/skills/go/web-async/SKILL.md
+   ```
+
+2. **Edit frontmatter**
+   ```yaml
+   ---
+   name: web-async
+   description: "Web asynchronous programming patterns with goroutines, channels, errgroups. Auto-activates for: async web handlers, background jobs, concurrent API calls"
+   version: "2.0.0"
+   author: "go-ent"
+   tags: ["go", "web", "async", "concurrency"]
+   ---
+   ```
+
+3. **Update sections**
+   - Edit `<role>` for async web expertise
+   - Update `<instructions>` with async patterns
+   - Adjust `<constraints>` for async-specific rules
+   - Add web async `<edge_cases>`
+   - Provide async web `<examples>`
+   - Update `<output_format>` expectations
+
+4. **Validate and test**
+   ```bash
+   make skill-validate
+   make skill-quality
+   ```
+
+5. **Test in Claude Code**
+   - Trigger skill with async web task
+   - Verify context includes skill content
+   - Check output quality
+
+### Best Practices
+
+- **Use existing skills as templates**: go-code for Go skills, arch-core for architecture
+- **Provide multiple triggers**: 3+ for better activation
+- **Include 2-3 examples**: Realistic input/output pairs
+- **Document 5+ edge cases**: Common scenarios and delegations
+- **Target quality ≥ 80**: Higher (≥90) for template skills
+- **Validate before commit**: Always run `make skill-validate`
+- **Preserve existing content**: When migrating, keep all valuable knowledge
+- **Use clear descriptions**: Include auto-activation triggers in description
+- **Keep role concise**: 1-2 sentences defining expertise
+- **Make examples realistic**: Real-world user requests and responses
 
 ### Adding a New Command
 

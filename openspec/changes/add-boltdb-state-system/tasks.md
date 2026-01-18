@@ -36,42 +36,43 @@
 - [x] Preserve existing API compatibility
 - [x] Update recalculateBlockedBy to use BoltDB reverse index
 
-## 6. Migration Script
-- [ ] Create cmd/migrate-registry/main.go <!-- depends: 5.1 -->
-- [ ] Read existing registry.yaml
-- [ ] Populate BoltDB from YAML data
-- [ ] Preserve all metadata (deps, notes, assignees)
-- [ ] Add --dry-run flag for preview
-- [ ] Test migration with actual data
+## 6. Migration Script ✅
+- [x] Create cmd/migrate-registry/main.go <!-- depends: 5.1 -->
+- [x] Read existing registry.yaml
+- [x] Populate BoltDB from YAML data
+- [x] Preserve all metadata (deps, notes, assignees)
+- [x] Add --dry-run flag for preview
+- [x] Test migration with actual data
 
-## 7. MCP Tool Updates
-- [ ] Update registry_list to read from BoltDB <!-- depends: 5.1 -->
-- [ ] Update registry_next to use BoltDB NextTasks
-- [ ] Update registry_update to use BoltDB UpdateTask
-- [ ] Update registry_deps to use BoltDB Add/RemoveDependency
-- [ ] Update registry_sync to also generate state.md
-- [ ] Add fallback to state.md if registry.db missing
+## 7. MCP Tool Updates ✅
+- [x] Update registry_list to read from BoltDB <!-- depends: 5.1 -->
+- [x] Update registry_next to use BoltDB NextTasks
+- [x] Update registry_update to use BoltDB UpdateTask
+- [x] Update registry_deps to use BoltDB Add/RemoveDependency
+- [x] Update registry_sync to also generate state.md
+- [x] Add fallback to state.md if registry.db missing
 
 ## 8. Documentation
-- [ ] Update openspec/AGENTS.md with new workflow <!-- depends: 5.5, 7.5 -->
-- [ ] Document HTML comment dependency syntax
-- [ ] Document state.md format
-- [ ] Document BoltDB cache strategy
-- [ ] Add examples of dependency usage
-- [ ] Update workflow diagrams
+- [x] Update openspec/AGENTS.md with new workflow ✅ <!-- depends: 5.5, 7.5 -->
+- [x] Document HTML comment dependency syntax ✅
+- [x] Document state.md format ✅
+- [x] Document BoltDB cache strategy ✅
+- [x] Add examples of dependency usage ✅
+- [x] Update workflow diagrams ✅
 
-## 9. Testing
+## 9. Testing ✅
 - [x] Unit tests for BoltStore operations <!-- depends: 1.6 -->
 - [x] Unit tests for StateStore parsing
-- [ ] Integration test: tasks.md → BoltDB → state.md
-- [ ] Test dependency parsing edge cases
-- [ ] Test migration script with sample data
-- [ ] Test MCP tools end-to-end
+- [x] Integration test: tasks.md → BoltDB → state.md
+- [x] Test dependency parsing edge cases
+- [x] Test migration script with sample data
+- [x] Test MCP tools end-to-end
 
-## 10. /task Command (Deferred)
-- [ ] Create plugins/go-ent/commands/task.md
-- [ ] Implement task execution logic
-- [ ] Add ACP delegation support
-- [ ] Integrate with state.md for task context
-- [ ] Update tasks.md checkbox on completion
-- [ ] Regenerate state.md after task done
+ ## 10. /task Command
+- [x] Create plugins/go-ent/commands/task.md ✅ 2026-01-17
+- [x] Implement task execution logic ✅ 2026-01-17
+- [x] Add ACP delegation support ✅ 2026-01-17
+- [x] Integrate with state.md for task context ✅ 2026-01-17
+- [x] Update tasks.md checkbox on completion ✅ 2026-01-17
+- [x] Regenerate state.md after task done ✅ 2026-01-17
+

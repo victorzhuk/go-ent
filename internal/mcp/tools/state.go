@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -73,7 +74,60 @@ func stateSyncHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 
 	store := spec.NewStore(input.Path)
 
+	// Check if registry.db exists, fallback to tasks.md if not
 	boltPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(boltPath); os.IsNotExist(err) {
+		// Fallback: Generate state.md directly from tasks.md
+		tasks, err := parseTasksFromSource(input.Path, "")
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error parsing tasks.md: %v", err)}},
+			}, nil, nil
+		}
+
+		// Group tasks by change
+		changeTasks := make(map[string][]spec.RegistryTask)
+		for _, task := range tasks {
+			changeTasks[task.ID.ChangeID] = append(changeTasks[task.ID.ChangeID], task)
+		}
+
+		// Write per-change state.md
+		for changeID, changeTasksList := range changeTasks {
+			changeStatePath := filepath.Join(input.Path, "openspec", "changes", changeID, "state.md")
+			state := generateChangeStateMarkdown(changeID, changeTasksList)
+			if !input.DryRun {
+				if err := os.WriteFile(changeStatePath, []byte(state), 0644); err != nil {
+					return &mcp.CallToolResult{
+						Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error writing state for %s: %v", changeID, err)}},
+					}, nil, nil
+				}
+			}
+		}
+
+		// Write root state.md
+		rootStatePath := filepath.Join(input.Path, "openspec", "state.md")
+		rootState := generateRootStateMarkdown(tasks)
+		if !input.DryRun {
+			if err := os.WriteFile(rootStatePath, []byte(rootState), 0644); err != nil {
+				return &mcp.CallToolResult{
+					Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error writing root state: %v", err)}},
+				}, nil, nil
+			}
+		}
+
+		prefix := "Preview: "
+		if input.DryRun {
+			prefix = "Dry run: "
+		}
+		result := fmt.Sprintf("%sGenerated state.md from tasks.md (no registry.db found)\n", prefix)
+		result += fmt.Sprintf("Changes: %d\n", len(changeTasks))
+		result += "Note: Run registry_init to create BoltDB for full functionality"
+
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: result}},
+		}, nil, nil
+	}
+
 	bolt, err := spec.NewBoltStore(boltPath)
 	if err != nil {
 		return &mcp.CallToolResult{
@@ -131,7 +185,24 @@ func stateShowHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 
 	store := spec.NewStore(input.Path)
 
+	// Check if registry.db exists, fallback to parsing tasks.md if not
 	boltPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(boltPath); os.IsNotExist(err) {
+		// Fallback to parsing tasks.md directly
+		tasks, err := parseTasksFromSource(input.Path, input.ChangeID)
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error parsing tasks.md: %v", err)}},
+			}, nil, nil
+		}
+
+		if input.ChangeID != "" {
+			return showChangeStateFallback(input.ChangeID, tasks)
+		}
+
+		return showRootStateFallback(tasks)
+	}
+
 	bolt, err := spec.NewBoltStore(boltPath)
 	if err != nil {
 		return &mcp.CallToolResult{
@@ -200,4 +271,113 @@ func stateShowHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: result}},
 	}, nil, nil
+}
+
+func showChangeStateFallback(changeID string, tasks []spec.RegistryTask) (*mcp.CallToolResult, any, error) {
+	changeTasks := make([]spec.RegistryTask, 0)
+	for _, task := range tasks {
+		if task.ID.ChangeID == changeID {
+			changeTasks = append(changeTasks, task)
+		}
+	}
+
+	if len(changeTasks) == 0 {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("No tasks found for change: %s", changeID)}},
+		}, nil, nil
+	}
+
+	state := generateChangeStateMarkdown(changeID, changeTasks)
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: state}},
+	}, nil, nil
+}
+
+func showRootStateFallback(tasks []spec.RegistryTask) (*mcp.CallToolResult, any, error) {
+	state := generateRootStateMarkdown(tasks)
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: state}},
+	}, nil, nil
+}
+
+func generateChangeStateMarkdown(changeID string, tasks []spec.RegistryTask) string {
+	completed := 0
+	total := len(tasks)
+	var currentTask *spec.RegistryTask
+
+	for i := range tasks {
+		if tasks[i].Status == spec.RegStatusCompleted {
+			completed++
+		} else if currentTask == nil && tasks[i].Status == spec.RegStatusPending {
+			hasBlockers := false
+			for _, dep := range tasks[i].DependsOn {
+				depMet := false
+				for _, t := range tasks {
+					if t.ID == dep && t.Status == spec.RegStatusCompleted {
+						depMet = true
+						break
+					}
+				}
+				if !depMet {
+					hasBlockers = true
+					break
+				}
+			}
+			if !hasBlockers {
+				currentTask = &tasks[i]
+			}
+		}
+	}
+
+	percent := 0
+	if total > 0 {
+		percent = (completed * 100) / total
+	}
+
+	result := fmt.Sprintf("# %s\n\n", changeID)
+	result += fmt.Sprintf("Progress: %d/%d (%d%%)\n\n", completed, total, percent)
+
+	if currentTask != nil {
+		result += fmt.Sprintf("Current: %s\n\n", currentTask.Content)
+	} else {
+		result += "Current: None\n\n"
+	}
+
+	return result
+}
+
+func generateRootStateMarkdown(tasks []spec.RegistryTask) string {
+	changes := make(map[string]struct {
+		completed int
+		total     int
+	})
+
+	for _, task := range tasks {
+		changeID := task.ID.ChangeID
+		info := changes[changeID]
+		info.total++
+		if task.Status == spec.RegStatusCompleted {
+			info.completed++
+		}
+		changes[changeID] = info
+	}
+
+	changeList := make([]string, 0, len(changes))
+	for changeID := range changes {
+		changeList = append(changeList, changeID)
+	}
+
+	result := "# OpenSpec State\n\n"
+	result += fmt.Sprintf("%d active changes\n\n", len(changes))
+
+	for _, changeID := range changeList {
+		info := changes[changeID]
+		percent := 0
+		if info.total > 0 {
+			percent = (info.completed * 100) / info.total
+		}
+		result += fmt.Sprintf("- %s: %d%% (%d/%d)\n", changeID, percent, info.completed, info.total)
+	}
+
+	return result
 }

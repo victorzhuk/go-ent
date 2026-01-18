@@ -41,6 +41,8 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 	}
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)
+	registerSkillValidate(s, skillRegistry)
+	registerSkillQuality(s, skillRegistry)
 	registerRuntimeList(s)
 	registerRuntimeStatus(s)
 	registerEngineExecute(s, skillRegistry)

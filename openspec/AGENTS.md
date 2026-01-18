@@ -40,11 +40,12 @@ Skip proposal for:
 - Configuration changes
 - Tests for existing behavior
 
-**Workflow**
+**Workflow** (tasks.md → state.md → registry.db)
 1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
 2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
 3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
 4. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
+5. Use `state_sync` to generate `state.md` and `registry.db` from tasks.md files.
 
 ### Stage 2: Implementing Changes
 Track these steps as TODOs and complete them one by one.
@@ -337,66 +338,73 @@ Iteration 3/5
 
 ## Registry Management
 
-The OpenSpec registry (`openspec/registry.yaml`) provides centralized task management across all change proposals. It tracks task status, priorities, dependencies (including cross-change), and recommends what to work on next.
+The OpenSpec registry (`openspec/registry.db`) provides centralized task management across all change proposals. It tracks task status, priorities, dependencies (including cross-change), and recommends what to work on next. The registry is a BoltDB database with 5 buckets for O(1) lookups.
 
 ### Why Use the Registry?
 
+- **State visibility**: See all tasks via `openspec/state.md` (root) and per-change `state.md` files
+- **Performance**: O(1) BoltDB lookups vs O(n²) YAML parsing for large projects
 - **Cross-change visibility**: See all tasks across all changes in one place
 - **Smart prioritization**: Get recommended next tasks based on priority and dependencies
-- **Dependency tracking**: Manage cross-change dependencies (e.g., auth/1.1 depends on build/5.5)
+- **Dependency tracking**: Manage cross-change dependencies via HTML comments or registry operations
 - **Progress tracking**: Monitor completion rates, blocked tasks, and overall status
-- **Workflow automation**: `/gt:apply` uses registry to auto-pick next task
+- **Workflow automation**: Tools use registry to auto-pick next task
 
 ### Registry Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/gt:registry list [--filters]` | List all tasks with optional filters |
-| `/gt:registry next [count]` | Get next recommended task(s) |
-| `/gt:registry update <task-id> <field=value>` | Update task status/priority |
-| `/gt:registry deps <task-id> <op>` | Manage dependencies |
-| `/gt:registry sync` | Sync registry from tasks.md files |
-| `/gt:registry init` | Initialize empty registry |
+| | `registry_list [--filters]` | List all tasks with optional filters |
+| | `registry_next [count]` | Get next recommended task(s) |
+| | `registry_update <task-id> <field=value>` | Update task status/priority |
+| | `registry_deps <task-id> <op>` | Manage dependencies |
+| | `state_sync` | Sync BoltDB and state.md from tasks.md files |
+| | `state_show [change-id]` | Quick state view (root or per-change) |
 
 ### Workflow Integration
 
 1. **Initialize registry** (first time):
-   ```bash
-   /gt:registry sync
-   ```
-   Scans all `changes/*/tasks.md` files and builds registry.
+    ```bash
+    state_sync
+    ```
+    Scans all `changes/*/tasks.md` files, generates `openspec/registry.db`, and creates `state.md` files.
 
 2. **Before starting work**:
-   ```bash
-   /gt:registry next
-   ```
-   Gets highest priority unblocked task.
+    ```bash
+    state_show
+    ```
+    Shows root state with all changes and recommended next tasks.
+    Or for a specific change:
+    ```bash
+    state_show add-auth
+    ```
+    Shows change-specific state with progress, current task, and blockers.
 
 3. **When starting a task**:
-   ```bash
-   /gt:registry update add-auth/1.1 status=in_progress
-   ```
+    ```bash
+    registry_update add-auth/1.1 status=in_progress
+    ```
 
 4. **When completing a task**:
-   ```bash
-   /gt:registry update add-auth/1.1 status=completed
-   ```
-   Registry automatically recalculates `blocked_by` for dependent tasks.
+    ```bash
+    registry_update add-auth/1.1 status=completed
+    ```
+    Registry automatically recalculates `blocked_by` for dependent tasks.
 
 5. **Managing dependencies**:
-   ```bash
-   # Show dependency graph
-   /gt:registry deps add-auth/2.1 show
+    ```bash
+    # Show dependency graph
+    registry_deps add-auth/2.1 show
 
-   # Add cross-change dependency
-   /gt:registry deps add-auth/1.1 add add-build/5.5
-   ```
+    # Add cross-change dependency
+    registry_deps add-auth/1.1 add add-build/5.5
+    ```
 
-6. **View status** (enhanced with registry):
-   ```bash
-   /gt:status
-   ```
-   Shows registry summary with completion rates and next task.
+6. **Sync after changes**:
+    ```bash
+    state_sync
+    ```
+    Regenerates state files and updates BoltDB from modified tasks.md files.
 
 ### Task ID Format
 
@@ -414,31 +422,238 @@ Tasks are identified as `change-id/task-num`:
 
 ### Registry as Master
 
-The registry is the **source of truth** for task state:
-- Manual updates in registry take precedence
-- Use `/gt:registry sync` to rebuild from `tasks.md` files
-- Registry updates can optionally sync back to `tasks.md` checkboxes
+The registry (BoltDB + state.md files) is the **source of truth** for task state:
+- `registry.db` contains all task data with O(1) lookups
+- `state.md` files provide human-readable snapshots
+- Use `state_sync` to rebuild from `tasks.md` files
+- Manual updates in registry take precedence until next sync
 
 ### Example Workflow
 
 ```bash
 # Initialize registry from existing changes
-/gt:registry sync
+state_sync
+
+# See overall state
+state_show
 
 # See what's next
-/gt:registry next 3
+registry_next 3
 
 # Start working (auto-picks next task)
-/gt:apply
+/go-ent:apply
 
 # Manual priority adjustment
-/gt:registry update add-auth/2.1 priority=critical
+registry_update add-auth/2.1 priority=critical
 
-# Check overall status
-/gt:status
+# After work, sync to update state
+state_sync
+
+# View specific change state
+state_show add-auth
 
 # View tasks for specific change
-/gt:registry list --change=add-auth --status=pending
+registry_list --change=add-auth --status=pending
+```
+
+## State Files
+
+State files (`state.md`) provide human-readable snapshots of project progress. They are auto-generated by `state_sync` and updated automatically after registry operations.
+
+### Per-Change State File
+
+Location: `openspec/changes/<change-id>/state.md`
+
+```markdown
+# State: add-auth
+
+> Updated: 2026-01-17T10:00:00Z
+
+## Progress
+3/10 complete (30%)
+
+## Current Task
+**T4**: Implement OAuth flow
+- Line: tasks.md:42
+- Status: in_progress
+
+## Blockers
+None
+
+## Recent Activity
+| Task | Action | Time |
+|------|--------|------|
+| T3 | completed | 09:55 |
+| T2 | completed | 09:30 |
+```
+
+### Root State File
+
+Location: `openspec/state.md`
+
+```markdown
+# OpenSpec State
+
+> Updated: 2026-01-17T10:00:00Z
+
+## Active Changes
+
+| Change | Progress | Blocked |
+|--------|----------|---------|
+| add-auth | 30% (3/10) | 0 |
+| add-build | 50% (5/10) | 2 |
+
+## Recommended Next
+
+1. **add-auth/4** - Implement OAuth flow (high priority)
+2. **add-build/6** - Configure CI pipeline (medium priority)
+3. **add-build/7** - Write integration tests (medium priority)
+```
+
+### State File Generation
+
+State files are automatically generated during:
+- `state_sync` - Parses all tasks.md files and rebuilds registry.db + state.md
+- `registry_update` - Updates relevant state sections after task changes
+- `registry_deps` - Updates blocker sections after dependency changes
+
+## HTML Comment Dependencies
+
+Tasks can declare dependencies using HTML comments inline with task descriptions. This syntax survives sync and is tool-agnostic.
+
+### Syntax
+
+```markdown
+<!-- depends: <task-num>[, <task-num>...] -->
+```
+
+### Example Usage
+
+```markdown
+## Implementation
+
+### T1: Create database schema
+- [ ] 1.1 Define user table
+- [ ] 1.2 Define session table
+
+### T2: Build API layer
+- [ ] 2.1 Create user endpoints <!-- depends: 1.1, 1.2 -->
+- [ ] 2.2 Create session endpoints <!-- depends: 1.2 -->
+```
+
+In the example above:
+- Task 2.1 depends on both 1.1 and 1.2 (won't start until both complete)
+- Task 2.2 depends only on 1.2 (can start when 1.2 completes, even if 1.1 is still pending)
+
+### Benefits
+
+- **Inline**: Dependencies are visible next to the task
+- **Persistent**: Survives sync operations
+- **Tool-agnostic**: Works with any Markdown editor/viewer
+- **Cross-change**: Use full task IDs for cross-change deps: `<!-- depends: add-build/5.5 -->`
+
+### Regex Pattern
+
+The dependency parser uses this regex:
+```
+<!--\s*depends:\s*(.+?)\s*-->
+```
+
+Multiple task numbers are separated by commas and whitespace is ignored.
+
+## BoltDB Cache Strategy
+
+The registry uses BoltDB (`openspec/registry.db`) as a high-performance cache for task data. This provides O(1) lookups compared to O(n²) YAML parsing for large projects.
+
+### Database Structure
+
+Five buckets store different types of data:
+
+| Bucket | Purpose | Key | Value |
+|--------|---------|-----|-------|
+| `tasks` | Individual tasks | `change-id/task-num` | JSON RegistryTask |
+| `changes` | Change summaries | `change-id` | JSON ChangeSummary |
+| `deps` | Forward dependencies | `change-id/task-num` | JSON []TaskID |
+| `blocking` | Reverse index | `change-id/task-num` | JSON []TaskID |
+| `meta` | Metadata | `synced_at` | JSON timestamp |
+
+### Operations
+
+All operations are O(1) due to BoltDB's B+ tree structure:
+
+```go
+// Get task by ID
+task := bolt.GetTask("add-auth/1.1")
+
+// Update task status
+bolt.UpdateTask(&task)
+
+// List tasks with filters (O(n) scan)
+tasks := bolt.ListTasks(TaskFilter{Status: "pending", Unblocked: true})
+
+// Get next recommended tasks (O(n) scan + sort)
+next := bolt.NextTasks(5)
+```
+
+### Dependency Management
+
+Forward dependencies (`depends_on`) and reverse blocking index (`blocked_by`) are maintained:
+
+- **AddDependency**: Updates both `deps` and `blocking` buckets
+- **RemoveDependency**: Removes from both buckets
+- **GetBlockers**: Scans `deps`, filters uncompleted, returns blocking tasks
+
+### Change Summaries
+
+Change summaries are auto-updated when tasks change:
+
+```go
+type ChangeSummary struct {
+    ID         string
+    Title      string
+    Total      int
+    Completed  int
+    InProgress int
+    Blocked    int
+}
+```
+
+### Metadata
+
+The `meta` bucket stores timestamps and configuration:
+
+- `synced_at`: Last time tasks.md files were parsed
+- Custom metadata can be added via `SetMeta(key, value)`
+
+### Fallback Strategy
+
+If `openspec/registry.db` is missing or corrupted:
+
+1. Parse `tasks.md` files directly using `ParseTasksWithDependencies`
+2. Rebuild BoltDB from parsed data
+3. Generate state files
+4. Continue operations normally
+
+This ensures the system always works even if the cache is deleted.
+
+### Performance Characteristics
+
+| Operation | Complexity | Notes |
+|-----------|------------|-------|
+| GetTask | O(1) | Direct key lookup |
+| UpdateTask | O(1) | Write + O(1) change summary update |
+| AddDependency | O(1) | Two bucket writes |
+| GetBlockers | O(d) | d = number of dependencies |
+| ListTasks | O(n) | Full bucket scan |
+| NextTasks | O(n log n) | Scan + sort by priority |
+
+### Git Ignore
+
+The BoltDB file should be gitignored:
+
+```gitignore
+# OpenSpec registry cache
+openspec/registry.db
 ```
 
 ## Before Any Task

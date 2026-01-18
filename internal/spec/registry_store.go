@@ -36,6 +36,10 @@ func (r *RegistryStore) Close() error {
 	return nil
 }
 
+func (r *RegistryStore) StateStore() *StateStore {
+	return r.stateStore
+}
+
 func (r *RegistryStore) Load() (*Registry, error) {
 	// Load from BoltDB
 	tasks, err := r.bolt.ListTasks(TaskFilter{})

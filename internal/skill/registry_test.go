@@ -473,3 +473,317 @@ description: "Test"
 	all := r.All()
 	assert.Len(t, all, 3)
 }
+
+func TestRegistry_ValidateSkill(t *testing.T) {
+	t.Run("valid skill", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "valid-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: valid-skill
+description: "Valid skill. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+`), 0600))
+
+		r := NewRegistry()
+		err := r.Load(tmpDir)
+		require.NoError(t, err)
+
+		result, err := r.ValidateSkill("valid-skill")
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, result.Valid)
+		assert.Greater(t, result.Score, 0.0)
+	})
+
+	t.Run("invalid skill", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "invalid-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: invalid-skill
+description: "Invalid skill"
+---
+
+<role>
+`), 0600))
+
+		r := NewRegistry()
+		err := r.Load(tmpDir)
+		require.NoError(t, err)
+
+		result, err := r.ValidateSkill("invalid-skill")
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.False(t, result.Valid)
+	})
+
+	t.Run("skill not found", func(t *testing.T) {
+		r := NewRegistry()
+		_, err := r.ValidateSkill("nonexistent")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+}
+
+func TestRegistry_ValidateAll(t *testing.T) {
+	t.Run("multiple valid skills", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		for i := 1; i <= 2; i++ {
+			skillPath := filepath.Join(tmpDir, "skill"+string(rune('0'+i)), "SKILL.md")
+			require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+			require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: skill`+string(rune('0'+i))+`
+description: "Test skill. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+`), 0600))
+		}
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		result, err := r.ValidateAll()
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, result.Valid)
+		assert.Greater(t, result.Score, 0.0)
+	})
+
+	t.Run("mixed valid and invalid skills", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		validPath := filepath.Join(tmpDir, "valid-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(validPath), 0750))
+		require.NoError(t, os.WriteFile(validPath, []byte(`---
+name: valid-skill
+description: "Valid skill. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+`), 0600))
+
+		invalidPath := filepath.Join(tmpDir, "invalid-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(invalidPath), 0750))
+		require.NoError(t, os.WriteFile(invalidPath, []byte(`---
+name: invalid-skill
+description: "Invalid skill"
+---
+
+<role>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		result, err := r.ValidateAll()
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.False(t, result.Valid)
+		assert.Greater(t, len(result.Issues), 0)
+	})
+
+	t.Run("no skills loaded", func(t *testing.T) {
+		r := NewRegistry()
+
+		result, err := r.ValidateAll()
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, result.Valid)
+		assert.Empty(t, result.Issues)
+		assert.Equal(t, 0.0, result.Score)
+	})
+}
+
+func TestRegistry_GetQualityReport(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+	require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: skill1
+description: "Test skill 1. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+`), 0600))
+
+	skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+	require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: skill2
+description: "Test skill 2. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+
+<edge_cases>
+Test edge cases
+</edge_cases>
+`), 0600))
+
+	r := NewRegistry()
+	require.NoError(t, r.Load(tmpDir))
+
+	report := r.GetQualityReport()
+	assert.Len(t, report, 2)
+
+	score1, ok := report["skill1"]
+	assert.True(t, ok)
+	assert.Greater(t, score1, 0.0)
+
+	score2, ok := report["skill2"]
+	assert.True(t, ok)
+	assert.Greater(t, score2, 0.0)
+	assert.Greater(t, score2, score1)
+}
+
+func TestRegistry_Load_ComputesQualityScores(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+	require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill. Auto-activates for: testing."
+version: 1.0.0
+tags: [test]
+---
+
+<role>
+Test role
+Line 2 of role
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+
+<examples>
+<example>
+<input>Test input 1</input>
+<output>Test output 1</output>
+</example>
+<example>
+<input>Test input 2</input>
+<output>Test output 2</output>
+</example>
+</examples>
+`), 0600))
+
+	r := NewRegistry()
+	require.NoError(t, r.Load(tmpDir))
+
+	all := r.All()
+	assert.Len(t, all, 1)
+
+	meta, err := r.Get("test-skill")
+	require.NoError(t, err)
+	assert.Greater(t, meta.QualityScore, 0.0)
+}

@@ -36,6 +36,10 @@ type SkillMetadata struct {
 
 	// Tags are keywords for skill discovery.
 	Tags []string
+
+	// AllowedTools restricts which MCP tools this skill can access.
+	// Empty means no restrictions.
+	AllowedTools []string
 }
 
 // SkillContext provides context for skill execution decisions.

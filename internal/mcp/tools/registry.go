@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
@@ -154,6 +157,49 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		return nil, nil, fmt.Errorf("path is required")
 	}
 
+	// Check if registry.db exists before creating BoltDB
+	registryPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		// Fallback to parsing tasks.md
+		tasks, err := parseTasksFromSource(input.Path, input.ChangeID)
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error parsing tasks.md: %v", err)}},
+			}, nil, nil
+		}
+
+		filtered := filterTasks(tasks, spec.TaskFilter{
+			ChangeID:  input.ChangeID,
+			Status:    spec.RegistryTaskStatus(input.Status),
+			Priority:  spec.TaskPriority(input.Priority),
+			Assignee:  input.Assignee,
+			Unblocked: input.Unblocked,
+		})
+
+		if input.Limit > 0 && len(filtered) > input.Limit {
+			filtered = filtered[:input.Limit]
+		}
+
+		summary := buildSummary(filtered)
+
+		output := map[string]interface{}{
+			"total":    len(tasks),
+			"filtered": len(filtered),
+			"tasks":    filtered,
+			"note":     "Showing tasks from tasks.md files (registry.db not found)",
+		}
+
+		if summary != nil {
+			output["summary"] = summary
+		}
+
+		data, _ := json.MarshalIndent(output, "", "  ")
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: string(data)}},
+		}, nil, nil
+	}
+
+	// Use BoltDB registry
 	store := spec.NewStore(input.Path)
 	regStore, err := spec.NewRegistryStore(store)
 	if err != nil {
@@ -162,12 +208,6 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		}, nil, nil
 	}
 	defer func() { _ = regStore.Close() }()
-
-	if !regStore.Exists() {
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync to initialize from tasks.md files."}},
-		}, nil, nil
-	}
 
 	filter := spec.TaskFilter{
 		ChangeID:  input.ChangeID,
@@ -182,6 +222,10 @@ func registryListHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error listing tasks: %v", err)}},
 		}, nil, nil
+	}
+
+	if input.Limit > 0 && len(tasks) > input.Limit {
+		tasks = tasks[:input.Limit]
 	}
 
 	stats, _ := regStore.Stats()
@@ -211,6 +255,37 @@ func registryNextHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		return nil, nil, fmt.Errorf("path is required")
 	}
 
+	// Check if registry.db exists before creating BoltDB
+	registryPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		// Fallback to parsing tasks.md
+		tasks, err := parseTasksFromSource(input.Path, input.ChangeID)
+		if err != nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error parsing tasks.md: %v", err)}},
+			}, nil, nil
+		}
+
+		count := input.Count
+		if count <= 0 {
+			count = 1
+		}
+
+		next := findNextTasks(tasks, count)
+
+		data, _ := json.MarshalIndent(next, "", "  ")
+		text := string(data)
+		if len(text) > 0 {
+			text += "\n\n"
+		}
+		text += "Note: Showing tasks from tasks.md files (registry.db not found)"
+
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: text}},
+		}, nil, nil
+	}
+
+	// Use BoltDB registry
 	store := spec.NewStore(input.Path)
 	regStore, err := spec.NewRegistryStore(store)
 	if err != nil {
@@ -219,12 +294,6 @@ func registryNextHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		}, nil, nil
 	}
 	defer func() { _ = regStore.Close() }()
-
-	if !regStore.Exists() {
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
-		}, nil, nil
-	}
 
 	count := input.Count
 	if count <= 0 {
@@ -252,6 +321,14 @@ func registryUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 		return nil, nil, fmt.Errorf("task_id is required")
 	}
 
+	// Check if registry.db exists before creating BoltDB
+	registryPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
+		}, nil, nil
+	}
+
 	taskID, err := parseTaskID(input.TaskID)
 	if err != nil {
 		return &mcp.CallToolResult{
@@ -267,12 +344,6 @@ func registryUpdateHandler(ctx context.Context, req *mcp.CallToolRequest, input 
 		}, nil, nil
 	}
 	defer func() { _ = regStore.Close() }()
-
-	if !regStore.Exists() {
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
-		}, nil, nil
-	}
 
 	updates := spec.TaskUpdate{}
 	if input.Status != "" {
@@ -316,6 +387,14 @@ func registryDepsHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		return nil, nil, fmt.Errorf("task_id is required")
 	}
 
+	// Check if registry.db exists before creating BoltDB
+	registryPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
+		}, nil, nil
+	}
+
 	taskID, err := parseTaskID(input.TaskID)
 	if err != nil {
 		return &mcp.CallToolResult{
@@ -331,12 +410,6 @@ func registryDepsHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		}, nil, nil
 	}
 	defer func() { _ = regStore.Close() }()
-
-	if !regStore.Exists() {
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_sync first."}},
-		}, nil, nil
-	}
 
 	switch input.Operation {
 	case "show":
@@ -405,6 +478,14 @@ func registrySyncHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		return nil, nil, fmt.Errorf("path is required")
 	}
 
+	// Check if registry.db exists before creating BoltDB
+	registryPath := filepath.Join(input.Path, "openspec", "registry.db")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) && !input.Force {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{&mcp.TextContent{Text: "Registry not found. Run registry_init first to create the registry.db file."}},
+		}, nil, nil
+	}
+
 	store := spec.NewStore(input.Path)
 	regStore, err := spec.NewRegistryStore(store)
 	if err != nil {
@@ -421,12 +502,10 @@ func registrySyncHandler(ctx context.Context, req *mcp.CallToolRequest, input Re
 		}, nil, nil
 	}
 
-	// Also generate state.md files after sync
 	msg := "✅ Registry synced from tasks.md files\n\n"
 	data, _ := json.MarshalIndent(result, "", "  ")
 	msg += string(data)
 
-	// Note: state.md files are generated via state_sync tool
 	msg += "\n\n💡 Tip: Run state_sync to generate state.md files from the updated registry"
 
 	return &mcp.CallToolResult{
@@ -483,4 +562,178 @@ func splitTaskID(s string) []string {
 		}
 	}
 	return []string{s}
+}
+
+func parseTasksFromSource(path string, changeID string) ([]spec.RegistryTask, error) {
+	changesPath := filepath.Join(path, "openspec", "changes")
+	entries, err := os.ReadDir(changesPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []spec.RegistryTask{}, nil
+		}
+		return nil, fmt.Errorf("read changes dir: %w", err)
+	}
+
+	store := spec.NewStore(path)
+	var allTasks []spec.RegistryTask
+
+	for _, entry := range entries {
+		if !entry.IsDir() || entry.Name() == "archive" {
+			continue
+		}
+
+		id := entry.Name()
+		if changeID != "" && id != changeID {
+			continue
+		}
+
+		tasksPath := filepath.Join(changesPath, id, "tasks.md")
+		if _, err := os.Stat(tasksPath); os.IsNotExist(err) {
+			continue
+		}
+
+		stateStore := spec.NewStateStore(store, nil)
+
+		tasks, err := stateStore.ParseTasksWithDependencies(id, tasksPath)
+		if err != nil {
+			continue
+		}
+
+		allTasks = append(allTasks, tasks...)
+	}
+
+	return allTasks, nil
+}
+
+func filterTasks(tasks []spec.RegistryTask, filter spec.TaskFilter) []spec.RegistryTask {
+	filtered := make([]spec.RegistryTask, 0)
+
+	for _, task := range tasks {
+		if filter.ChangeID != "" && task.ID.ChangeID != filter.ChangeID {
+			continue
+		}
+		if filter.Status != "" && task.Status != filter.Status {
+			continue
+		}
+		if filter.Priority != "" && task.Priority != filter.Priority {
+			continue
+		}
+		if filter.Assignee != "" && task.Assignee != filter.Assignee {
+			continue
+		}
+		if filter.Unblocked {
+			hasUnmet := false
+			for _, dep := range task.DependsOn {
+				depMet := false
+				for _, t := range tasks {
+					if t.ID == dep && t.Status == spec.RegStatusCompleted {
+						depMet = true
+						break
+					}
+				}
+				if !depMet {
+					hasUnmet = true
+					break
+				}
+			}
+			if hasUnmet {
+				continue
+			}
+		}
+		filtered = append(filtered, task)
+	}
+
+	return filtered
+}
+
+func buildSummary(tasks []spec.RegistryTask) map[string]interface{} {
+	byStatus := make(map[string]int)
+	byPriority := make(map[string]int)
+	byChange := make(map[string]int)
+
+	for _, task := range tasks {
+		byStatus[string(task.Status)]++
+		byPriority[string(task.Priority)]++
+		byChange[task.ID.ChangeID]++
+	}
+
+	return map[string]interface{}{
+		"by_status":   byStatus,
+		"by_priority": byPriority,
+		"by_change":   byChange,
+	}
+}
+
+func findNextTasks(tasks []spec.RegistryTask, count int) *spec.NextTaskResult {
+	unblocked := filterTasks(tasks, spec.TaskFilter{
+		Status:    spec.RegStatusPending,
+		Unblocked: true,
+	})
+
+	sort.Slice(unblocked, func(i, j int) bool {
+		if unblocked[i].Priority != unblocked[j].Priority {
+			return priorityValue(unblocked[i].Priority) < priorityValue(unblocked[j].Priority)
+		}
+		return unblocked[i].ID.String() < unblocked[j].ID.String()
+	})
+
+	blockedCount := 0
+	for _, task := range tasks {
+		hasUnmet := false
+		for _, dep := range task.DependsOn {
+			depMet := false
+			for _, t := range tasks {
+				if t.ID == dep && t.Status == spec.RegStatusCompleted {
+					depMet = true
+					break
+				}
+			}
+			if !depMet {
+				hasUnmet = true
+				break
+			}
+		}
+		if hasUnmet {
+			blockedCount++
+		}
+	}
+
+	result := &spec.NextTaskResult{
+		BlockedCount: blockedCount,
+	}
+
+	if len(unblocked) > 0 {
+		result.Recommended = &unblocked[0]
+		result.Reason = fmt.Sprintf("Highest priority (%s) unblocked task", unblocked[0].Priority)
+		if len(unblocked[0].DependsOn) > 0 {
+			result.Reason += fmt.Sprintf(". Dependencies completed: %d", len(unblocked[0].DependsOn))
+		}
+
+		if len(unblocked) > 1 {
+			limit := count
+			if len(unblocked)-1 < count {
+				limit = len(unblocked) - 1
+			}
+			result.Alternatives = unblocked[1 : limit+1]
+		}
+	}
+
+	return result
+}
+
+func priorityValue(p spec.TaskPriority) int {
+	switch p {
+	case spec.PriorityCritical:
+		return 1
+	case spec.PriorityHigh:
+		return 2
+	case spec.PriorityMedium:
+		return 3
+	case spec.PriorityLow:
+		return 4
+	case spec.PriorityBacklog:
+		return 5
+	default:
+		return 6
+	}
 }
