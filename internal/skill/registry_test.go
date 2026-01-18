@@ -787,3 +787,934 @@ Test instructions
 	require.NoError(t, err)
 	assert.Greater(t, meta.QualityScore, 0.0)
 }
+
+func TestRegistry_FindMatchingSkills_WithContext_Boosting(t *testing.T) {
+	t.Run("file type boosting", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "go-code", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: go-code
+description: "Go code patterns"
+triggers:
+  - pattern: "go"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "py-code", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: py-code
+description: "Python code patterns"
+triggers:
+  - pattern: "python"
+    filePattern: "*.py"
+    weight: 0.7
+---
+
+<role>
+Python code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "code",
+			FileTypes: []string{".go"},
+		}
+
+		matched := r.FindMatchingSkills("code", ctx)
+		assert.Len(t, matched, 2)
+		assert.Equal(t, "go-code", matched[0], "go-code should be ranked higher due to file type boost")
+	})
+
+	t.Run("task type boosting", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		testSkillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(testSkillPath), 0750))
+		require.NoError(t, os.WriteFile(testSkillPath, []byte(`---
+name: go-test
+description: "Testing patterns with testify"
+triggers:
+  - pattern: "test"
+    weight: 0.7
+---
+
+<role>
+Go test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		debugSkillPath := filepath.Join(tmpDir, "go-debug", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(debugSkillPath), 0750))
+		require.NoError(t, os.WriteFile(debugSkillPath, []byte(`---
+name: go-debug
+description: "Debugging methodology"
+triggers:
+  - pattern: "debug"
+    weight: 0.7
+---
+
+<role>
+Go debug skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:    "write tests",
+			TaskType: "test",
+		}
+
+		matched := r.FindMatchingSkills("go", ctx)
+		assert.Len(t, matched, 2)
+		assert.Equal(t, "go-test", matched[0], "go-test should be ranked higher due to task type boost")
+	})
+
+	t.Run("task type from query extraction", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		testSkillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(testSkillPath), 0750))
+		require.NoError(t, os.WriteFile(testSkillPath, []byte(`---
+name: go-test
+description: "Testing patterns"
+---
+
+# Go Test
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query: "implement tests for new feature",
+		}
+
+		matched := r.FindMatchingSkills("go", ctx)
+		assert.Contains(t, matched, "go-test", "go-test should match based on 'tests' keyword in query")
+	})
+
+	t.Run("affinity boosting", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: skill1
+description: "First skill"
+---
+
+<role>
+Skill 1
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: skill2
+description: "Second skill"
+---
+
+<role>
+Skill 2
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "skill",
+			ActiveSkills: []string{"skill2"},
+		}
+
+		matched := r.FindMatchingSkills("skill", ctx)
+		assert.Len(t, matched, 2)
+		assert.Equal(t, "skill2", matched[0], "skill2 should be ranked higher due to affinity boost")
+	})
+
+	t.Run("combined boosts", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "go-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: go-test
+description: "Testing patterns"
+triggers:
+  - pattern: "test"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "py-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: py-test
+description: "Testing patterns"
+triggers:
+  - pattern: "test"
+    filePattern: "*.py"
+    weight: 0.7
+---
+
+<role>
+Python test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "test",
+			TaskType:     "test",
+			FileTypes:    []string{".go"},
+			ActiveSkills: []string{"go-test"},
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Len(t, matched, 2)
+		assert.Equal(t, "go-test", matched[0], "go-test should be ranked highest with multiple boosts")
+	})
+
+	t.Run("no context - backward compatible", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+---
+
+# Test Skill
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		matched := r.FindMatchingSkills("test")
+		assert.Contains(t, matched, "test-skill")
+	})
+}
+
+func TestRegistry_matchesFilePattern(t *testing.T) {
+	r := NewRegistry()
+
+	tests := []struct {
+		name     string
+		pattern  string
+		fileType string
+		expected bool
+	}{
+		{"exact match", ".go", ".go", true},
+		{"wildcard match", "*.go", ".go", true},
+		{"wildcard match with extension", "*.go", "main.go", true},
+		{"wildcard mismatch", "*.go", ".py", false},
+		{"exact mismatch", ".go", ".py", false},
+		{"wildcard with file containing extension", "*.go", "file.go", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := r.matchesFilePattern(tt.pattern, tt.fileType)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestRegistry_extractTaskType(t *testing.T) {
+	r := NewRegistry()
+
+	tests := []struct {
+		name     string
+		query    string
+		expected string
+	}{
+		{"implement keyword", "implement new feature", "implement"},
+		{"review keyword", "review the code", "review"},
+		{"debug keyword", "debug the issue", "debug"},
+		{"test keyword", "write tests", "test"},
+		{"refactor keyword", "refactor old code", "refactor"},
+		{"no keyword", "create something", ""},
+		{"multiple keywords", "implement and test feature", "implement"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := r.extractTaskType(tt.query)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestRegistry_applyContextBoosts(t *testing.T) {
+	t.Run("runtime skill gets affinity boost", func(t *testing.T) {
+		r := NewRegistry()
+		skill := &mockSkill{
+			name:        "test-skill",
+			description: "Test",
+			canHandle:   func(ctx domain.SkillContext) bool { return true },
+		}
+		require.NoError(t, r.Register(skill))
+
+		ctx := &MatchContext{
+			Query:        "test",
+			ActiveSkills: []string{"test-skill"},
+		}
+
+		boost := r.applyContextBoosts("test-skill", ctx)
+		assert.Equal(t, 0.1, boost)
+	})
+
+	t.Run("no boosts when context is empty", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "other-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: other-skill
+description: "Generic skill"
+---
+
+# Other Skill
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query: "generic",
+		}
+
+		boost := r.applyContextBoosts("other-skill", ctx)
+		assert.Equal(t, 0.0, boost)
+	})
+
+	t.Run("file type boost exact amount", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "go-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: go-skill
+description: "Go patterns"
+triggers:
+  - pattern: "go"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "go",
+			FileTypes: []string{".go"},
+		}
+
+		boost := r.applyContextBoosts("go-skill", ctx)
+		assert.Equal(t, 0.2, boost)
+	})
+
+	t.Run("task type boost exact amount", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Testing patterns"
+triggers:
+  - pattern: "test"
+    weight: 0.7
+---
+
+# Test Skill
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:    "code",
+			TaskType: "test",
+		}
+
+		boost := r.applyContextBoosts("test-skill", ctx)
+		assert.Equal(t, 0.15, boost)
+	})
+
+	t.Run("combined boosts sum correctly", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: go-test
+description: "Go testing patterns"
+triggers:
+  - pattern: "test"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "test",
+			TaskType:     "test",
+			FileTypes:    []string{".go"},
+			ActiveSkills: []string{"go-test"},
+		}
+
+		boost := r.applyContextBoosts("go-test", ctx)
+		assert.InDelta(t, 0.45, boost, 0.001)
+	})
+}
+
+func TestRegistry_FindMatchingSkills_WildcardPatterns(t *testing.T) {
+	t.Run("wildcard matches multiple file types", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "code-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: code-skill
+description: "Code patterns"
+triggers:
+  - pattern: "code"
+    filePattern: "**/*.go"
+    weight: 0.7
+  - pattern: "code"
+    filePattern: "**/*.md"
+    weight: 0.7
+---
+
+<role>
+Code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "code",
+			FileTypes: []string{".go", ".md"},
+		}
+
+		matched := r.FindMatchingSkills("code", ctx)
+		assert.Len(t, matched, 1)
+		assert.Equal(t, "code-skill", matched[0])
+	})
+
+	t.Run("wildcard pattern with directory", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "docs-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: docs-skill
+description: "Documentation patterns"
+triggers:
+  - pattern: "doc"
+    filePattern: "**/*.md"
+    weight: 0.7
+---
+
+<role>
+Docs skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "doc",
+			FileTypes: []string{"docs/guide.md"},
+		}
+
+		matched := r.FindMatchingSkills("doc", ctx)
+		assert.Contains(t, matched, "docs-skill")
+	})
+}
+
+func TestRegistry_FindMatchingSkills_BoostedScoreOrdering(t *testing.T) {
+	t.Run("results sorted by boosted score", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "go-code", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: go-code
+description: "Go code patterns"
+triggers:
+  - pattern: "code"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "py-code", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: py-code
+description: "Python code patterns"
+triggers:
+  - pattern: "code"
+    filePattern: "*.py"
+    weight: 0.7
+---
+
+<role>
+Python code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill3Path := filepath.Join(tmpDir, "generic-code", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill3Path), 0750))
+		require.NoError(t, os.WriteFile(skill3Path, []byte(`---
+name: generic-code
+description: "Generic code patterns"
+triggers:
+  - pattern: "code"
+    weight: 0.7
+---
+
+<role>
+Generic code skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "code",
+			FileTypes: []string{".go"},
+		}
+
+		matched := r.FindMatchingSkills("code", ctx)
+		assert.Len(t, matched, 3)
+		assert.Equal(t, "go-code", matched[0], "go-code should be first with file boost")
+		assert.NotEqual(t, "go-code", matched[1])
+		assert.NotEqual(t, "go-code", matched[2])
+	})
+
+	t.Run("multiple boosts rank correctly", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "go-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: go-test
+description: "Go testing"
+triggers:
+  - pattern: "test"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Go test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "generic-test", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: generic-test
+description: "Generic testing"
+triggers:
+  - pattern: "test"
+    weight: 0.7
+---
+
+<role>
+Generic test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "test",
+			TaskType:     "test",
+			FileTypes:    []string{".go"},
+			ActiveSkills: []string{"go-test"},
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Len(t, matched, 2)
+		assert.Equal(t, "go-test", matched[0], "go-test should be first with all boosts")
+		assert.Equal(t, "generic-test", matched[1])
+	})
+}
+
+func TestRegistry_FindMatchingSkills_BackwardCompatibility(t *testing.T) {
+	t.Run("query only - no context", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		matched := r.FindMatchingSkills("test")
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("nil context", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		matched := r.FindMatchingSkills("test", nil)
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("empty MatchContext", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{}
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("query-only and nil context produce same results", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
+name: skill1
+description: "Skill 1"
+---
+
+<role>
+Skill 1
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
+name: skill2
+description: "Skill 2"
+---
+
+<role>
+Skill 2
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		matchedQueryOnly := r.FindMatchingSkills("skill")
+		matchedWithNilContext := r.FindMatchingSkills("skill", nil)
+
+		assert.ElementsMatch(t, matchedQueryOnly, matchedWithNilContext)
+	})
+
+	t.Run("no errors with empty context fields", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+triggers:
+  - pattern: "test"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "",
+			FileTypes:    []string{},
+			TaskType:     "",
+			ActiveSkills: []string{},
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("empty file types list handled gracefully", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+triggers:
+  - pattern: "test"
+    filePattern: "*.go"
+    weight: 0.7
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:     "test",
+			FileTypes: []string{},
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("empty task type handled gracefully", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+triggers:
+  - pattern: "test"
+    weight: 0.7
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:    "test",
+			TaskType: "",
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Contains(t, matched, "test-skill")
+	})
+
+	t.Run("empty active skills handled gracefully", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.WriteFile(skillPath, []byte(`---
+name: test-skill
+description: "Test skill"
+---
+
+<role>
+Test skill
+</role>
+
+<instructions>
+Test instructions
+</instructions>
+`), 0600))
+
+		r := NewRegistry()
+		require.NoError(t, r.Load(tmpDir))
+
+		ctx := &MatchContext{
+			Query:        "test",
+			ActiveSkills: []string{},
+		}
+
+		matched := r.FindMatchingSkills("test", ctx)
+		assert.Contains(t, matched, "test-skill")
+	})
+}

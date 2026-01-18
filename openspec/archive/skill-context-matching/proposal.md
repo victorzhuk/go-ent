@@ -3,6 +3,8 @@
 ## Summary
 Enhance matching algorithm to consider full context: query + file types + task type + active skills.
 
+## Status: complete
+
 ## Problem
 Current matching only considers query string, ignoring:
 - Files being worked on (e.g., *.go files open)

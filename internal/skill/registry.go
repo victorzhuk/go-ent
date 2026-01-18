@@ -4,10 +4,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/victorzhuk/go-ent/internal/domain"
 )
+
+// MatchContext provides additional context for skill matching.
+type MatchContext struct {
+	Query        string   // The search query
+	FileTypes    []string // File extensions (e.g., ".go", ".md")
+	TaskType     string   // Task type (e.g., "implement", "review", "debug")
+	ActiveSkills []string // Currently loaded skill names
+}
 
 // Registry manages skill metadata and matching.
 type Registry struct {
@@ -146,6 +155,207 @@ func (r *Registry) MatchForContext(ctx domain.SkillContext) []string {
 	}
 
 	return matched
+}
+
+// FindMatchingSkills returns skill names that match the given query, optionally with context.
+// When context is provided, it applies context boosting to rank skills by relevance.
+// When context is empty, falls back to query-only matching (backward compatible).
+func (r *Registry) FindMatchingSkills(query string, context ...*MatchContext) []string {
+	if len(context) == 0 || context[0] == nil {
+		return r.matchByQuery(query)
+	}
+
+	ctx := context[0]
+	scores := r.scoreSkills(query, ctx)
+
+	// Sort by score descending
+	type namedScore struct {
+		name  string
+		score float64
+	}
+	var ranked []namedScore
+	for name, score := range scores {
+		if score > 0 {
+			ranked = append(ranked, namedScore{name, score})
+		}
+	}
+
+	sort.Slice(ranked, func(i, j int) bool {
+		return ranked[i].score > ranked[j].score
+	})
+
+	result := make([]string, len(ranked))
+	for i, r := range ranked {
+		result[i] = r.name
+	}
+
+	return result
+}
+
+// matchByQuery performs query-based skill matching.
+func (r *Registry) matchByQuery(query string) []string {
+	var matched []string
+	queryLower := strings.ToLower(query)
+
+	// Check runtime skills
+	for name, skill := range r.runtimeSkills {
+		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
+			matched = append(matched, name)
+		}
+	}
+
+	// Check metadata skills
+	for _, skill := range r.skills {
+		if strings.Contains(strings.ToLower(skill.Name), queryLower) {
+			matched = append(matched, skill.Name)
+		}
+	}
+
+	return matched
+}
+
+// scoreSkills calculates relevance scores for all skills based on query and context.
+func (r *Registry) scoreSkills(query string, ctx *MatchContext) map[string]float64 {
+	scores := make(map[string]float64)
+	queryLower := strings.ToLower(query)
+
+	// Score runtime skills
+	for name, skill := range r.runtimeSkills {
+		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
+			scores[name] = 1.0
+		}
+	}
+
+	// Score metadata skills
+	for _, skill := range r.skills {
+		if strings.Contains(strings.ToLower(skill.Name), queryLower) {
+			scores[skill.Name] = 1.0
+		}
+	}
+
+	// Apply context boosts to scored skills
+	for name := range scores {
+		scores[name] += r.applyContextBoosts(name, ctx)
+	}
+
+	return scores
+}
+
+// applyContextBoosts calculates total boost for a skill based on context.
+func (r *Registry) applyContextBoosts(skillName string, ctx *MatchContext) float64 {
+	var boost float64
+
+	boost += r.fileTypeBoost(skillName, ctx)
+	boost += r.taskTypeBoost(skillName, ctx)
+	boost += r.affinityBoost(skillName, ctx)
+
+	return boost
+}
+
+// fileTypeBoost adds +0.2 if skill has file_pattern triggers matching context FileTypes.
+func (r *Registry) fileTypeBoost(skillName string, ctx *MatchContext) float64 {
+	if len(ctx.FileTypes) == 0 {
+		return 0
+	}
+
+	skill, err := r.Get(skillName)
+	if err != nil {
+		return 0
+	}
+
+	for _, trigger := range skill.ExplicitTriggers {
+		if trigger.FilePattern == "" {
+			continue
+		}
+
+		for _, fileType := range ctx.FileTypes {
+			if r.matchesFilePattern(trigger.FilePattern, fileType) {
+				return 0.2
+			}
+		}
+	}
+
+	return 0
+}
+
+// matchesFilePattern checks if a file pattern matches a file type.
+func (r *Registry) matchesFilePattern(pattern, fileType string) bool {
+	pattern = strings.ToLower(pattern)
+	fileType = strings.ToLower(fileType)
+
+	if pattern == fileType {
+		return true
+	}
+
+	if strings.HasPrefix(pattern, "*") {
+		ext := strings.TrimPrefix(pattern, "*")
+		return fileType == ext || strings.HasSuffix(fileType, ext)
+	}
+
+	return false
+}
+
+// taskTypeBoost adds +0.15 if skill triggers match task type from query or context.
+func (r *Registry) taskTypeBoost(skillName string, ctx *MatchContext) float64 {
+	taskType := ctx.TaskType
+	if taskType == "" {
+		taskType = r.extractTaskType(ctx.Query)
+	}
+
+	if taskType == "" {
+		return 0
+	}
+
+	skill, err := r.Get(skillName)
+	if err != nil {
+		return 0
+	}
+
+	taskTypeLower := strings.ToLower(taskType)
+
+	for _, trigger := range skill.Triggers {
+		if strings.Contains(trigger, taskTypeLower) {
+			return 0.15
+		}
+	}
+
+	if strings.Contains(strings.ToLower(skill.Description), taskTypeLower) {
+		return 0.15
+	}
+
+	for _, trigger := range skill.ExplicitTriggers {
+		for _, kw := range trigger.Keywords {
+			if strings.Contains(strings.ToLower(kw), taskTypeLower) {
+				return 0.15
+			}
+		}
+	}
+
+	return 0
+}
+
+// extractTaskType extracts task type from query keywords.
+func (r *Registry) extractTaskType(query string) string {
+	queryLower := strings.ToLower(query)
+
+	keywords := []string{"implement", "review", "debug", "test", "refactor"}
+	for _, kw := range keywords {
+		if strings.Contains(queryLower, kw) {
+			return kw
+		}
+	}
+
+	return ""
+}
+
+// affinityBoost adds +0.1 if skill is already active (avoid context switching).
+func (r *Registry) affinityBoost(skillName string, ctx *MatchContext) float64 {
+	for _, activeSkill := range ctx.ActiveSkills {
+		if skillName == activeSkill {
+			return 0.1
+		}
+	}
+	return 0
 }
 
 // Get retrieves a skill by name.
