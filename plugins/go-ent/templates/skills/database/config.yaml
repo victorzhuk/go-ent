@@ -1,0 +1,26 @@
+name: database
+category: database
+description: Database patterns for SQL, migrations, repository design, and transactions
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., database-optimization, sql-migrations)
+    default: my-database-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Database and SQL implementation patterns
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., database,sql,postgresql)
+    default: database,sql,postgresql
+    required: true

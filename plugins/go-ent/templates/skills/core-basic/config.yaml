@@ -1,0 +1,26 @@
+name: core-basic
+category: core
+description: Core development patterns covering security, code review, debugging, and architecture
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., core-review)
+    default: my-core-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Core development patterns
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., security,debug,architecture)
+    default: core,security,debug,review,architecture
+    required: true

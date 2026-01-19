@@ -41,18 +41,21 @@ func NewCodeMode(sandbox *Sandbox) *CodeMode {
 
 // Execute runs JavaScript code in the isolated sandbox.
 func (c *CodeMode) Execute(ctx context.Context, script string, input map[string]interface{}) (interface{}, error) {
-	// Set input data in VM context
 	for k, v := range input {
 		if err := c.vm.Set(k, v); err != nil {
 			return nil, fmt.Errorf("set input %s: %w", k, err)
 		}
 	}
 
-	// Execute with timeout
 	done := make(chan interface{}, 1)
 	errCh := make(chan error, 1)
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errCh <- fmt.Errorf("panic recovered: %v", r)
+			}
+		}()
 		result, err := c.vm.RunString(script)
 		if err != nil {
 			errCh <- err
@@ -77,17 +80,20 @@ func (c *CodeMode) Execute(ctx context.Context, script string, input map[string]
 
 // ExecuteFunction executes a JavaScript function with arguments.
 func (c *CodeMode) ExecuteFunction(ctx context.Context, funcName string, args ...interface{}) (interface{}, error) {
-	// Get function from VM
 	fn, ok := goja.AssertFunction(c.vm.Get(funcName))
 	if !ok {
 		return nil, fmt.Errorf("function not found: %s", funcName)
 	}
 
-	// Execute with timeout
 	done := make(chan interface{}, 1)
 	errCh := make(chan error, 1)
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errCh <- fmt.Errorf("panic recovered: %v", r)
+			}
+		}()
 		gojaArgs := make([]goja.Value, len(args))
 		for i, arg := range args {
 			gojaArgs[i] = c.vm.ToValue(arg)

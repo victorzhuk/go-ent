@@ -28,28 +28,28 @@
 ## 1. Unit Tests for Sandbox and Code-Mode
 
 ### 1.1 Sandbox Resource Limits
-- [ ] 1.1.1 Test memory limit enforcement
-- [ ] 1.1.2 Test CPU limit enforcement
-- [ ] 1.1.3 Test timeout enforcement
-- [ ] 1.1.4 Test concurrent sandbox isolation
+- [x] 1.1.1 Test memory limit enforcement
+- [x] 1.1.2 Test CPU limit enforcement
+- [x] 1.1.3 Test timeout enforcement
+- [x] 1.1.4 Test concurrent sandbox isolation
 
 ### 1.2 Sandbox Error Handling
-- [ ] 1.2.1 Test panic recovery in sandbox
-- [ ] 1.2.2 Test resource exhaustion errors
-- [ ] 1.2.3 Test timeout errors
-- [ ] 1.2.4 Test sandbox cleanup on error
+- [x] 1.2.1 Test panic recovery in sandbox
+- [x] 1.2.2 Test resource exhaustion errors
+- [x] 1.2.3 Test timeout errors
+- [x] 1.2.4 Test sandbox cleanup on error
 
 ### 1.3 Code-Mode VM Integration
-- [ ] 1.3.1 Test JavaScript VM initialization (goja)
-- [ ] 1.3.2 Test code execution in VM
-- [ ] 1.3.3 Test VM memory limits
-- [ ] 1.3.4 Test VM cleanup
+- [x] 1.3.1 Test JavaScript VM initialization (goja)
+- [x] 1.3.2 Test code execution in VM
+- [x] 1.3.3 Test VM memory limits
+- [x] 1.3.4 Test VM cleanup
 
 ### 1.4 Safe API Surface (4 tasks)
-- [ ] 1.4.1 Test allowed function exposure
-- [ ] 1.4.2 Test blocked function access
-- [ ] 1.4.3 Test function argument validation
-- [ ] 1.4.4 Test return value handling
+- [x] 1.4.1 Test allowed function exposure
+- [x] 1.4.2 Test blocked function access
+- [x] 1.4.3 Test function argument validation
+- [x] 1.4.4 Test return value handling
 
 ---
 
@@ -282,10 +282,10 @@ Phase 4 (Integration & Testing)
 ## ✅ Success Criteria by Phase
 
 ### Phase 1 Success
-- [ ] All sandbox unit tests pass
-- [ ] All code-mode unit tests pass  
-- [ ] Resource limit enforcement verified
-- [ ] Error handling tested
+- [x] All sandbox unit tests pass
+- [x] All code-mode unit tests pass
+- [x] Resource limit enforcement verified
+- [x] Error handling tested
 
 ### Phase 2 Success
 - [ ] Context summarization working

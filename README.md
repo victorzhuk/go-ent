@@ -25,8 +25,9 @@
 - [Architecture v2.0](#architecture-v20)
 - [MCP Tools](#mcp-tools)
 - [CLI Commands](#cli-commands)
-- [Slash Commands](#available-commands)
-- [Agents](#available-agents)
+- [Skill Template System](#skill-template-system)
+- [Available Commands](#available-commands)
+- [Available Agents](#available-agents)
 - [Skills](#skills-auto-activated)
 - [Building from Source](#building-from-source)
 - [Project Structure](#project-structure)
@@ -263,6 +264,25 @@ go-ent skill list --detailed
 # Get skill information
 go-ent skill info <name>
 go-ent skill info go-arch
+
+# Create new skill from template
+go-ent skill new <name>              # Interactive mode
+go-ent skill new go-payment \
+  --template go-basic \
+  --description "Payment processing"
+
+# List available templates
+go-ent skill list-templates
+go-ent skill list-templates --category go
+go-ent skill list-templates --built-in
+
+# Show template details
+go-ent skill show-template <name>
+go-ent skill show-template go-complete
+
+# Add custom template
+go-ent skill add-template <path>
+go-ent skill add-template ./my-template
 ```
 
 ### Spec Management
@@ -348,6 +368,157 @@ go-ent version
 | `reviewer` (opus/blue) | Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions |
 | `debug` (sonnet/red) | Debugger. Troubleshoots issues, analyzes errors |
 | `tester` (haiku/cyan) | Test engineer. Writes tests, TDD cycles |
+
+## Skill Template System
+
+go-ent provides a template-based system for creating new skills quickly and consistently. Templates include pre-built patterns, validation, and quality standards for various programming languages and domains.
+
+### Template Types
+
+**Built-in Templates**: Shipped with go-ent in `plugins/go-ent/templates/skills/`
+- go-basic, go-complete: Go development patterns
+- typescript-basic: TypeScript-specific guidance
+- testing: TDD and testing best practices
+- database: SQL, migrations, and data access
+- api-design: REST, GraphQL, and API patterns
+- core-basic, arch: Architecture and system design
+- debugging-basic: Troubleshooting and debugging
+- security: Authentication, authorization, and security
+- review: Code review practices
+
+**Custom Templates**: User-defined templates in `~/.go-ent/templates/skills/`
+- Add your own templates for team-specific patterns
+- Share templates across projects
+- Extend built-in functionality
+
+### Creating Skills from Templates
+
+**Interactive mode** (recommended):
+```bash
+go-ent skill new my-skill
+```
+
+This prompts for:
+1. Template selection from available options
+2. Skill description and metadata
+3. Category (auto-detected from name prefix)
+
+**Non-interactive mode**:
+```bash
+go-ent skill new go-payment \
+  --template go-basic \
+  --description "Payment processing patterns" \
+  --category go \
+  --author "your-name" \
+  --tags "payment,api"
+```
+
+### Managing Templates
+
+**List all available templates**:
+```bash
+go-ent skill list-templates
+```
+
+Filter by category:
+```bash
+go-ent skill list-templates --category go
+```
+
+Show only built-in or custom:
+```bash
+go-ent skill list-templates --built-in
+go-ent skill list-templates --custom
+```
+
+**Show template details**:
+```bash
+go-ent skill show-template go-complete
+```
+
+Displays:
+- Template metadata (name, category, version, author)
+- Configuration prompts and defaults
+- Preview of template content (first 20 lines)
+
+**Add custom template**:
+```bash
+go-ent skill add-template ./my-custom-template
+```
+
+Template directory must contain:
+- `template.md`: Skill template with v2 format
+- `config.yaml`: Template metadata and prompt configuration
+
+By default, templates are added to `~/.go-ent/templates/skills/`. Use `--built-in` flag to add to built-in directory (requires write permissions).
+
+### Template Structure
+
+Each template consists of two files:
+
+**config.yaml** - Template metadata:
+```yaml
+name: go-complete
+category: go
+description: "Comprehensive Go development template"
+version: "1.0.0"
+author: "go-ent"
+prompts:
+  - key: NAME
+    prompt: "Skill name"
+    required: true
+  - key: DESCRIPTION
+    prompt: "Skill description"
+    required: true
+    default: "Custom Go skill"
+```
+
+**template.md** - V2 format skill with placeholders:
+```markdown
+---
+name: ${NAME}
+description: "${DESCRIPTION}"
+version: "2.0.0"
+author: "${AUTHOR}"
+tags: ["go"]
+---
+
+# ${NAME}
+
+<role>
+Expert Go developer focused on clean architecture and patterns.
+</role>
+
+<instructions>
+## Pattern 1
+
+Code example...
+
+**Why this pattern**:
+- Reason 1
+- Reason 2
+</instructions>
+...
+```
+
+### Auto-Detection
+
+Category is automatically detected from skill name prefix:
+- `go-payment` → `go` category
+- `typescript-ui` → `typescript` category
+- `db-migration` → `database` category
+
+Output path: `plugins/go-ent/skills/<category>/<skill-name>/SKILL.md`
+
+### Validation
+
+Generated skills are automatically validated against:
+- Frontmatter completeness
+- XML tag structure
+- Required sections (role, instructions, examples, edge_cases)
+- Quality scoring (0-100 scale)
+
+For detailed skill authoring guidance, see [SKILL-AUTHORING.md](docs/SKILL-AUTHORING.md).
 
 ## Skills (Auto-activated)
 

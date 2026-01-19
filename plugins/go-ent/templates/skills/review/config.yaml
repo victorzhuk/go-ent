@@ -1,0 +1,50 @@
+name: review
+category: core
+description: Code review patterns for identifying issues, ensuring best practices, and maintaining code quality with constructive feedback
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., go-review, code-review, pr-review)
+    default: code-review
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Comprehensive code review patterns for identifying issues and ensuring best practices
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., review,quality,testing,security)
+    default: review,quality,security,performance
+    required: true
+  - key: EXAMPLE_FUNCTION_REVIEW
+    prompt: Example input for function review
+    default: Review this function for potential issues
+    required: false
+  - key: EXAMPLE_HANDLER_REVIEW
+    prompt: Example input for HTTP handler review
+    default: Review this HTTP handler for code quality issues
+    required: false
+  - key: EDGE_CASE_LEGACY_CODE
+    prompt: Example of legacy code pattern in edge cases
+    default: Review this legacy code
+    required: false
+  - key: EDGE_CASE_SECURITY_PERFORMANCE
+    prompt: Example of security vs performance trade-off in edge cases
+    default: Optimize this for performance
+    required: false
+  - key: EDGE_CASE_LARGE_REFACTOR
+    prompt: Example of large refactoring in edge cases
+    default: Review changes part of larger refactoring
+    required: false
+  - key: EDGE_CASE_COMPLEX_DOMAIN
+    prompt: Example of complex domain logic in edge cases
+    default: Review complex business logic
+    required: false

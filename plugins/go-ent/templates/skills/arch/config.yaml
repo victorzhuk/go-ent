@@ -1,0 +1,26 @@
+name: arch
+category: core
+description: Architecture patterns covering layered architecture, clean architecture, DDD, microservices, and design patterns
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., go-arch, system-arch)
+    default: my-arch-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Architecture patterns and design guidance
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., architecture,ddd,microservices,design)
+    default: architecture,design,patterns,layered,clean-architecture,ddd,microservices
+    required: true

@@ -1,0 +1,26 @@
+name: go-basic
+category: go
+description: Basic Go development patterns for clean, idiomatic code
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., go-payment)
+    default: my-go-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Go implementation patterns
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., go,backend,web)
+    default: go,backend
+    required: true

@@ -1,0 +1,74 @@
+name: go-complete
+category: go
+description: Complete Go development patterns with comprehensive coverage of all best practices, architecture, edge cases, and delegation strategies
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., go-payment, go-auth, go-api)
+    default: my-go-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Comprehensive Go implementation patterns with best practices
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., go,backend,web,testing)
+    default: go,backend,web
+    required: true
+  - key: EXAMPLE_BOOTSTRAP_REFACTOR
+    prompt: Example input for bootstrap pattern refactoring
+    default: Refactor main() to use bootstrap pattern with graceful shutdown
+    required: false
+  - key: EXAMPLE_ERROR_FIX
+    prompt: Example input for error handling fix
+    default: Fix error handling in this function - it's not wrapping errors properly
+    required: false
+  - key: EXAMPLE_REPOSITORY_IMPL
+    prompt: Example input for repository implementation
+    default: Implement repository pattern with proper error handling and domain mapping
+    required: false
+  - key: EXAMPLE_USECASE_CREATION
+    prompt: Example input for use case creation
+    default: Create a use case layer with proper orchestration and transaction handling
+    required: false
+  - key: EDGE_CASE_UNCLEAR
+    prompt: Example of unclear input that requires clarification
+    default: How do I handle this situation?
+    required: false
+  - key: EDGE_CASE_MISSING_CONTEXT
+    prompt: Example of missing context that needs more info
+    default: Create a new feature
+    required: false
+  - key: EDGE_CASE_PERFORMANCE
+    prompt: Example of performance concern that should delegate
+    default: This code is slow, optimize it
+    required: false
+  - key: EDGE_CASE_ARCHITECTURE
+    prompt: Example of architecture question that should delegate
+    default: How should I structure this application?
+    required: false
+  - key: EDGE_CASE_TESTING
+    prompt: Example of testing requirement that should delegate
+    default: Write tests for this code
+    required: false
+  - key: EDGE_CASE_SECURITY
+    prompt: Example of security consideration that should delegate
+    default: Add authentication to this API
+    required: false
+  - key: EDGE_CASE_DATABASE
+    prompt: Example of database complexity that should delegate
+    default: Optimize this complex query
+    required: false
+  - key: EDGE_CASE_API_DESIGN
+    prompt: Example of API design that should delegate
+    default: Design a REST API for users
+    required: false

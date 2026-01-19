@@ -24,11 +24,43 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ```bash
 make build          # Build binary to bin/go-ent
 make test           # Run all tests with race detection and coverage
+make test-templates # Test all skill templates
 make lint           # Run golangci-lint
 make fmt            # Format code with goimports
 make clean          # Remove build artifacts
 make validate-plugin  # Validate plugin JSON files
+make validate-templates # Validate all skill templates
 ```
+
+## CLI Commands
+
+### Skill Management
+
+```bash
+# Create new skill from template
+go-ent skill new <name>              # Interactive mode
+go-ent skill new go-payment \
+  --template go-basic \
+  --description "Payment processing"
+
+# List available skills
+go-ent skill list
+
+# Show skill details
+go-ent skill info go-code
+
+# List available templates
+go-ent skill list-templates
+go-ent skill list-templates --category go
+
+# Show template details
+go-ent skill show-template go-complete
+
+# Add custom template
+go-ent skill add-template /path/to/template
+```
+
+See [README.md](README.md#cli-commands) for complete CLI documentation.
 
 ## Running Single Tests
 

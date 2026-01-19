@@ -1,0 +1,70 @@
+name: testing
+category: core
+description: Testing patterns with TDD, table-driven tests, mocking, integration tests, and benchmarks
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., go-test, testing-patterns, test-driven)
+    default: my-testing-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this testing skill does
+    default: Comprehensive testing patterns with TDD, mocking, and integration tests
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., testing,tdd,coverage,benchmark)
+    default: testing,tdd,coverage,benchmark
+    required: true
+  - key: EXAMPLE_PASSWORD_VALIDATOR
+    prompt: Example input for password validator tests
+    default: Write table-driven tests for a password validator
+    required: false
+  - key: EXAMPLE_INTEGRATION_TEST
+    prompt: Example input for repository integration test
+    default: Write an integration test for user repository using testcontainers
+    required: false
+  - key: EXAMPLE_BENCHMARK
+    prompt: Example input for string processing benchmark
+    default: Write a benchmark for string processing function
+    required: false
+  - key: EDGE_CASE_PRIVATE_FUNC
+    prompt: Example of testing private functions edge case
+    default: How do I test this private function?
+    required: false
+  - key: EDGE_CASE_MOCK_COMPLEXITY
+    prompt: Example of complex mocking edge case
+    default: This mock is too complex, what should I do?
+    required: false
+  - key: EDGE_CASE_SLOW_TESTS
+    prompt: Example of slow tests edge case
+    default: These integration tests are taking too long
+    required: false
+  - key: EDGE_CASE_EXTERNAL_DEPS
+    prompt: Example of external dependencies edge case
+    default: I need to test code that calls external APIs
+    required: false
+  - key: EDGE_CASE_FLAKY_TESTS
+    prompt: Example of flaky tests edge case
+    default: These tests are flaky and sometimes fail
+    required: false
+  - key: EDGE_CASE_LOW_COVERAGE
+    prompt: Example of low coverage edge case
+    default: Tests pass but coverage is low
+    required: false
+  - key: EDGE_CASE_BENCHMARK_INCONSISTENT
+    prompt: Example of inconsistent benchmark results edge case
+    default: Benchmark results vary a lot between runs
+    required: false
+  - key: EDGE_CASE_HTTP_TESTS
+    prompt: Example of HTTP testing with network issues edge case
+    default: HTTP tests fail with network issues
+    required: false

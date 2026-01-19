@@ -1,0 +1,26 @@
+name: security
+category: security
+description: Security patterns for authentication, authorization, input validation, and OWASP Top 10 mitigation
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., auth-middleware, input-validation)
+    default: my-security-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of security focus (e.g., JWT authentication middleware)
+    default: Security implementation patterns
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., security,auth,owasp,validation)
+    default: security,auth,owasp
+    required: true

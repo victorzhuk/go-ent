@@ -1,0 +1,70 @@
+name: api-design
+category: api
+description: REST and GraphQL API design patterns with OpenAPI specs, versioning, authentication, and validation
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., api-design, rest-api, graphql-api)
+    default: my-api-design-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this API design skill does
+    default: REST and GraphQL API design with OpenAPI specs and best practices
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., api,rest,graphql,openapi)
+    default: api,rest,graphql,openapi
+    required: true
+  - key: EXAMPLE_BLOG_API
+    prompt: Example input for blog API design
+    default: Design a REST API for a blog with posts, comments, and tags
+    required: false
+  - key: EXAMPLE_ECOMMERCE_GRAPHQL
+    prompt: Example input for e-commerce GraphQL schema
+    default: Create a GraphQL schema for an e-commerce API with products, orders, and users
+    required: false
+  - key: EDGE_CASE_MULTI_AUTH
+    prompt: Example of multiple authentication methods edge case
+    default: Support both JWT and API key authentication
+    required: false
+  - key: EDGE_CASE_BACKWARD_COMPAT
+    prompt: Example of backward compatibility requirement edge case
+    default: Need to maintain compatibility with v1 API while adding v2
+    required: false
+  - key: EDGE_CASE_COMPLEX_VALIDATION
+    prompt: Example of complex validation logic edge case
+    default: Validation logic is too complex for simple schema rules
+    required: false
+  - key: EDGE_CASE_LARGE_PAGINATION
+    prompt: Example of large dataset pagination edge case
+    default: Need to paginate through millions of records efficiently
+    required: false
+  - key: EDGE_CASE_CONCURRENT_MODIFICATIONS
+    prompt: Example of concurrent modifications edge case
+    default: Two users trying to update the same resource simultaneously
+    required: false
+  - key: EDGE_CASE_REALTIME
+    prompt: Example of real-time updates requirement edge case
+    default: API needs to push real-time updates to clients
+    required: false
+  - key: EDGE_CASE_RATE_LIMIT
+    prompt: Example of rate limiting edge case
+    default: Client hitting rate limits, how to handle properly
+    required: false
+  - key: EDGE_CASE_GRAPHQL_COMPLEXITY
+    prompt: Example of complex GraphQL query edge case
+    default: GraphQL query is too complex and expensive
+    required: false
+  - key: EDGE_CASE_VERSIONING_UNCLEAR
+    prompt: Example of unclear versioning strategy edge case
+    default: Not sure how to version the API correctly
+    required: false

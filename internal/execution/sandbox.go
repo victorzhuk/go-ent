@@ -1,7 +1,9 @@
 package execution
 
 import (
+	"errors"
 	"fmt"
+	"runtime"
 	"time"
 )
 
@@ -26,11 +28,86 @@ func DefaultResourceLimits() ResourceLimits {
 	}
 }
 
+// Resource exhaustion errors.
+var (
+	ErrResourceExceeded    = errors.New("resource limit exceeded")
+	ErrMemoryLimitExceeded = errors.New("memory limit exceeded")
+	ErrCPULimitExceeded    = errors.New("cpu limit exceeded")
+	ErrExecLimitExceeded   = errors.New("execution time limit exceeded")
+)
+
 // Sandbox isolates untrusted code execution with resource limits.
 type Sandbox struct {
 	limits   ResourceLimits
 	allowFS  []string // Allowed file paths
 	allowAPI []string // Allowed API calls
+}
+
+// ResourceExceededError is returned when resource limits are exceeded.
+type ResourceExceededError struct {
+	Resource string
+	Limit    interface{}
+}
+
+func (e *ResourceExceededError) Error() string {
+	return fmt.Sprintf("resource limit exceeded: %s limit %v", e.Resource, e.Limit)
+}
+
+func (e *ResourceExceededError) Unwrap() error {
+	return ErrResourceExceeded
+}
+
+// CheckMemoryLimit verifies if current memory usage is within limits.
+func (s *Sandbox) CheckMemoryLimit() error {
+	if s.limits.MaxMemoryMB <= 0 {
+		return nil
+	}
+
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	currentMB := m.Alloc / 1024 / 1024
+
+	maxMB := uint64(s.limits.MaxMemoryMB) // #nosec G115 - checked for >0 above
+	if s.limits.MaxMemoryMB > 0 && currentMB > maxMB {
+		return &ResourceExceededError{
+			Resource: "memory",
+			Limit:    fmt.Sprintf("%dMB", s.limits.MaxMemoryMB),
+		}
+	}
+
+	return nil
+}
+
+// CheckCPULimit verifies if CPU time is within limits.
+func (s *Sandbox) CheckCPULimit(elapsed time.Duration) error {
+	if s.limits.MaxCPUTime <= 0 {
+		return nil
+	}
+
+	if elapsed > s.limits.MaxCPUTime {
+		return &ResourceExceededError{
+			Resource: "cpu",
+			Limit:    s.limits.MaxCPUTime,
+		}
+	}
+
+	return nil
+}
+
+// CheckExecLimit verifies if wall-clock time is within limits.
+func (s *Sandbox) CheckExecLimit(elapsed time.Duration) error {
+	if s.limits.MaxExecTime <= 0 {
+		return nil
+	}
+
+	if elapsed > s.limits.MaxExecTime {
+		return &ResourceExceededError{
+			Resource: "execution",
+			Limit:    s.limits.MaxExecTime,
+		}
+	}
+
+	return nil
 }
 
 // NewSandbox creates a new sandbox with the given limits.

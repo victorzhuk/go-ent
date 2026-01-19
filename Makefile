@@ -1,4 +1,4 @@
-.PHONY: help build test lint fmt clean validate-plugin skill-validate skill-sync skill-quality
+.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -45,3 +45,14 @@ skill-sync: ## Sync skills from plugins to .claude directory
 skill-quality: ## Generate quality report for all skills
 	@echo "Getting skill quality report..."
 	@go run ./cmd/cli quality skills
+
+test-templates: ## Test all skill templates
+	@echo "Testing all skill templates..."
+	@go test -v ./internal/cli/skill/...
+
+validate-templates: ## Validate all skill templates
+	@echo "Validating all skill templates..."
+	@go run ./cmd/go-ent skill list-templates >/dev/null && \
+	go run ./cmd/go-ent skill show-template go-complete >/dev/null && \
+	go run ./cmd/go-ent skill show-template go-basic >/dev/null && \
+	echo "All templates validated successfully"

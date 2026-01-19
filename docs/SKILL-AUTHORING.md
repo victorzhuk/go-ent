@@ -1403,6 +1403,322 @@ Focus on practical guidance.
 </output_format>
 ```
 
+## Skill Template System
+
+The template system provides a fast, structured way to create new skills from pre-built templates. Templates handle structure, examples, and best practices so you can focus on skill content.
+
+### Available Templates
+
+Built-in templates are available in the `plugins/go-ent/templates/skills/` directory:
+
+| Template       | Category     | Description                          |
+|----------------|--------------|-------------------------------------|
+| `go-basic`     | go           | Basic Go development patterns         |
+| `go-complete`  | go           | Comprehensive Go with all sections  |
+| `typescript-basic` | typescript | TypeScript-specific patterns          |
+| `database`     | database     | SQL/migration patterns               |
+| `testing`      | testing      | TDD and testing patterns            |
+| `api-design`   | api          | REST/GraphQL API design patterns     |
+| `core-basic`   | core         | Domain/architecture patterns         |
+| `debugging-basic` | debugging | Troubleshooting patterns             |
+| `security`     | security     | Security and authentication patterns  |
+| `review`       | review       | Code review patterns                 |
+| `arch`         | arch         | Architecture patterns                |
+
+### Creating Skills with Templates
+
+Use the `go-ent skill new` command to create a new skill from a template.
+
+#### Interactive Mode
+
+Default mode prompts for template selection and details:
+
+```bash
+# Create a skill with auto-detected category
+go-ent skill new go-payment
+
+# Create a skill with manual template selection
+go-ent skill new my-skill
+```
+
+Interactive prompts:
+1. **Template selection**: Choose from available templates
+2. **Skill name**: Confirm or change the skill name
+3. **Description**: Brief description of what the skill does
+4. **Category**: Auto-detected from name or choose manually
+
+#### Non-Interactive Mode
+
+Use flags to create skills without prompts:
+
+```bash
+# Create with template and description
+go-ent skill new go-api \
+  --template go-complete \
+  --description "REST API skill with best practices"
+
+# Create with all options
+go-ent skill new go-payment \
+  --template go-complete \
+  --description "Payment processing patterns" \
+  --category go \
+  --author "Your Name" \
+  --tags "payment,api,backend"
+```
+
+#### Auto-Detection
+
+The command automatically detects category from skill name prefix:
+
+| Prefix Pattern      | Detected Category |
+|--------------------|------------------|
+| `go-*`             | go               |
+| `typescript-*`      | typescript        |
+| `javascript-*`      | javascript        |
+| `test-*`            | testing          |
+| `api-*`             | api              |
+| `security-*`        | security         |
+| `review-*`          | review           |
+| `arch-*`            | arch             |
+| `debug-*`           | debugging        |
+| `core-*`            | core             |
+
+Example: `go-payment` auto-detects `go` category.
+
+### Listing Templates
+
+List all available templates with `go-ent skill list-templates`:
+
+```bash
+# List all templates
+go-ent skill list-templates
+
+# Filter by category
+go-ent skill list-templates --category go
+
+# Show only built-in templates
+go-ent skill list-templates --built-in
+
+# Show only custom templates
+go-ent skill list-templates --custom
+```
+
+Output example:
+```
+NAME            CATEGORY    SOURCE      DESCRIPTION
+----            --------    ------      -----------
+go-basic        go          built-in    Basic Go development patterns
+go-complete     go          built-in    Comprehensive Go with all sections
+testing         testing     built-in    TDD and testing patterns
+```
+
+### Showing Template Details
+
+View detailed information about a template with `go-ent skill show-template`:
+
+```bash
+# Show details for a built-in template
+go-ent skill show-template go-complete
+
+# Show details for a custom template
+go-ent skill show-template my-custom-template
+```
+
+Output includes:
+- Template metadata (name, category, version, author)
+- Configuration prompts with defaults
+- Template preview (first 20 lines)
+
+### Adding Custom Templates
+
+Add your own templates to the registry with `go-ent skill add-template`:
+
+#### Template Structure
+
+Custom templates must include:
+- `template.md`: Skill template in v2 format with placeholders
+- `config.yaml`: Template metadata and prompt configuration
+
+#### Example Template Directory
+
+```
+my-custom-template/
+├── template.md
+└── config.yaml
+```
+
+**template.md example:**
+```markdown
+---
+name: ${SKILL_NAME}
+description: "${DESCRIPTION}"
+version: "${VERSION}"
+author: "${AUTHOR}"
+tags: [${TAGS}]
+---
+
+# ${SKILL_NAME}
+
+<role>
+Expert [domain] focused on [specialty]. Prioritize [principles].
+</role>
+
+<instructions>
+## Pattern 1
+
+Code or content example.
+
+**Why this pattern**:
+- Reason 1
+- Reason 2
+</instructions>
+
+<constraints>
+- Include specific patterns
+- Exclude anti-patterns
+</constraints>
+
+<edge_cases>
+If input is unclear: Ask clarifying questions.
+If context is missing: Request additional information.
+</edge_cases>
+
+<examples>
+<example>
+<input>User request</input>
+<output>Expected response</output>
+</example>
+</examples>
+
+<output_format>
+Provide output following these guidelines:
+
+1. **Requirement 1**: Specific instruction
+2. **Requirement 2**: Another instruction
+</output_format>
+```
+
+**config.yaml example:**
+```yaml
+name: my-template
+category: custom
+description: Custom skill template for specific domain
+author: your-name
+version: 1.0.0
+prompts:
+  - key: SKILL_NAME
+    prompt: Skill name (e.g., my-custom-skill)
+    default: my-skill
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of what this skill does
+    default: Custom skill
+    required: true
+  - key: VERSION
+    prompt: Skill version
+    default: 1.0.0
+    required: true
+  - key: AUTHOR
+    prompt: Author name or organization
+    default: go-ent
+    required: true
+  - key: TAGS
+    prompt: Comma-separated tags (e.g., custom, domain)
+    default: custom
+    required: true
+```
+
+#### Adding a Template
+
+```bash
+# Add template to user templates directory (default)
+go-ent skill add-template /path/to/my-template
+
+# Add template to built-in directory
+go-ent skill add-template /path/to/my-template \
+  --built-in /path/to/go-ent/plugins/go-ent/templates/skills/
+```
+
+The command validates:
+- Template directory exists
+- Required files present (template.md, config.yaml)
+- config.yaml is valid YAML
+- template.md passes skill validation
+
+### Placeholders
+
+Templates use `${PLACEHOLDER}` syntax for dynamic content:
+
+| Placeholder      | Description              | Example Value          |
+|-----------------|--------------------------|------------------------|
+| `${SKILL_NAME}` | Name of the skill        | `go-payment`           |
+| `${DESCRIPTION}` | Skill description        | `Payment patterns`      |
+| `${VERSION}`     | Skill version            | `1.0.0`               |
+| `${AUTHOR}`      | Author name             | `Your Name`            |
+| `${TAGS}`        | Comma-separated tags    | `go,payment,api`       |
+
+Placeholders are replaced during skill generation based on user input or defaults.
+
+### Template Locations
+
+Templates are loaded from two locations:
+
+1. **Built-in templates**: `plugins/go-ent/templates/skills/`
+2. **Custom templates**: `~/.go-ent/templates/skills/`
+
+Override built-in directory with environment variable:
+```bash
+export GO_ENT_TEMPLATE_DIR=/custom/path/to/templates
+```
+
+Override output skills directory:
+```bash
+export GO_ENT_SKILLS_DIR=/custom/path/to/skills
+```
+
+### Workflow Example
+
+Complete workflow for creating a new skill:
+
+```bash
+# 1. List available templates
+go-ent skill list-templates
+
+# 2. Show template details
+go-ent skill show-template go-complete
+
+# 3. Create new skill interactively
+go-ent skill new go-payment
+
+# 4. Validate generated skill
+go-ent skill validate go-payment
+
+# 5. Check quality score
+go-ent skill quality go-payment
+
+# 6. Test the skill with real work
+# (Use the skill in your development workflow)
+```
+
+### Validation Rules for Templates
+
+When using `go-ent skill add-template`, templates must pass:
+
+1. **Structure validation**:
+   - `template.md` must exist
+   - `config.yaml` must exist
+   - YAML must be valid
+
+2. **Skill validation** (template.md):
+   - Must pass v2 skill validation
+   - Required XML sections present
+   - Valid frontmatter
+
+3. **Config validation** (config.yaml):
+   - Valid YAML format
+   - Required fields present (name, category, description)
+   - Prompts have valid structure
+
 ## Validation and Quality Commands
 
 ### Validate Skills
