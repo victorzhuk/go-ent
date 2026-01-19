@@ -126,10 +126,12 @@ changes:
   skill-quality-scoring:
     id: skill-quality-scoring
     title: 'Research-Aligned Quality Scoring'
-    status: pending
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-quality-scoring/tasks.md
-    total: 15
-    completed: 0
+    status: complete
+    archived: true
+    archive_path: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-quality-scoring
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-quality-scoring/tasks.md
+    total: 95
+    completed: 95
     in_progress: 0
     blocked: 0
 

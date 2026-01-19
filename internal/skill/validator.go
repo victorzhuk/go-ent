@@ -36,7 +36,7 @@ func (v ValidationIssue) String() string {
 type ValidationResult struct {
 	Valid  bool
 	Issues []ValidationIssue
-	Score  float64
+	Score  *QualityScore
 }
 
 // ErrorCount returns the number of errors.

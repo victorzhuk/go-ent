@@ -1,12 +1,36 @@
 # Tasks: Skill Migration
 
-## 1. Audit Existing Skills
-- [ ] 1.1 Run quality analyzer on all 12 skills
-- [ ] 1.2 Document current state (triggers, examples, token counts, scores)
-- [ ] 1.3 Prioritize by quality score (lowest first)
-- [ ] 1.4 Create migration checklist per skill
+## 0. Complete Audit
 
-## 2. Migrate Go Skills
+### 0.1 Inventory verification
+- [ ] 0.1.1 List all 14 existing skills
+- [ ] 0.1.2 Verify 9 Go skills
+- [ ] 0.1.3 Verify 5 Core skills
+- [ ] 0.1.4 Document in proposal
+
+### 0.2 Current state documentation
+- [ ] 0.2.1 Count examples per skill
+- [ ] 0.2.2 Measure token counts per skill
+- [ ] 0.2.3 Check for explicit triggers
+- [ ] 0.2.4 Run quality scoring (when available)
+- [ ] 0.2.5 Document baseline metrics
+
+### 0.3 Identify missing skills
+- [ ] 0.3.1 Confirm go-migration is needed
+- [ ] 0.3.2 Confirm go-config is needed
+- [ ] 0.3.3 Confirm go-error is needed
+- [ ] 0.3.4 Decide: create go-concurrency or skip
+- [ ] 0.3.5 Decide: create go-validation or skip
+- [ ] 0.3.6 Decide: create go-idiomatic or skip
+- [ ] 0.3.7 Remove non-existent skills from migration tasks
+
+### 0.4 Update proposal with accurate data
+- [ ] 0.4.1 Update summary with confirmed skill counts
+- [ ] 0.4.2 Update problem section with audit findings
+- [ ] 0.4.3 Update success metrics with real numbers
+- [ ] 0.4.4 Prioritize migration by quality score
+
+## 1. Migrate Go Skills
 
 ### 2.1 go-code
 - [ ] 2.1.1 Add explicit triggers (keywords: ["go code", "golang"], file_pattern: "*.go")
@@ -41,35 +65,37 @@
 - [ ] 2.6.2 Add examples (likely needs more)
 - [ ] 2.6.3 Trim verbose optimization guides
 
-### 2.7 go-concurrency
-- [ ] 2.7.1 Add explicit triggers (keywords: ["concurrent", "goroutine", "channel"])
-- [ ] 2.7.2 Ensure diverse examples (simple, complex, edge cases)
-- [ ] 2.7.3 Trim to <5k tokens if verbose
-
-### 2.8 go-validation
-- [ ] 2.8.1 Add explicit triggers (keywords: ["validate", "validation"], file_pattern: "**/*_validator.go")
-- [ ] 2.8.2 Check examples
-
-### 2.9 go-idiomatic
-- [ ] 2.9.1 Add explicit triggers (keywords: ["idiomatic", "go style"])
-- [ ] 2.9.2 Check examples
-
 ## 3. Migrate Core Skills
 
-### 3.1 ent-task
-- [ ] 3.1.1 Add explicit triggers
-- [ ] 3.1.2 Ensure quality standards
-- [ ] 3.1.3 Update examples if needed
+### 3.1 api-design
+- [ ] 3.1.1 Add explicit triggers (keywords: ["api design", "rest api"])
+- [ ] 3.1.2 Review examples (ensure has 3, ensure diversity)
+- [ ] 3.1.3 Check token count, trim if needed
+- [ ] 3.1.4 Validate score ≥85
 
-### 3.2 ent-plan
-- [ ] 3.2.1 Add explicit triggers
-- [ ] 3.2.2 Ensure quality standards
-- [ ] 3.2.3 Update examples if needed
+### 3.2 arch-core
+- [ ] 3.2.1 Add explicit triggers (keywords: ["architecture", "clean architecture", "ddd"])
+- [ ] 3.2.2 Review examples (ensure has 3, ensure diversity)
+- [ ] 3.2.3 Check token count, trim if needed
+- [ ] 3.2.4 Validate score ≥85
 
-### 3.3 ent-debug
-- [ ] 3.3.1 Add explicit triggers
-- [ ] 3.3.2 Ensure quality standards
-- [ ] 3.3.3 Update examples if needed
+### 3.3 debug-core
+- [ ] 3.3.1 Add explicit triggers (keywords: ["debug", "troubleshoot"], weight: 0.5 - fallback skill)
+- [ ] 3.3.2 Review examples (ensure has 3, ensure diversity)
+- [ ] 3.3.3 Check token count (currently verbose at 639 lines, trim to <5k tokens)
+- [ ] 3.3.4 Validate score ≥85
+
+### 3.4 review-core
+- [ ] 3.4.1 Add explicit triggers (keywords: ["code review", "pull request"])
+- [ ] 3.4.2 Review examples (ensure has 3, ensure diversity)
+- [ ] 3.4.3 Check token count, trim if needed
+- [ ] 3.4.4 Validate score ≥85
+
+### 3.5 security-core
+- [ ] 3.5.1 Add explicit triggers (keywords: ["security", "authentication", "authorization"])
+- [ ] 3.5.2 Review examples (ensure has 3, ensure diversity)
+- [ ] 3.5.3 Check token count, trim if needed
+- [ ] 3.5.4 Validate score ≥85
 
 ## 4. Create New Skills
 
@@ -94,13 +120,9 @@
 - [ ] 4.3.4 Add triggers (keywords ["error handling", "error wrapping"])
 - [ ] 4.3.5 Validate score
 
-### 4.4 debug-core
-- [ ] 4.4.1 Create from template
-- [ ] 4.4.2 Define role (general debugging expert, language-agnostic)
-- [ ] 4.4.3 Add examples (log analysis, stack traces, reproduction, binary search debugging, hypothesis testing)
-- [ ] 4.4.4 Add triggers (keywords with low weight 0.5, fallback skill)
-- [ ] 4.4.5 Validate score
-
+### 4.4 [SKIP] debug-core
+- [x] 4.4.1 Already exists in plugins/go-ent/skills/core/debug-core/SKILL.md
+- [ ] 4.4.2 Will be migrated in Phase 3.3
 ## 5. Validation and Quality Check
 
 ### 5.1 Run quality analyzer on all skills

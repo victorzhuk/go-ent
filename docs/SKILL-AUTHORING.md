@@ -1435,10 +1435,10 @@ Default mode prompts for template selection and details:
 
 ```bash
 # Create a skill with auto-detected category
-go-ent skill new go-payment
+ent skill new go-payment
 
 # Create a skill with manual template selection
-go-ent skill new my-skill
+ent skill new my-skill
 ```
 
 Interactive prompts:
@@ -1453,12 +1453,12 @@ Use flags to create skills without prompts:
 
 ```bash
 # Create with template and description
-go-ent skill new go-api \
+ent skill new go-api \
   --template go-complete \
   --description "REST API skill with best practices"
 
 # Create with all options
-go-ent skill new go-payment \
+ent skill new go-payment \
   --template go-complete \
   --description "Payment processing patterns" \
   --category go \
@@ -1491,16 +1491,16 @@ List all available templates with `go-ent skill list-templates`:
 
 ```bash
 # List all templates
-go-ent skill list-templates
+ent skill list-templates
 
 # Filter by category
-go-ent skill list-templates --category go
+ent skill list-templates --category go
 
 # Show only built-in templates
-go-ent skill list-templates --built-in
+ent skill list-templates --built-in
 
 # Show only custom templates
-go-ent skill list-templates --custom
+ent skill list-templates --custom
 ```
 
 Output example:
@@ -1518,10 +1518,10 @@ View detailed information about a template with `go-ent skill show-template`:
 
 ```bash
 # Show details for a built-in template
-go-ent skill show-template go-complete
+ent skill show-template go-complete
 
 # Show details for a custom template
-go-ent skill show-template my-custom-template
+ent skill show-template my-custom-template
 ```
 
 Output includes:
@@ -1632,10 +1632,10 @@ prompts:
 
 ```bash
 # Add template to user templates directory (default)
-go-ent skill add-template /path/to/my-template
+ent skill add-template /path/to/my-template
 
 # Add template to built-in directory
-go-ent skill add-template /path/to/my-template \
+ent skill add-template /path/to/my-template \
   --built-in /path/to/go-ent/plugins/go-ent/templates/skills/
 ```
 
@@ -1682,19 +1682,19 @@ Complete workflow for creating a new skill:
 
 ```bash
 # 1. List available templates
-go-ent skill list-templates
+ent skill list-templates
 
 # 2. Show template details
-go-ent skill show-template go-complete
+ent skill show-template go-complete
 
 # 3. Create new skill interactively
-go-ent skill new go-payment
+ent skill new go-payment
 
 # 4. Validate generated skill
-go-ent skill validate go-payment
+ent skill validate go-payment
 
 # 5. Check quality score
-go-ent skill quality go-payment
+ent skill quality go-payment
 
 # 6. Test the skill with real work
 # (Use the skill in your development workflow)

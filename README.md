@@ -102,16 +102,16 @@ The `go-ent` binary can also be used as a standalone CLI:
 
 ```bash
 # Initialize configuration
-go-ent config init
+ent config init
 
 # View configuration
-go-ent config show
+ent config show
 
 # List available agents
-go-ent agent list
+ent agent list
 
 # Initialize OpenSpec
-go-ent spec init
+ent spec init
 ```
 
 See [CLI Examples](docs/CLI_EXAMPLES.md) for detailed usage.
@@ -230,89 +230,89 @@ The `go-ent` binary can run in two modes:
 
 ```bash
 # Initialize configuration
-go-ent config init [path]
+ent config init [path]
 
 # Show current configuration
-go-ent config show [path]
-go-ent config show --format summary
+ent config show [path]
+ent config show --format summary
 
 # Modify configuration
-go-ent config set <key> <value> [path]
-go-ent config set budget.daily 25
-go-ent config set agents.default architect
+ent config set <key> <value> [path]
+ent config set budget.daily 25
+ent config set agents.default architect
 ```
 
 ### Agent Management
 
 ```bash
 # List all agents
-go-ent agent list
-go-ent agent list --detailed
+ent agent list
+ent agent list --detailed
 
 # Get agent information
-go-ent agent info <name>
-go-ent agent info architect
+ent agent info <name>
+ent agent info architect
 ```
 
 ### Skill Management
 
 ```bash
 # List all skills
-go-ent skill list
-go-ent skill list --detailed
+ent skill list
+ent skill list --detailed
 
 # Get skill information
-go-ent skill info <name>
-go-ent skill info go-arch
+ent skill info <name>
+ent skill info go-arch
 
 # Create new skill from template
-go-ent skill new <name>              # Interactive mode
-go-ent skill new go-payment \
+ent skill new <name>              # Interactive mode
+ent skill new go-payment \
   --template go-basic \
   --description "Payment processing"
 
 # List available templates
-go-ent skill list-templates
-go-ent skill list-templates --category go
-go-ent skill list-templates --built-in
+ent skill list-templates
+ent skill list-templates --category go
+ent skill list-templates --built-in
 
 # Show template details
-go-ent skill show-template <name>
-go-ent skill show-template go-complete
+ent skill show-template <name>
+ent skill show-template go-complete
 
 # Add custom template
-go-ent skill add-template <path>
-go-ent skill add-template ./my-template
+ent skill add-template <path>
+ent skill add-template ./my-template
 ```
 
 ### Spec Management
 
 ```bash
 # Initialize OpenSpec
-go-ent spec init [path]
+ent spec init [path]
 
 # List specs or changes
-go-ent spec list <type>  # type: spec, change
-go-ent spec list spec
-go-ent spec list change
+ent spec list <type>  # type: spec, change
+ent spec list spec
+ent spec list change
 
 # Show specific spec or change
-go-ent spec show <type> <id>
-go-ent spec show spec api
-go-ent spec show change add-authentication
+ent spec show <type> <id>
+ent spec show spec api
+ent spec show change add-authentication
 ```
 
 ### Global Flags
 
 ```bash
 # Use custom config file
-go-ent --config /path/to/config.yaml <command>
+ent --config /path/to/config.yaml <command>
 
 # Verbose output
-go-ent --verbose <command>
+ent --verbose <command>
 
 # Show version
-go-ent version
+ent version
 ```
 
 **Full CLI documentation:** [CLI Examples](docs/CLI_EXAMPLES.md)
@@ -395,7 +395,7 @@ go-ent provides a template-based system for creating new skills quickly and cons
 
 **Interactive mode** (recommended):
 ```bash
-go-ent skill new my-skill
+ent skill new my-skill
 ```
 
 This prompts for:
@@ -405,7 +405,7 @@ This prompts for:
 
 **Non-interactive mode**:
 ```bash
-go-ent skill new go-payment \
+ent skill new go-payment \
   --template go-basic \
   --description "Payment processing patterns" \
   --category go \
@@ -417,23 +417,23 @@ go-ent skill new go-payment \
 
 **List all available templates**:
 ```bash
-go-ent skill list-templates
+ent skill list-templates
 ```
 
 Filter by category:
 ```bash
-go-ent skill list-templates --category go
+ent skill list-templates --category go
 ```
 
 Show only built-in or custom:
 ```bash
-go-ent skill list-templates --built-in
-go-ent skill list-templates --custom
+ent skill list-templates --built-in
+ent skill list-templates --custom
 ```
 
 **Show template details**:
 ```bash
-go-ent skill show-template go-complete
+ent skill show-template go-complete
 ```
 
 Displays:
@@ -443,7 +443,7 @@ Displays:
 
 **Add custom template**:
 ```bash
-go-ent skill add-template ./my-custom-template
+ent skill add-template ./my-custom-template
 ```
 
 Template directory must contain:
@@ -545,15 +545,15 @@ cd go-ent
 # Build MCP server
 make build
 
-# Binary will be in bin/go-ent
-./bin/go-ent  # runs as MCP server on stdio
+# Binary will be in bin/ent
+./bin/ent  # runs as MCP server on stdio
 ```
 
 ### Makefile Targets
 
 | Target | Description |
 |--------|-------------|
-| `make build` | Build MCP server to `bin/go-ent` |
+| `make build` | Build MCP server to `bin/ent` |
 | `make test` | Run tests with race detector and coverage |
 | `make lint` | Run golangci-lint |
 | `make fmt` | Format code with goimports |

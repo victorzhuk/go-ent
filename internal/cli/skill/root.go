@@ -31,38 +31,49 @@ Available subcommands:
   new              - Create a new skill from a template
   list             - List all available skills
   info             - Show detailed information about a skill
+  analyze          - Analyze skill quality and generate reports
   list-templates   - List all available skill templates
   add-template     - Add a custom template to the registry
   show-template    - Display template details and preview
 
 Examples:
   # List all available skills
-  go-ent skill list
+  ent skill list
 
   # Show detailed info about a skill
-  go-ent skill info go-code
+  ent skill info go-code
 
   # Create a new skill using interactive wizard
-  go-ent skill new go-payment
+  ent skill new go-payment
 
   # Create a skill in non-interactive mode
-  go-ent skill new go-api --template go-basic --description "REST API skill"
+  ent skill new go-api --template go-basic --description "REST API skill"
 
   # List all available templates
-  go-ent skill list-templates
+  ent skill list-templates
 
   # Filter templates by category
-  go-ent skill list-templates --category go
+  ent skill list-templates --category go
 
   # Show template details
-  go-ent skill show-template go-complete
+  ent skill show-template go-complete
 
   # Add a custom template
-  go-ent skill add-template /path/to/my-template`,
+  ent skill add-template /path/to/my-template
+
+  # Analyze all skills with console output
+  ent skill analyze --all
+
+  # Export analysis results to JSON
+  ent skill analyze --all --json
+
+  # Export analysis results to CSV
+  ent skill analyze --all --csv`,
 	}
 
 	cmd.AddCommand(newListCmd())
 	cmd.AddCommand(newInfoCmd())
+	cmd.AddCommand(newAnalyzeCmd())
 	cmd.AddCommand(newSkillCmd())
 	cmd.AddCommand(newListTemplatesCmd())
 	cmd.AddCommand(newAddTemplateCmd())
@@ -73,9 +84,10 @@ Examples:
 
 func newListCmd() *cobra.Command {
 	var format string
+	var verbose bool
 
 	cmd := &cobra.Command{
-		Use:   "list",
+		Use:   "list [query]",
 		Short: "List all available skills",
 		Long: `Display a table of all available skills with their descriptions.
 
@@ -83,12 +95,22 @@ Shows all installed skills in the skills directory. Use --format to control
 output style. The table format shows concise information, while detailed
 format includes triggers and file locations.
 
+When a query is provided, skills are ranked by relevance score based on
+keyword matching and triggers. Use --verbose to see detailed match reasons.
+
 Examples:
   # List all skills in table format (default)
-  go-ent skill list
+  ent skill list
+
+  # Search for skills matching "test"
+  ent skill list test
+
+  # Search with match scores
+  ent skill list "database" --verbose
 
   # Show detailed information for all skills
-  go-ent skill list --format detailed`,
+  ent skill list --format detailed`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			skillsPath := getSkillsPath()
 			registry := skill.NewRegistry()
@@ -97,17 +119,39 @@ Examples:
 				return fmt.Errorf("load skills: %w", err)
 			}
 
-			skills := registry.All()
-			if len(skills) == 0 {
-				_, _ = fmt.Fprintln(os.Stderr, "No skills found")
+			query := ""
+			if len(args) > 0 {
+				query = args[0]
+			}
+
+			if query == "" {
+				skills := registry.All()
+				if len(skills) == 0 {
+					_, _ = fmt.Fprintln(os.Stderr, "No skills found")
+					return nil
+				}
+
+				switch format {
+				case "table":
+					return printSkillsTable(skills)
+				case "detailed":
+					return printSkillsDetailed(skills)
+				default:
+					return fmt.Errorf("unknown format: %s", format)
+				}
+			}
+
+			matches := registry.FindMatchingSkills(query)
+			if len(matches) == 0 {
+				_, _ = fmt.Fprintln(os.Stderr, "No matching skills found")
 				return nil
 			}
 
 			switch format {
 			case "table":
-				return printSkillsTable(skills)
+				return printMatchesTable(matches, verbose)
 			case "detailed":
-				return printSkillsDetailed(skills)
+				return printMatchesDetailed(matches, verbose)
 			default:
 				return fmt.Errorf("unknown format: %s", format)
 			}
@@ -115,6 +159,7 @@ Examples:
 	}
 
 	cmd.Flags().StringVarP(&format, "format", "f", "table", "Output format (table, detailed)")
+	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show match reasons")
 
 	return cmd
 }
@@ -132,10 +177,10 @@ when it activates automatically.
 
 Examples:
   # Show information about the go-code skill
-  go-ent skill info go-code
+  ent skill info go-code
 
   # Show information about a specific skill
-  go-ent skill info typescript-basic`,
+  ent skill info typescript-basic`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -261,4 +306,53 @@ func extractShortDescription(desc string) string {
 	}
 
 	return desc
+}
+
+func printMatchesTable(matches []skill.MatchResult, verbose bool) error {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "SCORE\tNAME\tDESCRIPTION")
+	_, _ = fmt.Fprintln(w, "-----\t----\t-----------")
+
+	for _, m := range matches {
+		if m.Skill == nil {
+			continue
+		}
+		desc := extractShortDescription(m.Skill.Description)
+		score := int(m.Score * 100)
+		_, _ = fmt.Fprintf(w, "%d%%\t%s\t%s\n", score, m.Skill.Name, desc)
+	}
+
+	return w.Flush()
+}
+
+func printMatchesDetailed(matches []skill.MatchResult, verbose bool) error {
+	for i, m := range matches {
+		if m.Skill == nil {
+			continue
+		}
+		if i > 0 {
+			fmt.Println()
+		}
+
+		score := int(m.Score * 100)
+		fmt.Printf("# %s (%d%% match)\n\n", m.Skill.Name, score)
+		fmt.Printf("%s\n", m.Skill.Description)
+
+		if verbose && len(m.MatchedBy) > 0 {
+			fmt.Printf("\n**Match Reasons**:\n")
+			for _, reason := range m.MatchedBy {
+				weight := int(reason.Weight * 100)
+				fmt.Printf("- %s: %s (weight: %d%%)\n", reason.Type, reason.Value, weight)
+			}
+		}
+
+		if len(m.Skill.Triggers) > 0 {
+			fmt.Printf("\n**Triggers**: %s\n", strings.Join(m.Skill.Triggers, ", "))
+		}
+
+		fmt.Printf("\n**Location**: %s\n", m.Skill.FilePath)
+	}
+
+	return nil
 }

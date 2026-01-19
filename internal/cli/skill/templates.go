@@ -43,16 +43,16 @@ Templates are sorted by source (built-in first) then alphabetically by name.
 
 Examples:
   # List all templates
-  go-ent skill list-templates
+  ent skill list-templates
 
   # Filter by category
-  go-ent skill list-templates --category go
+  ent skill list-templates --category go
 
   # Show only built-in templates
-  go-ent skill list-templates --built-in
+  ent skill list-templates --built-in
 
   # Show only custom templates
-  go-ent skill list-templates --custom`,
+  ent skill list-templates --custom`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listTemplates(category, showBuiltIn, showCustom)
 		},
@@ -205,10 +205,10 @@ Destination:
 
 Examples:
   # Add template from local directory (uses user templates directory)
-  go-ent skill add-template /path/to/my-template
+  ent skill add-template /path/to/my-template
 
   # Add template to built-in directory
-  go-ent skill add-template /path/to/my-template --built-in /path/to/go-ent/plugins/go-ent/templates/skills/`,
+  ent skill add-template /path/to/my-template --built-in /path/to/go-ent/plugins/go-ent/templates/skills/`,
 
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -242,10 +242,10 @@ matching template found.
 
 Examples:
   # Show details about a built-in template
-  go-ent skill show-template go-complete
+  ent skill show-template go-complete
 
   # Show details about a custom template
-  go-ent skill show-template my-custom-template`,
+  ent skill show-template my-custom-template`,
 
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

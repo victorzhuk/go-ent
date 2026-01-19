@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/victorzhuk/go-ent/internal/domain"
 )
+
+var patternCache = make(map[string]*regexp.Regexp)
+var cacheMutex sync.RWMutex
 
 // MatchContext provides additional context for skill matching.
 type MatchContext struct {
@@ -16,6 +21,177 @@ type MatchContext struct {
 	FileTypes    []string // File extensions (e.g., ".go", ".md")
 	TaskType     string   // Task type (e.g., "implement", "review", "debug")
 	ActiveSkills []string // Currently loaded skill names
+}
+
+// matchTrigger checks if a single explicit trigger matches the query and context.
+func matchTrigger(trigger Trigger, query string, ctx *MatchContext) []MatchReason {
+	var reasons []MatchReason
+	queryLower := strings.ToLower(query)
+
+	for _, pat := range trigger.Patterns {
+		if matchesPattern(query, pat) {
+			reasons = append(reasons, MatchReason{
+				Type:   "pattern",
+				Value:  pat,
+				Weight: trigger.Weight,
+			})
+		}
+	}
+
+	for _, kw := range trigger.Keywords {
+		if matchesKeyword(queryLower, strings.ToLower(kw)) {
+			reasons = append(reasons, MatchReason{
+				Type:   "keyword",
+				Value:  kw,
+				Weight: trigger.Weight,
+			})
+		}
+	}
+
+	if ctx != nil {
+		for _, fp := range trigger.FilePatterns {
+			for _, fileType := range ctx.FileTypes {
+				if matchFilePattern(fp, fileType) {
+					reasons = append(reasons, MatchReason{
+						Type:   "file_type",
+						Value:  fp,
+						Weight: trigger.Weight,
+					})
+					break
+				}
+			}
+		}
+	}
+
+	return reasons
+}
+
+// matchDescription extracts keywords from skill description for fallback matching.
+// Used for skills without explicit triggers for backward compatibility.
+func matchDescription(skill *SkillMeta, query string) []MatchReason {
+	var reasons []MatchReason
+	queryLower := strings.ToLower(query)
+
+	// Extract keywords from "Auto-activates for:" section
+	const prefix = "Auto-activates for:"
+	idx := strings.Index(skill.Description, prefix)
+	if idx == -1 {
+		return reasons
+	}
+
+	rest := skill.Description[idx+len(prefix):]
+	endIdx := strings.Index(rest, ".")
+	if endIdx == -1 {
+		endIdx = len(rest)
+	}
+	triggerText := rest[:endIdx]
+
+	parts := strings.Split(triggerText, ",")
+	weight := 0.6
+
+	for _, part := range parts {
+		kw := strings.ToLower(strings.TrimSpace(part))
+		if kw == "" {
+			continue
+		}
+
+		if matchesKeyword(queryLower, kw) {
+			reasons = append(reasons, MatchReason{
+				Type:   "description_keyword",
+				Value:  kw,
+				Weight: weight,
+			})
+		}
+	}
+
+	return reasons
+}
+
+// scoreSkill calculates match score for a single skill based on query and context.
+func scoreSkill(skill *SkillMeta, query string, ctx *MatchContext) MatchResult {
+	result := MatchResult{
+		Skill:     skill,
+		Score:     0,
+		MatchedBy: []MatchReason{},
+	}
+
+	queryLower := strings.ToLower(query)
+
+	if strings.Contains(strings.ToLower(skill.Name), queryLower) {
+		result.Score += 0.5
+		result.MatchedBy = append(result.MatchedBy, MatchReason{
+			Type:   "name",
+			Value:  skill.Name,
+			Weight: 0.5,
+		})
+	}
+
+	if len(skill.ExplicitTriggers) > 0 {
+		for _, trigger := range skill.ExplicitTriggers {
+			reasons := matchTrigger(trigger, query, ctx)
+			for _, reason := range reasons {
+				result.Score += reason.Weight
+				result.MatchedBy = append(result.MatchedBy, reason)
+			}
+		}
+	} else {
+		reasons := matchDescription(skill, query)
+		for _, reason := range reasons {
+			result.Score += reason.Weight
+			result.MatchedBy = append(result.MatchedBy, reason)
+		}
+	}
+
+	return result
+}
+
+// matchesPattern checks if query matches regex pattern using a package-level cache.
+// Patterns are compiled once and cached for reuse across multiple queries.
+// Thread-safe: uses sync.RWMutex for concurrent read access and exclusive write access.
+// Cache persists for the lifetime of the package process.
+func matchesPattern(query, pattern string) bool {
+	patternLower := strings.ToLower(pattern)
+
+	cacheMutex.RLock()
+	re, cached := patternCache[patternLower]
+	cacheMutex.RUnlock()
+
+	if cached {
+		return re.MatchString(strings.ToLower(query))
+	}
+
+	re, err := regexp.Compile(patternLower)
+	if err != nil {
+		return false
+	}
+
+	cacheMutex.Lock()
+	patternCache[patternLower] = re
+	cacheMutex.Unlock()
+
+	return re.MatchString(strings.ToLower(query))
+}
+
+// matchesKeyword checks if query contains keyword (exact or substring).
+func matchesKeyword(queryLower, keyword string) bool {
+	return strings.Contains(queryLower, keyword)
+}
+
+// matchFilePattern checks if a file pattern matches a file type.
+func matchFilePattern(pattern, fileType string) bool {
+	pattern = strings.ToLower(pattern)
+	fileType = strings.ToLower(fileType)
+
+	if pattern == fileType {
+		return true
+	}
+
+	if strings.HasPrefix(pattern, "*") {
+		ext := strings.TrimPrefix(pattern, "*")
+		return fileType == ext || strings.HasSuffix(fileType, ext)
+	}
+
+	return false
 }
 
 // Registry manages skill metadata and matching.
@@ -36,6 +212,20 @@ func NewRegistry() *Registry {
 		validator:     NewValidator(),
 		scorer:        NewQualityScorer(),
 	}
+}
+
+// MatchResult represents a skill match with its confidence score and reasons.
+type MatchResult struct {
+	Skill     *SkillMeta    // The matched skill
+	Score     float64       // 0.0-1.0 confidence score
+	MatchedBy []MatchReason // List of what triggered the match
+}
+
+// MatchReason explains why a skill was matched.
+type MatchReason struct {
+	Type   string  // "keyword", "pattern", "file_type"
+	Value  string  // The specific value that matched
+	Weight float64 // The trigger weight
 }
 
 // Register adds a runtime skill to the registry.
@@ -157,61 +347,67 @@ func (r *Registry) MatchForContext(ctx domain.SkillContext) []string {
 	return matched
 }
 
-// FindMatchingSkills returns skill names that match the given query, optionally with context.
-// When context is provided, it applies context boosting to rank skills by relevance.
-// When context is empty, falls back to query-only matching (backward compatible).
-func (r *Registry) FindMatchingSkills(query string, context ...*MatchContext) []string {
+// FindMatchingSkills returns skills with match scores and reasons based on the given query and context.
+func (r *Registry) FindMatchingSkills(query string, context ...*MatchContext) []MatchResult {
 	if len(context) == 0 || context[0] == nil {
 		return r.matchByQuery(query)
 	}
 
 	ctx := context[0]
-	scores := r.scoreSkills(query, ctx)
+	var results []MatchResult
 
-	// Sort by score descending
-	type namedScore struct {
-		name  string
-		score float64
-	}
-	var ranked []namedScore
-	for name, score := range scores {
-		if score > 0 {
-			ranked = append(ranked, namedScore{name, score})
+	for i := range r.skills {
+		result := scoreSkill(&r.skills[i], query, ctx)
+		if result.Score > 0 {
+			boost := r.applyContextBoosts(r.skills[i].Name, ctx)
+			result.Score += boost
+			results = append(results, result)
 		}
 	}
 
-	sort.Slice(ranked, func(i, j int) bool {
-		return ranked[i].score > ranked[j].score
+	for name, skill := range r.runtimeSkills {
+		if strings.Contains(strings.ToLower(skill.Name()), strings.ToLower(query)) {
+			results = append(results, MatchResult{
+				Skill:     nil,
+				Score:     1.0,
+				MatchedBy: []MatchReason{{Type: "runtime", Value: name, Weight: 1.0}},
+			})
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score > results[j].Score
 	})
 
-	result := make([]string, len(ranked))
-	for i, r := range ranked {
-		result[i] = r.name
-	}
-
-	return result
+	return results
 }
 
-// matchByQuery performs query-based skill matching.
-func (r *Registry) matchByQuery(query string) []string {
-	var matched []string
+// matchByQuery performs query-based skill matching (backward compatible).
+func (r *Registry) matchByQuery(query string) []MatchResult {
+	var results []MatchResult
 	queryLower := strings.ToLower(query)
 
-	// Check runtime skills
-	for name, skill := range r.runtimeSkills {
-		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
-			matched = append(matched, name)
-		}
-	}
-
-	// Check metadata skills
 	for _, skill := range r.skills {
 		if strings.Contains(strings.ToLower(skill.Name), queryLower) {
-			matched = append(matched, skill.Name)
+			results = append(results, MatchResult{
+				Skill:     &skill,
+				Score:     0.5,
+				MatchedBy: []MatchReason{{Type: "name", Value: skill.Name, Weight: 0.5}},
+			})
 		}
 	}
 
-	return matched
+	for name, skill := range r.runtimeSkills {
+		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
+			results = append(results, MatchResult{
+				Skill:     nil,
+				Score:     0.5,
+				MatchedBy: []MatchReason{{Type: "runtime", Value: name, Weight: 0.5}},
+			})
+		}
+	}
+
+	return results
 }
 
 // scoreSkills calculates relevance scores for all skills based on query and context.
@@ -264,13 +460,15 @@ func (r *Registry) fileTypeBoost(skillName string, ctx *MatchContext) float64 {
 	}
 
 	for _, trigger := range skill.ExplicitTriggers {
-		if trigger.FilePattern == "" {
+		if len(trigger.FilePatterns) == 0 {
 			continue
 		}
 
-		for _, fileType := range ctx.FileTypes {
-			if r.matchesFilePattern(trigger.FilePattern, fileType) {
-				return 0.2
+		for _, fp := range trigger.FilePatterns {
+			for _, fileType := range ctx.FileTypes {
+				if r.matchesFilePattern(fp, fileType) {
+					return 0.2
+				}
 			}
 		}
 	}
@@ -458,7 +656,7 @@ func (r *Registry) ValidateAll() (*ValidationResult, error) {
 		return &ValidationResult{
 			Valid:  true,
 			Issues: []ValidationIssue{},
-			Score:  0,
+			Score:  nil,
 		}, nil
 	}
 
@@ -472,7 +670,9 @@ func (r *Registry) ValidateAll() (*ValidationResult, error) {
 		}
 
 		allIssues = append(allIssues, result.Issues...)
-		totalScore += result.Score
+		if result.Score != nil {
+			totalScore += result.Score.Total
+		}
 	}
 
 	avgScore := totalScore / float64(len(r.skills))
@@ -487,7 +687,7 @@ func (r *Registry) ValidateAll() (*ValidationResult, error) {
 	return &ValidationResult{
 		Valid:  valid,
 		Issues: allIssues,
-		Score:  avgScore,
+		Score:  &QualityScore{Total: avgScore},
 	}, nil
 }
 
@@ -495,7 +695,9 @@ func (r *Registry) ValidateAll() (*ValidationResult, error) {
 func (r *Registry) GetQualityReport() map[string]float64 {
 	report := make(map[string]float64, len(r.skills))
 	for _, skill := range r.skills {
-		report[skill.Name] = skill.QualityScore
+		if skill.QualityScore != nil {
+			report[skill.Name] = skill.QualityScore.Total
+		}
 	}
 	return report
 }

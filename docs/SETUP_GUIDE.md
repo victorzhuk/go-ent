@@ -61,13 +61,13 @@ project/
 
 ```bash
 # Initialize Claude Code agents
-go-ent init --tool=claude
+ent init --tool=claude
 
 # Initialize OpenCode agents
-go-ent init --tool=opencode
+ent init --tool=opencode
 
 # Initialize both platforms
-go-ent init --tool=all
+ent init --tool=all
 ```
 
 ---
@@ -77,7 +77,7 @@ go-ent init --tool=all
 ### 1. Initialize Configuration
 
 ```bash
-go-ent init --tool=opencode
+ent init --tool=opencode
 ```
 
 This creates:
@@ -159,7 +159,7 @@ tags:
 ### 1. Initialize Configuration
 
 ```bash
-go-ent init --tool=claude
+ent init --tool=claude
 ```
 
 This creates:
@@ -232,26 +232,26 @@ View dependency relationships:
 
 ```bash
 # Show all dependencies
-go-ent agents deps
+ent agents deps
 
 # Show dependencies for a specific agent
-go-ent agents deps coder
+ent agents deps coder
 
 # Show dependency tree
-go-ent agents deps --tree
+ent agents deps --tree
 ```
 
 ### Selective Agent Initialization
 
 ```bash
 # Initialize specific agents only
-go-ent init --tool=claude --agents coder,tester
+ent init --tool=claude --agents coder,tester
 
 # Initialize specific agents and auto-resolve transitive dependencies
-go-ent init --tool=claude --agents coder --include-deps
+ent init --tool=claude --agents coder --include-deps
 
 # Initialize specific agents without dependency validation
-go-ent init --tool=claude --agents coder --no-deps
+ent init --tool=claude --agents coder --no-deps
 ```
 
 ### Dependency Flags
@@ -268,19 +268,19 @@ go-ent init --tool=claude --agents coder --no-deps
 
 ```bash
 # You want to add only the coder agent to your project
-go-ent init --tool=claude --agents coder
+ent init --tool=claude --agents coder
 
 # Error: agent 'coder' has dependencies: tester, reviewer, debugger
 # Either include dependencies explicitly or use --include-deps
 
 # Option 1: Include all dependencies automatically
-go-ent init --tool=claude --agents coder --include-deps
+ent init --tool=claude --agents coder --include-deps
 
 # Option 2: Include dependencies explicitly
-go-ent init --tool=claude --agents coder,tester,reviewer,debugger
+ent init --tool=claude --agents coder,tester,reviewer,debugger
 
 # Option 3: Skip validation (not recommended)
-go-ent init --tool=claude --agents coder --no-deps
+ent init --tool=claude --agents coder --no-deps
 ```
 
 ---
@@ -359,13 +359,13 @@ The go-ent plugin provides a migration command:
 
 ```bash
 # Check migration status
-go-ent migrate --check
+ent migrate --check
 
 # Perform migration (creates backup)
-go-ent migrate --execute
+ent migrate --execute
 
 # Preview changes without executing
-go-ent migrate --dry-run
+ent migrate --dry-run
 ```
 
 The migration command:
@@ -445,13 +445,13 @@ Override the default model for specific agent patterns:
 
 ```bash
 # Use opus for all heavy agents
-go-ent init --tool=claude --model heavy=opus
+ent init --tool=claude --model heavy=opus
 
 # Use opus for planning agents tagged with heavy
-go-ent init --tool=claude --model "planning:heavy=opus"
+ent init --tool=claude --model "planning:heavy=opus"
 
 # Multiple overrides
-go-ent init --tool=claude --model heavy=opus --model fast=haiku
+ent init --tool=claude --model heavy=opus --model fast=haiku
 ```
 
 ### Update Existing Configuration
@@ -460,13 +460,13 @@ Update existing configuration without full reinitialization:
 
 ```bash
 # Update all components
-go-ent init --tool=claude --update
+ent init --tool=claude --update
 
 # Update only agents
-go-ent init --tool=claude --update --update-filter=agents
+ent init --tool=claude --update --update-filter=agents
 
 # Update agents and commands
-go-ent init --tool=claude --update --update-filter=agents,commands
+ent init --tool=claude --update --update-filter=agents,commands
 ```
 
 ### Preview Changes
@@ -474,7 +474,7 @@ go-ent init --tool=claude --update --update-filter=agents,commands
 Preview what would be generated without writing files:
 
 ```bash
-go-ent init --tool=claude --dry-run
+ent init --tool=claude --dry-run
 ```
 
 ### Force Overwrite
@@ -482,7 +482,7 @@ go-ent init --tool=claude --dry-run
 Force overwrite existing configuration:
 
 ```bash
-go-ent init --tool=claude --force
+ent init --tool=claude --force
 ```
 
 ---
@@ -495,7 +495,7 @@ The plugin also provides commands for common workflows:
 
 ```bash
 # Generate plan command
-go-ent init --tool=claude --update --update-filter=commands
+ent init --tool=claude --update --update-filter=commands
 
 # Use the command
 /go-ent:plan Add user authentication
@@ -512,7 +512,7 @@ go-ent init --tool=claude --update --update-filter=commands
 
 ```bash
 # Generate debug command
-go-ent init --tool=claude --update --update-filter=commands
+ent init --tool=claude --update --update-filter=commands
 
 # Use the command
 /go-ent:bug Fix authentication failing on login
@@ -542,10 +542,10 @@ claude
 
 ```bash
 # Validate all dependencies
-go-ent agents deps
+ent agents deps
 
 # Check for cycles or missing dependencies
-go-ent agents deps --validate
+ent agents deps --validate
 ```
 
 ---

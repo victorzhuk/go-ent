@@ -61,7 +61,7 @@ func skillValidateHandler(skillRegistry *skill.Registry) func(ctx context.Contex
 
 		output := SkillValidateOutput{
 			Valid:  result.Valid,
-			Score:  result.Score,
+			Score:  result.Score.Total,
 			Issues: result.Issues,
 		}
 

@@ -38,26 +38,26 @@ make validate-templates # Validate all skill templates
 
 ```bash
 # Create new skill from template
-go-ent skill new <name>              # Interactive mode
-go-ent skill new go-payment \
+ent skill new <name>              # Interactive mode
+ent skill new go-payment \
   --template go-basic \
   --description "Payment processing"
 
 # List available skills
-go-ent skill list
+ent skill list
 
 # Show skill details
-go-ent skill info go-code
+ent skill info go-code
 
 # List available templates
-go-ent skill list-templates
-go-ent skill list-templates --category go
+ent skill list-templates
+ent skill list-templates --category go
 
 # Show template details
-go-ent skill show-template go-complete
+ent skill show-template go-complete
 
 # Add custom template
-go-ent skill add-template /path/to/template
+ent skill add-template /path/to/template
 ```
 
 See [README.md](README.md#cli-commands) for complete CLI documentation.

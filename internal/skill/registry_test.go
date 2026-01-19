@@ -6,6 +6,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,6 +28,16 @@ func (m *mockSkill) CanHandle(ctx domain.SkillContext) bool {
 }
 func (m *mockSkill) Execute(_ context.Context, _ domain.SkillRequest) (domain.SkillResult, error) {
 	return domain.SkillResult{}, nil
+}
+
+func extractSkillNames(results []MatchResult) []string {
+	names := make([]string, 0, len(results))
+	for _, r := range results {
+		if r.Skill != nil {
+			names = append(names, r.Skill.Name)
+		}
+	}
+	return names
 }
 
 func TestNewRegistry(t *testing.T) {
@@ -516,7 +528,7 @@ Test instructions
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.True(t, result.Valid)
-		assert.Greater(t, result.Score, 0.0)
+		assert.Greater(t, result.Score.Total, 0.0)
 	})
 
 	t.Run("invalid skill", func(t *testing.T) {
@@ -593,7 +605,7 @@ Test instructions
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.True(t, result.Valid)
-		assert.Greater(t, result.Score, 0.0)
+		assert.Greater(t, result.Score.Total, 0.0)
 	})
 
 	t.Run("mixed valid and invalid skills", func(t *testing.T) {
@@ -657,7 +669,7 @@ description: "Invalid skill"
 		assert.NotNil(t, result)
 		assert.True(t, result.Valid)
 		assert.Empty(t, result.Issues)
-		assert.Equal(t, 0.0, result.Score)
+		assert.Nil(t, result.Score)
 	})
 }
 
@@ -785,7 +797,7 @@ Test instructions
 
 	meta, err := r.Get("test-skill")
 	require.NoError(t, err)
-	assert.Greater(t, meta.QualityScore, 0.0)
+	assert.Greater(t, meta.QualityScore.Total, 0.0)
 }
 
 func TestRegistry_FindMatchingSkills_WithContext_Boosting(t *testing.T) {
@@ -798,8 +810,10 @@ func TestRegistry_FindMatchingSkills_WithContext_Boosting(t *testing.T) {
 name: go-code
 description: "Go code patterns"
 triggers:
-  - pattern: "go"
-    filePattern: "*.go"
+  - patterns:
+      - "go"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -818,8 +832,10 @@ Test instructions
 name: py-code
 description: "Python code patterns"
 triggers:
-  - pattern: "python"
-    filePattern: "*.py"
+  - patterns:
+      - "python"
+    file_patterns:
+      - "*.py"
     weight: 0.7
 ---
 
@@ -842,7 +858,7 @@ Test instructions
 
 		matched := r.FindMatchingSkills("code", ctx)
 		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-code", matched[0], "go-code should be ranked higher due to file type boost")
+		assert.Equal(t, "go-code", matched[0].Skill.Name, "go-code should be ranked higher due to file type boost")
 	})
 
 	t.Run("task type boosting", func(t *testing.T) {
@@ -854,7 +870,8 @@ Test instructions
 name: go-test
 description: "Testing patterns with testify"
 triggers:
-  - pattern: "test"
+  - patterns:
+      - "test"
     weight: 0.7
 ---
 
@@ -873,7 +890,8 @@ Test instructions
 name: go-debug
 description: "Debugging methodology"
 triggers:
-  - pattern: "debug"
+  - patterns:
+      - "debug"
     weight: 0.7
 ---
 
@@ -896,7 +914,7 @@ Test instructions
 
 		matched := r.FindMatchingSkills("go", ctx)
 		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-test", matched[0], "go-test should be ranked higher due to task type boost")
+		assert.Equal(t, "go-test", matched[0].Skill.Name, "go-test should be ranked higher due to task type boost")
 	})
 
 	t.Run("task type from query extraction", func(t *testing.T) {
@@ -920,7 +938,8 @@ description: "Testing patterns"
 		}
 
 		matched := r.FindMatchingSkills("go", ctx)
-		assert.Contains(t, matched, "go-test", "go-test should match based on 'tests' keyword in query")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "go-test", "go-test should match based on 'tests' keyword in query")
 	})
 
 	t.Run("affinity boosting", func(t *testing.T) {
@@ -968,7 +987,7 @@ Test instructions
 
 		matched := r.FindMatchingSkills("skill", ctx)
 		assert.Len(t, matched, 2)
-		assert.Equal(t, "skill2", matched[0], "skill2 should be ranked higher due to affinity boost")
+		assert.Equal(t, "skill2", matched[0].Skill.Name, "skill2 should be ranked higher due to affinity boost")
 	})
 
 	t.Run("combined boosts", func(t *testing.T) {
@@ -980,8 +999,10 @@ Test instructions
 name: go-test
 description: "Testing patterns"
 triggers:
-  - pattern: "test"
-    filePattern: "*.go"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1000,8 +1021,10 @@ Test instructions
 name: py-test
 description: "Testing patterns"
 triggers:
-  - pattern: "test"
-    filePattern: "*.py"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.py"
     weight: 0.7
 ---
 
@@ -1026,7 +1049,7 @@ Test instructions
 
 		matched := r.FindMatchingSkills("test", ctx)
 		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-test", matched[0], "go-test should be ranked highest with multiple boosts")
+		assert.Equal(t, "go-test", matched[0].Skill.Name, "go-test should be ranked highest with multiple boosts")
 	})
 
 	t.Run("no context - backward compatible", func(t *testing.T) {
@@ -1046,7 +1069,8 @@ description: "Test skill"
 		require.NoError(t, r.Load(tmpDir))
 
 		matched := r.FindMatchingSkills("test")
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 }
 
@@ -1152,8 +1176,10 @@ description: "Generic skill"
 name: go-skill
 description: "Go patterns"
 triggers:
-  - pattern: "go"
-    filePattern: "*.go"
+  - patterns:
+      - "go"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1187,7 +1213,8 @@ Test instructions
 name: test-skill
 description: "Testing patterns"
 triggers:
-  - pattern: "test"
+  - patterns:
+      - "test"
     weight: 0.7
 ---
 
@@ -1215,8 +1242,10 @@ triggers:
 name: go-test
 description: "Go testing patterns"
 triggers:
-  - pattern: "test"
-    filePattern: "*.go"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1254,11 +1283,15 @@ func TestRegistry_FindMatchingSkills_WildcardPatterns(t *testing.T) {
 name: code-skill
 description: "Code patterns"
 triggers:
-  - pattern: "code"
-    filePattern: "**/*.go"
+  - patterns:
+      - "code"
+    file_patterns:
+      - "**/*.go"
     weight: 0.7
-  - pattern: "code"
-    filePattern: "**/*.md"
+  - patterns:
+      - "code"
+    file_patterns:
+      - "**/*.md"
     weight: 0.7
 ---
 
@@ -1281,7 +1314,7 @@ Test instructions
 
 		matched := r.FindMatchingSkills("code", ctx)
 		assert.Len(t, matched, 1)
-		assert.Equal(t, "code-skill", matched[0])
+		assert.Equal(t, "code-skill", matched[0].Skill.Name)
 	})
 
 	t.Run("wildcard pattern with directory", func(t *testing.T) {
@@ -1293,8 +1326,10 @@ Test instructions
 name: docs-skill
 description: "Documentation patterns"
 triggers:
-  - pattern: "doc"
-    filePattern: "**/*.md"
+  - patterns:
+      - "doc"
+    file_patterns:
+      - "**/*.md"
     weight: 0.7
 ---
 
@@ -1316,7 +1351,8 @@ Test instructions
 		}
 
 		matched := r.FindMatchingSkills("doc", ctx)
-		assert.Contains(t, matched, "docs-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "docs-skill")
 	})
 }
 
@@ -1330,8 +1366,10 @@ func TestRegistry_FindMatchingSkills_BoostedScoreOrdering(t *testing.T) {
 name: go-code
 description: "Go code patterns"
 triggers:
-  - pattern: "code"
-    filePattern: "*.go"
+  - patterns:
+      - "code"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1350,8 +1388,10 @@ Test instructions
 name: py-code
 description: "Python code patterns"
 triggers:
-  - pattern: "code"
-    filePattern: "*.py"
+  - patterns:
+      - "code"
+    file_patterns:
+      - "*.py"
     weight: 0.7
 ---
 
@@ -1370,7 +1410,8 @@ Test instructions
 name: generic-code
 description: "Generic code patterns"
 triggers:
-  - pattern: "code"
+  - patterns:
+      - "code"
     weight: 0.7
 ---
 
@@ -1393,9 +1434,9 @@ Test instructions
 
 		matched := r.FindMatchingSkills("code", ctx)
 		assert.Len(t, matched, 3)
-		assert.Equal(t, "go-code", matched[0], "go-code should be first with file boost")
-		assert.NotEqual(t, "go-code", matched[1])
-		assert.NotEqual(t, "go-code", matched[2])
+		assert.Equal(t, "go-code", matched[0].Skill.Name, "go-code should be first with file boost")
+		assert.NotEqual(t, "go-code", matched[1].Skill.Name)
+		assert.NotEqual(t, "go-code", matched[2].Skill.Name)
 	})
 
 	t.Run("multiple boosts rank correctly", func(t *testing.T) {
@@ -1407,8 +1448,10 @@ Test instructions
 name: go-test
 description: "Go testing"
 triggers:
-  - pattern: "test"
-    filePattern: "*.go"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1427,7 +1470,8 @@ Test instructions
 name: generic-test
 description: "Generic testing"
 triggers:
-  - pattern: "test"
+  - patterns:
+      - "test"
     weight: 0.7
 ---
 
@@ -1452,8 +1496,8 @@ Test instructions
 
 		matched := r.FindMatchingSkills("test", ctx)
 		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-test", matched[0], "go-test should be first with all boosts")
-		assert.Equal(t, "generic-test", matched[1])
+		assert.Equal(t, "go-test", matched[0].Skill.Name, "go-test should be first with all boosts")
+		assert.Equal(t, "generic-test", matched[1].Skill.Name)
 	})
 }
 
@@ -1481,7 +1525,8 @@ Test instructions
 		require.NoError(t, r.Load(tmpDir))
 
 		matched := r.FindMatchingSkills("test")
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("nil context", func(t *testing.T) {
@@ -1507,7 +1552,8 @@ Test instructions
 		require.NoError(t, r.Load(tmpDir))
 
 		matched := r.FindMatchingSkills("test", nil)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("empty MatchContext", func(t *testing.T) {
@@ -1534,7 +1580,8 @@ Test instructions
 
 		ctx := &MatchContext{}
 		matched := r.FindMatchingSkills("test", ctx)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("query-only and nil context produce same results", func(t *testing.T) {
@@ -1578,7 +1625,9 @@ Test instructions
 		matchedQueryOnly := r.FindMatchingSkills("skill")
 		matchedWithNilContext := r.FindMatchingSkills("skill", nil)
 
-		assert.ElementsMatch(t, matchedQueryOnly, matchedWithNilContext)
+		namesQueryOnly := extractSkillNames(matchedQueryOnly)
+		namesWithNilContext := extractSkillNames(matchedWithNilContext)
+		assert.ElementsMatch(t, namesQueryOnly, namesWithNilContext)
 	})
 
 	t.Run("no errors with empty context fields", func(t *testing.T) {
@@ -1590,8 +1639,10 @@ Test instructions
 name: test-skill
 description: "Test skill"
 triggers:
-  - pattern: "test"
-    filePattern: "*.go"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1615,7 +1666,8 @@ Test instructions
 		}
 
 		matched := r.FindMatchingSkills("test", ctx)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("empty file types list handled gracefully", func(t *testing.T) {
@@ -1627,8 +1679,10 @@ Test instructions
 name: test-skill
 description: "Test skill"
 triggers:
-  - pattern: "test"
-    filePattern: "*.go"
+  - patterns:
+      - "test"
+    file_patterns:
+      - "*.go"
     weight: 0.7
 ---
 
@@ -1650,7 +1704,8 @@ Test instructions
 		}
 
 		matched := r.FindMatchingSkills("test", ctx)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("empty task type handled gracefully", func(t *testing.T) {
@@ -1662,7 +1717,8 @@ Test instructions
 name: test-skill
 description: "Test skill"
 triggers:
-  - pattern: "test"
+  - patterns:
+      - "test"
     weight: 0.7
 ---
 
@@ -1684,7 +1740,8 @@ Test instructions
 		}
 
 		matched := r.FindMatchingSkills("test", ctx)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
 	})
 
 	t.Run("empty active skills handled gracefully", func(t *testing.T) {
@@ -1715,6 +1772,123 @@ Test instructions
 		}
 
 		matched := r.FindMatchingSkills("test", ctx)
-		assert.Contains(t, matched, "test-skill")
+		names := extractSkillNames(matched)
+		assert.Contains(t, names, "test-skill")
+	})
+}
+
+func Test_matchesPattern_CacheBehavior(t *testing.T) {
+	t.Run("caches compiled patterns", func(t *testing.T) {
+		pattern := "test.*pattern"
+
+		firstMatch := matchesPattern("test123pattern", pattern)
+		secondMatch := matchesPattern("test456pattern", pattern)
+
+		assert.True(t, firstMatch)
+		assert.True(t, secondMatch)
+
+		cacheMutex.RLock()
+		_, exists := patternCache[strings.ToLower(pattern)]
+		cacheMutex.RUnlock()
+
+		assert.True(t, exists, "pattern should be cached after first use")
+	})
+
+	t.Run("reuses cached pattern across multiple queries", func(t *testing.T) {
+		pattern := "go.*code"
+		queries := []string{"go code", "go123code", "go-xyz-code"}
+
+		for _, query := range queries {
+			matched := matchesPattern(query, pattern)
+			assert.True(t, matched, "query '%s' should match pattern", query)
+		}
+
+		cacheMutex.RLock()
+		cachedPattern, exists := patternCache[strings.ToLower(pattern)]
+		cacheMutex.RUnlock()
+
+		assert.True(t, exists, "pattern should be in cache")
+		assert.NotNil(t, cachedPattern, "cached pattern should not be nil")
+	})
+
+	t.Run("handles invalid patterns gracefully", func(t *testing.T) {
+		invalidPattern := "[invalid(regex"
+
+		matched := matchesPattern("test", invalidPattern)
+		assert.False(t, matched, "invalid pattern should not match")
+
+		cacheMutex.RLock()
+		_, exists := patternCache[strings.ToLower(invalidPattern)]
+		cacheMutex.RUnlock()
+
+		assert.False(t, exists, "invalid pattern should not be cached")
+	})
+
+	t.Run("case insensitive pattern caching", func(t *testing.T) {
+		pattern1 := "Test.*Pattern"
+		pattern2 := "test.*pattern"
+
+		matchesPattern("test123pattern", pattern1)
+		matchesPattern("test456pattern", pattern2)
+
+		cacheMutex.RLock()
+		count := 0
+		for key := range patternCache {
+			if strings.Contains(key, "test.*pattern") {
+				count++
+			}
+		}
+		cacheMutex.RUnlock()
+
+		assert.Equal(t, 1, count, "should have only one cached entry for case-insensitive patterns")
+	})
+}
+
+func Test_matchesPattern_ThreadSafety(t *testing.T) {
+	t.Run("concurrent reads do not block", func(t *testing.T) {
+		pattern := "test.*pattern"
+
+		var wg sync.WaitGroup
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				matchesPattern("test123pattern", pattern)
+			}()
+		}
+
+		wg.Wait()
+
+		cacheMutex.RLock()
+		_, exists := patternCache[strings.ToLower(pattern)]
+		cacheMutex.RUnlock()
+
+		assert.True(t, exists)
+	})
+
+	t.Run("concurrent writes handle duplicate compilation", func(t *testing.T) {
+		pattern := "concurrent.*test"
+
+		var wg sync.WaitGroup
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				matchesPattern("concurrent123test", pattern)
+			}()
+		}
+
+		wg.Wait()
+
+		cacheMutex.RLock()
+		count := 0
+		for key := range patternCache {
+			if strings.Contains(key, "concurrent.*test") {
+				count++
+			}
+		}
+		cacheMutex.RUnlock()
+
+		assert.Equal(t, 1, count, "should have only one cached entry despite concurrent writes")
 	})
 }

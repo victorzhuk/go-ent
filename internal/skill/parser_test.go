@@ -249,12 +249,14 @@ description: 'Testing patterns with testify, testcontainers'
 version: '1.0.0'
 author: Test Author
 triggers:
-  - pattern: "write.*test"
+  - patterns:
+      - "write.*test"
     keywords:
       - testing
       - tdd
     weight: 0.8
-  - pattern: "test.*framework"
+  - patterns:
+      - "test.*framework"
     weight: 0.7
 ---
 <role>
@@ -276,10 +278,10 @@ Test role
 	assert.Equal(t, "1.0.0", result.Version)
 	assert.Equal(t, "Test Author", result.Author)
 	assert.Len(t, result.ExplicitTriggers, 2)
-	assert.Equal(t, "write.*test", result.ExplicitTriggers[0].Pattern)
+	assert.Equal(t, []string{"write.*test"}, result.ExplicitTriggers[0].Patterns)
 	assert.Equal(t, []string{"testing", "tdd"}, result.ExplicitTriggers[0].Keywords)
 	assert.Equal(t, 0.8, result.ExplicitTriggers[0].Weight)
-	assert.Equal(t, "test.*framework", result.ExplicitTriggers[1].Pattern)
+	assert.Equal(t, []string{"test.*framework"}, result.ExplicitTriggers[1].Patterns)
 	assert.Equal(t, 0.7, result.ExplicitTriggers[1].Weight)
 	assert.Contains(t, result.Triggers, "write.*test")
 	assert.Contains(t, result.Triggers, "testing")
@@ -324,12 +326,12 @@ func TestParser_triggersToStrings(t *testing.T) {
 
 	triggers := []Trigger{
 		{
-			Pattern:  "write.*test",
+			Patterns: []string{"write.*test"},
 			Keywords: []string{"testing", "tdd"},
 		},
 		{
-			FilePattern: "**/*_test.go",
-			Weight:      0.7,
+			FilePatterns: []string{"**/*_test.go"},
+			Weight:       0.7,
 		},
 	}
 
@@ -509,15 +511,16 @@ func TestParser_ParseSkillFile_ExplicitTriggersEdgeCases(t *testing.T) {
 name: test-skill
 description: Test description
 triggers:
-  - pattern: "write.*test"
+  - patterns:
+      - "write.*test"
 ---
 <role>test</role>`,
 			verify: func(t *testing.T, meta *SkillMeta) {
 				assert.Len(t, meta.ExplicitTriggers, 1)
-				assert.Equal(t, "write.*test", meta.ExplicitTriggers[0].Pattern)
+				assert.Equal(t, []string{"write.*test"}, meta.ExplicitTriggers[0].Patterns)
 				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
 				assert.Empty(t, meta.ExplicitTriggers[0].Keywords)
-				assert.Empty(t, meta.ExplicitTriggers[0].FilePattern)
+				assert.Empty(t, meta.ExplicitTriggers[0].FilePatterns)
 			},
 		},
 		{
@@ -535,23 +538,24 @@ triggers:
 				assert.Len(t, meta.ExplicitTriggers, 1)
 				assert.Equal(t, []string{"testing", "tdd"}, meta.ExplicitTriggers[0].Keywords)
 				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
-				assert.Empty(t, meta.ExplicitTriggers[0].Pattern)
+				assert.Empty(t, meta.ExplicitTriggers[0].Patterns)
 			},
 		},
 		{
-			name: "trigger with only filePattern",
+			name: "trigger with only file_pattern",
 			content: `---
 name: test-skill
 description: Test description
 triggers:
-  - filePattern: "**/*_test.go"
+  - file_patterns:
+      - "**/*_test.go"
 ---
 <role>test</role>`,
 			verify: func(t *testing.T, meta *SkillMeta) {
 				assert.Len(t, meta.ExplicitTriggers, 1)
-				assert.Equal(t, "**/*_test.go", meta.ExplicitTriggers[0].FilePattern)
+				assert.Equal(t, []string{"**/*_test.go"}, meta.ExplicitTriggers[0].FilePatterns)
 				assert.Equal(t, 0.7, meta.ExplicitTriggers[0].Weight)
-				assert.Empty(t, meta.ExplicitTriggers[0].Pattern)
+				assert.Empty(t, meta.ExplicitTriggers[0].Patterns)
 			},
 		},
 		{
@@ -560,11 +564,13 @@ triggers:
 name: test-skill
 description: Test description
 triggers:
-  - pattern: "write.*test"
+  - patterns:
+      - "write.*test"
     keywords:
       - testing
     weight: 0.9
-  - filePattern: "**/*.go"
+  - file_patterns:
+      - "**/*.go"
     weight: 0.6
   - keywords:
       - go code
@@ -572,10 +578,10 @@ triggers:
 <role>test</role>`,
 			verify: func(t *testing.T, meta *SkillMeta) {
 				assert.Len(t, meta.ExplicitTriggers, 3)
-				assert.Equal(t, "write.*test", meta.ExplicitTriggers[0].Pattern)
+				assert.Equal(t, []string{"write.*test"}, meta.ExplicitTriggers[0].Patterns)
 				assert.Equal(t, []string{"testing"}, meta.ExplicitTriggers[0].Keywords)
 				assert.Equal(t, 0.9, meta.ExplicitTriggers[0].Weight)
-				assert.Equal(t, "**/*.go", meta.ExplicitTriggers[1].FilePattern)
+				assert.Equal(t, []string{"**/*.go"}, meta.ExplicitTriggers[1].FilePatterns)
 				assert.Equal(t, 0.6, meta.ExplicitTriggers[1].Weight)
 				assert.Equal(t, []string{"go code"}, meta.ExplicitTriggers[2].Keywords)
 				assert.Equal(t, 0.7, meta.ExplicitTriggers[2].Weight)

@@ -17,12 +17,12 @@ This document provides practical examples of using the `go-ent` CLI commands.
 
 ```bash
 # Display version information
-go-ent version
+ent version
 ```
 
 Output:
 ```
-go-ent v1.0.0
+ent v1.0.0
   go: go1.25.5
 ```
 
@@ -30,12 +30,12 @@ go-ent v1.0.0
 
 ```bash
 # Root help
-go-ent --help
+ent --help
 
 # Command-specific help
-go-ent config --help
-go-ent agent --help
-go-ent spec --help
+ent config --help
+ent agent --help
+ent spec --help
 ```
 
 ## Configuration Management
@@ -44,10 +44,10 @@ go-ent spec --help
 
 ```bash
 # Initialize config in current directory
-go-ent config init
+ent config init
 
 # Initialize config in specific directory
-go-ent config init /path/to/project
+ent config init /path/to/project
 ```
 
 Output:
@@ -66,13 +66,13 @@ Default configuration:
 
 ```bash
 # Show full YAML config
-go-ent config show
+ent config show
 
 # Show config from specific directory
-go-ent config show /path/to/project
+ent config show /path/to/project
 
 # Show config summary
-go-ent config show --format summary
+ent config show --format summary
 ```
 
 YAML Output:
@@ -95,7 +95,7 @@ budget:
 
 Summary Output:
 ```
-# go-ent Configuration
+# ent Configuration
 
 **Version**: 1.0
 
@@ -118,19 +118,19 @@ Summary Output:
 
 ```bash
 # Set daily budget
-go-ent config set budget.daily 25
+ent config set budget.daily 25
 
 # Set monthly budget
-go-ent config set budget.monthly 500
+ent config set budget.monthly 500
 
 # Change default agent
-go-ent config set agents.default architect
+ent config set agents.default architect
 
 # Change preferred runtime
-go-ent config set runtime.preferred cli
+ent config set runtime.preferred cli
 
 # Modify in specific directory
-go-ent config set budget.daily 50 /path/to/project
+ent config set budget.daily 50 /path/to/project
 ```
 
 Output:
@@ -143,26 +143,26 @@ Output:
 **Budget Management:**
 ```bash
 # Conservative budget
-go-ent config set budget.daily 5
-go-ent config set budget.monthly 100
-go-ent config set budget.per_task 0.5
+ent config set budget.daily 5
+ent config set budget.monthly 100
+ent config set budget.per_task 0.5
 
 # Production budget
-go-ent config set budget.daily 50
-go-ent config set budget.monthly 1000
-go-ent config set budget.per_task 5
+ent config set budget.daily 50
+ent config set budget.monthly 1000
+ent config set budget.per_task 5
 ```
 
 **Agent Selection:**
 ```bash
 # Use architect for design work
-go-ent config set agents.default architect
+ent config set agents.default architect
 
 # Use developer for implementation
-go-ent config set agents.default developer
+ent config set agents.default developer
 
 # Use senior for balanced work
-go-ent config set agents.default senior
+ent config set agents.default senior
 ```
 
 ## Agent Management
@@ -171,10 +171,10 @@ go-ent config set agents.default senior
 
 ```bash
 # List all agents (compact)
-go-ent agent list
+ent agent list
 
 # List with details
-go-ent agent list --detailed
+ent agent list --detailed
 ```
 
 Compact Output:
@@ -202,9 +202,9 @@ Agent: developer
 
 ```bash
 # Get specific agent details
-go-ent agent info architect
-go-ent agent info developer
-go-ent agent info senior
+ent agent info architect
+ent agent info developer
+ent agent info senior
 ```
 
 Output:
@@ -233,10 +233,10 @@ Best for:
 
 ```bash
 # List all skills (compact)
-go-ent skill list
+ent skill list
 
 # List with details
-go-ent skill list --detailed
+ent skill list --detailed
 ```
 
 Compact Output:
@@ -266,9 +266,9 @@ Skill: go-code
 
 ```bash
 # Get specific skill details
-go-ent skill info go-arch
-go-ent skill info go-code
-go-ent skill info go-test
+ent skill info go-arch
+ent skill info go-code
+ent skill info go-test
 ```
 
 Output:
@@ -303,10 +303,10 @@ Best Practices:
 
 ```bash
 # Initialize in current directory
-go-ent spec init
+ent spec init
 
 # Initialize in specific directory
-go-ent spec init /path/to/project
+ent spec init /path/to/project
 ```
 
 Output:
@@ -316,20 +316,20 @@ Output:
 Next steps:
   1. Create specs: openspec/specs/{name}/spec.md
   2. Create changes: openspec/changes/{id}/proposal.md
-  3. Run: go-ent spec list spec
+  3. Run: ent spec list spec
 ```
 
 ### List Specs
 
 ```bash
 # List all specs
-go-ent spec list spec
+ent spec list spec
 
 # List all changes
-go-ent spec list change
+ent spec list change
 
 # List from specific directory
-go-ent spec list spec /path/to/project
+ent spec list spec /path/to/project
 ```
 
 Output:
@@ -348,13 +348,13 @@ CHANGES (active: 2):
 
 ```bash
 # Show a specific spec
-go-ent spec show spec api
+ent spec show spec api
 
 # Show a specific change
-go-ent spec show change add-authentication
+ent spec show change add-authentication
 
 # Show from specific directory
-go-ent spec show spec api /path/to/project
+ent spec show spec api /path/to/project
 ```
 
 ## Advanced Usage
@@ -363,41 +363,41 @@ go-ent spec show spec api /path/to/project
 
 ```bash
 # Initialize project, create config, list agents
-go-ent spec init && \
-  go-ent config init && \
-  go-ent agent list --detailed
+ent spec init && \
+  ent config init && \
+  ent agent list --detailed
 
 # Check configuration and list available skills
-go-ent config show --format summary && \
-  go-ent skill list
+ent config show --format summary && \
+  ent skill list
 ```
 
 ### Using Global Flags
 
 ```bash
 # Verbose output
-go-ent --verbose config show
+ent --verbose config show
 
 # Custom config file
-go-ent --config /custom/path/config.yaml agent list
+ent --config /custom/path/config.yaml agent list
 
 # Combine flags
-go-ent --verbose --config ./my-config.yaml spec list spec
+ent --verbose --config ./my-config.yaml spec list spec
 ```
 
 ### Working with Multiple Projects
 
 ```bash
 # Project A configuration
-go-ent config show /projects/project-a
-go-ent config set budget.daily 10 /projects/project-a
+ent config show /projects/project-a
+ent config set budget.daily 10 /projects/project-a
 
 # Project B configuration
-go-ent config show /projects/project-b
-go-ent config set budget.daily 50 /projects/project-b
+ent config show /projects/project-b
+ent config set budget.daily 50 /projects/project-b
 
 # Compare agent setup
-go-ent agent list
+ent agent list
 ```
 
 ### Scripting Examples
@@ -409,9 +409,9 @@ go-ent agent list
 
 for project in project-a project-b project-c; do
   echo "Configuring $project..."
-  go-ent config init "$project"
-  go-ent config set budget.daily 20 "$project"
-  go-ent config set agents.default senior "$project"
+  ent config init "$project"
+  ent config set budget.daily 20 "$project"
+  ent config set agents.default senior "$project"
 done
 ```
 
@@ -445,7 +445,7 @@ echo ""
 
 for agent in architect developer senior; do
   echo "## Agent: $agent"
-  go-ent agent info "$agent" | sed 's/^/  /'
+  ent agent info "$agent" | sed 's/^/  /'
   echo ""
 done
 ```
@@ -470,10 +470,10 @@ jobs:
           chmod +x /usr/local/bin/go-ent
 
       - name: Validate config
-        run: go-ent config show
+        run: ent config show
 
       - name: List agents
-        run: go-ent agent list --detailed
+        run: ent agent list --detailed
 ```
 
 **GitLab CI:**
@@ -481,8 +481,8 @@ jobs:
 validate-config:
   stage: test
   script:
-    - go-ent config show
-    - go-ent spec list spec
+    - ent config show
+    - ent spec list spec
   only:
     - main
     - develop
@@ -496,10 +496,10 @@ validate-config:
 ls -la .go-ent/config.yaml
 
 # Initialize if missing
-go-ent config init
+ent config init
 
 # Verify it works
-go-ent config show
+ent config show
 ```
 
 **Permission errors:**
@@ -515,24 +515,24 @@ chmod 644 .go-ent/config.yaml
 **View default configuration:**
 ```bash
 # Even without init, you can see defaults
-go-ent config show /tmp/nonexistent
+ent config show /tmp/nonexistent
 ```
 
 ## Quick Reference
 
 | Command | Description |
 |---------|-------------|
-| `go-ent version` | Show version |
-| `go-ent config init` | Initialize config |
-| `go-ent config show` | Display config |
-| `go-ent config set <key> <value>` | Update config |
-| `go-ent agent list` | List agents |
-| `go-ent agent info <name>` | Agent details |
-| `go-ent skill list` | List skills |
-| `go-ent skill info <name>` | Skill details |
-| `go-ent spec init` | Initialize specs |
-| `go-ent spec list <type>` | List specs/changes |
-| `go-ent spec show <type> <id>` | Show spec/change |
+| `ent version` | Show version |
+| `ent config init` | Initialize config |
+| `ent config show` | Display config |
+| `ent config set <key> <value>` | Update config |
+| `ent agent list` | List agents |
+| `ent agent info <name>` | Agent details |
+| `ent skill list` | List skills |
+| `ent skill info <name>` | Skill details |
+| `ent spec init` | Initialize specs |
+| `ent spec list <type>` | List specs/changes |
+| `ent spec show <type> <id>` | Show spec/change |
 
 ## Next Steps
 

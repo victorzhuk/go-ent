@@ -2,17 +2,17 @@
 
 ## Summary
 
-Add four new validation rules aligned with research findings: example diversity, instruction conciseness, explicit triggers, and redundancy detection.
+Add four new validation rules (SK010-SK013) aligned with research findings and the research-based quality scoring system. These rules provide actionable feedback across five key quality categories: Structure, Content, Examples, Triggers, and Conciseness.
 
 ## Problem
 
-Current 9 validation rules (SK001-SK009) cover basic structure but miss critical quality factors identified in research:
-- **No diversity check**: Skills can pass with 5 identical examples
-- **No conciseness check**: Skills can be 20k tokens and pass validation
-- **No trigger format check**: Description-based triggers are silent failures
-- **No redundancy check**: Skills with 90% overlap go undetected
+Current 9 validation rules (SK001-SK009) cover basic structure but miss critical quality factors identified in research and the skill quality scoring system:
+- **No diversity check**: Skills can pass with 5 identical examples, missing the **Examples** category's diversity requirement (up to 8pts)
+- **No conciseness check**: Skills can be 20k tokens and pass validation, despite the **Conciseness** category penalizing >5k tokens
+- **No trigger format check**: Description-based triggers are silent failures, even though **Triggers** category rewards explicit format (15pts max)
+- **No redundancy check**: Skills with 90% overlap go undetected, causing issues in both **Structure** and **Content** categories
 
-These gaps allow low-quality skills that technically "pass" but perform poorly in practice.
+These gaps allow low-quality skills that technically "pass" but perform poorly in practice and score low on the quality metrics.
 
 ## Solution
 
@@ -62,6 +62,33 @@ Detects high overlap (>70%) with other skills in the system.
 - **Validator** (`internal/skill/validator.go`): Register new rules
 - **Registry** (`internal/skill/registry.go`): Add overlap detection for SK013
 
+## Alignment with Quality Scoring Categories
+
+The new validation rules (SK010-SK013) align directly with the research-based quality scoring categories:
+
+| Validation Rule | Quality Category | Scoring Impact | Alignment |
+|----------------|------------------|----------------|-----------|
+| **SK010: example-diversity** | Examples | 0-8pts for diversity | Warns when examples lack variety, directly addressing the diversity scoring criteria |
+| **SK011: instruction-concise** | Conciseness | 0-15pts (penalty >5k tokens) | Warns when skills exceed token limits, matching the conciseness scoring thresholds |
+| **SK012: trigger-explicit** | Triggers | 15pts max for explicit format | Encourages explicit triggers which score higher than description-based (5pts max) |
+| **SK013: redundancy-check** | Structure + Content | Impacts multiple categories | Detects overlap that dilutes scores across structure, content, and examples |
+
+### How Validation Rules Complement Scoring
+
+**Validation rules** (SK001-SK013) provide immediate, actionable feedback during skill development:
+- Binary pass/warn/info checks
+- Specific, targeted guidance
+- Fast feedback loop for authors
+
+**Quality scoring** provides comprehensive evaluation across 100 points:
+- nuanced assessment (0-100 scale)
+- Multiple dimensions (5 categories)
+- Benchmarking and progress tracking
+
+Together they form a two-tiered quality system:
+1. **Validation**: Quick checks for common issues (prevents obvious problems)
+2. **Scoring**: Comprehensive evaluation (identifies improvement opportunities)
+
 ## Alternatives Considered
 
 1. **Make rules errors instead of warnings**: Block skills that fail
@@ -72,5 +99,6 @@ Detects high overlap (>70%) with other skills in the system.
 
 3. **Four targeted rules** (chosen):
    - ✅ Addresses research-identified gaps
+   - ✅ Aligns with quality scoring categories
    - ✅ Non-blocking (warnings/info)
    - ✅ Actionable guidance

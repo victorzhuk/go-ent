@@ -1090,7 +1090,7 @@ func TestValidateExplicitTriggers_SK012(t *testing.T) {
 				StructureVersion: "v2",
 				ExplicitTriggers: []Trigger{
 					{
-						Pattern:  "write.*test",
+						Patterns: []string{"write.*test"},
 						Keywords: []string{"testing", "tdd"},
 						Weight:   0.8,
 					},
@@ -1160,8 +1160,8 @@ func TestValidateExplicitTriggers_SK012(t *testing.T) {
 				StructureVersion: "v2",
 				ExplicitTriggers: []Trigger{
 					{
-						Pattern: "write.*test",
-						Weight:  0.9,
+						Patterns: []string{"write.*test"},
+						Weight:   0.9,
 					},
 					{
 						Keywords: []string{"testing", "tdd"},

@@ -51,13 +51,13 @@ Auto-detection:
 
 Examples:
   # Interactive mode with auto-detected category
-  go-ent skill new go-payment
+  ent skill new go-payment
 
   # Interactive mode with manual template selection
-  go-ent skill new my-skill --template go-basic
+  ent skill new my-skill --template go-basic
 
   # Non-interactive mode with all flags
-  go-ent skill new go-api \
+  ent skill new go-api \
     --template go-complete \
     --description "REST API skill with best practices" \
     --category go \
@@ -65,7 +65,7 @@ Examples:
     --tags "api,rest,http"
 
   # Non-interactive mode (category auto-detected)
-  go-ent skill new test-helper \
+  ent skill new test-helper \
     --template testing \
     --description "Testing helper skill"
 
@@ -120,7 +120,7 @@ Environment variables:
 			fmt.Printf("  Category: %s\n\n", cfg.Category)
 			fmt.Printf("Next steps:\n")
 			fmt.Printf("  1. Review and customize the generated skill file\n")
-			fmt.Printf("  2. Test with: go-ent skill info %s\n", cfg.Name)
+			fmt.Printf("  2. Test with: ent skill info %s\n", cfg.Name)
 
 			return nil
 		},

@@ -21,15 +21,15 @@ type SkillMeta struct {
 	Tags             []string
 	AllowedTools     []string
 	StructureVersion string
-	QualityScore     float64
+	QualityScore     *QualityScore
 }
 
 // Trigger represents an explicit trigger for skill activation.
 type Trigger struct {
-	Pattern     string   `yaml:"pattern,omitempty"`
-	Keywords    []string `yaml:"keywords,omitempty"`
-	FilePattern string   `yaml:"filePattern,omitempty"`
-	Weight      float64  `yaml:"weight,omitempty"`
+	Patterns     []string `yaml:"patterns,omitempty"`
+	Keywords     []string `yaml:"keywords,omitempty"`
+	FilePatterns []string `yaml:"file_patterns,omitempty"`
+	Weight       float64  `yaml:"weight,omitempty"`
 }
 
 // skillMetaV2 represents v2 frontmatter structure for unmarshaling.
@@ -240,16 +240,20 @@ func (p *Parser) triggersToStrings(explicit []Trigger) []string {
 	result := make([]string, 0, len(explicit)*3)
 
 	for _, t := range explicit {
-		if t.Pattern != "" {
-			result = append(result, strings.ToLower(t.Pattern))
+		for _, pat := range t.Patterns {
+			if pat != "" {
+				result = append(result, strings.ToLower(pat))
+			}
 		}
 		for _, kw := range t.Keywords {
 			if kw != "" {
 				result = append(result, strings.ToLower(kw))
 			}
 		}
-		if t.FilePattern != "" {
-			result = append(result, strings.ToLower(t.FilePattern))
+		for _, fp := range t.FilePatterns {
+			if fp != "" {
+				result = append(result, strings.ToLower(fp))
+			}
 		}
 	}
 
