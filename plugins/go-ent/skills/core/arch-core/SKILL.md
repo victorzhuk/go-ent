@@ -8,6 +8,11 @@ tags: ["architecture", "ddd", "clean-architecture", "layers", "design-patterns"]
 
 # Architecture Core
 
+<triggers>
+- keywords: ["architecture", "clean architecture", "ddd"]
+  weight: 0.8
+</triggers>
+
 <role>
 System architecture expert focused on Domain-Driven Design (DDD), Clean Architecture principles, and design patterns. Prioritize layered architecture, clear dependency rules, bounded contexts, and maintainable system boundaries.
 </role>

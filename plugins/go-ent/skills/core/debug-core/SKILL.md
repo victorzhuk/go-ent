@@ -4,12 +4,17 @@ description: "Debugging methodology and techniques. Auto-activates for: troubles
 version: "2.0.0"
 author: "go-ent"
 tags: ["debugging", "troubleshooting", "root-cause", "investigation"]
+triggers:
+  - keywords: ["debug", "troubleshoot"]
+    weight: 0.5
 ---
 
 # Debugging Core
 
 <role>
-Debugging specialist focused on systematic investigation and evidence-based problem solving. Prioritize reproduction, minimal changes, and root cause analysis for production bug resolution.
+Debugging specialist focused on systematic investigation and evidence-based problem solving.
+
+Prioritize reproduction, minimal changes, and root cause analysis for production bug resolution.
 </role>
 
 <instructions>
@@ -157,114 +162,21 @@ If issue requires database investigation: Query production database (read-only),
 
 **Problem**: POST /api/users returns 504 Gateway Timeout after 30s
 
-### Step 1: Gather Information
-```bash
-# Check server logs
-kubectl logs deployment/api-server -l app=api-server | grep timeout
-# Result: No specific error, just connection closed
+### Investigation Steps
+1. **Gather Information**: Check logs (no specific error), check DB connection (multiple queries >20s)
+2. **Identify Pattern**: Analyze slow queries - INSERT INTO users takes 25s average
+3. **Hypothesis**: User creation triggers slow INSERT due to missing index or trigger
+4. **Test Hypothesis**: Check table structure, indexes, triggers - found `update_email_stats` trigger
+5. **Investigate Trigger**: Trigger function has N+1 query pattern updating stats for each user
+6. **Minimal Reproduction**: Test without trigger (50ms), with trigger (25s) - confirmed
+7. **Root Cause (5 Whys)**: timeout → insert slow → trigger → N+1 queries → no optimization review
 
-# Check database connection
-kubectl exec -it postgres-0 -- psql -U admin -d appdb
-SELECT * FROM pg_stat_activity WHERE state = 'active';
-# Result: Multiple queries running > 20s
-```
+### Fix
+Replace N+1 trigger loop with single batched INSERT/UPDATE using ON CONFLICT
 
-### Step 2: Identify Pattern
-```bash
-# Analyze slow queries
-SELECT query, mean_exec_time, calls
-FROM pg_stat_statements
-ORDER BY mean_exec_time DESC
-LIMIT 5;
-# Result: INSERT INTO users... takes 25s on average
-```
+**Result**: 50ms (500x improvement), load test passes with 100 concurrent requests
 
-### Step 3: Hypothesis
-**Theory**: User creation triggers slow INSERT due to missing index or trigger
-
-### Step 4: Test Hypothesis
-```sql
--- Check table structure
-\d users
-
--- Check indexes
-\di users*
-
--- Check triggers
-SELECT trigger_name, event_manipulation
-FROM information_schema.triggers
-WHERE event_object_table = 'users';
-# Found: `update_email_stats` trigger runs on INSERT
-```
-
-### Step 5: Investigate Trigger
-```sql
--- Analyze trigger function
-SELECT pg_get_functiondef(oid)
-FROM pg_proc
-WHERE proname = 'update_email_stats';
-# Found: N+1 query pattern updating stats for each user
-```
-
-### Step 6: Minimal Reproduction
-```go
-// Test without trigger
-db.Exec("DROP TRIGGER update_email_stats ON users")
-// Create user: 50ms - confirmed trigger is the issue
-
-// Test with trigger (before fix)
-db.Exec("CREATE TRIGGER update_email_stats AFTER INSERT ON users ...")
-// Create user: 25s - reproduced
-```
-
-### Step 7: Root Cause Analysis (5 Whys)
-```
-1. Why timeout? → Insert takes 25s
-2. Why insert slow? → Trigger updates email stats
-3. Why stats slow? → N+1 queries for each email domain
-4. Why N+1? → Not batched, no indexing on email_domain
-5. Why no optimization? → Legacy code, never reviewed
-Root: Missing performance review for database triggers
-```
-
-### Step 8: Fix (Minimal Change)
-```sql
--- Before: N+1 queries
-FOR EACH ROW
-BEGIN
-  UPDATE email_stats SET count = count + 1
-  WHERE email_domain = SUBSTRING(NEW.email FROM '@(.*)$');
-END
-
--- After: Single batch update
-CREATE OR REPLACE FUNCTION update_email_stats()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO email_stats (email_domain, count)
-  VALUES (SUBSTRING(NEW.email FROM '@(.*)$'), 1)
-  ON CONFLICT (email_domain)
-  DO UPDATE SET count = email_stats.count + 1;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-### Step 9: Verify Fix
-```
-Test: Create user with trigger
-Result: 50ms (500x improvement)
-
-Load test: 100 concurrent user creations
-Result: All < 100ms, no timeouts
-```
-
-### Step 10: Prevent Future
-- [ ] Add database performance review to code review checklist
-- [ ] Add trigger performance monitoring
-- [ ] Document N+1 query anti-patterns for team
-- [ ] Add integration test for user creation performance
-
-**Outcome**: Issue resolved in production, 99% of affected users retried successfully
+**Prevention**: Add DB performance review checklist, trigger monitoring, integration tests
 </output>
 </example>
 
@@ -275,165 +187,40 @@ Result: All < 100ms, no timeouts
 
 **Problem**: Memory usage increases continuously, service OOM kills after 24h
 
-### Step 1: Observe Pattern
-```bash
-# Monitor memory
-kubectl top pod -l app=order-service --watch
-# Result: Steady increase from 100MB to 2GB over 24h
+### Investigation Steps
+1. **Observe Pattern**: Monitor memory - steady increase from 100MB to 2GB over 24h
+2. **Get Memory Profile**: `go tool pprof heap.pb` shows 80% of memory in "orderQueue" map
+3. **Inspect Code**: Find `orderQueue map[string]*Order` in OrderProcessor
+4. **Identify Leak Mechanism**: Successful orders never removed from queue in Process() function
+5. **Hypothesis**: Orders pile up in map and are never deleted, retry goroutines accumulate
+6. **Test Hypotheses**: Load test 1000 successful orders → queue size 1000 (should be 0) ✓
 
-# Get memory profile
-curl http://order-service:8080/debug/pprof/heap > heap.pb
-go tool pprof -http=:8080 heap.pb
-# Found: 80% of memory in "orderQueue" map
-```
+### Root Cause
+Symptom: Memory leak in orderQueue map → Cause: Successful orders never deleted → Root: Missing cleanup in happy path
 
-### Step 2: Inspect Code
+### Fix
 ```go
-type OrderProcessor struct {
-    orderQueue map[string]*Order  // Potential leak
-    mutex      sync.RWMutex
-}
-
 func (p *OrderProcessor) Process(order *Order) error {
     p.mutex.Lock()
     defer p.mutex.Unlock()
-
-    // Add to queue
     p.orderQueue[order.ID] = order
-
-    // Process...
     processed := p.processOrder(order)
-
+    defer delete(p.orderQueue, order.ID)  // ✓ Always remove
     if processed {
-        // ❌ Missing: delete from queue after processing
         return nil
     }
-
-    // Retry logic
     go p.retryOrder(order)
     return nil
 }
 ```
 
-### Step 3: Identify Leak Mechanism
-```go
-// Issue 1: Successful orders never removed from queue
-if processed {
-    // Should be: delete(p.orderQueue, order.ID)
-    return nil
-}
+### Additional Safeguards
+- Add prometheus metric for queue size
+- Add MaxQueueSize guard (reject if full)
 
-// Issue 2: Retrying orders accumulate
-go p.retryOrder(order)  // Creates new goroutine, but entry stays in map
-```
+**Result**: Stable memory usage at 150MB, zero OOM kills
 
-### Step 4: Hypothesis
-**Theory 1**: Orders pile up in `orderQueue` map and are never removed
-**Theory 2**: Retry goroutines accumulate without cleanup
-
-### Step 5: Test Hypotheses
-```go
-// Add debug logging
-log.Printf("Queue size: %d", len(p.orderQueue))
-
-// Run load test: 1000 orders, all succeed
-// Queue size: 1000 (should be 0) ✓ Confirmed Theory 1
-
-// Run load test: 1000 orders, all fail and retry
-// Queue size: 1000 (should be 1000, not growing) ✗ Theory 2 not primary
-```
-
-### Step 6: Root Cause Analysis
-```
-Symptom: Memory leak in orderQueue map
-↓
-Cause: Successful orders never deleted
-↓
-Root Cause: Missing cleanup in happy path
-↓
-Contributing Factor: No queue size monitoring
-```
-
-### Step 7: Fix
-```go
-func (p *OrderProcessor) Process(order *Order) error {
-    p.mutex.Lock()
-    defer p.mutex.Unlock()
-
-    // Add to queue
-    p.orderQueue[order.ID] = order
-
-    // Process...
-    processed := p.processOrder(order)
-
-    // ✓ Fixed: Always remove from queue
-    defer delete(p.orderQueue, order.ID)
-
-    if processed {
-        return nil
-    }
-
-    // Retry logic
-    go p.retryOrder(order)
-    return nil
-}
-```
-
-### Step 8: Add Monitoring
-```go
-// Add metrics
-func (p *OrderProcessor) QueueSize() int {
-    p.mutex.RLock()
-    defer p.mutex.RUnlock()
-    return len(p.orderQueue)
-}
-
-// Export as prometheus metric
-var queueSizeGauge = promauto.NewGauge(prometheus.GaugeOpts{
-    Name: "order_queue_size",
-    Help: "Number of orders in processing queue",
-})
-
-// Update periodically
-go func() {
-    for range time.Tick(10 * time.Second) {
-        queueSizeGauge.Set(float64(p.QueueSize()))
-    }
-}()
-```
-
-### Step 9: Add Guardrails
-```go
-const MaxQueueSize = 10000
-
-func (p *OrderProcessor) Process(order *Order) error {
-    p.mutex.Lock()
-    defer p.mutex.Unlock()
-
-    // Reject if queue full
-    if len(p.orderQueue) >= MaxQueueSize {
-        return fmt.Errorf("queue full, reject order %s", order.ID)
-    }
-
-    // ... rest of processing
-}
-```
-
-### Step 10: Verification
-```
-Load test: 10000 orders over 1 hour
-Memory usage: Stable at 150MB (no leak)
-Queue size: Oscillates 0-500 (normal processing)
-```
-
-### Prevention Checklist
-- [ ] Add cleanup in defer for all map insertions
-- [ ] Monitor collection sizes with metrics
-- [ ] Add alerting for abnormal growth
-- [ ] Code review checklist: "Are resources cleaned up?"
-- [ ] Load test memory behavior for all services
-
-**Outcome**: Fix deployed, stable memory usage, zero OOM kills
+**Prevention**: Cleanup in defer for map insertions, monitor collection sizes, alert on growth
 </output>
 </example>
 
@@ -444,181 +231,44 @@ Queue size: Oscillates 0-500 (normal processing)
 
 **Problem**: Cache occasionally returns wrong values for different keys (once per ~1000 requests)
 
-### Step 1: Gather Reproduction Info
-```bash
-# Enable race detector in test
-go test -race -count=100 ./cache
-# Result: No race detected in tests
+### Investigation Steps
+1. **Gather Info**: Race detector shows nothing in tests, production logs show key mismatches
+2. **Create Focused Test**: Concurrent access test with 100 goroutines × 100 iterations each
+3. **Run with Race Detector**: `go test -race -count=10` - DATA RACE detected in cache implementation
+4. **Identify Race**: `Get()` has RWMutex, but calls `lazyLoad()` which modifies map while read-locked
+5. **Hypothesis**: Get() modifies map while holding read lock, causing race with concurrent Set()
+6. **Verify Hypothesis**: Test confirms race in lazyLoad during read lock
 
-# Production logs
-grep "cache mismatch" app.log | tail -20
-# Found: Different keys map to same value occasionally
-```
+### Root Cause
+Map modification during read-locked access (RWMutex lock upgrade is not possible)
 
-### Step 2: Create Focused Test
+### Fix
 ```go
-func TestCacheConcurrentAccess(t *testing.T) {
-    cache := NewCache()
-
-    var wg sync.WaitGroup
-    for i := 0; i < 100; i++ {
-        wg.Add(1)
-        go func(id int) {
-            defer wg.Done()
-            for j := 0; j < 100; j++ {
-                key := fmt.Sprintf("key-%d-%d", id, j)
-                val := fmt.Sprintf("val-%d-%d", id, j)
-                cache.Set(key, val)
-                got := cache.Get(key)
-                if got != val {
-                    t.Errorf("key=%s want=%s got=%s", key, val, got)
-                }
-            }
-        }(i)
-    }
-    wg.Wait()
-}
-```
-
-### Step 3: Run with Race Detector
-```bash
-go test -race -run TestCacheConcurrentAccess -count=10
-# Result: DATA RACE detected in cache implementation
-```
-
-### Step 4: Identify Race
-```go
-// Cache implementation
-type Cache struct {
-    data map[string]string
-    mu   sync.RWMutex
-}
-
-func (c *Cache) Set(key, value string) {
-    c.mu.Lock()        // ✓ Has lock
-    c.data[key] = value
-    c.mu.Unlock()
-}
-
 func (c *Cache) Get(key string) string {
-    c.mu.RLock()       // ✓ Has lock
-    defer c.mu.RUnlock()
-
-    // ❌ RACE: Modifying map during read-locked access
-    val, ok := c.data[key]
-    if !ok {
-        // Trigger lazy load - modifies map while read-locked!
-        c.lazyLoad(key)
-        val = c.data[key]
-    }
-    return val
-}
-
-func (c *Cache) lazyLoad(key string) {
-    // ❌ No lock upgrade from read to write (not possible in sync.RWMutex)
-    c.data[key] = loadFromDB(key)
-}
-```
-
-### Step 5: Hypothesis
-**Theory**: `Get()` modifies map while holding read lock, causing race with concurrent `Set()` operations
-
-### Step 6: Verify Hypothesis
-```go
-// Fix attempt 1: Upgrade lock (wrong approach)
-func (c *Cache) Get(key string) string {
-    c.mu.RLock()
-    defer c.mu.RUnlock()
-
-    val, ok := c.data[key]
-    if !ok {
-        c.mu.RUnlock()   // Release read lock
-        c.mu.Lock()      // Acquire write lock
-        val = c.lazyLoad(key)
-        c.mu.Unlock()
-        c.mu.RLock()    // Re-acquire for defer - deadlock prone!
-    }
-    return val
-}
-// ❌ This can deadlock with concurrent readers
-```
-
-### Step 7: Proper Fix
-```go
-// Fix: Use separate lazy loading with proper locking
-func (c *Cache) Get(key string) string {
-    // First try with read lock (fast path)
+    // Fast path: read lock
     c.mu.RLock()
     val, ok := c.data[key]
     c.mu.RUnlock()
-
     if ok {
         return val
     }
-
-    // Slow path: load with write lock
+    // Slow path: write lock with double-check
     c.mu.Lock()
     defer c.mu.Unlock()
-
-    // Double-check: another goroutine might have loaded it
     if val, ok := c.data[key]; ok {
         return val
     }
-
-    // Load and store
     val = loadFromDB(key)
     c.data[key] = val
     return val
 }
 ```
 
-### Step 8: Alternative Fix: Lazy Initialization
-```go
-// Or use sync.Map for lazy loading
-type Cache struct {
-    data sync.Map
-}
+**Alternative**: Use `sync.Map` with `LoadOrStore()` for atomic lazy loading
 
-func (c *Cache) Get(key string) string {
-    if val, ok := c.data.Load(key); ok {
-        return val.(string)
-    }
+**Result**: Race detector passes, zero data corruption
 
-    // sync.Map.LoadOrStore is atomic
-    val, _ := c.data.LoadOrStore(key, loadFromDB(key))
-    return val.(string)
-}
-```
-
-### Step 9: Verify Fix
-```bash
-# Test with race detector
-go test -race -count=100 -timeout=10m ./cache
-# Result: PASS - no race detected
-
-# Production load test
-ab -n 100000 -c 100 http://cache:8080/get
-# Result: 100% success rate, no mismatches
-```
-
-### Prevention Measures
-```go
-// Add to CI pipeline
-// .github/workflows/test.yml
-- name: Run tests with race detector
-  run: go test -race ./...
-
-// Add static analysis
-- name: Run staticcheck
-  run: staticcheck ./...
-
-// Add code review checklist
-- [ ] Are shared data structures properly synchronized?
-- [ ] Can read/write races occur?
-- [ ] Are defer RUnlock() calls in right places?
-```
-
-**Outcome**: Race eliminated, zero data corruption incidents after fix
+**Prevention**: Run race detector in CI, add static analysis, code review checklist for shared data
 </output>
 </example>
 </examples>

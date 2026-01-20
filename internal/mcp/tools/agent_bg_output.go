@@ -175,6 +175,7 @@ func buildAgentBgOutputMessage(snap background.Snapshot, pattern, data string) s
 
 	msg += "## Output\n\n"
 
+	//nolint:gocritic // if-else chain appropriate for different conditions
 	if snap.Status == background.StatusRunning {
 		msg += "Agent is still running. Output will be available when the agent completes.\n\n"
 	} else if snap.Output == "" {

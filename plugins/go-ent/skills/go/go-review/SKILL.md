@@ -6,6 +6,13 @@ author: "go-ent"
 tags: ["go", "review", "code-quality", "linting"]
 ---
 
+<triggers>
+  keywords:
+    - "code review"
+    - "pull request"
+  weight: 0.8
+</triggers>
+
 # Go Code Review
 
 <role>

@@ -590,9 +590,7 @@ func (b *Builder) isReferenceToSymbol(ident *ast.Ident, target *Symbol) bool {
 	}
 
 	// Check if this identifier refers to our target symbol
-	// Handle both variables (with Obj) and fields (with Obj.Decl)
-	// This avoids shadowing issues
-	if ident.Obj == nil && ident.Obj.Decl == nil {
+	if ident.Obj == nil {
 		return false
 	}
 
@@ -619,6 +617,7 @@ func (b *Builder) isReferenceToSymbol(ident *ast.Ident, target *Symbol) bool {
 	return false
 }
 
+//nolint:staticcheck // Using deprecated ast.Object API - requires type info for alternatives
 func (b *Builder) findObjectForSymbol(sym *Symbol) *ast.Object {
 	if sym == nil || sym.Scope == nil {
 		return nil

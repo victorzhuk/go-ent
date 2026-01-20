@@ -104,7 +104,7 @@ func makeAgentBgKillHandler(manager *background.Manager) func(context.Context, *
 }
 
 func buildAgentBgKillMessage(agent *background.Agent, data string) string {
-	msg := fmt.Sprintf("🛑 Background Agent Terminated\n\n")
+	msg := "🛑 Background Agent Terminated\n\n"
 	msg += fmt.Sprintf("**Agent ID**: `%s`\n\n", agent.ID)
 	msg += fmt.Sprintf("**Status**: %s\n", agent.Status)
 	msg += fmt.Sprintf("**Role**: %s\n", agent.Role)

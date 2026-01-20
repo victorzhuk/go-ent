@@ -1020,12 +1020,13 @@ func TestCodeMode_BlockedFunctionAccess_MultipleAccessPatterns(t *testing.T) {
 			codeMode := NewCodeMode(sandbox)
 
 			result, err := codeMode.Execute(context.Background(), tt.script, nil)
-			if tt.expected == "error" {
+			switch tt.expected {
+			case "error":
 				assert.Error(t, err)
-			} else if tt.expected == "undefined" {
+			case "undefined":
 				require.NoError(t, err)
 				assert.Equal(t, "undefined", result)
-			} else {
+			default:
 				require.NoError(t, err)
 				assert.Nil(t, result)
 			}

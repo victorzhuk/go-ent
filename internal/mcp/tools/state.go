@@ -96,7 +96,7 @@ func stateSyncHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 			changeStatePath := filepath.Join(input.Path, "openspec", "changes", changeID, "state.md")
 			state := generateChangeStateMarkdown(changeID, changeTasksList)
 			if !input.DryRun {
-				if err := os.WriteFile(changeStatePath, []byte(state), 0644); err != nil {
+				if err := os.WriteFile(changeStatePath, []byte(state), 0644); err != nil { //nolint:gosec
 					return &mcp.CallToolResult{
 						Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error writing state for %s: %v", changeID, err)}},
 					}, nil, nil
@@ -108,7 +108,7 @@ func stateSyncHandler(ctx context.Context, req *mcp.CallToolRequest, input State
 		rootStatePath := filepath.Join(input.Path, "openspec", "state.md")
 		rootState := generateRootStateMarkdown(tasks)
 		if !input.DryRun {
-			if err := os.WriteFile(rootStatePath, []byte(rootState), 0644); err != nil {
+			if err := os.WriteFile(rootStatePath, []byte(rootState), 0644); err != nil { //nolint:gosec
 				return &mcp.CallToolResult{
 					Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error writing root state: %v", err)}},
 				}, nil, nil

@@ -175,3 +175,19 @@ func (a *Agent) GetSnapshot() Snapshot {
 		Error:       a.Error,
 	}
 }
+
+// ToAgent converts a snapshot back to an Agent instance.
+func (s Snapshot) ToAgent() *Agent {
+	return &Agent{
+		ID:          s.ID,
+		Role:        s.Role,
+		Model:       s.Model,
+		Task:        s.Task,
+		Status:      s.Status,
+		CreatedAt:   s.CreatedAt,
+		StartedAt:   s.StartedAt,
+		CompletedAt: s.CompletedAt,
+		Output:      s.Output,
+		Error:       s.Error,
+	}
+}

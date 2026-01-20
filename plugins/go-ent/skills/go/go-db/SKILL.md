@@ -4,7 +4,14 @@ description: "PostgreSQL, ClickHouse, Redis integration with pgx, squirrel, goos
 version: "2.0.0"
 author: "go-ent"
 tags: ["go", "database", "pgx", "squirrel", "postgres"]
+depends_on: [go-code]
 ---
+
+<triggers>
+- keywords: ["database", "sql"]
+  file_pattern: "**/*_repo.go"
+  weight: 0.8
+</triggers>
 
 # Go Database
 
@@ -190,212 +197,24 @@ If architecture decisions are needed: Delegate to go-arch skill for repository p
 </edge_cases>
 
 <examples>
-<example>
-<input>Implement repository with squirrel for complex query with joins and filters</input>
-<output>
-```go
-package userrepo
 
-import (
-    "context"
-    "fmt"
+## Squirrel Queries with Joins
+For detailed implementation, see: `references/squirrel-queries.md`
 
-    "github.com/Masterminds/squirrel"
-    "github.com/jackc/pgx/v5"
-    "github.com/jackc/pgx/v5/pgxpool"
-    "github.com/google/uuid"
-)
+## Redis Cache-Aside Pattern
+For detailed implementation, see: `references/caching-patterns.md`
 
-type repository struct {
-    pool *pgxpool.Pool
-    psql squirrel.StatementBuilderType
-}
+## Goose Migrations with Rollback Strategy
+For detailed implementation, see: `references/goose-migrations.md`
 
-func New(pool *pgxpool.Pool) *repository {
-    return &repository{
-        pool: pool,
-        psql: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
-    }
-}
+## Database Transactions with Error Handling
+For detailed implementation, see: `references/transactions.md`
 
-type listFilter struct {
-    email    *string
-    status   *string
-    limit    int
-    offset   int
-}
+## CRUD Operations with Error Handling
+For detailed implementation, see: `references/crud-operations.md`
 
-func (r *repository) List(ctx context.Context, filter listFilter) ([]*entity.User, error) {
-    query := r.psql.
-        Select(
-            "u.id", "u.email", "u.name", "u.status",
-            "p.id as profile_id", "p.bio",
-        ).
-        From("users u").
-        Join("profiles p ON p.user_id = u.id").
-        Where(sq.Eq{"u.status": "active"}).
-        Limit(uint64(filter.limit)).
-        Offset(uint64(filter.offset))
-
-    if filter.email != nil {
-        query = query.Where(sq.ILike{"u.email": *filter.email + "%"})
-    }
-
-    if filter.status != nil {
-        query = query.Where(sq.Eq{"u.status": *filter.status})
-    }
-
-    sql, args, _ := query.ToSql()
-
-    rows, err := r.pool.Query(ctx, sql, args...)
-    if err != nil {
-        return nil, fmt.Errorf("query: %w", err)
-    }
-    defer rows.Close()
-
-    var users []*entity.User
-    for rows.Next() {
-        var m userModel
-        if err := rows.Scan(
-            &m.ID, &m.Email, &m.Name, &m.Status,
-            &m.ProfileID, &m.Bio,
-        ); err != nil {
-            return nil, fmt.Errorf("scan: %w", err)
-        }
-        users = append(users, toEntity(&m))
-    }
-
-    return users, nil
-}
-```
-
-**Benefits**: Dynamic WHERE clauses, type-safe query building, joins across tables.
-</output>
-</example>
-
-<example>
-<input>Implement cached repository with cache-aside pattern</input>
-<output>
-```go
-package userrepo
-
-import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "time"
-
-    "github.com/redis/go-redis/v9"
-)
-
-type cachedRepository struct {
-    repo  *repository
-    redis *redis.Client
-    ttl   time.Duration
-}
-
-func NewCached(repo *repository, redis *redis.Client, ttl time.Duration) *cachedRepository {
-    return &cachedRepository{
-        repo:  repo,
-        redis: redis,
-        ttl:   ttl,
-    }
-}
-
-func (r *cachedRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-    key := fmt.Sprintf("user:%s", id)
-
-    // Try cache first
-    data, err := r.redis.Get(ctx, key).Bytes()
-    if err == nil {
-        var user entity.User
-        if err := json.Unmarshal(data, &user); err == nil {
-            return &user, nil
-        }
-    }
-
-    // Cache miss - get from DB
-    user, err := r.repo.FindByID(ctx, id)
-    if err != nil {
-        return nil, fmt.Errorf("db query: %w", err)
-    }
-
-    // Populate cache
-    data, _ = json.Marshal(user)
-    _ = r.redis.Set(ctx, key, data, r.ttl).Err()
-
-    return user, nil
-}
-
-func (r *cachedRepository) Save(ctx context.Context, user *entity.User) error {
-    // Save to DB first
-    if err := r.repo.Save(ctx, user); err != nil {
-        return fmt.Errorf("db save: %w", err)
-    }
-
-    // Invalidate cache
-    key := fmt.Sprintf("user:%s", user.ID)
-    _ = r.redis.Del(ctx, key).Err()
-
-    return nil
-}
-```
-
-**Pattern**: Cache-aside ensures cache is only populated on demand, invalidation happens on writes.
-</output>
-</example>
-
-<example>
-<input>Write goose migration with proper rollback strategy</input>
-<output>
-```sql
--- +goose Up
-BEGIN;
-
-CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended');
-
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    status user_status NOT NULL DEFAULT 'active',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_status ON users(status);
-CREATE INDEX idx_users_created_at ON users(created_at DESC);
-
-CREATE TRIGGER update_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
-COMMIT;
-
--- +goose Down
-BEGIN;
-
-DROP TRIGGER IF EXISTS update_updated_at ON users;
-DROP INDEX IF EXISTS idx_users_created_at;
-DROP INDEX IF EXISTS idx_users_status;
-DROP INDEX IF EXISTS idx_users_email;
-DROP TABLE IF EXISTS users;
-DROP TYPE IF EXISTS user_status;
-
-COMMIT;
-```
-
-**Best practices**:
-- Wrap in transactions
-- Drop in reverse order of creation
-- Use IF EXISTS for safe rollback
-- Include indexes and triggers
-- Add updated_at trigger for audit trail
-</output>
-</example>
 </examples>
+
 
 <output_format>
 Provide database implementation guidance with the following structure:

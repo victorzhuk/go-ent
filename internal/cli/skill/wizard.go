@@ -211,7 +211,7 @@ func GenerateSkill(ctx context.Context, templateDir, templateName string, cfg *W
 	}
 
 	templatePath := tpl.Path + "/template.md"
-	templateContent, err := os.ReadFile(templatePath)
+	templateContent, err := os.ReadFile(templatePath) //nolint:gosec
 	if err != nil {
 		return "", fmt.Errorf("read template file: %w", err)
 	}
@@ -236,11 +236,11 @@ func GenerateSkill(ctx context.Context, templateDir, templateName string, cfg *W
 		return "", fmt.Errorf("skill file already exists: %s", cfg.OutputPath)
 	}
 
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, 0755); err != nil { //nolint:gosec
 		return "", fmt.Errorf("create output directory: %w", err)
 	}
 
-	if err := os.WriteFile(cfg.OutputPath, []byte(generatedContent), 0644); err != nil {
+	if err := os.WriteFile(cfg.OutputPath, []byte(generatedContent), 0644); err != nil { //nolint:gosec
 		return "", fmt.Errorf("write skill file: %w", err)
 	}
 

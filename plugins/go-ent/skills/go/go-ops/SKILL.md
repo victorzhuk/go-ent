@@ -4,6 +4,10 @@ description: "DevOps patterns with Docker, Kubernetes, Helm, CI/CD. Auto-activat
 version: "2.0.0"
 author: "go-ent"
 tags: ["go", "ops", "devops", "docker", "kubernetes", "ci-cd"]
+triggers:
+  - keywords: ["deploy", "docker", "kubernetes", "ops", "deployment", "container", "k8s", "helm", "cicd", "pipeline", "infrastructure"]
+    file_patterns: ["Dockerfile", "docker-compose.yml", "Dockerfile.*", "**/k8s/*.yaml", "**/kubernetes/*.yaml", "helm/**/Chart.yaml", ".github/workflows/*.yml", ".gitlab-ci.yml"]
+    weight: 0.8
 ---
 
 # Go DevOps

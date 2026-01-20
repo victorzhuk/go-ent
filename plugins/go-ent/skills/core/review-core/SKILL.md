@@ -6,6 +6,13 @@ author: "go-ent"
 tags: ["review", "code-quality", "best-practices", "pr-review"]
 ---
 
+<triggers>
+  keywords:
+    - "code review"
+    - "pull request"
+  weight: 0.8
+</triggers>
+
 # Code Review Core
 
 <role>
@@ -155,33 +162,24 @@ If documentation is missing for public APIs: Request documentation updates but m
 ```go
 // Before (vulnerable)
 if hashedPassword == request.Password {
-    // Login successful
 }
 ```
-
-**Issue**: String comparison is not constant-time, enabling timing attacks.
 
 **Fix**: Use `crypto/subtle.ConstantTimeCompare`:
 ```go
 if subtle.ConstantTimeCompare([]byte(hashedPassword), []byte(request.Password)) == 1 {
-    // Login successful
 }
 ```
-
-**Resources**: [OWASP: Timing Attacks](https://owasp.org/www-community/attacks/Timing_attacks)
 
 ---
 
 **❌ 2. Rate limiting missing**
 
 ```go
-// No rate limiting on login endpoint
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
     // ... login logic
 }
 ```
-
-**Issue**: Enables brute force attacks on passwords.
 
 **Fix**: Implement rate limiting:
 ```go
@@ -193,7 +191,7 @@ type Handler struct {
 
 func NewHandler() *Handler {
     return &Handler{
-        limiter: rate.NewLimiter(rate.Every(time.Second), 10), // 10 req/s
+        limiter: rate.NewLimiter(rate.Every(time.Second), 10),
     }
 }
 
@@ -202,7 +200,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Too many requests", http.StatusTooManyRequests)
         return
     }
-    // ... login logic
 }
 ```
 
@@ -214,21 +211,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 ```go
 if err := db.QueryUser(username); err != nil {
-    log.Printf("User lookup failed: %v", err)
-    http.Error(w, "User not found", http.StatusNotFound)  // Reveals user existence
-    return
+    http.Error(w, "User not found", http.StatusNotFound)
 }
 ```
 
-**Issue**: Reveals whether username exists, aiding enumeration attacks.
+**Issue**: Reveals whether username exists.
 
-**Fix**: Generic error message for invalid credentials:
+**Fix**: Generic error message:
 ```go
-if err != nil {
-    log.Printf("Auth failed for %s: %v", username, err)
-    http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-    return
-}
+http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 ```
 
 ---
@@ -238,10 +229,8 @@ if err != nil {
 ```go
 func LoginRequest(r *http.Request) (*LoginRequest, error) {
     var req LoginRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        return nil, err
-    }
-    return &req, nil  // No validation
+    json.NewDecoder(r.Body).Decode(&req)
+    return &req
 }
 ```
 
@@ -254,9 +243,6 @@ func (req *LoginRequest) Validate() error {
     if len(req.Password) < 8 {
         return errors.New("password must be at least 8 characters")
     }
-    if len(req.Password) > 128 {
-        return errors.New("password too long")
-    }
     return nil
 }
 ```
@@ -265,9 +251,8 @@ func (req *LoginRequest) Validate() error {
 
 ### Medium Priority Issues (P2 - Suggestions)
 
-**💡 5. Consider adding failed login tracking**
+**💡 5. Add failed login tracking**
 
-Track failed attempts to implement account lockout:
 ```go
 type FailedLoginTracker struct {
     attempts map[string]int
@@ -299,22 +284,13 @@ w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains
 
 ---
 
-### Positive Feedback
-
-✅ Good job using `bcrypt` for password hashing
-✅ Proper error handling throughout
-✅ Clear function separation
-✅ Tests cover happy path and error cases
-
----
-
 ### Summary
 
 **Action**: Request changes (2 P0, 2 P1 issues)
 
-**Estimated time to fix**: 1-2 hours
+**Blocking**: Timing attack fix, rate limiting, generic error messages, input validation
 
-**Notes**: Security is critical for auth endpoints. Please address P0 and P1 issues before requesting re-review. P2 items can be follow-up PRs.
+**Notes**: Security is critical for auth endpoints. P2 items can be follow-up PRs.
 
 </output>
 </example>
@@ -334,46 +310,28 @@ type PaymentService struct {
 }
 
 func (s *PaymentService) ProcessPayment(ctx context.Context, req *PaymentRequest) (*PaymentResponse, error) {
-    // Direct Stripe API calls throughout
     charge, err := s.stripeClient.Charges.New(&stripe.ChargeParams{
         Amount:   stripe.Int64(req.Amount),
         Currency: stripe.String("usd"),
         Source:   &stripe.SourceParams{Token: stripe.String(req.Token)},
     })
-    // ...
 }
 ```
 
 **Issue**: Business logic tightly coupled to specific payment provider. Difficult to test, migrate, or support multiple providers.
 
-**Suggested Approach**: Introduce payment gateway abstraction:
+**Fix**: Introduce payment gateway abstraction:
 ```go
-// Gateway interface at domain level
 type PaymentGateway interface {
     Charge(ctx context.Context, req *ChargeRequest) (*ChargeResponse, error)
     Refund(ctx context.Context, req *RefundRequest) (*RefundResponse, error)
     GetStatus(ctx context.Context, transactionID string) (TransactionStatus, error)
 }
 
-// Stripe implementation
-type StripeGateway struct {
-    client *stripe.Client
-}
-
-func (g *StripeGateway) Charge(ctx context.Context, req *ChargeRequest) (*ChargeResponse, error) {
-    // Stripe-specific logic
-}
-
-// Service uses interface
 type PaymentService struct {
     gateway PaymentGateway
 }
 ```
-
-**Benefits**:
-- Easy to add other providers (PayPal, Braintree)
-- Testable with mock gateway
-- Provider-specific concerns isolated
 
 ---
 
@@ -381,86 +339,58 @@ type PaymentService struct {
 
 ```go
 func (s *PaymentService) ProcessOrder(ctx context.Context, order *Order) error {
-    // Create payment record
     if err := s.repo.CreatePayment(ctx, payment); err != nil {
         return err
     }
-
-    // Charge payment
     charge, err := s.gateway.Charge(ctx, req)
     if err != nil {
-        // Payment record created but charge failed - inconsistent state
         return err
     }
-
-    // Update order
     if err := s.repo.UpdateOrder(ctx, order); err != nil {
-        // Payment charged but order not updated - money lost!
         return err
     }
-
     return nil
 }
 ```
 
-**Issue**: No transaction boundaries. Partial failures lead to inconsistent state and potential data corruption.
+**Issue**: No transaction boundaries. Partial failures lead to inconsistent state.
 
-**Suggested Approach**: Implement saga pattern or compensating transactions:
+**Fix**: Implement compensating transactions:
 ```go
 func (s *PaymentService) ProcessOrder(ctx context.Context, order *Order) error {
-    // Step 1: Create payment record (pending)
     payment, err := s.repo.CreatePendingPayment(ctx, order)
     if err != nil {
         return fmt.Errorf("create payment: %w", err)
     }
 
-    // Step 2: Charge
     charge, err := s.gateway.Charge(ctx, toChargeReq(payment))
     if err != nil {
-        // Compensate: mark payment as failed
         s.repo.MarkPaymentFailed(ctx, payment.ID, err)
         return fmt.Errorf("charge payment: %w", err)
     }
 
-    // Step 3: Update order
     if err := s.repo.MarkOrderPaid(ctx, order.ID, charge.ID); err != nil {
-        // Compensate: refund the charge
         s.gateway.Refund(ctx, toRefundReq(charge))
         s.repo.MarkPaymentRefunded(ctx, payment.ID)
         return fmt.Errorf("update order: %w", err)
     }
 
-    // Success: confirm payment
     s.repo.MarkPaymentConfirmed(ctx, payment.ID, charge.ID)
     return nil
 }
 ```
 
-**Benefits**:
-- Consistent state even with failures
-- Automatic rollback via compensating actions
-- Audit trail of all state changes
-
 ---
 
 ### Code Quality Issues (P2 - Suggestions)
 
-**💡 3. Error handling could be more specific**
+**💡 3. Define domain errors**
 
-```go
-// Generic errors
-if err != nil {
-    return fmt.Errorf("process payment: %w", err)
-}
-```
-
-**Suggestion**: Define domain errors for better error handling:
 ```go
 var (
     ErrPaymentFailed     = errors.New("payment failed")
     ErrInsufficientFunds = errors.New("insufficient funds")
     ErrCardDeclined      = errors.New("card declined")
-    ErrGatewayTimeout    = errors.New("gateway timeout")
 )
 
 func mapGatewayError(err error) error {
@@ -478,48 +408,29 @@ func mapGatewayError(err error) error {
 
 ---
 
-**💡 4. Consider adding idempotency keys**
+**💡 4. Add idempotency keys**
 
 ```go
 type ChargeRequest struct {
-    Amount          int64
-    Currency        string
-    Source          string
-    IdempotencyKey  string  // Prevent duplicate charges
+    Amount         int64
+    IdempotencyKey string
 }
 
 func (s *PaymentService) ProcessPayment(ctx context.Context, req *ChargeRequest) (*ChargeResponse, error) {
-    // Check if already processed
     if existing, err := s.repo.FindByIdempotencyKey(ctx, req.IdempotencyKey); err == nil {
         return existing, nil
     }
-
-    // Process new charge
-    // ...
 }
 ```
 
 ---
 
-**💡 5. Add circuit breaker for external calls**
+**💡 5. Add circuit breaker**
 
 ```go
-import "github.com/sony/gobreaker"
-
 type PaymentService struct {
-    gateway    PaymentGateway
-    breaker    *gobreaker.CircuitBreaker
-}
-
-func NewPaymentService(gateway PaymentGateway) *PaymentService {
-    return &PaymentService{
-        gateway: gateway,
-        breaker: gobreaker.NewCircuitBreaker(gobreaker.Settings{
-            MaxRequests: 5,
-            Interval:    time.Minute,
-            Timeout:     10 * time.Second,
-        }),
-    }
+    gateway PaymentGateway
+    breaker *gobreaker.CircuitBreaker
 }
 
 func (s *PaymentService) Charge(ctx context.Context, req *ChargeRequest) (*ChargeResponse, error) {
@@ -527,9 +438,6 @@ func (s *PaymentService) Charge(ctx context.Context, req *ChargeRequest) (*Charg
         return s.gateway.Charge(ctx, req)
     })
     if err != nil {
-        if errors.Is(err, gobreaker.ErrOpenState) {
-            return nil, errors.New("payment gateway temporarily unavailable")
-        }
         return nil, err
     }
     return result.(*ChargeResponse), nil
@@ -538,36 +446,13 @@ func (s *PaymentService) Charge(ctx context.Context, req *ChargeRequest) (*Charg
 
 ---
 
-### Positive Feedback
-
-✅ Good separation of concerns between service and repository layers
-✅ Clear domain model with Payment entity
-✅ Context propagation throughout
-✅ Comprehensive error logging
-✅ Integration tests for happy path
-
----
-
-### Recommendations
-
-**Refactor Priority**:
-1. **High**: Add payment gateway abstraction (P1)
-2. **High**: Implement transaction boundaries (P1)
-3. **Medium**: Define domain errors (P2)
-4. **Medium**: Add idempotency (P2)
-5. **Low**: Circuit breaker (P3 - can be follow-up)
-
-**Estimated effort**: 2-3 days for P1 items, 1-2 days for P2
-
----
-
 ### Summary
 
 **Action**: Request changes (architectural concerns)
 
-**Rationale**: Tight coupling and missing transaction boundaries pose production risks. Abstraction and proper error handling patterns will improve maintainability and reliability.
+**Blocking**: Payment gateway abstraction, transaction boundaries
 
-**Next steps**: Address P1 items in this PR or create separate refactoring PRs with migration plan.
+**Suggestions**: Domain errors, idempotency, circuit breaker
 
 </output>
 </example>
@@ -584,7 +469,6 @@ func IsValidUUID(uuid string) bool {
     if len(uuid) != 36 {
         return false
     }
-
     pattern := `^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`
     matched, _ := regexp.MatchString(pattern, uuid)
     return matched
@@ -598,10 +482,8 @@ func IsValidUUID(uuid string) bool {
 **💡 1. Error handling ignored**
 
 ```go
-matched, _ := regexp.MatchString(pattern, uuid)  // ❌ Ignores error
+matched, _ := regexp.MatchString(pattern, uuid)
 ```
-
-**Issue**: `regexp.MatchString` can return errors (e.g., invalid regex pattern). Silently ignoring them is unsafe.
 
 **Fix**:
 ```go
@@ -609,14 +491,11 @@ matched, err := regexp.MatchString(pattern, uuid)
 if err != nil {
     return false
 }
-return matched
 ```
 
 ---
 
 **💡 2. Compiles regex on every call**
-
-**Issue**: Compiling regex pattern on every function call is inefficient. Compile once and reuse.
 
 **Fix**: Use package-level compiled regex:
 ```go
@@ -627,103 +506,22 @@ func IsValidUUID(uuid string) bool {
 }
 ```
 
-**Or** use `uuid` package's built-in validation:
-```go
-import "github.com/google/uuid"
-
-func IsValidUUID(uuid string) bool {
-    _, err := uuid.Parse(uuid)
-    return err == nil
-}
-```
-
 ---
 
-**💡 3. Function name could be more specific**
+**💡 3. Testing improvements**
 
-**Current**: `IsValidUUID`
-**Suggestion**: Consider what makes sense in context:
-- `IsValidUUIDString` - Clearer about input type
-- `IsValidUUIDFormat` - Emphasizes format validation (vs parsing)
-
-If parsing is acceptable, use `uuid.Parse` directly instead of format-only validation.
-
----
-
-### Testing Feedback
-
-```go
-func TestIsValidUUID(t *testing.T) {
-    tests := []struct {
-        input string
-        want  bool
-    }{
-        {"6ba7b810-9dad-11d1-80b4-00c04fd430c8", true},
-        {"not-a-uuid", false},
-        {"", false},
-    }
-
-    for _, tt := range tests {
-        if got := IsValidUUID(tt.input); got != tt.want {
-            t.Errorf("IsValidUUID(%q) = %v, want %v", tt.input, got, tt.want)
-        }
-    }
-}
-```
-
-**Suggestions**:
-1. Add `t.Run()` for better test output:
+Add `t.Run()` and `t.Parallel()`:
 ```go
 for _, tt := range tests {
-    t.Run(tt.input, func(t *testing.T) {
-        if got := IsValidUUID(tt.input); got != tt.want {
-            t.Errorf("IsValidUUID(%q) = %v, want %v", tt.input, got, tt.want)
-        }
-    })
-}
-```
-
-2. Add `t.Parallel()` for faster test execution:
-```go
-for _, tt := range tests {
-    tt := tt  // Capture for parallel
+    tt := tt
     t.Run(tt.input, func(t *testing.T) {
         t.Parallel()
-        if got := IsValidUUID(tt.input); got != tt.want; got != tt.want {
+        if got := IsValidUUID(tt.input); got != tt.want {
             t.Errorf("IsValidUUID(%q) = %v, want %v", tt.input, got, tt.want)
         }
     })
 }
 ```
-
-3. Add more edge cases:
-```go
-{
-    input: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",  // Valid
-    want:  true,
-},
-{
-    input: "6BA7B810-9DAD-11D1-80B4-00C04FD430C8",  // Uppercase (valid)
-    want:  true,
-},
-{
-    input: "6ba7b8109dad11d180b400c04fd430c8",      // No dashes (valid UUID, fails regex)
-    want:  false,  // Or true if supporting this format
-},
-{
-    input: "00000000-0000-0000-0000-000000000000",  // Nil UUID (valid)
-    want:  true,
-},
-```
-
----
-
-### Positive Feedback
-
-✅ Simple, focused function
-✅ Good test coverage with table-driven tests
-✅ Clear documentation
-✅ Edge cases included (empty string, wrong format)
 
 ---
 
@@ -731,16 +529,225 @@ for _, tt := range tests {
 
 **Action**: Approve with suggestions
 
-**Blocking**: None
+**Non-blocking**: Handle regex error, compile regex once, add t.Run() and t.Parallel()
 
-**Non-blocking suggestions**:
-1. Handle regex error (P2)
-2. Compile regex once (P2)
-3. Consider using `uuid.Parse` instead (P2)
-4. Add `t.Run()` and `t.Parallel()` (P2)
-5. More edge cases in tests (P2)
+**Notes**: Function works correctly. Suggestions are for robustness and performance.
 
-**Notes**: Function works correctly for stated purpose. Suggestions are for robustness and performance. Can be addressed in follow-up if preferred.
+</output>
+</example>
+
+<example>
+<input>Test coverage review for user registration feature</input>
+<output>
+## Review Feedback: PR #156 - Add User Registration
+
+### Testing Concerns (P1 - Request Changes)
+
+**⚠️ 1. Missing integration tests for edge cases**
+
+```go
+// Only unit tests present
+func TestUserRegistration_Valid(t *testing.T) {
+    // ... happy path tests
+}
+```
+
+**Issue**: Registration involves database, email service, and validation. Unit tests alone don't catch integration issues.
+
+**Fix**: Add integration tests:
+```go
+func TestUserRegistration_Integration(t *testing.T) {
+    ctx := context.Background()
+    
+    // Test duplicate email
+    err := service.Register(ctx, &RegisterRequest{Email: "exists@example.com"})
+    if !errors.Is(err, ErrEmailExists) {
+        t.Errorf("Expected ErrEmailExists, got %v", err)
+    }
+    
+    // Test email sending
+    // Test transaction rollback on failure
+    // Test concurrent registrations
+}
+```
+
+---
+
+**⚠️ 2. No tests for concurrent scenarios**
+
+```go
+func (s *Service) Register(ctx context.Context, req *RegisterRequest) error {
+    // ... validation and creation
+}
+```
+
+**Issue**: Race conditions possible when multiple users register with same email simultaneously.
+
+**Fix**: Add concurrency test:
+```go
+func TestUserRegistration_Concurrent(t *testing.T) {
+    ctx := context.Background()
+    
+    const n = 10
+    errChan := make(chan error, n)
+    
+    for i := 0; i < n; i++ {
+        go func() {
+            errChan <- service.Register(ctx, &RegisterRequest{
+                Email:    "duplicate@example.com",
+                Password: "secure123",
+            })
+        }()
+    }
+    
+    successCount := 0
+    errorCount := 0
+    for i := 0; i < n; i++ {
+        if err := <-errChan; err == nil {
+            successCount++
+        } else {
+            errorCount++
+        }
+    }
+    
+    // Should only succeed once
+    if successCount != 1 {
+        t.Errorf("Expected 1 success, got %d", successCount)
+    }
+}
+```
+
+---
+
+**⚠️ 3. Missing failure scenarios**
+
+Current tests cover:
+- ✓ Valid registration
+- ✗ Invalid email format
+- ✗ Weak password
+- ✗ Duplicate email
+- ✗ Database errors
+- ✗ Email service failures
+
+**Fix**: Add table-driven test for failure cases:
+```go
+func TestUserRegistration_FailureCases(t *testing.T) {
+    tests := []struct {
+        name    string
+        req     *RegisterRequest
+        wantErr error
+    }{
+        {
+            name:    "empty email",
+            req:     &RegisterRequest{Email: ""},
+            wantErr: ErrValidation,
+        },
+        {
+            name:    "invalid email format",
+            req:     &RegisterRequest{Email: "not-an-email"},
+            wantErr: ErrValidation,
+        },
+        {
+            name:    "password too short",
+            req:     &RegisterRequest{Email: "test@example.com", Password: "123"},
+            wantErr: ErrWeakPassword,
+        },
+        {
+            name:    "password too long",
+            req:     &RegisterRequest{Email: "test@example.com", Password: string(make([]byte, 129))},
+            wantErr: ErrValidation,
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()
+            err := service.Register(ctx, tt.req)
+            if !errors.Is(err, tt.wantErr) {
+                t.Errorf("Expected %v, got %v", tt.wantErr, err)
+            }
+        })
+    }
+}
+```
+
+---
+
+### Code Quality Issues (P2 - Suggestions)
+
+**💡 4. Test naming could be more descriptive**
+
+Current: `TestUserRegistration_Valid`
+Suggestion: `TestUserRegistration_Success_ValidInput`
+
+**💡 5. Missing test setup helpers**
+
+```go
+// Repeated test setup
+func TestUserRegistration_Valid(t *testing.T) {
+    db := setupDB(t)
+    defer db.Close()
+    service := NewService(db, mockEmailer)
+    // ...
+}
+
+func TestUserRegistration_Duplicate(t *testing.T) {
+    db := setupDB(t)
+    defer db.Close()
+    service := NewService(db, mockEmailer)
+    // ...
+}
+```
+
+**Fix**: Extract to helper:
+```go
+func newTestService(t *testing.T) (*Service, *sql.DB, *MockEmailer) {
+    db := setupDB(t)
+    emailer := &MockEmailer{}
+    return NewService(db, emailer), db, emailer
+}
+```
+
+---
+
+**💡 6. No benchmarks for performance-critical paths**
+
+```go
+func BenchmarkUserRegistration(b *testing.B) {
+    service := newTestService(b)
+    req := &RegisterRequest{
+        Email:    "test@example.com",
+        Password: "securepassword123",
+    }
+    
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        // Clear DB or use transaction
+        _ = service.Register(context.Background(), req)
+    }
+}
+```
+
+---
+
+### Positive Feedback
+
+✅ Unit tests cover happy path
+✅ Uses table-driven tests where appropriate
+✅ Test data is clear and readable
+✅ Mock email service used properly
+
+---
+
+### Summary
+
+**Action**: Request changes (test coverage gaps)
+
+**Blocking**: Integration tests, concurrent scenarios, failure cases
+
+**Estimated time to fix**: 3-4 hours
+
+**Notes**: Registration is critical user flow. Need confidence that it works correctly under load and error conditions. Add integration tests with testcontainers for realistic environment.
 
 </output>
 </example>

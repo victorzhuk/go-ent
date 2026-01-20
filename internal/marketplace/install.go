@@ -160,7 +160,7 @@ func (i *Installer) isZipArchive(data []byte) bool {
 
 	signature := []byte{0x50, 0x4B, 0x03, 0x04}
 	for i := 0; i < 4; i++ {
-		//nolint:G602 // bounds checked above
+		//nolint:gosec // bounds checked above
 		if data[i] != signature[i] {
 			return false
 		}

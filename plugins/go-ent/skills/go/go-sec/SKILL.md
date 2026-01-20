@@ -6,6 +6,14 @@ author: "go-ent"
 tags: ["go", "security", "owasp", "authentication", "authorization"]
 ---
 
+<triggers>
+  keywords:
+    - "security"
+    - "authentication"
+    - "authorization"
+  weight: 0.8
+</triggers>
+
 # Go Security
 
 <role>

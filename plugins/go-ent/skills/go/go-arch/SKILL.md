@@ -8,6 +8,12 @@ tags: ["go", "architecture", "ddd", "clean-architecture"]
 
 # Go Architecture
 
+<triggers>
+- keywords: ["architecture", "go design"]
+  file_pattern: "*.go"
+  weight: 0.8
+</triggers>
+
 <role>
 Expert Go architect specializing in clean architecture, domain-driven design, and microservices patterns. Focus on layer boundaries, dependency injection, transaction management, and system scalability.
 </role>
@@ -165,38 +171,14 @@ If testing strategy is needed: Delegate to go-test skill for test architecture a
 <output>
 ```
 internal/
-├── domain/
-│   ├── entity/
-│   │   └── user.go          # User entity (no tags)
-│   ├── contract/
-│   │   ├── repository.go    # UserRepo interface
-│   │   └── usecase.go       # CreateUserUC interface
-│   └── event/
-│       └── events.go        # UserCreated event
-├── usecase/
-│   ├── create_user.go       # CreateUserUC implementation
-│   └── get_user.go          # GetUserUC implementation
-├── repository/
-│   └── user/pgx/
-│       ├── repo.go          # repository struct
-│       ├── models.go        # userModel with DB tags
-│       ├── mappers.go       # toEntity/toModel
-│       └── create.go        # Create operation
-├── transport/
-│   └── http/
-│       ├── handler.go       # HTTP handler
-│       └── dto.go           # Request/response DTOs
-└── app/
-    ├── app.go               # App struct
-    ├── di.go                # Dependency injection
-    └── uc.go                # UseCase registration
+├── domain/      # entity (no tags), contract (interfaces), event
+├── usecase/     # CreateUser, GetUser
+├── repository/  # user/pgx: repo, models, mappers, create
+├── transport/   # http: handler, dto
+└── app/         # app.go, di.go, uc.go
 ```
 
-**Key principles**:
-- Domain has zero external deps
-- Repository implements contract.UserRepo
-- Transport calls usecases, no business logic
-- DI container wires everything in `di.go`
+**Pattern**: Domain zero deps, repo implements contract, transport calls usecases.
 </output>
 </example>
 
@@ -204,27 +186,6 @@ internal/
 <input>Implement transaction management with outbox pattern for order creation</input>
 <output>
 ```go
-type TxManager interface {
-    WithTx(ctx context.Context, fn func(ctx context.Context) error) error
-}
-
-type txManager struct {
-    pool *pgxpool.Pool
-}
-
-func (m *txManager) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
-    tx, err := m.pool.Begin(ctx)
-    if err != nil {
-        return fmt.Errorf("begin: %w", err)
-    }
-
-    if err := fn(injectTx(ctx, tx)); err != nil {
-        tx.Rollback(ctx)
-        return err
-    }
-    return tx.Commit(ctx)
-}
-
 type createOrderUC struct {
     orderRepo contract.OrderRepo
     outbox    contract.OutboxRepo
@@ -236,7 +197,6 @@ func (uc *createOrderUC) Execute(ctx context.Context, req CreateOrderReq) error 
         if err := uc.orderRepo.Save(ctx, order); err != nil {
             return fmt.Errorf("save order: %w", err)
         }
-
         event := OrderCreated{ID: order.ID, Items: req.Items}
         return uc.outbox.Save(ctx, &Outbox{
             Topic:   "orders.created",
@@ -246,65 +206,65 @@ func (uc *createOrderUC) Execute(ctx context.Context, req CreateOrderReq) error 
 }
 ```
 
-**Why this works**: Atomic transaction ensures order and outbox entry are written together. Event consumer reads outbox table and publishes to message queue.
+**Pattern**: Atomic transaction ensures order + outbox written together. Consumer reads outbox and publishes.
 </output>
 </example>
 
 <example>
-<input>Design DI container for a service with multiple bounded contexts</input>
+<input>Design DI container for multiple bounded contexts</input>
 <output>
 ```go
 type container struct {
-    infra *infraDeps
-    users *userContextDeps
-    orders *orderContextDeps
-}
-
-type infraDeps struct {
-    db    *pgxpool.Pool
-    redis *redis.Client
-    mq    amqp.Channel
-}
-
-type userContextDeps struct {
-    repo    contract.UserRepo
-    create  contract.CreateUserUC
-}
-
-type orderContextDeps struct {
-    repo    contract.OrderRepo
-    items   contract.ItemRepo
-    create  contract.CreateOrderUC
+    infra  *infraDeps        // db, redis, mq
+    users  *userContextDeps  // repo, create UC
+    orders *orderContextDeps // repo, items, create UC
 }
 
 func newContainer(cfg *config.Config, log *slog.Logger) (*container, error) {
     c := &container{}
-
-    // Infrastructure layer
-    c.infra = &infraDeps{
-        db:    newPool(cfg.DB.DSN),
-        redis: newRedis(cfg.Redis),
-        mq:    newMQ(cfg.RabbitMQ),
-    }
-
-    // User bounded context
-    c.users = &userContextDeps{
-        repo:   userRepo.New(c.infra.db),
-        create: usecase.NewCreateUser(c.users.repo, log),
-    }
-
-    // Order bounded context
-    c.orders = &orderContextDeps{
-        repo:   orderRepo.New(c.infra.db),
-        items:  itemRepo.New(c.infra.db),
-        create: usecase.NewCreateOrder(c.orders.repo, c.orders.items, log),
-    }
-
+    c.infra = &infraDeps{db: newPool(cfg.DB), redis: newRedis(cfg), mq: newMQ(cfg)}
+    c.users = &userContextDeps{repo: userRepo.New(c.infra.db), create: usecase.NewCreateUser(c.users.repo, log)}
+    c.orders = &orderContextDeps{repo: orderRepo.New(c.infra.db), items: itemRepo.New(c.infra.db), create: usecase.NewCreateOrder(c.orders.repo, c.orders.items, log)}
     return c, nil
 }
 ```
 
-**Benefits**: Clear separation between infrastructure and bounded contexts, easy to test with mocks, explicit dependency graph.
+**Pattern**: Infra → repos → usecases, explicit dependency graph per bounded context.
+</output>
+</example>
+
+<example>
+<input>Design CQRS pattern for order system with read/write separation</input>
+<output>
+For detailed implementation, see: `references/cqrs-pattern.md`
+
+**Pattern**: 
+- Command side: Write to event store via OrderCommandHandler
+- Query side: Read from denormalized OrderQueryModel via OrderQueryHandler  
+- Projection: OrderProjector subscribes to events and updates read model
+
+**Use when**: High read/write ratio, need independent scaling, or require full audit trail.
+</output>
+</example>
+
+<example>
+<input>Design microservice architecture with bounded contexts and async communication</input>
+<output>
+For detailed implementation, see: `references/microservice-architecture.md`
+
+**Pattern**:
+```
+services/
+├── user-service/      # Bounded context
+├── order-service/     # Bounded context
+├── payment-service/   # Bounded context
+└── notification-service/  # Bounded context
+api-gateway/          # Single entry point, auth, routing
+```
+
+**Communication**: Async events via message queue (order-created → notification)
+
+**Use when**: Multiple teams, independent deployment, or clear domain boundaries exist.
 </output>
 </example>
 </examples>
@@ -317,7 +277,7 @@ Provide architectural guidance with the following structure:
 3. **DI Container**: Code showing explicit dependency injection wiring
 4. **Patterns**: Transaction management, outbox, CQRS where applicable
 5. **Boundaries**: Clear separation between layers and bounded contexts
-6. **Examples**: Complete, runnable code demonstrating architecture patterns
+6. **Examples**: Concise code demonstrating architecture patterns (detailed examples in references/)
 7. **Rationale**: Justification for architectural choices (scalability, maintainability, testability)
 
 Focus on practical, production-ready architecture patterns that balance complexity with maintainability.

@@ -6,6 +6,16 @@ author: "go-ent"
 tags: ["go", "testing", "tdd", "testify", "testcontainers"]
 ---
 
+<triggers>
+  keywords:
+    - "test"
+    - "testing"
+  file_pattern: "**/*_test.go"
+  weight: 0.8
+  depends_on:
+    - go-code
+</triggers>
+
 # Go Testing
 
 <role>

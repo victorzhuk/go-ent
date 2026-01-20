@@ -326,7 +326,7 @@ func printSkillDetails(results []analysisResult) {
 
 		fmt.Printf("%-20s %-8.1f %-8.1f %-8.1f %-8.1f %-8.1f %-8.1f %s\n",
 			r.Name, r.TotalScore, r.Structure, r.Content,
-			r.Examples, r.Triggers, r.Conciseness, r.Category)
+			r.Examples, r.Triggers, r.Conciseness, desc)
 	}
 }
 

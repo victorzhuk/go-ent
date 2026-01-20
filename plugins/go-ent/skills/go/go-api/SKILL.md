@@ -6,6 +6,12 @@ author: "go-ent"
 tags: ["go", "api", "http", "openapi", "ogen"]
 ---
 
+<triggers>
+- keywords: ["go api", "rest", "grpc"]
+  file_pattern: "**/api/*.go"
+  weight: 0.8
+</triggers>
+
 # Go API — Spec-First
 
 <role>

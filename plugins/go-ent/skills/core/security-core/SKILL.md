@@ -16,99 +16,36 @@ Security specialist focused on OWASP principles, authentication patterns, and in
 
 ## OWASP Top 10 (2021)
 
-### 1. Broken Access Control
-- Principle of least privilege
-- Validate permissions on every request
-- Use RBAC (Role-Based Access Control)
-
-### 2. Cryptographic Failures
-- TLS for transit, encryption at rest
-- Strong algorithms (AES-256, RSA-2048+)
-- bcrypt/argon2 for passwords (never plaintext)
-
-### 3. Injection
-- Parameterized queries for SQL
-- Escape output for XSS
-- Validate and sanitize all inputs
-- Use ORM/query builders
-
-### 4. Insecure Design
-- Threat modeling in design
-- Secure by default
-- Defense in depth
-- Fail securely
-
-### 5. Security Misconfiguration
-- Disable debug in production
-- Remove default credentials
-- Keep dependencies updated
-- Secure headers (CSP, HSTS, X-Frame-Options)
-
-### 6. Vulnerable Components
-- Track dependencies
-- Automated vulnerability scanning
-- Update regularly
-
-### 7. Authentication Failures
-- Multi-factor authentication
-- Strong password policies
-- Rate limiting on auth endpoints
-- Secure session management
-
-### 8. Software and Data Integrity
-- Verify integrity of updates/packages
-- CI/CD pipeline security
-- Code signing
-
-### 9. Logging and Monitoring Failures
-- Log security events
-- Monitor for anomalies
-- Don't log sensitive data
-- Alert on suspicious activity
-
-### 10. Server-Side Request Forgery (SSRF)
-- Validate URLs
-- Use allowlists for external requests
-- Disable unused URL schemas
+1. **Access Control**: Least privilege, RBAC, validate permissions
+2. **Crypto**: TLS, encryption at rest, strong algorithms, bcrypt/argon2
+3. **Injection**: Parameterized queries, escape output, validate inputs
+4. **Design**: Threat modeling, secure by default, defense in depth
+5. **Misconfiguration**: Disable debug, remove defaults, secure headers
+6. **Vulnerable Components**: Track dependencies, scan, update
+7. **Auth Failures**: MFA, strong passwords, rate limiting, secure sessions
+8. **Integrity**: Verify updates, CI/CD security, code signing
+9. **Logging**: Log events, monitor, don't log sensitive data
+10. **SSRF**: Validate URLs, allowlists, disable unused schemas
 
 ## Security Checklist
 
-### Input Validation
-- [ ] Validate type, length, format, range
-- [ ] Allowlist over blocklist
-- [ ] Sanitize before processing
-- [ ] Reject unexpected input
+**Input Validation**: Type, length, format, range; allowlist over blocklist; sanitize; reject unexpected
 
-### Authentication
-- [ ] Strong password requirements
-- [ ] Rate limiting (prevent brute force)
-- [ ] MFA option available
-- [ ] Secure password reset flow
-- [ ] Session timeout
-- [ ] Logout functionality
+**Authentication**: Strong passwords, rate limiting, MFA, secure reset, session timeout, logout
 
-### Authorization
-- [ ] Check permissions on every request
-- [ ] Default deny (fail secure)
-- [ ] Principle of least privilege
-- [ ] No client-side authorization only
+**Authorization**: Check permissions, default deny, least privilege, no client-side auth
 
-### Data Protection
-- [ ] HTTPS everywhere
-- [ ] Encrypt sensitive data at rest
-- [ ] Secure key management
-- [ ] No secrets in code/logs
-- [ ] Secure cookies (HttpOnly, Secure, SameSite)
+**Data Protection**: HTTPS, encrypt at rest, secure key management, no secrets in code/logs, secure cookies
 
 ## Common Vulnerabilities
 
-| Vulnerability | Example | Prevention |
-|---------------|---------|------------|
-| SQL Injection | `SELECT * FROM users WHERE id='` + input | Parameterized queries |
-| XSS | `<script>alert(1)</script>` | Escape output, CSP |
-| CSRF | Forged form submission | CSRF tokens |
-| Path Traversal | `../../etc/passwd` | Validate paths, use allowlist |
-| Command Injection | `; rm -rf /` | Avoid shell, validate input |
+| Vulnerability | Prevention |
+|---------------|------------|
+| SQL Injection | Parameterized queries |
+| XSS | Escape output, CSP |
+| CSRF | CSRF tokens |
+| Path Traversal | Validate paths, allowlist |
+| Command Injection | Avoid shell, validate input |
 
 ## Security Headers
 
@@ -121,13 +58,7 @@ Strict-Transport-Security: max-age=31536000
 
 ## Threat Modeling
 
-**STRIDE Framework**:
-- **S**poofing - Fake identity
-- **T**ampering - Modify data
-- **R**epudiation - Deny actions
-- **I**nformation Disclosure - Leak data
-- **D**enial of Service - Unavailable
-- **E**levation of Privilege - Unauthorized access
+**STRIDE**: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege
 
 </instructions>
 
@@ -362,12 +293,7 @@ func validatePassword(password string) error {
     if len(password) > 128 {
         return fmt.Errorf("must be at most 128 characters")
     }
-
-    hasUpper := false
-    hasLower := false
-    hasDigit := false
-    hasSpecial := false
-
+    hasUpper, hasLower, hasDigit, hasSpecial := false, false, false, false
     for _, c := range password {
         switch {
         case c >= 'A' && c <= 'Z':
@@ -380,33 +306,13 @@ func validatePassword(password string) error {
             hasSpecial = true
         }
     }
-
     if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
         return fmt.Errorf("must contain uppercase, lowercase, digit, and special character")
     }
-
     return nil
 }
-```
 
-**Security Features**:
-1. **bcrypt** for password hashing (cost factor 12+)
-2. **Rate limiting** to prevent brute force attacks
-3. **Account lockout** after repeated failures
-4. **Constant-time comparison** to prevent timing attacks
-5. **Generic error messages** to prevent user enumeration
-6. **Password strength validation**
-7. **Security event logging** for audit trails
-8. **No password storage** (only hashed versions)
-
-**Additional Recommendations**:
-- Implement MFA for sensitive operations
-- Add CAPTCHA after N failed attempts
-- Rotate bcrypt cost factor as hardware improves
-- Use key management service for JWT signing keys
-- Implement session timeout and refresh token rotation
-</output>
-</example>
+**Security Features**:**Security Features**: bcrypt hashing, rate limiting, account lockout, constant-time comparison, generic errors, password validation, security logging.</example>
 
 <example>
 <input>Prevent SQL injection with parameterized queries</input>
@@ -536,11 +442,9 @@ func (r *repository) FindWithFilters(ctx context.Context, filters UserFilters) (
     if filters.Username != "" {
         query = query.Where(sq.Eq{"username": filters.Username})
     }
-
     if filters.Email != "" {
         query = query.Where(sq.Eq{"email": filters.Email})
     }
-
     if filters.CreatedAfter != nil {
         query = query.Where(sq.Gt{"created_at": filters.CreatedAfter})
     }
@@ -567,24 +471,8 @@ func (r *repository) FindWithFilters(ctx context.Context, filters UserFilters) (
 
     return users, nil
 }
-```
 
-**Key Security Principles**:
-1. **Never concatenate user input** into SQL queries
-2. **Use parameterized queries** for all user-supplied data
-3. **Validate field names** with allowlists for dynamic queries
-4. **Use query builders** (squirrel) for complex, safe queries
-5. **Wrap errors** to avoid leaking database information
-6. **Use transactions** for data consistency
-
-**Additional Protections**:
-- Enable prepared statement caching in connection pool
-- Use connection pooling with proper configuration
-- Implement query timeout limits
-- Monitor for slow queries and unusual patterns
-- Regularly audit SQL queries in codebase
-</output>
-</example>
+**Key Security Principles**:**Key Security Principles**: Never concatenate user input, use parameterized queries, validate field names with allowlists, use query builders for complex queries.</example>
 
 <example>
 <input>Implement input validation and XSS prevention</input>
@@ -714,136 +602,41 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(resp)
 }
 
-// HTML template with CSP
-const HTMLTemplate = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
-</head>
-<body>
-    <h1>User Profile</h1>
-    <p>Welcome, {{.Username}}!</p>
-    <p>Email: {{.Email}}</p>
-    <p>Bio: {{.Bio | html}}</p>
-</body>
-</html>
-`
-
-// Middleware for security headers
+// Security headers middleware
 func SecurityHeaders(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Content Security Policy
         w.Header().Set("Content-Security-Policy",
-            "default-src 'self'; "+
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
-            "style-src 'self' 'unsafe-inline'; "+
-            "img-src 'self' data: https:; "+
-            "font-src 'self';")
-
-        // Prevent clickjacking
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self';")
         w.Header().Set("X-Frame-Options", "DENY")
         w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
-
-        // Prevent MIME type sniffing
         w.Header().Set("X-Content-Type-Options", "nosniff")
-
-        // Enable XSS protection (browser fallback)
         w.Header().Set("X-XSS-Protection", "1; mode=block")
-
-        // Force HTTPS
         w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-
-        // Prevent referrer leakage
         w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-
         next.ServeHTTP(w, r)
     })
 }
 
-// Input sanitization for URLs (prevent XSS)
+// URL sanitization
 func SanitizeURL(input string) string {
-    // Remove javascript: and data: protocols
     input = strings.ToLower(input)
-    if strings.Contains(input, "javascript:") ||
-       strings.Contains(input, "data:") ||
-       strings.Contains(input, "vbscript:") {
+    if strings.Contains(input, "javascript:") || strings.Contains(input, "data:") || strings.Contains(input, "vbscript:") {
         return ""
     }
     return html.EscapeString(input)
 }
 
-// File upload validation
-func ValidateUpload(f *multipart.FileHeader) error {
-    // 1. File size limit
-    const maxFileSize = 5 * 1024 * 1024 // 5MB
-    if f.Size > maxFileSize {
-        return fmt.Errorf("file too large (max %d bytes)", maxFileSize)
-    }
-
-    // 2. File extension allowlist
-    allowedExtensions := map[string]bool{
-        ".jpg":  true,
-        ".jpeg": true,
-        ".png":  true,
-        ".gif":  true,
-        ".pdf":  true,
-    }
-
-    ext := strings.ToLower(filepath.Ext(f.Filename))
-    if !allowedExtensions[ext] {
-        return fmt.Errorf("invalid file type: %s", ext)
-    }
-
-    // 3. Content type validation
-    file, err := f.Open()
-    if err != nil {
-        return fmt.Errorf("open file: %w", err)
-    }
-    defer file.Close()
-
-    buffer := make([]byte, 512)
-    _, err = file.Read(buffer)
-    if err != nil {
-        return fmt.Errorf("read file: %w", err)
-    }
-
-    contentType := http.DetectContentType(buffer)
-    allowedTypes := map[string]bool{
-        "image/jpeg":      true,
-        "image/png":       true,
-        "image/gif":       true,
-        "application/pdf": true,
-    }
-
-    if !allowedTypes[contentType] {
-        return fmt.Errorf("invalid content type: %s", contentType)
-    }
-
-    return nil
-}
-```
-
-**XSS Prevention Checklist**:
-- [x] Input validation with allowlists
-- [x] Output encoding (HTML, JS, CSS, URL)
-- [x] Content Security Policy headers
-- [x] Disable unknown fields in JSON decoder
-- [x] Security headers middleware
-- [x] File upload validation
-- [x] URL sanitization for links
-
-**Additional Recommendations**:
-- Use templating libraries with auto-escaping (html/template)
-- Implement subresource integrity for external scripts
-- Regularly scan for XSS vulnerabilities
-- Educate developers on XSS prevention
-- Use automated tools (DOMPurify, bleach.js) for client-side
-- Implement nonce or hash for inline scripts in CSP
-</output>
-</example>
+**XSS Prevention Checklist**:**XSS Prevention Checklist**: Input validation with allowlists, output encoding, CSP headers, disable unknown fields, security headers middleware, file upload validation, URL sanitization.</example>
 </examples>
+
+<triggers>
+  keywords:
+    - "security"
+    - "authentication"
+    - "authorization"
+  weight: 0.8
+</triggers>
 
 <output_format>
 Provide security guidance and implementations:

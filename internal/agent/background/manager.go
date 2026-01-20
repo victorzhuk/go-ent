@@ -365,6 +365,7 @@ func (m *Manager) runAgent(ctx context.Context, agent *Agent) {
 	// For now, simulate work by waiting briefly then completing
 	select {
 	case <-agentCtx.Done():
+		//nolint:gocritic // if-else chain for different context checks
 		if m.shutdownCtx.Err() != nil {
 			agent.Kill()
 		} else if agentCtx.Err() == context.DeadlineExceeded {
@@ -388,7 +389,7 @@ func (m *Manager) Get(id string) (*Agent, error) {
 		return nil, ErrAgentNotFound
 	}
 
-	return agent, nil
+	return agent.GetSnapshot().ToAgent(), nil
 }
 
 // List returns all agents, optionally filtered by status.
@@ -402,7 +403,8 @@ func (m *Manager) List(status Status) []*Agent {
 		match := status == "" || agent.Status == status
 		agent.mu.RUnlock()
 		if match {
-			agents = append(agents, agent)
+			snapshot := agent.GetSnapshot()
+			agents = append(agents, snapshot.ToAgent())
 		}
 	}
 	return agents

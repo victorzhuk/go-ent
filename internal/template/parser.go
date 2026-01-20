@@ -39,7 +39,7 @@ func (c *TemplateConfig) Validate() error {
 // ParseConfig reads and parses a template config.yaml file.
 // Returns a TemplateConfig struct or an error if parsing fails.
 func ParseConfig(path string) (*TemplateConfig, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}

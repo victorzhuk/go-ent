@@ -89,7 +89,7 @@ Existing skills in `plugins/go-ent/skills/` were created before:
 9. go-arch (106)
 10. arch-core (106)
 11. api-design (106)
-12. go-ops (pending score)
+12. go-ops (106) ✓
 13. review-core (pending score)
 14. security-core (pending score)
 

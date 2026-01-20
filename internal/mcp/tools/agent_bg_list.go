@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent/background"
@@ -197,74 +196,6 @@ func buildAgentBgListMessage(response AgentBgListResponse, data string) string {
 		sb.WriteString("No agents found.\n\n")
 	}
 
-	sb.WriteString("**Full Details**:\n\n")
-	sb.WriteString(fmt.Sprintf("```json\n%s\n```", data))
-
-	return sb.String()
-}
-
-func buildAgentBgListCompactMessage(agents []*background.Agent, statusFilter string, data string) string {
-	var sb strings.Builder
-
-	now := time.Now()
-
-	sb.WriteString("# Background Agents\n\n")
-
-	if statusFilter != "" {
-		sb.WriteString(fmt.Sprintf("Filter: **%s**\n\n", statusFilter))
-	}
-
-	sb.WriteString("## Active Agents\n\n")
-
-	for _, agent := range agents {
-		snap := agent.GetSnapshot()
-
-		var statusIcon string
-		switch snap.Status {
-		case background.StatusPending:
-			statusIcon = "⏳"
-		case background.StatusRunning:
-			statusIcon = "▶️"
-		case background.StatusCompleted:
-			statusIcon = "✅"
-		case background.StatusFailed:
-			statusIcon = "❌"
-		case background.StatusKilled:
-			statusIcon = "🛑"
-		default:
-			statusIcon = "❓"
-		}
-
-		age := now.Sub(snap.CreatedAt)
-		var ageStr string
-		if age < time.Minute {
-			ageStr = fmt.Sprintf("%.0fs", age.Seconds())
-		} else if age < time.Hour {
-			ageStr = fmt.Sprintf("%.1fm", age.Minutes())
-		} else {
-			ageStr = fmt.Sprintf("%.1fh", age.Hours())
-		}
-
-		sb.WriteString(fmt.Sprintf("%s `%s` | %s | %s | %s ago\n",
-			statusIcon,
-			snap.ID,
-			snap.Role,
-			snap.Status,
-			ageStr,
-		))
-
-		if snap.Task != "" {
-			taskPreview := snap.Task
-			if len(taskPreview) > 50 {
-				taskPreview = taskPreview[:50] + "..."
-			}
-			sb.WriteString(fmt.Sprintf("  *%s*\n", taskPreview))
-		}
-
-		sb.WriteString("\n")
-	}
-
-	sb.WriteString("---\n\n")
 	sb.WriteString("**Full Details**:\n\n")
 	sb.WriteString(fmt.Sprintf("```json\n%s\n```", data))
 

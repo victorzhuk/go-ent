@@ -6,6 +6,12 @@ author: "go-ent"
 tags: ["go", "code", "implementation"]
 ---
 
+<triggers>
+- keywords: ["go code", "golang"]
+  file_pattern: "*.go"
+  weight: 0.8
+</triggers>
+
 # Go Code Patterns
 
 <role>

@@ -207,15 +207,28 @@ changes:
     in_progress: 0
     blocked: 0
 
-  skill-migration:
-    id: skill-migration
-    title: 'Skill Migration to New Standards'
-    status: pending
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-migration/tasks.md
-    total: 21
+  fix-codebase-quality:
+    id: fix-codebase-quality
+    title: 'Fix Codebase Quality Issues'
+    status: draft
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/fix-codebase-quality/tasks.md
+    total: 22
     completed: 0
     in_progress: 0
     blocked: 0
+
+  skill-migration:
+    id: skill-migration
+    title: 'Skill Migration to New Standards'
+    status: complete
+    archived: true
+    archive_path: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-migration
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-migration/tasks.md
+    total: 198
+    completed: 198
+    in_progress: 0
+    blocked: 0
+    archived_at: '2026-01-20T15:34:53+03:00'
 
 
 archived:

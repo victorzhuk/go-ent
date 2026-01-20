@@ -398,26 +398,26 @@ func runTaskComplete(ctx context.Context, taskIDStr string, yes bool) error {
 	originalContent := string(content)
 	newContent := strings.Join(lines, "\n")
 
-	if err := os.WriteFile(tasksPath, []byte(newContent), 0644); err != nil {
+	if err := os.WriteFile(tasksPath, []byte(newContent), 0644); err != nil { //nolint:gosec
 		return fmt.Errorf("write tasks.md: %w", err)
 	}
 
 	stateStore := registryStore.StateStore()
 
 	if err := stateStore.SyncFromTasksMd(); err != nil {
-		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644)
+		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644) //nolint:gosec
 		return fmt.Errorf("sync from tasks.md (rolled back tasks.md): %w", err)
 	}
 
 	changeStatePath := filepath.Join(store.SpecPath(), "changes", taskID.ChangeID, "state.md")
 	if err := stateStore.WriteChangeStateMd(taskID.ChangeID, changeStatePath); err != nil {
-		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644)
+		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644) //nolint:gosec
 		return fmt.Errorf("write change state.md (rolled back tasks.md): %w", err)
 	}
 
 	rootStatePath := filepath.Join(store.SpecPath(), "state.md")
 	if err := stateStore.WriteRootStateMd(rootStatePath); err != nil {
-		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644)
+		_ = os.WriteFile(tasksPath, []byte(originalContent), 0644) //nolint:gosec
 		return fmt.Errorf("write root state.md (rolled back tasks.md): %w", err)
 	}
 

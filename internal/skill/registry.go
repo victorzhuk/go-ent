@@ -410,33 +410,6 @@ func (r *Registry) matchByQuery(query string) []MatchResult {
 	return results
 }
 
-// scoreSkills calculates relevance scores for all skills based on query and context.
-func (r *Registry) scoreSkills(query string, ctx *MatchContext) map[string]float64 {
-	scores := make(map[string]float64)
-	queryLower := strings.ToLower(query)
-
-	// Score runtime skills
-	for name, skill := range r.runtimeSkills {
-		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
-			scores[name] = 1.0
-		}
-	}
-
-	// Score metadata skills
-	for _, skill := range r.skills {
-		if strings.Contains(strings.ToLower(skill.Name), queryLower) {
-			scores[skill.Name] = 1.0
-		}
-	}
-
-	// Apply context boosts to scored skills
-	for name := range scores {
-		scores[name] += r.applyContextBoosts(name, ctx)
-	}
-
-	return scores
-}
-
 // applyContextBoosts calculates total boost for a skill based on context.
 func (r *Registry) applyContextBoosts(skillName string, ctx *MatchContext) float64 {
 	var boost float64

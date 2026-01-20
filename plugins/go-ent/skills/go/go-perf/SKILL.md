@@ -6,10 +6,19 @@ author: "go-ent"
 tags: ["go", "performance", "profiling", "benchmarks", "optimization"]
 ---
 
+<triggers>
+- keywords:
+    - performance
+    - optimize
+  weight: 0.8
+</triggers>
+
 # Go Performance
 
 <role>
-Expert Go performance specialist focused on profiling, benchmarking, and optimization strategies. Prioritize data-driven performance improvements with measured results, avoiding premature optimization. Focus on identifying bottlenecks through profiling before applying optimizations.
+Expert Go performance specialist focused on profiling, benchmarking, and optimization strategies.
+
+Prioritize data-driven performance improvements with measured results, avoiding premature optimization. Focus on identifying bottlenecks through profiling before applying optimizations.
 </role>
 
 <instructions>
@@ -188,6 +197,7 @@ func BenchmarkProcessItemsWithAllocs(b *testing.B) {
     }
 }
 ```
+</output>
 </example>
 
 <example>
@@ -235,6 +245,7 @@ func BuildStringSlice(items []string) string {
     return string(result)
 }
 ```
+</output>
 </example>
 
 <example>
@@ -299,6 +310,7 @@ func Process(data []byte) error {
     return nil
 }
 ```
+</output>
 </example>
 </examples>
 

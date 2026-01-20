@@ -155,11 +155,17 @@ func main() {
 			logger.Error("open bolt store", "error", err)
 			os.Exit(1)
 		}
-		defer store.Close()
 
 		if err := migrate(ctx, store, reg); err != nil {
 			logger.Error("migrate", "error", err)
+			if closeErr := store.Close(); closeErr != nil {
+				logger.Error("close store", "error", closeErr)
+			}
 			os.Exit(1)
+		}
+
+		if err := store.Close(); err != nil {
+			logger.Error("close store", "error", err)
 		}
 	} else {
 		dryRunMigrate(reg)
@@ -169,7 +175,7 @@ func main() {
 }
 
 func loadYAML(path string) (*yamlRegistry, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}

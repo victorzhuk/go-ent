@@ -456,8 +456,9 @@ triggers:
 	}}
 }
 
+// Deprecated: Use checkTriggerExplicit() instead
+//
 // validateExplicitTriggers checks if skills use explicit triggers (SK012).
-// DEPRECATED: Use checkTriggerExplicit() instead
 func validateExplicitTriggers(ctx *ValidationContext) []ValidationIssue {
 	if ctx.Meta.StructureVersion == "v1" {
 		return nil

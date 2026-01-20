@@ -78,7 +78,7 @@ func listTemplates(category string, showBuiltIn, showCustom bool) error {
 
 	if customDir != "" {
 		if _, err := os.Stat(customDir); os.IsNotExist(err) {
-			if err := os.MkdirAll(customDir, 0755); err != nil { //nolint:G301
+			if err := os.MkdirAll(customDir, 0755); err != nil { //nolint:gosec
 				return fmt.Errorf("create custom templates directory: %w", err)
 			}
 		}
@@ -319,7 +319,7 @@ func printTemplateDetails(tpl *template.Template, source templateSource) error {
 	}
 
 	mdPath := filepath.Join(tpl.Path, "template.md")
-	content, err := os.ReadFile(mdPath) //nolint:G304
+	content, err := os.ReadFile(mdPath) //nolint:gosec
 	if err == nil {
 		fmt.Printf("## Template Preview (first 20 lines)\n\n")
 		fmt.Println("```")
@@ -383,7 +383,7 @@ func addTemplate(srcPath, destDir string) error {
 	}
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(destDir, 0755); err != nil { //nolint:G301
+		if err := os.MkdirAll(destDir, 0755); err != nil { //nolint:gosec
 			return fmt.Errorf("create destination directory: %w", err)
 		}
 	}
@@ -418,7 +418,7 @@ func validateTemplate(tplPath string, cfg *template.TemplateConfig) error {
 		return fmt.Errorf("parse template.md: %w", err)
 	}
 
-	content, err := os.ReadFile(mdPath) //nolint:G304
+	content, err := os.ReadFile(mdPath) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("read template.md: %w", err)
 	}
@@ -451,7 +451,7 @@ func copyDirectory(src, dst string) error {
 		return fmt.Errorf("read source directory: %w", err)
 	}
 
-	if err := os.MkdirAll(dst, 0755); err != nil { //nolint:G301
+	if err := os.MkdirAll(dst, 0755); err != nil { //nolint:gosec
 		return fmt.Errorf("create destination directory: %w", err)
 	}
 
@@ -475,12 +475,12 @@ func copyDirectory(src, dst string) error {
 }
 
 func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src) //nolint:G304
+	data, err := os.ReadFile(src) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("read file: %w", err)
 	}
 
-	if err := os.WriteFile(dst, data, 0644); err != nil { //nolint:G306
+	if err := os.WriteFile(dst, data, 0644); err != nil { //nolint:gosec
 		return fmt.Errorf("write file: %w", err)
 	}
 

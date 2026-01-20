@@ -17,7 +17,7 @@ func getBinaryPath() string {
 	if path := os.Getenv("GO_ENT_BIN"); path != "" {
 		return path
 	}
-	return filepath.Join("../../../bin/ent")
+	return "../../../bin/ent"
 }
 
 func runCommand(args ...string) (string, string, error) {

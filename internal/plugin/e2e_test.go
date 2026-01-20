@@ -3,8 +3,6 @@ package plugin
 //nolint:gosec // test file with necessary file operations
 
 import (
-	"archive/zip"
-	"bytes"
 	"context"
 	"log/slog"
 	"os"
@@ -78,14 +76,6 @@ func (r *e2eTrackingRegistry) UnregisterAgent(name string) error {
 		return r.agentReg.UnregisterAgent(name)
 	}
 	return nil
-}
-
-type e2eMockMarketplace struct {
-	pluginData []byte
-}
-
-func (m *e2eMockMarketplace) Download(ctx context.Context, name, version string) ([]byte, error) {
-	return m.pluginData, nil
 }
 
 func createSamplePluginInDir(t *testing.T, pluginsDir string) {
@@ -163,91 +153,6 @@ agents:
     path: agents/sample-agent.md
 `
 	require.NoError(t, os.WriteFile(manifestPath, []byte(manifestContent), 0600))
-}
-
-func createSamplePluginArchive(t *testing.T) []byte {
-	buf := new(bytes.Buffer)
-	zipWriter := zip.NewWriter(buf)
-
-	manifestContent := `name: sample-e2e-plugin
-version: 1.0.0
-description: Sample plugin for E2E testing
-author: E2E Test
-
-skills:
-  - name: sample-skill
-    path: skills/sample-skill/SKILL.md
-
-agents:
-  - name: sample-agent
-    path: agents/sample-agent.md
-`
-
-	manifestWriter, err := zipWriter.Create("plugin.yaml")
-	require.NoError(t, err, "create plugin.yaml in zip")
-	_, err = manifestWriter.Write([]byte(manifestContent))
-	require.NoError(t, err, "write plugin.yaml content")
-
-	skillContent := `---
-name: sample-skill
-description: Sample skill for E2E testing. Auto-activates for: testing, e2e, sample.
----
-# Sample Skill
-
-This is a sample skill for E2E testing.
-
-## Purpose
-
-Provides sample functionality for testing.
-
-## Usage
-
-Used to verify plugin loading and skill registration.
-`
-
-	skillWriter, err := zipWriter.Create("skills/sample-skill/SKILL.md")
-	require.NoError(t, err, "create SKILL.md in zip")
-	_, err = skillWriter.Write([]byte(skillContent))
-	require.NoError(t, err, "write SKILL.md content")
-
-	agentContent := `---
-name: sample-agent
-description: Sample agent for E2E testing
-model: claude-3-opus
-color: "#FF6B6B"
-skills:
-  - sample-skill
-tools:
-  file-read: true
-  file-write: true
----
-# Sample Agent
-
-This is a sample agent for E2E testing.
-
-## Purpose
-
-Provides sample agent functionality for testing.
-
-## Usage
-
-Used to verify plugin loading and agent registration.
-
-## Capabilities
-
-- Can use sample-skill
-- Has file-read and file-write tools
-`
-
-	agentWriter, err := zipWriter.Create("agents/sample-agent.md")
-	require.NoError(t, err, "create agent.md in zip")
-	_, err = agentWriter.Write([]byte(agentContent))
-	require.NoError(t, err, "write agent.md content")
-
-	err = zipWriter.Close()
-	require.NoError(t, err, "close zip writer")
-
-	return buf.Bytes()
 }
 
 func TestPluginE2E_FullLifecycle(t *testing.T) {

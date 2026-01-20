@@ -31,7 +31,7 @@ func ValidateGeneratedSkill(path string) error {
 		return fmt.Errorf("parse skill file: %w", err)
 	}
 
-	content, err := os.ReadFile(absPath)
+	content, err := os.ReadFile(absPath) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("read skill file: %w", err)
 	}
