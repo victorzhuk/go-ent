@@ -138,10 +138,12 @@ changes:
   skill-validation-rules:
     id: skill-validation-rules
     title: 'Enhanced Validation Rules'
-    status: pending
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/skill-validation-rules/tasks.md
+    status: complete
+    archived: true
+    archive_path: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-validation-rules
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/archive/skill-validation-rules/tasks.md
     total: 11
-    completed: 0
+    completed: 11
     in_progress: 0
     blocked: 0
 

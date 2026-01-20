@@ -646,7 +646,7 @@ func (r *Registry) ValidateSkill(name string) (*ValidationResult, error) {
 		return nil, fmt.Errorf("read skill file: %w", err)
 	}
 
-	result := r.validator.Validate(meta, string(content))
+	result := r.validator.ValidateWithContext(meta, string(content), r)
 	return result, nil
 }
 

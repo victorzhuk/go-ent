@@ -643,3 +643,228 @@ Ensure proper error handling for all operations.
 	assert.Greater(t, result.Examples.Total, 5.0)
 	assert.Greater(t, result.Conciseness, 10.0)
 }
+
+func TestParseExamples(t *testing.T) {
+	tests := []struct {
+		name     string
+		content  string
+		expected []Example
+	}{
+		{
+			name: "single example",
+			content: `<example>
+<input>test input</input>
+<output>test output</output>
+</example>`,
+			expected: []Example{
+				{Input: "test input", Output: "test output"},
+			},
+		},
+		{
+			name: "multiple examples",
+			content: `<example>
+<input>input1</input>
+<output>output1</output>
+</example>
+<example>
+<input>input2</input>
+<output>output2</output>
+</example>`,
+			expected: []Example{
+				{Input: "input1", Output: "output1"},
+				{Input: "input2", Output: "output2"},
+			},
+		},
+		{
+			name:     "empty content",
+			content:  "",
+			expected: []Example{},
+		},
+		{
+			name: "malformed example (missing output)",
+			content: `<example>
+<input>input</input>
+</example>`,
+			expected: []Example{},
+		},
+		{
+			name: "example with whitespace",
+			content: `<example>
+
+<input>  test input  </input>
+
+<output>  test output  </output>
+
+</example>`,
+			expected: []Example{
+				{Input: "test input", Output: "test output"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseExamples(tt.content)
+			assert.Equal(t, len(tt.expected), len(result), "count mismatch")
+			for i, ex := range result {
+				assert.Equal(t, tt.expected[i].Input, ex.Input, "input mismatch at index %d", i)
+				assert.Equal(t, tt.expected[i].Output, ex.Output, "output mismatch at index %d", i)
+			}
+		})
+	}
+}
+
+func TestCalculateDiversityScore(t *testing.T) {
+	tests := []struct {
+		name     string
+		examples []Example
+		expected float64
+	}{
+		{
+			name:     "empty examples",
+			examples: []Example{},
+			expected: 0.0,
+		},
+		{
+			name: "single example",
+			examples: []Example{
+				{Input: "test input", Output: "test output"},
+			},
+			expected: 0.0,
+		},
+		{
+			name: "high variety examples",
+			examples: []Example{
+				{Input: "success case with struct", Output: "returns valid data"},
+				{Input: "error case with string", Output: "returns error message"},
+				{Input: "empty null case", Output: "handles zero value"},
+				{Input: "api request with map", Output: "json response"},
+			},
+			expected: 0.8750,
+		},
+		{
+			name: "medium variety examples",
+			examples: []Example{
+				{Input: "valid string input", Output: "success"},
+				{Input: "error case", Output: "invalid"},
+			},
+			expected: 0.4583,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := calculateDiversityScore(tt.examples)
+			assert.InDelta(t, tt.expected, result, 0.01, "score mismatch")
+		})
+	}
+}
+
+func TestCalculateBehaviorVariety(t *testing.T) {
+	tests := []struct {
+		name     string
+		examples []Example
+		expected float64
+	}{
+		{
+			name:     "empty examples",
+			examples: []Example{},
+			expected: 0.0,
+		},
+		{
+			name: "only success cases",
+			examples: []Example{
+				{Input: "valid input", Output: "success result"},
+			},
+			expected: 1.0 / 3.0,
+		},
+		{
+			name: "success and error",
+			examples: []Example{
+				{Input: "valid input", Output: "success"},
+				{Input: "invalid input", Output: "error"},
+			},
+			expected: 2.0 / 3.0,
+		},
+		{
+			name: "all behavior types",
+			examples: []Example{
+				{Input: "valid input", Output: "success completes"},
+				{Input: "invalid input", Output: "error fails"},
+				{Input: "empty input", Output: "handles boundary"},
+			},
+			expected: 1.0,
+		},
+		{
+			name: "edge cases only",
+			examples: []Example{
+				{Input: "zero value", Output: "handles null"},
+				{Input: "negative limit", Output: "boundary check"},
+			},
+			expected: 1.0 / 3.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := calculateBehaviorVariety(tt.examples)
+			assert.InDelta(t, tt.expected, result, 0.01, "score mismatch")
+		})
+	}
+}
+
+func TestCalculateDataTypeVariety(t *testing.T) {
+	tests := []struct {
+		name     string
+		examples []Example
+		expected float64
+	}{
+		{
+			name:     "empty examples",
+			examples: []Example{},
+			expected: 0.0,
+		},
+		{
+			name: "single data type",
+			examples: []Example{
+				{Input: "test message string", Output: "result"},
+			},
+			expected: 0.25,
+		},
+		{
+			name: "two data types",
+			examples: []Example{
+				{Input: "text message", Output: "result"},
+				{Input: "int value 42", Output: "number"},
+			},
+			expected: 0.5,
+		},
+		{
+			name: "four or more data types",
+			examples: []Example{
+				{Input: "string text", Output: "result"},
+				{Input: "int 42", Output: "number"},
+				{Input: "struct type { }", Output: "json"},
+				{Input: "[] slice array", Output: "list"},
+			},
+			expected: 1.0,
+		},
+		{
+			name: "api and database types",
+			examples: []Example{
+				{Input: "http request", Output: "response"},
+				{Input: "sql query", Output: "database result"},
+				{Input: "func method()", Output: "return"},
+				{Input: "true false", Output: "bool"},
+			},
+			expected: 1.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := calculateDataTypeVariety(tt.examples)
+			assert.InDelta(t, tt.expected, result, 0.01, "score mismatch")
+		})
+	}
+}

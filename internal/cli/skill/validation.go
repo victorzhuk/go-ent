@@ -38,24 +38,45 @@ func ValidateGeneratedSkill(path string) error {
 
 	result := validator.Validate(meta, string(content))
 
-	if !result.Valid || result.ErrorCount() > 0 {
-		var issues []string
+	if result.ErrorCount() > 0 || len(result.Issues) > 0 {
+		var errors, warnings, info []string
+
 		for _, issue := range result.Issues {
-			if issue.Severity != skillpkg.SeverityError {
-				continue
-			}
 			loc := issue.Rule
 			if issue.Line > 0 {
 				loc = fmt.Sprintf("%s:%d", loc, issue.Line)
 			}
-			issues = append(issues, fmt.Sprintf("  [%s] %s: %s", issue.Severity, loc, issue.Message))
+
+			switch issue.Severity {
+			case skillpkg.SeverityError:
+				errors = append(errors, fmt.Sprintf("  [%s] %s: %s", issue.Severity, loc, issue.Message))
+			case skillpkg.SeverityWarning:
+				warnings = append(warnings, fmt.Sprintf("  ⚠️  [%s] %s: %s", issue.Severity, loc, issue.Message))
+			case skillpkg.SeverityInfo:
+				info = append(info, fmt.Sprintf("  ℹ️  [%s] %s: %s", issue.Severity, loc, issue.Message))
+			}
 		}
 
-		if len(issues) == 0 {
+		if len(errors) == 0 && len(warnings) == 0 && len(info) == 0 {
 			return nil
 		}
 
-		return fmt.Errorf("validation failed for skill '%s':\n%s", meta.Name, strings.Join(issues, "\n"))
+		var parts []string
+		if len(errors) > 0 {
+			parts = append(parts, fmt.Sprintf("validation failed for skill '%s':\n  ERRORS:\n%s", meta.Name, strings.Join(errors, "\n")))
+		}
+		if len(warnings) > 0 {
+			parts = append(parts, fmt.Sprintf("\n  WARNINGS:\n%s", strings.Join(warnings, "\n")))
+		}
+		if len(info) > 0 {
+			parts = append(parts, fmt.Sprintf("\n  INFO:\n%s", strings.Join(info, "\n")))
+		}
+
+		if len(errors) > 0 {
+			return fmt.Errorf("%s", strings.Join(parts, ""))
+		}
+
+		fmt.Printf("%s\n", strings.Join(parts, ""))
 	}
 
 	return nil

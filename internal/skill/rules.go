@@ -408,7 +408,56 @@ func validateOutputFormat(ctx *ValidationContext) []ValidationIssue {
 	return nil
 }
 
+// checkTriggerExplicit checks if skills have explicit triggers defined in frontmatter (SK012).
+func checkTriggerExplicit(ctx *ValidationContext) []ValidationIssue {
+	if ctx.Meta.StructureVersion == "v1" {
+		return nil
+	}
+
+	// Check if Triggers field is populated
+	if len(ctx.Meta.Triggers) > 0 {
+		// Triggers exist - check if they're explicit (from frontmatter) or description-based
+		if len(ctx.Meta.ExplicitTriggers) > 0 {
+			// Explicit triggers defined in frontmatter - no issue
+			return nil
+		}
+
+		// Description-based triggers - info level
+		return []ValidationIssue{{
+			Rule:     "SK012",
+			Severity: SeverityInfo,
+			Message: `Using description-based triggers (SK012)
+
+Define explicit triggers in frontmatter for better matching control and higher quality scores.
+
+Example:
+triggers:
+  - keywords: ["go code", "golang"]
+    weight: 0.8
+  - patterns: ["implement.*go"]
+    weight: 0.9`,
+			Line: findLineNumber(ctx.Lines, `name:`),
+		}}
+	}
+
+	// No triggers at all - warning level
+	return []ValidationIssue{{
+		Rule:     "SK012",
+		Severity: SeverityWarning,
+		Message: `No triggers defined (SK012)
+
+Add explicit triggers in frontmatter or include "Auto-activates for:" in description.
+
+Example:
+triggers:
+  - keywords: ["go code", "golang"]
+    weight: 0.8`,
+		Line: findLineNumber(ctx.Lines, `name:`),
+	}}
+}
+
 // validateExplicitTriggers checks if skills use explicit triggers (SK012).
+// DEPRECATED: Use checkTriggerExplicit() instead
 func validateExplicitTriggers(ctx *ValidationContext) []ValidationIssue {
 	if ctx.Meta.StructureVersion == "v1" {
 		return nil
@@ -431,4 +480,138 @@ triggers:
     weight: 0.8`,
 		Line: findLineNumber(ctx.Lines, `name:`),
 	}}
+}
+
+// checkExampleDiversity checks example diversity using diversity score (SK010).
+func checkExampleDiversity(ctx *ValidationContext) []ValidationIssue {
+	if ctx.Meta.StructureVersion == "v1" {
+		return nil
+	}
+
+	if !strings.Contains(ctx.Content, "<examples>") {
+		return nil
+	}
+
+	examples := parseExamples(ctx.Content)
+
+	if len(examples) < 3 {
+		return nil
+	}
+
+	score := calculateDiversityScore(examples)
+
+	if score < 0.5 {
+		return []ValidationIssue{{
+			Rule:     "SK010",
+			Severity: SeverityWarning,
+			Message: `Low example diversity (score: %.0f%%, SK010)
+
+Include examples with different input types, success/error cases, and edge cases.
+
+Example:
+Mix simple inputs, complex inputs, empty inputs, and boundary cases
+
+<example>
+  <input>valid input</input>
+  <output>success response</output>
+</example>
+<example>
+  <input>empty input</input>
+  <output>error: input required</output>
+</example>
+<example>
+  <input>boundary value</input>
+  <output>handled correctly</output>
+</example>`,
+			Line:   findLineNumberForTag(ctx.Lines, "examples"),
+			Column: 0,
+		}}
+	}
+
+	return nil
+}
+
+// checkInstructionConcise checks instruction section length (SK011).
+func checkInstructionConcise(ctx *ValidationContext) []ValidationIssue {
+	if ctx.Meta.StructureVersion == "v1" {
+		return nil
+	}
+
+	if !strings.Contains(ctx.Content, "<instructions>") {
+		return nil
+	}
+
+	if !strings.Contains(ctx.Content, "</instructions>") {
+		return nil
+	}
+
+	openTag := "<instructions>"
+	closeTag := "</instructions>"
+	openIdx := strings.Index(ctx.Content, openTag)
+	closeIdx := strings.Index(ctx.Content, closeTag)
+
+	if openIdx == -1 || closeIdx == -1 {
+		return nil
+	}
+
+	instructionsContent := ctx.Content[openIdx+len(openTag) : closeIdx]
+	tokenCount := countTokens(instructionsContent)
+
+	if tokenCount >= 8000 {
+		return []ValidationIssue{{
+			Rule:     "SK011",
+			Severity: SeverityWarning,
+			Message:  fmt.Sprintf("Instructions section is too long (%d tokens, SK011)\n\nReduce content to prevent attention dilution.\nExample: Move detailed examples to separate reference files", tokenCount),
+			Line:     findLineNumberForTag(ctx.Lines, "instructions"),
+		}}
+	}
+
+	if tokenCount >= 5000 {
+		return []ValidationIssue{{
+			Rule:     "SK011",
+			Severity: SeverityWarning,
+			Message:  fmt.Sprintf("Instructions section is getting long (%d tokens, SK011)\n\nReduce content to prevent attention dilution.\nExample: Move detailed examples to separate reference files", tokenCount),
+			Line:     findLineNumberForTag(ctx.Lines, "instructions"),
+		}}
+	}
+
+	return nil
+}
+
+// checkRedundancy checks for overlap with other skills (SK013).
+func checkRedundancy(ctx *ValidationContext, registry *Registry) []ValidationIssue {
+	if registry == nil {
+		return nil
+	}
+
+	skills := registry.All()
+	if len(skills) < 2 {
+		return nil
+	}
+
+	var maxOverlap float64
+	var maxOverlapSkill string
+
+	for _, other := range skills {
+		if other.Name == ctx.Meta.Name {
+			continue
+		}
+
+		overlap := calculateOverlap(ctx.Meta, &other)
+		if overlap > maxOverlap {
+			maxOverlap = overlap
+			maxOverlapSkill = other.Name
+		}
+	}
+
+	if maxOverlap > 0.7 {
+		return []ValidationIssue{{
+			Rule:     "SK013",
+			Severity: SeverityWarning,
+			Message:  fmt.Sprintf("Skill overlaps %s by %.0f%% (SK013)\n\nConsider merging skills or clarifying distinct use cases.", maxOverlapSkill, maxOverlap*100),
+			Line:     findLineNumber(ctx.Lines, `name:`),
+		}}
+	}
+
+	return nil
 }

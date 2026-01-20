@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -1198,6 +1199,583 @@ func TestValidateExplicitTriggers_SK012(t *testing.T) {
 
 			if tt.verify != nil {
 				tt.verify(t, issues)
+			}
+		})
+	}
+}
+
+func TestCheckExampleDiversity_SK010(t *testing.T) {
+	tests := []struct {
+		name     string
+		meta     *SkillMeta
+		content  string
+		wantWarn bool
+		verify   func(t *testing.T, issues []ValidationIssue)
+	}{
+		{
+			name:     "v1 skill skips SK010 validation",
+			meta:     &SkillMeta{Name: "test-skill", Description: "Test skill", StructureVersion: "v1"},
+			content:  `<examples><example><input>test</input><output>test</output></example></examples>`,
+			wantWarn: false,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK010", issue.Rule)
+				}
+			},
+		},
+		{
+			name:     "high diversity examples pass",
+			meta:     &SkillMeta{Name: "test-skill", Description: "Test skill", StructureVersion: "v2"},
+			content:  `<examples><example><input>valid string</input><output>success</output></example><example><input>invalid null</input><output>error</output></example><example><input>zero</input><output>edge handled</output></example></examples>`,
+			wantWarn: false,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK010", issue.Rule)
+				}
+			},
+		},
+		{
+			name:     "low diversity examples trigger SK010 warning",
+			meta:     &SkillMeta{Name: "test-skill", Description: "Test skill", StructureVersion: "v2"},
+			content:  `<examples><example><input>test string</input><output>test string</output></example><example><input>another test</input><output>another test</output></example><example><input>more test</input><output>more test</output></example></examples>`,
+			wantWarn: true,
+			verify: func(t *testing.T, issues []ValidationIssue) {
+				found := false
+				for _, issue := range issues {
+					if issue.Rule == "SK010" {
+						found = true
+						assert.Equal(t, SeverityWarning, issue.Severity)
+						assert.Contains(t, issue.Message, "Low example diversity")
+						assert.Contains(t, issue.Message, "SK010")
+					}
+				}
+				assert.True(t, found, "expected to find SK010 issue")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{Content: tt.content, Lines: splitLines(tt.content), Meta: tt.meta}
+			issues := checkExampleDiversity(ctx)
+			if tt.wantWarn {
+				assert.True(t, hasSeverity(issues, SeverityWarning), "expected warning")
+			} else {
+				assert.False(t, hasSeverity(issues, SeverityWarning), "unexpected warning for SK010")
+			}
+			if tt.verify != nil {
+				tt.verify(t, issues)
+			}
+		})
+	}
+}
+
+func TestValidationRules_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name   string
+		meta   *SkillMeta
+		action func(t *testing.T, ctx *ValidationContext)
+	}{
+		{
+			name: "SK010 handles empty strings without panic",
+			meta: &SkillMeta{Name: "test-skill", StructureVersion: "v2"},
+			action: func(t *testing.T, ctx *ValidationContext) {
+				assert.NotPanics(t, func() { checkExampleDiversity(ctx) })
+			},
+		},
+		{
+			name: "SK011 handles empty strings without panic",
+			meta: &SkillMeta{Name: "test-skill", StructureVersion: "v2"},
+			action: func(t *testing.T, ctx *ValidationContext) {
+				assert.NotPanics(t, func() { checkInstructionConcise(ctx) })
+			},
+		},
+		{
+			name: "SK012 handles empty triggers without panic",
+			meta: &SkillMeta{Name: "test-skill", StructureVersion: "v2", Triggers: []string{}},
+			action: func(t *testing.T, ctx *ValidationContext) {
+				assert.NotPanics(t, func() { checkTriggerExplicit(ctx) })
+			},
+		},
+		{
+			name: "SK013 handles nil registry without panic",
+			meta: &SkillMeta{Name: "test-skill", StructureVersion: "v2"},
+			action: func(t *testing.T, ctx *ValidationContext) {
+				assert.NotPanics(t, func() { checkRedundancy(ctx, nil) })
+			},
+		},
+		{
+			name: "v1 skill does not trigger SK rules",
+			meta: &SkillMeta{Name: "test-skill", Description: "Test", Triggers: []string{"test"}, StructureVersion: "v1"},
+			action: func(t *testing.T, ctx *ValidationContext) {
+				ctx.Content = `<instructions>test</instructions><examples><example><input>test</input><output>test</output></example></examples>`
+				assert.Empty(t, checkExampleDiversity(ctx), "v1 should not trigger SK010")
+				assert.Empty(t, checkInstructionConcise(ctx), "v1 should not trigger SK011")
+				assert.Empty(t, checkTriggerExplicit(ctx), "v1 should not trigger SK012")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{Content: "", Lines: []string{}, Meta: tt.meta}
+			tt.action(t, ctx)
+		})
+	}
+}
+
+// Integration tests for SK010-SK013 validation rules
+
+// TestIntegration_FullValidationWithAllNewRules validates a complete skill file with all new rules (6.2.1)
+func TestIntegration_FullValidationWithAllNewRules(t *testing.T) {
+	t.Parallel()
+
+	skillContent := `---
+name: test-skill
+description: Test skill with all sections
+version: 1.0.0
+triggers:
+  - keywords: ["test", "testing"]
+    weight: 0.8
+---
+
+<role>Expert tester focused on TDD and test patterns</role>
+
+<instructions>
+Write comprehensive tests using table-driven patterns.
+Ensure proper error handling and edge case coverage.
+</instructions>
+
+<examples>
+<example>
+<input>test string</input>
+<output>test string</output>
+</example>
+<example>
+<input>another test</input>
+<output>another test</output>
+</example>
+<example>
+<input>more test</input>
+<output>more test</output>
+</example>
+</examples>
+
+<output_format>JSON with test results</output_format>`
+
+	meta := &SkillMeta{
+		Name:             "test-skill",
+		Description:      "Test skill with all sections",
+		Version:          "1.0.0",
+		StructureVersion: "v2",
+		Triggers:         []string{"test", "testing"},
+		ExplicitTriggers: []Trigger{
+			{Keywords: []string{"test", "testing"}, Weight: 0.8},
+		},
+	}
+
+	v := NewValidator()
+	result := v.Validate(meta, skillContent)
+
+	assert.True(t, result.Valid, "skill should be valid (warnings don't block validation)")
+
+	rulesFound := make(map[string]bool)
+	for _, issue := range result.Issues {
+		rulesFound[issue.Rule] = true
+	}
+
+	assert.Contains(t, rulesFound, "SK010", "SK010 rule should run")
+	assert.True(t, result.WarningCount() > 0, "should have at least one warning")
+
+	for _, issue := range result.Issues {
+		if issue.Rule == "SK010" {
+			assert.Equal(t, SeverityWarning, issue.Severity)
+			assert.Contains(t, issue.Message, "SK010")
+		}
+	}
+}
+
+// TestIntegration_ValidateWithContext_SK013 validates with registry for redundancy detection (6.2.2)
+func TestIntegration_ValidateWithContext_SK013(t *testing.T) {
+	t.Parallel()
+
+	registry := NewRegistry()
+
+	skill1 := &SkillMeta{
+		Name:             "test-1",
+		Description:      "Testing patterns with TDD",
+		Triggers:         []string{"test", "tdd", "testing"},
+		StructureVersion: "v2",
+	}
+
+	skill2 := &SkillMeta{
+		Name:             "test-2",
+		Description:      "TDD testing patterns",
+		Triggers:         []string{"test", "tdd"},
+		StructureVersion: "v2",
+	}
+
+	registry.skills = append(registry.skills, *skill1, *skill2)
+
+	content1 := `<role>Test expert</role><instructions>Write tests</instructions>`
+	content2 := `<role>Testing expert</role><instructions>Do TDD</instructions>`
+
+	v := NewValidator()
+
+	result1 := v.ValidateWithContext(skill1, content1, registry)
+	result2 := v.ValidateWithContext(skill2, content2, registry)
+
+	sk013Found := false
+	for _, issue := range result1.Issues {
+		if issue.Rule == "SK013" {
+			sk013Found = true
+			assert.Equal(t, SeverityWarning, issue.Severity)
+			assert.Contains(t, issue.Message, "SK013")
+			assert.Contains(t, issue.Message, "overlaps")
+		}
+	}
+	assert.True(t, sk013Found, "SK013 should detect overlap between test-1 and test-2")
+
+	sk013Found2 := false
+	for _, issue := range result2.Issues {
+		if issue.Rule == "SK013" {
+			sk013Found2 = true
+		}
+	}
+	assert.True(t, sk013Found2, "SK013 should detect overlap for test-2 as well")
+}
+
+// TestIntegration_WarningsDoNotBlockValidation verifies warnings don't block validation (6.2.3)
+func TestIntegration_WarningsDoNotBlockValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "SK010 warning allows valid result",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Test skill",
+				Version:          "1.0.0",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role><instructions>test</instructions>
+<examples><example><input>test</input><output>test</output></example>
+<example><input>test2</input><output>test2</output></example>
+<example><input>test3</input><output>test3</output></example></examples>`,
+		},
+		{
+			name: "SK011 warning allows valid result",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Test skill",
+				Version:          "1.0.0",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role><instructions>` + strings.Repeat("test ", 5000) + `</instructions>`,
+		},
+		{
+			name: "SK012 warning allows valid result",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Test skill. Auto-activates for: testing",
+				Triggers:         []string{"testing"},
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role><instructions>test</instructions>`,
+		},
+		{
+			name: "Multiple warnings still valid",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				Description:      "Test skill. Auto-activates for: testing",
+				Triggers:         []string{"testing"},
+				Version:          "1.0.0",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role><instructions>` + strings.Repeat("test ", 5000) + `</instructions>
+<examples><example><input>test</input><output>test</output></example>
+<example><input>test2</input><output>test2</output></example>
+<example><input>test3</input><output>test3</output></example></examples>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			v := NewValidator()
+			result := v.Validate(tt.meta, tt.content)
+
+			assert.True(t, result.Valid, "skill with warnings should be valid")
+			assert.True(t, result.ErrorCount() == 0, "should have no errors")
+			assert.True(t, result.WarningCount() > 0, "should have warnings")
+		})
+	}
+}
+
+// TestIntegration_OnlyErrorsBlockValidation verifies only errors block validation (6.2.3)
+func TestIntegration_OnlyErrorsBlockValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		meta         *SkillMeta
+		content      string
+		expectValid  bool
+		expectErrors bool
+		expectWarn   bool
+	}{
+		{
+			name:         "Only warnings - valid",
+			meta:         &SkillMeta{Name: "test", Description: "Test", StructureVersion: "v2"},
+			content:      `<role>test</role>`,
+			expectValid:  true,
+			expectErrors: false,
+			expectWarn:   true,
+		},
+		{
+			name:         "Errors and warnings - invalid",
+			meta:         &SkillMeta{Name: "", Description: "Test", StructureVersion: "v2"},
+			content:      `<role>test</role>`,
+			expectValid:  false,
+			expectErrors: true,
+			expectWarn:   true,
+		},
+		{
+			name:         "No issues - valid",
+			meta:         &SkillMeta{Name: "test", Description: "Test", StructureVersion: "v1"},
+			content:      `---\nname: test\ndescription: Test\n---`,
+			expectValid:  true,
+			expectErrors: false,
+			expectWarn:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			v := NewValidator()
+			result := v.Validate(tt.meta, tt.content)
+
+			assert.Equal(t, tt.expectValid, result.Valid, "validity mismatch")
+			assert.Equal(t, tt.expectErrors, result.ErrorCount() > 0, "error presence mismatch")
+			assert.Equal(t, tt.expectWarn, result.WarningCount() > 0, "warning presence mismatch")
+		})
+	}
+}
+
+// TestIntegration_ValidateRealSkillFiles validates real skill files from repository (6.2.4)
+func TestIntegration_ValidateRealSkillFiles(t *testing.T) {
+	t.Parallel()
+
+	realSkills := []struct {
+		path     string
+		expected string
+	}{
+		{
+			path:     ".claude/skills/ent/go/go-code/SKILL.md",
+			expected: "go-code",
+		},
+	}
+
+	registry := NewRegistry()
+
+	for _, skillInfo := range realSkills {
+		t.Run(skillInfo.expected, func(t *testing.T) {
+			if _, err := os.Stat(skillInfo.path); os.IsNotExist(err) {
+				t.Skipf("skill file not found: %s", skillInfo.path)
+				return
+			}
+
+			err := registry.RegisterSkill(skillInfo.expected, skillInfo.path)
+			if err != nil {
+				t.Fatalf("failed to load skill: %v", err)
+			}
+
+			result, err := registry.ValidateSkill(skillInfo.expected)
+			assert.NoError(t, err, "validation should succeed")
+			assert.NotNil(t, result, "result should not be nil")
+			assert.NotNil(t, result.Issues, "issues should not be nil")
+
+			rulesFound := make(map[string]bool)
+			for _, issue := range result.Issues {
+				rulesFound[issue.Rule] = true
+			}
+
+			hasWarnings := result.WarningCount() > 0
+			hasErrors := result.ErrorCount() > 0
+			isValid := result.Valid
+
+			if !hasErrors {
+				assert.True(t, isValid, "skill with only warnings should be valid")
+			}
+
+			t.Logf("Skill %s: valid=%v, errors=%v, warnings=%v, rules=%v",
+				skillInfo.expected, isValid, hasErrors, hasWarnings, rulesFound)
+		})
+	}
+}
+
+// TestIntegration_MultipleSkillsWithRegistry tests validation of multiple skills together
+func TestIntegration_MultipleSkillsWithRegistry(t *testing.T) {
+	t.Parallel()
+
+	registry := NewRegistry()
+
+	skillA := &SkillMeta{
+		Name:             "skill-a",
+		Description:      "Go code patterns",
+		Triggers:         []string{"go", "golang"},
+		StructureVersion: "v2",
+	}
+
+	skillB := &SkillMeta{
+		Name:             "skill-b",
+		Description:      "Testing patterns",
+		Triggers:         []string{"test", "testing"},
+		StructureVersion: "v2",
+	}
+
+	registry.skills = append(registry.skills, *skillA, *skillB)
+
+	v := NewValidator()
+
+	contentA := `<role>Expert in Go</role><instructions>Write Go code</instructions>`
+	contentB := `<role>Expert in testing</role><instructions>Write tests</instructions>`
+
+	resultA := v.Validate(skillA, contentA)
+	resultB := v.Validate(skillB, contentB)
+
+	assert.NotNil(t, resultA, "resultA should not be nil")
+	assert.NotNil(t, resultB, "resultB should not be nil")
+	assert.NotNil(t, resultA.Issues, "issues A should not be nil")
+	assert.NotNil(t, resultB.Issues, "issues B should not be nil")
+
+	totalIssues := len(resultA.Issues) + len(resultB.Issues)
+	t.Logf("Validated %d skills with %d total issues", 2, totalIssues)
+
+	ruleCounts := make(map[string]int)
+	for _, issue := range resultA.Issues {
+		ruleCounts[issue.Rule]++
+	}
+	for _, issue := range resultB.Issues {
+		ruleCounts[issue.Rule]++
+	}
+
+	for rule, count := range ruleCounts {
+		t.Logf("Rule %s: %d issues", rule, count)
+	}
+}
+
+// TestIntegration_SK010DiversityScore tests diversity score calculation
+func TestIntegration_SK010DiversityScore(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		content     string
+		expectIssue bool
+	}{
+		{
+			name:        "High diversity - no issue",
+			expectIssue: false,
+			content: `<examples>
+<example><input>valid string</input><output>success</output></example>
+<example><input>""</input><output>error</output></example>
+<example><input>0</input><output>edge case</output></example>
+</examples>`,
+		},
+		{
+			name:        "Low diversity - issue",
+			expectIssue: true,
+			content: `<examples>
+<example><input>test string</input><output>test string</output></example>
+<example><input>test string 2</input><output>test string 2</output></example>
+<example><input>test string 3</input><output>test string 3</output></example>
+</examples>`,
+		},
+		{
+			name:        "Too few examples - no issue",
+			expectIssue: false,
+			content: `<examples>
+<example><input>test</input><output>result</output></example>
+</examples>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			meta := &SkillMeta{Name: "test", Description: "Test", StructureVersion: "v2"}
+			ctx := &ValidationContext{Content: tt.content, Lines: splitLines(tt.content), Meta: meta}
+
+			issues := checkExampleDiversity(ctx)
+
+			if tt.expectIssue {
+				assert.True(t, len(issues) > 0, "expected SK010 issue")
+				if len(issues) > 0 {
+					assert.Equal(t, "SK010", issues[0].Rule)
+					assert.Equal(t, SeverityWarning, issues[0].Severity)
+				}
+			} else {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK010", issue.Rule, "unexpected SK010 issue")
+				}
+			}
+		})
+	}
+}
+
+// TestIntegration_SK011InstructionLength tests instruction length validation
+func TestIntegration_SK011InstructionLength(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		content     string
+		expectIssue bool
+	}{
+		{
+			name:        "Short instructions - no issue",
+			expectIssue: false,
+			content:     `<instructions>Short instructions</instructions>`,
+		},
+		{
+			name:        "Medium instructions - no issue",
+			expectIssue: false,
+			content:     `<instructions>` + strings.Repeat("word ", 2000) + `</instructions>`,
+		},
+		{
+			name:        "Long instructions - issue",
+			expectIssue: true,
+			content:     `<instructions>` + strings.Repeat("word ", 8000) + `</instructions>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			meta := &SkillMeta{Name: "test", Description: "Test", StructureVersion: "v2"}
+			ctx := &ValidationContext{Content: tt.content, Lines: splitLines(tt.content), Meta: meta}
+
+			issues := checkInstructionConcise(ctx)
+
+			if tt.expectIssue {
+				assert.True(t, len(issues) > 0, "expected SK011 issue")
+				if len(issues) > 0 {
+					assert.Equal(t, "SK011", issues[0].Rule)
+					assert.Equal(t, SeverityWarning, issues[0].Severity)
+					assert.Contains(t, issues[0].Message, "tokens")
+				}
+			} else {
+				for _, issue := range issues {
+					assert.NotEqual(t, "SK011", issue.Rule, "unexpected SK011 issue")
+				}
 			}
 		})
 	}
