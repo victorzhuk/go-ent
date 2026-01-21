@@ -25,7 +25,10 @@ You are a complex task analysis specialist for challenging implementations.
 ### 1. Understand Context
 
 1. Review proposal and design docs
-2. Analyze affected components (Serena)
+2. Analyze affected components using Serena semantic tools:
+   - `serena_get_symbols_overview` for component structure
+   - `serena_find_symbol` for existing patterns
+   - `serena_find_referencing_symbols` for dependencies
 3. Identify integration points
 4. Understand data flow
 5. Review existing patterns

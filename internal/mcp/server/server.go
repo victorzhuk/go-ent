@@ -17,6 +17,7 @@ import (
 	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/version"
+	"github.com/victorzhuk/go-ent/internal/worker"
 )
 
 func New() *mcp.Server {
@@ -103,7 +104,18 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	backgroundManager := background.NewManager(nil, background.DefaultConfig())
 	slog.Info("background agent manager initialized", "default_role", background.DefaultConfig().DefaultRole, "default_model", background.DefaultConfig().DefaultModel)
 
-	tools.Register(s, registry, pluginManager, marketplaceSearcher, backgroundManager)
+	workerManager := worker.NewWorkerManagerWithoutTracking()
+	slog.Info("worker manager initialized")
+
+	providerConfig, err := config.LoadProviders(".")
+	if err != nil {
+		slog.Warn("failed to load providers config, using defaults", "error", err)
+		providerConfig = config.DefaultProvidersConfig()
+	} else {
+		slog.Info("providers config loaded", "providers", len(providerConfig.Providers))
+	}
+
+	tools.Register(s, registry, pluginManager, marketplaceSearcher, backgroundManager, workerManager, providerConfig)
 
 	return s
 }

@@ -367,3 +367,100 @@ func (s *StateStore) SyncFromTasksMd() error {
 
 	return nil
 }
+
+func (s *StateStore) UpdateTaskInFile(taskID TaskID, status RegistryTaskStatus, notes string) error {
+	changeDir := filepath.Join(s.store.SpecPath(), "changes", taskID.ChangeID)
+	tasksPath := filepath.Join(changeDir, "tasks.md")
+
+	task, err := s.bolt.GetTask(taskID)
+	if err != nil {
+		return fmt.Errorf("get task from bolt: %w", err)
+	}
+
+	lines, err := s.readFileLines(tasksPath)
+	if err != nil {
+		return fmt.Errorf("read tasks file: %w", err)
+	}
+
+	if task.SourceLine < 1 || task.SourceLine > len(lines) {
+		return fmt.Errorf("invalid task line: %d", task.SourceLine)
+	}
+
+	updatedLine, err := s.updateTaskLine(lines[task.SourceLine-1], status, notes)
+	if err != nil {
+		return fmt.Errorf("update task line: %w", err)
+	}
+
+	lines[task.SourceLine-1] = updatedLine
+
+	if err := s.writeFileLines(tasksPath, lines); err != nil {
+		return fmt.Errorf("write tasks file: %w", err)
+	}
+
+	return nil
+}
+
+func (s *StateStore) readFileLines(path string) ([]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+
+	var lines []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	return lines, scanner.Err()
+}
+
+func (s *StateStore) writeFileLines(path string, lines []string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+
+	for _, line := range lines {
+		if _, err := fmt.Fprintln(f, line); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *StateStore) updateTaskLine(line string, status RegistryTaskStatus, notes string) (string, error) {
+	taskPattern := regexp.MustCompile(`^([-*])\s+\[([ xX])\]\s+(.+)$`)
+	matches := taskPattern.FindStringSubmatch(line)
+	if len(matches) < 4 {
+		return line, fmt.Errorf("line does not match task pattern")
+	}
+
+	bullet := matches[1]
+	content := strings.TrimSpace(matches[3])
+
+	depStr := ""
+	if idx := strings.Index(content, "<!--"); idx != -1 {
+		depStr = content[idx:]
+		content = strings.TrimSpace(content[:idx])
+	}
+
+	newChecked := " "
+	if status == RegStatusCompleted {
+		newChecked = "x"
+	}
+
+	if notes != "" {
+		trimmedContent := strings.TrimSpace(content)
+		existingIdx := strings.Index(trimmedContent, "✓")
+		if existingIdx != -1 {
+			trimmedContent = strings.TrimSpace(trimmedContent[:existingIdx])
+		}
+		content = fmt.Sprintf("%s %s", trimmedContent, notes)
+	}
+
+	return fmt.Sprintf("%s [%s] %s%s", bullet, newChecked, content, depStr), nil
+}

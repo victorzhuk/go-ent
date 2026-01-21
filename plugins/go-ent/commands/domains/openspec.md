@@ -170,13 +170,13 @@ When working on a task, always load:
 
 ## OpenSpec Commands Reference
 
-| Command | Purpose |
-|---------|---------|
-| `/go-ent:plan <description>` | Create new change proposal |
-| `/go-ent:apply` | Execute next task from registry |
-| `/go-ent:status` | Show active change progress |
-| `/go-ent:registry list` | List all changes |
-| `/go-ent:archive {id}` | Archive completed change |
+| Command                      | Purpose                         |
+|------------------------------|---------------------------------|
+| `/go-ent:plan <description>` | Create new change proposal      |
+| `/go-ent:apply`              | Execute next task from registry |
+| `/go-ent:status`             | Show active change progress     |
+| `/go-ent:registry list`      | List all changes                |
+| `/go-ent:archive {id}`       | Archive completed change        |
 
 ## Spec Validation Rules
 

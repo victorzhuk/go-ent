@@ -35,6 +35,12 @@ type Task struct {
 	// Model overrides auto-selected model.
 	ForceModel string
 
+	// Provider overrides auto-selected provider.
+	ForceProvider string
+
+	// Method overrides auto-selected communication method.
+	ForceMethod string
+
 	// Runtime overrides auto-selected runtime.
 	ForceRuntime domain.Runtime
 
@@ -80,6 +86,18 @@ func (t *Task) WithAgent(agent domain.AgentRole) *Task {
 // WithModel forces a specific model.
 func (t *Task) WithModel(model string) *Task {
 	t.ForceModel = model
+	return t
+}
+
+// WithProvider forces a specific provider.
+func (t *Task) WithProvider(provider string) *Task {
+	t.ForceProvider = provider
+	return t
+}
+
+// WithMethod forces a specific communication method.
+func (t *Task) WithMethod(method string) *Task {
+	t.ForceMethod = method
 	return t
 }
 

@@ -26,7 +26,9 @@ Use @ent:debugger-heavy for:
 
 1. Read reproduction case
 2. Review root cause analysis (if available)
-3. Study affected components (Serena)
+3. Study affected components using Serena semantic tools:
+   - `serena_find_symbol` for component structure
+   - `serena_find_referencing_symbols` for dependencies
 4. Understand data flow
 5. Identify integration points
 

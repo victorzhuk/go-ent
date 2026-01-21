@@ -50,12 +50,12 @@ grep -rn "error message" internal/
 
 ### 2. Analyze Context
 
-Use Serena to:
-1. Understand component structure
-2. Find symbol definitions and usages
-3. Review error propagation paths
-4. Check integration points
-5. Identify data flow
+Use Serena semantic tools for code analysis:
+1. `serena_get_symbols_overview` - Understand component structure
+2. `serena_find_symbol` - Find symbol definitions
+3. `serena_find_referencing_symbols` - Trace error propagation paths
+4. `serena_search_for_pattern` - Check integration points
+5. Use native Read tool for examining specific implementations
 
 ### 3. Form Hypothesis
 

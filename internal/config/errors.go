@@ -23,4 +23,7 @@ var (
 
 	// ErrInvalidYAML indicates the configuration file contains invalid YAML.
 	ErrInvalidYAML = errors.New("invalid yaml")
+
+	// ErrNoProviders indicates no providers are configured.
+	ErrNoProviders = errors.New("no providers configured")
 )

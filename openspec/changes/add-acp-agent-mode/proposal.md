@@ -1,5 +1,8 @@
 # Proposal: Add ACP Proxy Mode for OpenCode Worker Orchestration
 
+**Status**: in_progress (2026-01-20)
+**Started**: Implementation phase active
+
 ## Why
 
 go-ent currently operates as an MCP server for Claude Code. To enable true multi-agent orchestration where Claude Code (Opus) acts as master and **OpenCode instances** run as parallel workers with different AI backends, go-ent needs to act as an **ACP proxy/bridge**.

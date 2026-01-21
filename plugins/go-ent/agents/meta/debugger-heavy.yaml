@@ -9,13 +9,17 @@ skills:
   - go-sec
   - go-test
 tools:
-  - read
-  - write
-  - edit
-  - bash
-  - grep
-  - glob
-  - mcp__plugin_serena_serena
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
+  - mcp__plugin_serena_serena__find_symbol
+  - mcp__plugin_serena_serena__find_referencing_symbols
+  - mcp__plugin_serena_serena__get_symbols_overview
+  - mcp__plugin_serena_serena__search_for_pattern
+  - mcp__plugin_serena_serena__list_dir
 dependencies:
   - reviewer
   - acceptor

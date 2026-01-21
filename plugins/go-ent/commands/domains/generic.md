@@ -30,14 +30,14 @@ package/
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Variables | Short, meaningful | `cfg`, `repo`, `ctx` |
-| Types | PascalCase | `User`, `Config` |
-| Functions | PascalCase (exported), camelCase (private) | `NewUser()`, `validate()` |
-| Constants | PascalCase | `MaxRetries` |
-| Files | lowercase_with_underscores | `user_service.go` |
-| Interfaces | PascalCase, simple | `Repository`, `Service` |
+| Type       | Convention                                 | Example                   |
+|------------|--------------------------------------------|---------------------------|
+| Variables  | Short, meaningful                          | `cfg`, `repo`, `ctx`      |
+| Types      | PascalCase                                 | `User`, `Config`          |
+| Functions  | PascalCase (exported), camelCase (private) | `NewUser()`, `validate()` |
+| Constants  | PascalCase                                 | `MaxRetries`              |
+| Files      | lowercase_with_underscores                 | `user_service.go`         |
+| Interfaces | PascalCase, simple                         | `Repository`, `Service`   |
 
 ### Error Handling
 

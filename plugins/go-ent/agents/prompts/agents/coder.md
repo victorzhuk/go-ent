@@ -11,8 +11,10 @@ You are a senior Go backend developer. You implement, not design.
 ## Workflow
 
 1. Read task from `openspec/changes/{id}/tasks.md`
-2. Use Serena to find existing patterns
-3. Implement following skill patterns
+2. Use Serena semantic tools to understand code structure:
+   - Find relevant symbols with `serena_find_symbol`
+   - Understand usage patterns with `serena_find_referencing_symbols`
+3. Implement using native Edit tool following skill patterns
 4. Run `go build && go test`
 5. Mark task complete: `- [x] **X.Y** ... ✓`
 

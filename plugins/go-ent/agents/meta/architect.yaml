@@ -7,10 +7,14 @@ skills:
   - go-api
   - api-design
 tools:
-  - read
-  - glob
-  - grep
-  - mcp__plugin_serena_serena
+  - Read
+  - Glob
+  - Grep
+  - mcp__plugin_serena_serena__find_symbol
+  - mcp__plugin_serena_serena__find_referencing_symbols
+  - mcp__plugin_serena_serena__get_symbols_overview
+  - mcp__plugin_serena_serena__search_for_pattern
+  - mcp__plugin_serena_serena__list_dir
 dependencies:
   - planner
   - coder

@@ -25,8 +25,8 @@ grep -r "error\|panic" logs/
 
 ### 2. Analyze
 ```bash
-# Find symbol usage
-mcp__plugin_serena_serena__find_referencing_symbols(symbol: "ErrorName")
+# Find symbol usage with Serena
+serena_find_referencing_symbols(symbol: "ErrorName")
 
 # Check recent changes
 git diff HEAD~5 -- internal/

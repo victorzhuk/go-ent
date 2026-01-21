@@ -5,12 +5,14 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent/background"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	"github.com/victorzhuk/go-ent/internal/worker"
 )
 
-func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugin.Manager, marketplaceSearcher *marketplace.Searcher, backgroundManager *background.Manager) {
+func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugin.Manager, marketplaceSearcher *marketplace.Searcher, backgroundManager *background.Manager, workerManager *worker.WorkerManager, providerConfig *config.ProvidersConfig) {
 	// Create tool discovery registry
 	toolRegistry := NewToolRegistry(s)
 
@@ -38,6 +40,18 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, pluginManager *plugi
 		registerAgentBgStatus(s, backgroundManager)
 		registerAgentBgOutput(s, backgroundManager)
 		registerAgentBgKill(s, backgroundManager)
+	}
+	if workerManager != nil {
+		registerWorkerSpawn(s, workerManager, providerConfig)
+		registerWorkerPrompt(s, workerManager)
+		registerWorkerStatus(s, workerManager)
+		registerWorkerOutput(s, workerManager)
+		registerWorkerCancel(s, workerManager)
+		registerWorkerList(s, workerManager)
+	}
+	if providerConfig != nil {
+		registerProviderList(s, providerConfig)
+		registerProviderRecommend(s, providerConfig)
 	}
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)

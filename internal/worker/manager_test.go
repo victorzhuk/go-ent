@@ -9,12 +9,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/execution"
 )
 
 func TestWorkerManager_New(t *testing.T) {
 	t.Run("creates manager with defaults", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		assert.NotNil(t, mgr)
 		assert.NotNil(t, mgr.workers)
@@ -25,13 +26,13 @@ func TestWorkerManager_New(t *testing.T) {
 func TestWorkerManager_Spawn(t *testing.T) {
 	t.Run("spawns worker with ACP method", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		task := execution.NewTask("test task")
 
 		workerID, err := mgr.Spawn(ctx, SpawnRequest{
 			Provider: "anthropic",
 			Model:    "claude-3-opus",
-			Method:   MethodACP,
+			Method:   config.MethodACP,
 			Task:     task,
 			Timeout:  5 * time.Minute,
 		})
@@ -44,20 +45,20 @@ func TestWorkerManager_Spawn(t *testing.T) {
 		assert.Equal(t, workerID, worker.ID)
 		assert.Equal(t, "anthropic", worker.Provider)
 		assert.Equal(t, "claude-3-opus", worker.Model)
-		assert.Equal(t, MethodACP, worker.Method)
+		assert.Equal(t, config.MethodACP, worker.Method)
 		assert.Equal(t, StatusIdle, worker.Status)
 		assert.NotNil(t, worker.Task)
 	})
 
 	t.Run("spawns worker with CLI method", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		task := execution.NewTask("test task")
 
 		workerID, err := mgr.Spawn(ctx, SpawnRequest{
 			Provider: "openai",
 			Model:    "gpt-4",
-			Method:   MethodCLI,
+			Method:   config.MethodCLI,
 			Task:     task,
 			Timeout:  5 * time.Minute,
 		})
@@ -67,18 +68,18 @@ func TestWorkerManager_Spawn(t *testing.T) {
 
 		worker := mgr.Get(workerID)
 		require.NotNil(t, worker)
-		assert.Equal(t, MethodCLI, worker.Method)
+		assert.Equal(t, config.MethodCLI, worker.Method)
 	})
 
 	t.Run("spawns worker with API method", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		task := execution.NewTask("test task")
 
 		workerID, err := mgr.Spawn(ctx, SpawnRequest{
 			Provider: "anthropic",
 			Model:    "claude-3-opus",
-			Method:   MethodAPI,
+			Method:   config.MethodAPI,
 			Task:     task,
 			Timeout:  5 * time.Minute,
 		})
@@ -88,12 +89,12 @@ func TestWorkerManager_Spawn(t *testing.T) {
 
 		worker := mgr.Get(workerID)
 		require.NotNil(t, worker)
-		assert.Equal(t, MethodAPI, worker.Method)
+		assert.Equal(t, config.MethodAPI, worker.Method)
 	})
 
 	t.Run("rejects spawn with existing worker ID", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		task := execution.NewTask("test task")
 
 		workerID := "existing-worker-id"
@@ -103,7 +104,7 @@ func TestWorkerManager_Spawn(t *testing.T) {
 			WorkerID: workerID,
 			Provider: "anthropic",
 			Model:    "claude-3-opus",
-			Method:   MethodACP,
+			Method:   config.MethodACP,
 			Task:     task,
 		})
 
@@ -113,13 +114,13 @@ func TestWorkerManager_Spawn(t *testing.T) {
 
 	t.Run("rejects spawn with invalid method", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		task := execution.NewTask("test task")
 
 		_, err := mgr.Spawn(ctx, SpawnRequest{
 			Provider: "anthropic",
 			Model:    "claude-3-opus",
-			Method:   CommunicationMethod("invalid"),
+			Method:   config.CommunicationMethod("invalid"),
 			Task:     task,
 		})
 
@@ -130,14 +131,14 @@ func TestWorkerManager_Spawn(t *testing.T) {
 
 func TestWorkerManager_Get(t *testing.T) {
 	t.Run("returns nil for non-existent worker", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		worker := mgr.Get("non-existent")
 		assert.Nil(t, worker)
 	})
 
 	t.Run("returns existing worker", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		workerID := "test-worker"
 		expectedWorker := &Worker{
 			ID:       workerID,
@@ -154,7 +155,7 @@ func TestWorkerManager_Get(t *testing.T) {
 func TestWorkerManager_Cancel(t *testing.T) {
 	t.Run("cancels idle worker", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		workerID := "test-worker"
 
 		mgr.workers[workerID] = &Worker{
@@ -172,7 +173,7 @@ func TestWorkerManager_Cancel(t *testing.T) {
 
 	t.Run("cancels running worker", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		workerID := "test-worker"
 
 		mgr.workers[workerID] = &Worker{
@@ -190,7 +191,7 @@ func TestWorkerManager_Cancel(t *testing.T) {
 
 	t.Run("returns error for non-existent worker", func(t *testing.T) {
 		ctx := context.Background()
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		err := mgr.Cancel(ctx, "non-existent")
 		require.Error(t, err)
@@ -200,14 +201,14 @@ func TestWorkerManager_Cancel(t *testing.T) {
 
 func TestWorkerManager_List(t *testing.T) {
 	t.Run("returns empty list when no workers", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		workers := mgr.List()
 		assert.Empty(t, workers)
 	})
 
 	t.Run("returns all workers", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		mgr.workers["worker-1"] = &Worker{ID: "worker-1", Status: StatusIdle}
 		mgr.workers["worker-2"] = &Worker{ID: "worker-2", Status: StatusRunning}
 		mgr.workers["worker-3"] = &Worker{ID: "worker-3", Status: StatusCompleted}
@@ -217,7 +218,7 @@ func TestWorkerManager_List(t *testing.T) {
 	})
 
 	t.Run("filters by status", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		mgr.workers["worker-1"] = &Worker{ID: "worker-1", Status: StatusIdle}
 		mgr.workers["worker-2"] = &Worker{ID: "worker-2", Status: StatusRunning}
 		mgr.workers["worker-3"] = &Worker{ID: "worker-3", Status: StatusCompleted}
@@ -230,7 +231,7 @@ func TestWorkerManager_List(t *testing.T) {
 
 func TestWorkerManager_Cleanup(t *testing.T) {
 	t.Run("removes completed workers", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		now := time.Now()
 
 		mgr.workers["worker-1"] = &Worker{ID: "worker-1", Status: StatusIdle}
@@ -247,7 +248,7 @@ func TestWorkerManager_Cleanup(t *testing.T) {
 	})
 
 	t.Run("respects maxAge parameter", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		now := time.Now()
 
 		mgr.workers["old-worker"] = &Worker{
@@ -272,7 +273,7 @@ func TestWorkerManager_Cleanup(t *testing.T) {
 
 func TestWorkerManager_SetWorkerStatus(t *testing.T) {
 	t.Run("updates worker status", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		workerID := "test-worker"
 
 		mgr.workers[workerID] = &Worker{
@@ -287,7 +288,7 @@ func TestWorkerManager_SetWorkerStatus(t *testing.T) {
 	})
 
 	t.Run("panics for non-existent worker", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		assert.Panics(t, func() {
 			mgr.SetWorkerStatus("non-existent", StatusRunning)
@@ -297,7 +298,7 @@ func TestWorkerManager_SetWorkerStatus(t *testing.T) {
 
 func TestWorkerManager_GetStatus(t *testing.T) {
 	t.Run("returns worker status", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 		workerID := "test-worker"
 
 		mgr.workers[workerID] = &Worker{
@@ -311,7 +312,7 @@ func TestWorkerManager_GetStatus(t *testing.T) {
 	})
 
 	t.Run("returns error for non-existent worker", func(t *testing.T) {
-		mgr := NewWorkerManager()
+		mgr := NewWorkerManagerWithoutTracking()
 
 		status, err := mgr.GetStatus("non-existent")
 		require.Error(t, err)
@@ -341,13 +342,13 @@ func TestWorkerStatus_String(t *testing.T) {
 
 func TestCommunicationMethod_String(t *testing.T) {
 	tests := []struct {
-		method   CommunicationMethod
+		method   config.CommunicationMethod
 		expected string
 	}{
-		{MethodACP, "acp"},
-		{MethodCLI, "cli"},
-		{MethodAPI, "api"},
-		{CommunicationMethod("unknown"), "unknown"},
+		{config.MethodACP, "acp"},
+		{config.MethodCLI, "cli"},
+		{config.MethodAPI, "api"},
+		{config.CommunicationMethod("unknown"), "unknown"},
 	}
 
 	for _, tt := range tests {
@@ -379,13 +380,13 @@ func TestWorkerStatus_Valid(t *testing.T) {
 
 func TestCommunicationMethod_Valid(t *testing.T) {
 	tests := []struct {
-		method   CommunicationMethod
+		method   config.CommunicationMethod
 		expected bool
 	}{
-		{MethodACP, true},
-		{MethodCLI, true},
-		{MethodAPI, true},
-		{CommunicationMethod("unknown"), false},
+		{config.MethodACP, true},
+		{config.MethodCLI, true},
+		{config.MethodAPI, true},
+		{config.CommunicationMethod("unknown"), false},
 	}
 
 	for _, tt := range tests {
