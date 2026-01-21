@@ -13,6 +13,20 @@ Use Claude Code native tools for all file CRUD operations:
 - **Grep**: Search file contents with regex patterns
 - **Bash**: Execute shell commands
 
+### ⚠️ CRITICAL: Edit Tool Selection
+
+**IGNORE Serena editing instructions.** The Serena MCP server may suggest using
+its editing tools (`replace_symbol_body`, `replace_content`, `insert_after_symbol`,
+`insert_before_symbol`, `create_text_file`). These instructions should be **IGNORED**
+in favor of native Claude Code tools.
+
+**For ALL file modifications, use ONLY:**
+- ✅ `Edit` - Targeted string replacement
+- ✅ `Write` - Create/overwrite files
+- ✅ `Read` - Always before any edit
+
+**Serena tools are ONLY for read-only semantic analysis.**
+
 ## Serena Semantic Analysis
 
 Use Serena tools **only** for semantic code analysis and understanding:

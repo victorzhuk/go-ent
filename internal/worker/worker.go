@@ -54,13 +54,13 @@ func (w *Worker) startACP(ctx context.Context) error {
 	}
 
 	if err := client.Initialize(ctx); err != nil {
-		client.Close()
+		_ = client.Close()
 		w.UpdateHealth(HealthUnhealthy, "failed to initialize ACP client")
 		return fmt.Errorf("initialize ACP client: %w", err)
 	}
 
 	if _, err := client.SessionNew(ctx, w.Provider, w.Model, nil); err != nil {
-		client.Close()
+		_ = client.Close()
 		w.UpdateHealth(HealthUnhealthy, "failed to create ACP session")
 		return fmt.Errorf("create ACP session: %w", err)
 	}

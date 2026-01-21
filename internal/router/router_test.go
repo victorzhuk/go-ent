@@ -750,7 +750,7 @@ func TestRouter_RouteWithLearning(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		err := mem.Store(&memory.Pattern{
 			TaskType:    "implement",
-			Provider:    "moonshot",
+			Provider:    "glm",
 			Model:       "glm-4",
 			Method:      "acp",
 			FileCount:   5,
@@ -780,7 +780,236 @@ func TestRouter_RouteWithLearning(t *testing.T) {
 	decision, err := router.Route(context.Background(), task)
 	require.NoError(t, err)
 	assert.NotNil(t, decision)
-	assert.Equal(t, "moonshot", decision.Provider)
+	assert.Equal(t, "glm", decision.Provider)
 	assert.Equal(t, "glm-4", decision.Model)
 	assert.Contains(t, decision.Reason, "learned pattern")
+}
+
+func TestRouter_Failover_BudgetExceeded(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"deepseek": {
+			Method:   config.MethodACP,
+			Provider: "deepseek",
+			Model:    "deepseek-coder",
+		},
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.01)
+
+	task := execution.NewTask("Complex task requiring many tokens")
+	task = task.WithType("refactor").WithContext(
+		execution.NewTaskContext("/test").WithFiles(make([]string, 50)),
+	)
+
+	decision, err := router.Route(context.Background(), task)
+	require.NoError(t, err)
+	assert.Contains(t, decision.Reason, "budget fallback")
+	assert.Equal(t, "deepseek", decision.Provider)
+	assert.Less(t, decision.EstimatedCost, 0.02)
+}
+
+func TestRouter_Failover_BudgetExceededAllProviders(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.001)
+
+	task := execution.NewTask("Large complex task")
+
+	_, err = router.Route(context.Background(), task)
+	assert.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "insufficient budget")
+	assert.Contains(t, strings.ToLower(err.Error()), "no cheaper provider")
+}
+
+func TestRouter_Failover_CostTrackingDuringFailover(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"haiku": {
+			Method:   config.MethodAPI,
+			Provider: "anthropic",
+			Model:    "claude-3-haiku-3-5",
+		},
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.10)
+
+	initialBudget := router.GetRemainingBudget()
+	assert.Equal(t, 0.10, initialBudget)
+
+	router.RecordCost("glm", 0.02)
+
+	afterFirst := router.GetRemainingBudget()
+	assert.Equal(t, 0.08, afterFirst)
+
+	costsByProvider := router.GetCostsByProvider()
+	assert.Equal(t, 0.02, costsByProvider["glm"])
+}
+
+func TestRouter_Failover_BudgetReset(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"haiku": {
+			Method:   config.MethodAPI,
+			Provider: "anthropic",
+			Model:    "claude-3-haiku-3-5",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.10)
+
+	router.RecordCost("haiku", 0.05)
+
+	assert.Equal(t, 0.05, router.GetRemainingBudget())
+
+	router.ResetBudget()
+
+	assert.Equal(t, 0.10, router.GetRemainingBudget())
+	assert.Equal(t, 0.0, router.GetCostsByProvider()["haiku"])
+}
+
+func TestRouter_Failover_MultipleTasksDepleteBudget(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+		"deepseek": {
+			Method:   config.MethodACP,
+			Provider: "deepseek",
+			Model:    "deepseek-coder",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.04)
+
+	task := execution.NewTask("Implementation task")
+
+	for i := 0; i < 3; i++ {
+		decision, err := router.Route(context.Background(), task)
+		if i < 2 {
+			require.NoError(t, err)
+			cost := 0.02
+			router.RecordCost(decision.Provider, cost)
+		} else {
+			assert.Error(t, err)
+			assert.Contains(t, strings.ToLower(err.Error()), "insufficient budget")
+		}
+	}
+}
+
+func TestRouter_Failover_ProviderPriorityDuringBudgetFailover(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"deepseek": {
+			Method:   config.MethodACP,
+			Provider: "deepseek",
+			Model:    "deepseek-coder",
+		},
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+		"haiku": {
+			Method:   config.MethodAPI,
+			Provider: "anthropic",
+			Model:    "claude-3-haiku-3-5",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0.01)
+
+	task := execution.NewTask("Complex implementation task")
+	task = task.WithType("refactor").WithContext(
+		execution.NewTaskContext("/test").WithFiles(make([]string, 50)),
+	)
+
+	decision, err := router.Route(context.Background(), task)
+	require.NoError(t, err)
+
+	assert.NotEqual(t, "haiku", decision.Provider)
+	assert.Contains(t, decision.Reason, "budget fallback")
+}
+
+func TestRouter_Failover_ZeroBudgetDisablesChecks(t *testing.T) {
+	t.Parallel()
+
+	cfg := worker.DefaultConfig()
+	cfg.Providers = map[string]worker.ProviderDefinition{
+		"haiku": {
+			Method:   config.MethodAPI,
+			Provider: "anthropic",
+			Model:    "claude-3-haiku-3-5",
+		},
+		"glm": {
+			Method:   config.MethodACP,
+			Provider: "moonshot",
+			Model:    "glm-4",
+		},
+	}
+
+	router, err := NewRouter(cfg, nil)
+	require.NoError(t, err)
+
+	router.SetCostBudget(0)
+
+	task := execution.NewTask("Very large expensive task")
+	task = task.WithType("feature").WithContext(
+		execution.NewTaskContext("/test").WithFiles(make([]string, 100)),
+	)
+
+	decision, err := router.Route(context.Background(), task)
+	require.NoError(t, err)
+	assert.NotNil(t, decision)
+	assert.NotEmpty(t, decision.Provider)
 }

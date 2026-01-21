@@ -2,15 +2,6 @@ version: '1.0'
 synced_at: '2026-01-17T20:30:00+03:00'
 
 changes:
-  add-acp-agent-mode:
-    id: add-acp-agent-mode
-    title: 'Add ACP Proxy Mode for OpenCode Worker Orchestration'
-    status: ready
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-acp-agent-mode/tasks.md
-    total: 60
-    completed: 2
-    in_progress: 0
-    blocked: 58
   add-ast-operations:
     id: add-ast-operations
     title: ''
@@ -29,16 +20,6 @@ changes:
     completed: 18
     in_progress: 0
     blocked: 0
-  add-boltdb-state-system:
-    id: add-boltdb-state-system
-    title: 'Add BoltDB Registry with state.md System'
-    status: pending
-    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/add-boltdb-state-system/tasks.md
-    total: 56
-    completed: 44
-    in_progress: 0
-    blocked: 12
-
 
   add-plugin-system:
     id: add-plugin-system
@@ -232,6 +213,30 @@ changes:
 
 
 archived:
+  add-boltdb-state-system:
+    id: add-boltdb-state-system
+    title: 'Add BoltDB Registry with state.md System'
+    status: pending
+    archived: true
+    archive_path: /home/zhuk/Projects/own/go-ent/openspec/archive/add-boltdb-state-system
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/archive/add-boltdb-state-system/tasks.md
+    total: 56
+    completed: 44
+    in_progress: 0
+    blocked: 12
+    archived_at: '2026-01-21T00:00:00+03:00'
+  add-acp-agent-mode:
+    id: add-acp-agent-mode
+    title: 'Add ACP Proxy Mode for OpenCode Worker Orchestration'
+    status: ready
+    archived: true
+    archive_path: /home/zhuk/Projects/own/go-ent/openspec/archive/add-acp-agent-mode
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/archive/add-acp-agent-mode/tasks.md
+    total: 60
+    completed: 2
+    in_progress: 0
+    blocked: 58
+    archived_at: '2026-01-21T00:00:00+03:00'
   add-metrics-system:
     id: add-metrics-system
     title: ''

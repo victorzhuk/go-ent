@@ -20,6 +20,22 @@ Use @ent:debugger-heavy for:
 - **Intermittent**: Hard to reproduce bugs
 - **Architecture**: Design-level problems
 
+## CRITICAL: Tool Usage
+
+**NEVER use Serena MCP tools for editing:**
+- ❌ `replace_symbol_body`
+- ❌ `insert_after_symbol`
+- ❌ `insert_before_symbol`
+- ❌ `replace_content`
+- ❌ `create_text_file`
+
+**ALWAYS use native Claude Code tools:**
+- ✅ `Edit` for all code modifications
+- ✅ `Write` for new files
+- ✅ `Read` before any edit
+
+Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbols, etc.)
+
 ## Debugging Workflow
 
 ### 1. Understand Context

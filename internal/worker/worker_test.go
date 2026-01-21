@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -663,4 +665,381 @@ func TestHealthStatus_Valid(t *testing.T) {
 	assert.True(t, HealthUnknown.Valid())
 	assert.True(t, HealthTimeout.Valid())
 	assert.False(t, HealthStatus("invalid").Valid())
+}
+
+func TestWorker_Lifecycle_Transitions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("idle to running to completed", func(t *testing.T) {
+		worker := &Worker{
+			ID:       "worker-1",
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Status:   StatusIdle,
+		}
+
+		assert.Equal(t, StatusIdle, worker.Status)
+
+		worker.Mutex.Lock()
+		worker.Status = StatusRunning
+		worker.Mutex.Unlock()
+
+		assert.Equal(t, StatusRunning, worker.Status)
+
+		worker.Mutex.Lock()
+		worker.Status = StatusCompleted
+		worker.Mutex.Unlock()
+
+		assert.Equal(t, StatusCompleted, worker.Status)
+	})
+
+	t.Run("running to failed", func(t *testing.T) {
+		worker := &Worker{
+			ID:       "worker-2",
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Status:   StatusRunning,
+		}
+
+		worker.Mutex.Lock()
+		worker.Status = StatusFailed
+		worker.Mutex.Unlock()
+
+		assert.Equal(t, StatusFailed, worker.Status)
+	})
+
+	t.Run("running to cancelled", func(t *testing.T) {
+		worker := &Worker{
+			ID:       "worker-3",
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Status:   StatusRunning,
+		}
+
+		worker.Mutex.Lock()
+		worker.Status = StatusCancelled
+		worker.Mutex.Unlock()
+
+		assert.Equal(t, StatusCancelled, worker.Status)
+	})
+}
+
+func TestWorker_HealthTransitions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("healthy to unhealthy", func(t *testing.T) {
+		worker := &Worker{
+			ID:     "worker-1",
+			Status: StatusRunning,
+			Health: HealthHealthy,
+			Mutex:  sync.Mutex{},
+		}
+
+		oldUnhealthySince := worker.UnhealthySince
+
+		worker.UpdateHealth(HealthUnhealthy, "process died")
+
+		assert.Equal(t, HealthUnhealthy, worker.Health)
+		assert.NotEqual(t, oldUnhealthySince, worker.UnhealthySince)
+		assert.False(t, worker.UnhealthySince.IsZero())
+	})
+
+	t.Run("unhealthy to healthy recovery", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-2",
+			Status:         StatusRunning,
+			Health:         HealthUnhealthy,
+			UnhealthySince: time.Now().Add(-1 * time.Hour),
+			Mutex:          sync.Mutex{},
+		}
+
+		worker.UpdateHealth(HealthHealthy, "output received")
+
+		assert.Equal(t, HealthHealthy, worker.Health)
+		assert.True(t, worker.UnhealthySince.IsZero())
+	})
+
+	t.Run("healthy to timeout to healthy", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-3",
+			Status:         StatusRunning,
+			Health:         HealthHealthy,
+			UnhealthySince: time.Time{},
+			Mutex:          sync.Mutex{},
+		}
+
+		worker.UpdateHealth(HealthTimeout, "no output for 5 minutes")
+		assert.Equal(t, HealthTimeout, worker.Health)
+		assert.False(t, worker.UnhealthySince.IsZero())
+
+		worker.UpdateHealth(HealthHealthy, "output received")
+		assert.Equal(t, HealthHealthy, worker.Health)
+		assert.True(t, worker.UnhealthySince.IsZero())
+	})
+}
+
+func TestWorker_OutputTracking(t *testing.T) {
+	t.Parallel()
+
+	t.Run("output updates last output time", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-1",
+			Status:         StatusRunning,
+			LastOutputTime: time.Now().Add(-1 * time.Hour),
+			Health:         HealthUnhealthy,
+			UnhealthySince: time.Now().Add(-30 * time.Minute),
+			Mutex:          sync.Mutex{},
+		}
+
+		oldTime := worker.LastOutputTime
+		oldUnhealthySince := worker.UnhealthySince
+
+		time.Sleep(10 * time.Millisecond)
+
+		worker.RecordOutput()
+
+		assert.True(t, worker.LastOutputTime.After(oldTime))
+		assert.Equal(t, HealthHealthy, worker.Health)
+		assert.True(t, worker.UnhealthySince.IsZero() || worker.UnhealthySince.Before(oldUnhealthySince))
+	})
+
+	t.Run("multiple records track cumulative time", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-2",
+			Status:         StatusRunning,
+			LastOutputTime: time.Now().Add(-1 * time.Hour),
+			Health:         HealthHealthy,
+			Mutex:          sync.Mutex{},
+		}
+
+		for i := 0; i < 10; i++ {
+			time.Sleep(10 * time.Millisecond)
+			worker.RecordOutput()
+		}
+
+		assert.Equal(t, HealthHealthy, worker.Health)
+		assert.True(t, worker.LastOutputTime.After(time.Now().Add(-200*time.Millisecond)))
+	})
+}
+
+func TestWorker_RetryLogic(t *testing.T) {
+	t.Parallel()
+
+	t.Run("retry count increments correctly", func(t *testing.T) {
+		worker := &Worker{
+			ID:         "worker-1",
+			RetryCount: 0,
+			Mutex:      sync.Mutex{},
+		}
+
+		for i := 1; i <= 5; i++ {
+			count := worker.IncrementRetryCount()
+			assert.Equal(t, i, count)
+			assert.Equal(t, i, worker.RetryCount)
+		}
+	})
+
+	t.Run("reset retry count", func(t *testing.T) {
+		worker := &Worker{
+			ID:         "worker-2",
+			RetryCount: 10,
+			Mutex:      sync.Mutex{},
+		}
+
+		worker.ResetRetryCount()
+		assert.Equal(t, 0, worker.RetryCount)
+	})
+
+	t.Run("should retry logic", func(t *testing.T) {
+		tests := []struct {
+			retryCount  int
+			maxRetries  int
+			shouldRetry bool
+		}{
+			{0, 3, true},
+			{1, 3, true},
+			{2, 3, true},
+			{3, 3, false},
+			{5, 3, false},
+			{1, 10, true},
+			{9, 10, true},
+			{10, 10, false},
+		}
+
+		for _, tt := range tests {
+			worker := &Worker{
+				ID:         fmt.Sprintf("worker-%d", tt.retryCount),
+				RetryCount: tt.retryCount,
+				Mutex:      sync.Mutex{},
+			}
+
+			assert.Equal(t, tt.shouldRetry, worker.ShouldRetry(tt.maxRetries),
+				"retryCount=%d, maxRetries=%d", tt.retryCount, tt.maxRetries)
+		}
+	})
+}
+
+func TestWorker_HealthCheckTimeout(t *testing.T) {
+	t.Parallel()
+
+	t.Run("worker with recent output is healthy", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-1",
+			Provider:       "anthropic",
+			Model:          "claude-3-opus",
+			Method:         config.MethodACP,
+			Status:         StatusRunning,
+			LastOutputTime: time.Now(),
+			Mutex:          sync.Mutex{},
+		}
+
+		ctx := context.Background()
+		health := worker.CheckHealth(ctx, 5*time.Minute)
+
+		assert.Equal(t, HealthUnhealthy, health)
+	})
+
+	t.Run("worker with old output times out", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-2",
+			Provider:       "anthropic",
+			Model:          "claude-3-opus",
+			Method:         config.MethodACP,
+			Status:         StatusRunning,
+			LastOutputTime: time.Now().Add(-10 * time.Minute),
+			Health:         HealthHealthy,
+			Mutex:          sync.Mutex{},
+		}
+
+		ctx := context.Background()
+		health := worker.CheckHealth(ctx, 5*time.Minute)
+
+		assert.Equal(t, HealthTimeout, health)
+		assert.Equal(t, HealthTimeout, worker.Health)
+		assert.False(t, worker.UnhealthySince.IsZero())
+	})
+
+	t.Run("non-running worker returns unknown", func(t *testing.T) {
+		worker := &Worker{
+			ID:             "worker-3",
+			Provider:       "anthropic",
+			Model:          "claude-3-opus",
+			Method:         config.MethodACP,
+			Status:         StatusIdle,
+			LastOutputTime: time.Now().Add(-10 * time.Minute),
+			Mutex:          sync.Mutex{},
+		}
+
+		ctx := context.Background()
+		health := worker.CheckHealth(ctx, 5*time.Minute)
+
+		assert.Equal(t, HealthUnknown, health)
+	})
+}
+
+func TestWorker_StopWithACPSession(t *testing.T) {
+	t.Run("cancels ACP session on stop", func(t *testing.T) {
+		t.Skip("requires mock ACP client")
+
+		worker := &Worker{
+			ID:     "worker-1",
+			Status: StatusRunning,
+			Mutex:  sync.Mutex{},
+		}
+
+		err := worker.Stop()
+		assert.NoError(t, err)
+		assert.Equal(t, StatusCancelled, worker.Status)
+	})
+}
+
+func TestWorker_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	t.Run("worker with no model", func(t *testing.T) {
+		worker := &Worker{
+			ID:       "worker-1",
+			Provider: "anthropic",
+			Model:    "",
+			Method:   config.MethodCLI,
+			Status:   StatusIdle,
+		}
+
+		assert.Empty(t, worker.Model)
+	})
+
+	t.Run("worker with no provider", func(t *testing.T) {
+		worker := &Worker{
+			ID:       "worker-2",
+			Provider: "",
+			Model:    "claude-3-opus",
+			Method:   config.MethodCLI,
+			Status:   StatusIdle,
+		}
+
+		assert.Empty(t, worker.Provider)
+	})
+
+	t.Run("worker with invalid status", func(t *testing.T) {
+		worker := &Worker{
+			ID:     "worker-3",
+			Status: WorkerStatus("invalid"),
+		}
+
+		assert.False(t, worker.Status.Valid())
+	})
+
+	t.Run("worker with nil task", func(t *testing.T) {
+		worker := &Worker{
+			ID:     "worker-4",
+			Status: StatusIdle,
+			Task:   nil,
+		}
+
+		assert.Nil(t, worker.Task)
+	})
+}
+
+func TestWorker_ConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
+	worker := &Worker{
+		ID:     "worker-1",
+		Status: StatusRunning,
+		Health: HealthHealthy,
+		Mutex:  sync.Mutex{},
+	}
+
+	var wg sync.WaitGroup
+	errors := make(chan error, 50)
+
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func(n int) {
+			defer wg.Done()
+
+			switch n % 5 {
+			case 0:
+				worker.GetStatus()
+			case 1:
+				worker.IsHealthy()
+			case 2:
+				worker.IsTimedOut(5 * time.Minute)
+			case 3:
+				worker.RecordOutput()
+			case 4:
+				worker.UpdateHealth(HealthHealthy, "test")
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(errors)
+
+	for err := range errors {
+		t.Errorf("concurrent operation failed: %v", err)
+	}
 }

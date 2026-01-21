@@ -4,6 +4,8 @@ package worker
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -394,4 +396,499 @@ func TestCommunicationMethod_Valid(t *testing.T) {
 			assert.Equal(t, tt.expected, tt.method.Valid())
 		})
 	}
+}
+
+func TestWorkerManager_Spawn_ConfigPath(t *testing.T) {
+	t.Run("spawns worker with config path", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider:           "anthropic",
+			Model:              "claude-3-opus",
+			Method:             config.MethodACP,
+			Task:               task,
+			OpenCodeConfigPath: "/tmp/config.json",
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID)
+
+		worker := mgr.Get(workerID)
+		require.NotNil(t, worker)
+		assert.Equal(t, "/tmp/config.json", worker.configPath)
+	})
+
+	t.Run("spawns worker without config path", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID)
+
+		worker := mgr.Get(workerID)
+		require.NotNil(t, worker)
+		assert.Empty(t, worker.configPath)
+	})
+}
+
+func TestWorkerManager_Spawn_AutoWorkerID(t *testing.T) {
+	t.Run("generates UUID v7 worker ID", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID1, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID1)
+
+		workerID2, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID2)
+		assert.NotEqual(t, workerID1, workerID2)
+	})
+}
+
+func TestWorkerManager_SendPrompt(t *testing.T) {
+	t.Run("rejects prompt for non-existent worker", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		_, err := mgr.SendPrompt(ctx, PromptRequest{
+			WorkerID: "non-existent",
+			Prompt:   "test prompt",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("rejects prompt for invalid status worker", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+		require.NoError(t, err)
+
+		worker := mgr.Get(workerID)
+		worker.Status = StatusCompleted
+
+		_, err = mgr.SendPrompt(ctx, PromptRequest{
+			WorkerID: workerID,
+			Prompt:   "test prompt",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot accept prompts")
+	})
+
+	t.Run("rejects prompt for CLI worker", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodCLI,
+			Task:     task,
+		})
+		require.NoError(t, err)
+
+		_, err = mgr.SendPrompt(ctx, PromptRequest{
+			WorkerID: workerID,
+			Prompt:   "test prompt",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not support prompting")
+	})
+
+	t.Run("rejects prompt for API worker", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodAPI,
+			Task:     task,
+		})
+		require.NoError(t, err)
+
+		_, err = mgr.SendPrompt(ctx, PromptRequest{
+			WorkerID: workerID,
+			Prompt:   "test prompt",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not support prompting")
+	})
+}
+
+func TestWorkerManager_GetOutput(t *testing.T) {
+	t.Run("gets output from worker", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		workerID := "test-worker"
+
+		mgr.workers[workerID] = &Worker{
+			ID:     workerID,
+			Status: StatusRunning,
+			Output: "Line 1\nLine 2\nLine 3\n",
+			Mutex:  sync.Mutex{},
+		}
+
+		resp, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: workerID,
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, workerID, resp.WorkerID)
+		assert.Equal(t, "Line 1\nLine 2\nLine 3", resp.Output)
+		assert.Equal(t, 3, resp.LineCount)
+		assert.False(t, resp.Truncated)
+	})
+
+	t.Run("returns error for non-existent worker", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+
+		_, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: "non-existent",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("filters output since time", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		workerID := "test-worker"
+		now := time.Now()
+
+		mgr.workers[workerID] = &Worker{
+			ID:             workerID,
+			Status:         StatusRunning,
+			Output:         "Old output\nNew output\n",
+			Mutex:          sync.Mutex{},
+			LastOutputTime: now.Add(-1 * time.Hour),
+		}
+
+		resp, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: workerID,
+			Since:    now.Add(-30 * time.Minute),
+		})
+
+		require.NoError(t, err)
+		assert.Empty(t, resp.Output)
+	})
+
+	t.Run("filters output by regex", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		workerID := "test-worker"
+
+		mgr.workers[workerID] = &Worker{
+			ID:     workerID,
+			Status: StatusRunning,
+			Output: "error: something failed\ninfo: processing\nwarning: timeout\n",
+			Mutex:  sync.Mutex{},
+		}
+
+		resp, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: workerID,
+			Filter:   "error|warning",
+		})
+
+		require.NoError(t, err)
+		assert.Contains(t, resp.Output, "error: something failed")
+		assert.Contains(t, resp.Output, "warning: timeout")
+		assert.NotContains(t, resp.Output, "info: processing")
+	})
+
+	t.Run("limits output lines", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		workerID := "test-worker"
+
+		output := ""
+		for i := 1; i <= 10; i++ {
+			output += fmt.Sprintf("Line %d\n", i)
+		}
+
+		mgr.workers[workerID] = &Worker{
+			ID:     workerID,
+			Status: StatusRunning,
+			Output: output,
+			Mutex:  sync.Mutex{},
+		}
+
+		resp, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: workerID,
+			Limit:    5,
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, 10, resp.LineCount)
+		assert.True(t, resp.Truncated)
+		assert.Contains(t, resp.Output, "Line 1")
+		assert.Contains(t, resp.Output, "Line 5")
+		assert.NotContains(t, resp.Output, "Line 6")
+	})
+
+	t.Run("empty output", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		workerID := "test-worker"
+
+		mgr.workers[workerID] = &Worker{
+			ID:     workerID,
+			Status: StatusIdle,
+			Output: "",
+			Mutex:  sync.Mutex{},
+		}
+
+		resp, err := mgr.GetOutput(WorkerOutputRequest{
+			WorkerID: workerID,
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, "", resp.Output)
+		assert.Equal(t, 0, resp.LineCount)
+	})
+}
+
+func TestWorkerManager_Concurrency(t *testing.T) {
+	t.Run("concurrent spawns", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		var wg sync.WaitGroup
+		workerIDs := make(chan string, 100)
+		errors := make(chan error, 100)
+
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(n int) {
+				defer wg.Done()
+				task := execution.NewTask(fmt.Sprintf("task %d", n))
+
+				id, err := mgr.Spawn(ctx, SpawnRequest{
+					Provider: fmt.Sprintf("provider-%d", n),
+					Model:    fmt.Sprintf("model-%d", n),
+					Method:   config.MethodACP,
+					Task:     task,
+				})
+
+				if err != nil {
+					errors <- err
+					return
+				}
+				workerIDs <- id
+			}(i)
+		}
+
+		wg.Wait()
+		close(workerIDs)
+		close(errors)
+
+		for err := range errors {
+			t.Fatalf("spawn failed: %v", err)
+		}
+
+		count := 0
+		for range workerIDs {
+			count++
+		}
+
+		assert.Equal(t, 100, count)
+		assert.Equal(t, 100, len(mgr.List()))
+	})
+
+	t.Run("concurrent reads and writes", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     execution.NewTask("test task"),
+		})
+		require.NoError(t, err)
+
+		var wg sync.WaitGroup
+		errors := make(chan error, 10)
+
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				switch i % 4 {
+				case 0:
+					mgr.Get(workerID)
+				case 1:
+					mgr.List()
+				case 2:
+					_, _ = mgr.GetStatus(workerID)
+				case 3:
+					mgr.List(StatusRunning)
+				}
+			}()
+		}
+
+		wg.Wait()
+		close(errors)
+
+		for err := range errors {
+			t.Errorf("concurrent operation failed: %v", err)
+		}
+	})
+}
+
+func TestWorkerManager_EdgeCases(t *testing.T) {
+	t.Run("empty provider name", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     execution.NewTask("test task"),
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID)
+
+		worker := mgr.Get(workerID)
+		assert.Empty(t, worker.Provider)
+	})
+
+	t.Run("empty model name", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "",
+			Method:   config.MethodACP,
+			Task:     execution.NewTask("test task"),
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID)
+
+		worker := mgr.Get(workerID)
+		assert.Empty(t, worker.Model)
+	})
+
+	t.Run("nil task", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     nil,
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, workerID)
+
+		worker := mgr.Get(workerID)
+		assert.Nil(t, worker.Task)
+	})
+
+	t.Run("list with multiple status filters", func(t *testing.T) {
+		mgr := NewWorkerManagerWithoutTracking()
+		mgr.workers["worker-1"] = &Worker{ID: "worker-1", Status: StatusIdle}
+		mgr.workers["worker-2"] = &Worker{ID: "worker-2", Status: StatusRunning}
+		mgr.workers["worker-3"] = &Worker{ID: "worker-3", Status: StatusCompleted}
+
+		workers := mgr.List()
+		assert.Len(t, workers, 3)
+
+		running := mgr.List(StatusRunning)
+		assert.Len(t, running, 1)
+
+		idle := mgr.List(StatusIdle)
+		assert.Len(t, idle, 1)
+	})
+}
+
+func TestWorkerManager_Lifecycle(t *testing.T) {
+	t.Run("worker status transitions", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+		require.NoError(t, err)
+
+		worker := mgr.Get(workerID)
+		assert.Equal(t, StatusIdle, worker.Status)
+
+		mgr.SetWorkerStatus(workerID, StatusRunning)
+		assert.Equal(t, StatusRunning, worker.Status)
+
+		mgr.SetWorkerStatus(workerID, StatusCompleted)
+		assert.Equal(t, StatusCompleted, worker.Status)
+	})
+
+	t.Run("worker not tracked after cleanup", func(t *testing.T) {
+		ctx := context.Background()
+		mgr := NewWorkerManagerWithoutTracking()
+		task := execution.NewTask("test task")
+
+		workerID, err := mgr.Spawn(ctx, SpawnRequest{
+			Provider: "anthropic",
+			Model:    "claude-3-opus",
+			Method:   config.MethodACP,
+			Task:     task,
+		})
+		require.NoError(t, err)
+
+		worker := mgr.Get(workerID)
+		require.NotNil(t, worker)
+		worker.Status = StatusCompleted
+		worker.StartedAt = time.Now().Add(-2 * time.Hour)
+
+		count := mgr.Cleanup(1 * time.Hour)
+		assert.Equal(t, 1, count)
+
+		worker = mgr.Get(workerID)
+		assert.Nil(t, worker)
+	})
 }

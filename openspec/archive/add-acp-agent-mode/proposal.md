@@ -1,7 +1,8 @@
 # Proposal: Add ACP Proxy Mode for OpenCode Worker Orchestration
 
-**Status**: in_progress (2026-01-20)
-**Started**: Implementation phase active
+**Status**: complete (2026-01-20)
+**Started**: 2026-01-20
+**Completed**: 2026-01-20
 
 ## Why
 

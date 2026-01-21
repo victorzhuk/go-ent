@@ -77,11 +77,12 @@ func TestWorkerHandleUpdate(t *testing.T) {
 
 			w.handleUpdate(tt.update)
 
-			if tt.wantType == "complete" {
+			switch tt.wantType {
+			case "complete":
 				assert.Equal(t, StatusCompleted, w.Status)
-			} else if tt.wantType == "error" {
+			case "error":
 				assert.Equal(t, StatusFailed, w.Status)
-			} else {
+			default:
 				assert.Equal(t, StatusIdle, w.Status)
 			}
 		})

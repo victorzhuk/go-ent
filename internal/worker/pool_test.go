@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -301,4 +303,313 @@ func TestWorker_Timeout(t *testing.T) {
 	}
 
 	assert.True(t, worker.IsTimedOut(5*time.Minute))
+}
+
+func TestPool_StartHealthChecker(t *testing.T) {
+	t.Run("starts and stops health checker", func(t *testing.T) {
+		pool := NewPool(5, 100*time.Millisecond, 5*time.Minute, 3, 100*time.Millisecond)
+		ctx, cancel := context.WithCancel(context.Background())
+
+		task := &execution.Task{Description: "test task"}
+		id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+		worker := pool.Get(id)
+		require.NotNil(t, worker)
+
+		worker.Mutex.Lock()
+		worker.Status = StatusRunning
+		worker.LastOutputTime = time.Now()
+		worker.Health = HealthHealthy
+		worker.Mutex.Unlock()
+
+		pool.StartHealthChecker(ctx)
+		time.Sleep(200 * time.Millisecond)
+
+		worker.Mutex.Lock()
+		checkTime := worker.LastHealthCheck
+		worker.Mutex.Unlock()
+
+		assert.True(t, time.Since(checkTime) < 500*time.Millisecond, "health check should have run")
+
+		cancel()
+		time.Sleep(200 * time.Millisecond)
+	})
+
+	t.Run("multiple starts are safe", func(t *testing.T) {
+		pool := NewPool(5, 100*time.Millisecond, 5*time.Minute, 3, 100*time.Millisecond)
+		ctx1, cancel1 := context.WithCancel(context.Background())
+		ctx2, cancel2 := context.WithCancel(context.Background())
+
+		task := &execution.Task{Description: "test task"}
+		id, _ := pool.Spawn(ctx1, "provider", "model", config.MethodCLI, task)
+
+		worker := pool.Get(id)
+		worker.Mutex.Lock()
+		worker.Status = StatusRunning
+		worker.LastOutputTime = time.Now()
+		worker.Health = HealthHealthy
+		worker.Mutex.Unlock()
+
+		pool.StartHealthChecker(ctx1)
+		time.Sleep(50 * time.Millisecond)
+		pool.StartHealthChecker(ctx2)
+		time.Sleep(200 * time.Millisecond)
+
+		cancel1()
+		cancel2()
+	})
+}
+
+func TestPool_StopHealthChecker(t *testing.T) {
+	t.Run("stops health checker", func(t *testing.T) {
+		pool := NewPool(5, 100*time.Millisecond, 5*time.Minute, 3, 100*time.Millisecond)
+		ctx, cancel := context.WithCancel(context.Background())
+
+		task := &execution.Task{Description: "test task"}
+		id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+
+		worker := pool.Get(id)
+		worker.Mutex.Lock()
+		worker.Status = StatusRunning
+		worker.LastOutputTime = time.Now()
+		worker.Health = HealthHealthy
+		worker.Mutex.Unlock()
+
+		pool.StartHealthChecker(ctx)
+		time.Sleep(200 * time.Millisecond)
+
+		pool.StopHealthChecker()
+		cancel()
+		time.Sleep(200 * time.Millisecond)
+	})
+}
+
+func TestPool_HealthCheck_TimeoutWorker(t *testing.T) {
+	t.Parallel()
+
+	pool := NewPool(5, 100*time.Millisecond, 200*time.Millisecond, 3, 50*time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	task := &execution.Task{Description: "test task"}
+	id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+
+	worker := pool.Get(id)
+	worker.Mutex.Lock()
+	worker.Status = StatusRunning
+	worker.LastOutputTime = time.Now()
+	worker.Health = HealthHealthy
+	worker.Mutex.Unlock()
+
+	pool.StartHealthChecker(ctx)
+	time.Sleep(300 * time.Millisecond)
+
+	worker.Mutex.Lock()
+	health := worker.Health
+	worker.Mutex.Unlock()
+
+	assert.Equal(t, HealthTimeout, health)
+}
+
+func TestPool_HealthCheck_UnhealthyWorker(t *testing.T) {
+	t.Parallel()
+
+	pool := NewPool(5, 100*time.Millisecond, 5*time.Minute, 3, 50*time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	task := &execution.Task{Description: "test task"}
+	id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+
+	worker := pool.Get(id)
+	worker.Mutex.Lock()
+	worker.Status = StatusRunning
+	worker.LastOutputTime = time.Now()
+	worker.Health = HealthHealthy
+	worker.Mutex.Unlock()
+
+	pool.StartHealthChecker(ctx)
+	time.Sleep(200 * time.Millisecond)
+
+	worker.Mutex.Lock()
+	health := worker.Health
+	worker.Mutex.Unlock()
+
+	assert.Equal(t, HealthUnhealthy, health)
+}
+
+func TestPool_HealthCheck_RetryMechanism(t *testing.T) {
+	t.Parallel()
+
+	pool := NewPool(5, 100*time.Millisecond, 200*time.Millisecond, 2, 50*time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	task := &execution.Task{Description: "test task"}
+	id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+
+	worker := pool.Get(id)
+	worker.Mutex.Lock()
+	worker.Status = StatusRunning
+	worker.LastOutputTime = time.Now()
+	worker.Health = HealthHealthy
+	worker.Mutex.Unlock()
+
+	pool.StartHealthChecker(ctx)
+
+	time.Sleep(300 * time.Millisecond)
+
+	worker.Mutex.Lock()
+	retryCount := worker.RetryCount
+	worker.Mutex.Unlock()
+
+	assert.Equal(t, 2, retryCount)
+}
+
+func TestPool_MultipleSpawns(t *testing.T) {
+	pool := NewPool(10, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+	ctx := context.Background()
+
+	ids := make([]string, 0, 10)
+
+	for i := 0; i < 10; i++ {
+		task := &execution.Task{Description: fmt.Sprintf("task %d", i)}
+
+		id, err := pool.Spawn(ctx, fmt.Sprintf("provider-%d", i), fmt.Sprintf("model-%d", i), config.MethodCLI, task)
+		if err != nil {
+			t.Fatalf("spawn failed: %v", err)
+		}
+		ids = append(ids, id)
+	}
+
+	assert.Equal(t, 10, len(ids))
+	assert.Equal(t, 10, len(pool.List()))
+}
+
+func TestPool_ConcurrentOperations(t *testing.T) {
+	t.Parallel()
+
+	pool := NewPool(10, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+	ctx := context.Background()
+
+	task := &execution.Task{Description: "test task"}
+	id, _ := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func(n int) {
+			defer wg.Done()
+
+			switch n % 5 {
+			case 0:
+				pool.Get(id)
+			case 1:
+				pool.List()
+			case 2:
+				pool.List(StatusRunning)
+			case 3:
+				pool.Stats()
+			case 4:
+				pool.runningCount()
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	stats := pool.Stats()
+	assert.Equal(t, 1, stats.Total)
+}
+
+func TestPool_Stats_Comprehensive(t *testing.T) {
+	t.Parallel()
+
+	pool := NewPool(10, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+	ctx := context.Background()
+
+	task := &execution.Task{Description: "test task"}
+
+	id1, _ := pool.Spawn(ctx, "p1", "m1", config.MethodCLI, task)
+	id2, _ := pool.Spawn(ctx, "p2", "m2", config.MethodCLI, task)
+	id3, _ := pool.Spawn(ctx, "p3", "m3", config.MethodCLI, task)
+	id4, _ := pool.Spawn(ctx, "p4", "m4", config.MethodCLI, task)
+	id5, _ := pool.Spawn(ctx, "p5", "m5", config.MethodCLI, task)
+
+	w1 := pool.Get(id1)
+	w1.Mutex.Lock()
+	w1.Status = StatusIdle
+	w1.Mutex.Unlock()
+
+	w2 := pool.Get(id2)
+	w2.Mutex.Lock()
+	w2.Status = StatusRunning
+	w2.Mutex.Unlock()
+
+	w3 := pool.Get(id3)
+	w3.Mutex.Lock()
+	w3.Status = StatusCompleted
+	w3.Mutex.Unlock()
+
+	w4 := pool.Get(id4)
+	w4.Mutex.Lock()
+	w4.Status = StatusFailed
+	w4.Mutex.Unlock()
+
+	w5 := pool.Get(id5)
+	w5.Mutex.Lock()
+	w5.Status = StatusCancelled
+	w5.Mutex.Unlock()
+
+	stats := pool.Stats()
+
+	assert.Equal(t, 5, stats.Total)
+	assert.Equal(t, 10, stats.MaxConcurrency)
+	assert.Equal(t, 1, stats.Idle)
+	assert.Equal(t, 1, stats.Running)
+	assert.Equal(t, 1, stats.Completed)
+	assert.Equal(t, 1, stats.Failed)
+	assert.Equal(t, 1, stats.Cancelled)
+}
+
+func TestPool_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	t.Run("max concurrency zero", func(t *testing.T) {
+		pool := NewPool(0, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+
+		task := &execution.Task{Description: "test task"}
+
+		_, err := pool.Spawn(ctx, "provider", "model", config.MethodCLI, task)
+		assert.Error(t, err)
+	})
+
+	t.Run("empty provider and model", func(t *testing.T) {
+		pool := NewPool(5, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+		ctx := context.Background()
+
+		task := &execution.Task{Description: "test task"}
+		id, err := pool.Spawn(ctx, "", "", config.MethodCLI, task)
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, id)
+
+		worker := pool.Get(id)
+		assert.Empty(t, worker.Provider)
+		assert.Empty(t, worker.Model)
+	})
+
+	t.Run("nil task", func(t *testing.T) {
+		pool := NewPool(5, 30*time.Second, 5*time.Minute, 3, 5*time.Second)
+		ctx := context.Background()
+
+		id, err := pool.Spawn(ctx, "provider", "model", config.MethodCLI, nil)
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, id)
+
+		worker := pool.Get(id)
+		assert.Nil(t, worker.Task)
+	})
 }
