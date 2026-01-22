@@ -1,0 +1,215 @@
+name: Skill Lint
+
+# Trigger on pull requests and pushes to main branch
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/*/skills/**/*.md'
+      - 'plugins/*/commands/**/*.md'
+      - '.github/workflows/skill-lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'plugins/*/skills/**/*.md'
+      - 'plugins/*/commands/**/*.md'
+      - '.github/workflows/skill-lint.yml'
+
+  # Manual trigger for auto-fix workflow
+  workflow_dispatch:
+    inputs:
+      fix:
+        description: 'Apply auto-fix to linting issues'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  # Validation-only job - runs on every push/PR
+  validate:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.fix != 'true'
+
+    steps:
+      # Checkout repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      # Build go-ent CLI
+      - name: Build go-ent
+        run: make build
+
+      # Lint all skill files in JSON format
+      - name: Lint skills
+        run: |
+          echo "🔍 Linting skill and command files..."
+
+          # Run skill lint with JSON output
+          LINT_OUTPUT=$(./bin/go-ent skill lint --json plugins/ 2>&1)
+          LINT_EXIT=$?
+
+          # Save output for artifact
+          echo "$LINT_OUTPUT" > lint-results.json
+
+          # Display formatted results
+          echo "$LINT_OUTPUT" | jq -r '
+            if .errors == [] and .warnings == [] then
+              "✅ No issues found"
+            else
+              (
+                if .errors != [] then
+                  "\n❌ Errors:\n" + (.errors | map("  - " + .) | join("\n"))
+                else "" end
+              ) +
+              (
+                if .warnings != [] then
+                  "\n⚠️  Warnings:\n" + (.warnings | map("  - " + .) | join("\n"))
+                else "" end
+              )
+            end
+          '
+
+          # Exit with code from lint command
+          exit $LINT_EXIT
+
+      # Upload lint results as artifact
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results-${{ github.sha }}
+          path: lint-results.json
+          retention-days: 30
+
+  # Auto-fix job - runs only on manual dispatch with fix=true
+  autofix:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.fix == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build go-ent
+        run: make build
+
+      # Run lint with auto-fix
+      - name: Auto-fix skill files
+        run: |
+          echo "🔧 Running skill lint with auto-fix..."
+
+          # Run skill lint with --fix flag
+          LINT_OUTPUT=$(./bin/go-ent skill lint --fix --json plugins/ 2>&1)
+          LINT_EXIT=$?
+
+          # Save output for artifact
+          echo "$LINT_OUTPUT" > lint-results.json
+
+          # Display formatted results
+          echo "$LINT_OUTPUT" | jq -r '
+            if .fixed != null and (.fixed | length) > 0 then
+              "\n✅ Auto-fixed issues:\n" + (.fixed | map("  - " + .) | join("\n"))
+            else "" end
+          ' +
+          (
+            if .errors != [] then
+              "\n❌ Remaining errors:\n" + (.errors | map("  - " + .) | join("\n"))
+            else "" end
+          ) +
+          (
+            if .warnings != [] then
+              "\n⚠️  Warnings:\n" + (.warnings | map("  - " + .) | join("\n"))
+            else "" end
+          )
+
+          # Exit with code from lint command
+          # Exit code 0: all issues fixed
+          # Exit code 1: errors remain (cannot auto-fix)
+          exit $LINT_EXIT
+
+      # Upload lint results as artifact
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results-autofix-${{ github.sha }}
+          path: lint-results.json
+          retention-days: 30
+
+      # Commit auto-fixed changes (if any)
+      - name: Commit auto-fixed changes
+        if: success()
+        run: |
+          # Check if there are any changes
+          if git diff --quiet; then
+            echo "ℹ️  No changes to commit"
+          else
+            echo "📝 Committing auto-fixed changes..."
+
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+
+            git add plugins/
+            git commit -m "chore: auto-fix skill linting issues [skip ci]"
+            git push
+          fi
+
+      # Create comment on PR or issue if running on PR
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const lintResults = JSON.parse(fs.readFileSync('lint-results.json', 'utf8'));
+
+            let comment = '## Skill Lint Results 📋\n\n';
+
+            if (lintResults.fixed && lintResults.fixed.length > 0) {
+              comment += '✅ **Auto-fixed issues:**\n';
+              lintResults.fixed.forEach(issue => {
+                comment += `- ${issue}\n`;
+              });
+              comment += '\n';
+            }
+
+            if (lintResults.errors && lintResults.errors.length > 0) {
+              comment += '❌ **Errors:**\n';
+              lintResults.errors.forEach(error => {
+                comment += `- ${error}\n`;
+              });
+              comment += '\n';
+            }
+
+            if (lintResults.warnings && lintResults.warnings.length > 0) {
+              comment += '⚠️ **Warnings:**\n';
+              lintResults.warnings.forEach(warning => {
+                comment += `- ${warning}\n`;
+              });
+              comment += '\n';
+            }
+
+            if (!lintResults.errors || lintResults.errors.length === 0) {
+              comment += '✅ All skill files are valid!\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

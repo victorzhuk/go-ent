@@ -540,3 +540,4 @@ ent config show /tmp/nonexistent
 - Learn about [OpenSpec Workflow](../openspec/README.md)
 - Explore [Agent System](./AGENTS.md)
 - Review [Configuration Reference](./CONFIG.md)
+- Check [Skill Lint CI/CD Integration](./SKILL_LINT_CI.md) for automated validation

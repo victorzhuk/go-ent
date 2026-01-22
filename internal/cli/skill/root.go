@@ -32,6 +32,7 @@ Available subcommands:
   list             - List all available skills
   info             - Show detailed information about a skill
   analyze          - Analyze skill quality and generate reports
+  lint             - Validate and lint skill files
   list-templates   - List all available skill templates
   add-template     - Add a custom template to the registry
   show-template    - Display template details and preview
@@ -74,6 +75,7 @@ Examples:
 	cmd.AddCommand(newListCmd())
 	cmd.AddCommand(newInfoCmd())
 	cmd.AddCommand(newAnalyzeCmd())
+	cmd.AddCommand(newLintCmd())
 	cmd.AddCommand(newSkillCmd())
 	cmd.AddCommand(newListTemplatesCmd())
 	cmd.AddCommand(newAddTemplateCmd())
