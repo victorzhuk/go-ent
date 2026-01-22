@@ -17,11 +17,13 @@ const (
 
 // ValidationIssue represents a validation error or warning.
 type ValidationIssue struct {
-	Rule     string
-	Severity Severity
-	Message  string
-	Line     int
-	Column   int
+	Rule       string
+	Severity   Severity
+	Message    string
+	Suggestion string
+	Example    string
+	Line       int
+	Column     int
 }
 
 func (v ValidationIssue) String() string {
@@ -29,7 +31,14 @@ func (v ValidationIssue) String() string {
 	if v.Line > 0 {
 		loc = fmt.Sprintf("%s:%d", v.Rule, v.Line)
 	}
-	return fmt.Sprintf("[%s] %s: %s", v.Severity, loc, v.Message)
+	result := fmt.Sprintf("[%s] %s: %s", v.Severity, loc, v.Message)
+	if v.Suggestion != "" {
+		result += fmt.Sprintf("\n  Suggestion: %s", v.Suggestion)
+	}
+	if v.Example != "" {
+		result += fmt.Sprintf("\n  Example: %s", v.Example)
+	}
+	return result
 }
 
 // ValidationResult holds the results of validation.
@@ -87,6 +96,7 @@ func NewValidator() *Validator {
 	return &Validator{
 		rules: []ValidationRule{
 			validateFrontmatter,
+			validateNameFormat,
 			validateVersion,
 			validateXMLTags,
 			validateRoleSection,

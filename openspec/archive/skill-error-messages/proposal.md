@@ -4,6 +4,8 @@
 
 Add actionable suggestions and examples to validation error messages to help skill authors fix issues faster.
 
+## Status: complete
+
 ## Problem
 
 Current validation errors only describe what's wrong, but don't guide authors on how to fix issues:

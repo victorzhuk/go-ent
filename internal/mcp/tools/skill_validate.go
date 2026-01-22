@@ -123,6 +123,15 @@ func formatValidationOutput(skillName string, output SkillValidateOutput) string
 		}
 
 		sb.WriteString(fmt.Sprintf("**Message**: %s\n\n", issue.Message))
+
+		if issue.Suggestion != "" {
+			sb.WriteString(fmt.Sprintf("**Suggestion**: %s\n\n", issue.Suggestion))
+		}
+
+		if issue.Example != "" {
+			sb.WriteString(fmt.Sprintf("**Example**: %s\n\n", issue.Example))
+		}
+
 		sb.WriteString("---\n\n")
 	}
 

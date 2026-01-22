@@ -4,6 +4,7 @@ package skill
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1890,5 +1891,288 @@ func Test_matchesPattern_ThreadSafety(t *testing.T) {
 		cacheMutex.RUnlock()
 
 		assert.Equal(t, 1, count, "should have only one cached entry despite concurrent writes")
+	})
+}
+
+func TestRegistry_resolveLoadOrder(t *testing.T) {
+	r := NewRegistry()
+
+	t.Run("no dependencies - maintains order", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-a", DependsOn: nil},
+			{Name: "skill-b", DependsOn: nil},
+			{Name: "skill-c", DependsOn: nil},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 3)
+		assert.Equal(t, "skill-a", result[0].Name)
+		assert.Equal(t, "skill-b", result[1].Name)
+		assert.Equal(t, "skill-c", result[2].Name)
+	})
+
+	t.Run("empty dependencies - treated as no deps", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-a", DependsOn: []string{}},
+			{Name: "skill-b", DependsOn: []string{}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 2)
+		assert.Equal(t, "skill-a", result[0].Name)
+		assert.Equal(t, "skill-b", result[1].Name)
+	})
+
+	t.Run("empty skills list", func(t *testing.T) {
+		skills := []SkillMeta{}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("simple linear dependency chain", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-c", DependsOn: []string{"skill-b"}},
+			{Name: "skill-a", DependsOn: nil},
+			{Name: "skill-b", DependsOn: []string{"skill-a"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 3)
+		assert.Equal(t, "skill-a", result[0].Name)
+		assert.Equal(t, "skill-b", result[1].Name)
+		assert.Equal(t, "skill-c", result[2].Name)
+	})
+
+	t.Run("complex dependencies with multiple dependents", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-d", DependsOn: []string{"skill-b", "skill-c"}},
+			{Name: "skill-a", DependsOn: nil},
+			{Name: "skill-c", DependsOn: []string{"skill-a"}},
+			{Name: "skill-b", DependsOn: []string{"skill-a"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 4)
+		assert.Equal(t, "skill-a", result[0].Name)
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-b")
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-c")
+		assert.Equal(t, "skill-d", result[3].Name)
+
+		assert.ElementsMatch(t, []string{"skill-a", "skill-b", "skill-c"}, []string{
+			result[0].Name,
+			result[1].Name,
+			result[2].Name,
+		})
+	})
+
+	t.Run("circular dependency - A -> B -> A", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-a", DependsOn: []string{"skill-b"}},
+			{Name: "skill-b", DependsOn: []string{"skill-a"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "circular dependency")
+	})
+
+	t.Run("circular dependency - A -> B -> C -> A", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-a", DependsOn: []string{"skill-c"}},
+			{Name: "skill-b", DependsOn: []string{"skill-a"}},
+			{Name: "skill-c", DependsOn: []string{"skill-b"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "circular dependency")
+	})
+
+	t.Run("missing dependency", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-a", DependsOn: nil},
+			{Name: "skill-b", DependsOn: []string{"missing-skill"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "dependency not found")
+		assert.Contains(t, err.Error(), "missing-skill")
+	})
+
+	t.Run("multiple skills depend on one skill", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-base", DependsOn: nil},
+			{Name: "skill-feature1", DependsOn: []string{"skill-base"}},
+			{Name: "skill-feature2", DependsOn: []string{"skill-base"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 3)
+		assert.Equal(t, "skill-base", result[0].Name)
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-feature1")
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-feature2")
+	})
+
+	t.Run("diamond dependency pattern", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-top", DependsOn: nil},
+			{Name: "skill-left", DependsOn: []string{"skill-top"}},
+			{Name: "skill-right", DependsOn: []string{"skill-top"}},
+			{Name: "skill-bottom", DependsOn: []string{"skill-left", "skill-right"}},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 4)
+		assert.Equal(t, "skill-top", result[0].Name)
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-left")
+		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-right")
+		assert.Equal(t, "skill-bottom", result[3].Name)
+	})
+
+	t.Run("stability - independent skills maintain original order", func(t *testing.T) {
+		skills := []SkillMeta{
+			{Name: "skill-1", DependsOn: nil},
+			{Name: "skill-2", DependsOn: nil},
+			{Name: "skill-3", DependsOn: nil},
+			{Name: "skill-4", DependsOn: nil},
+		}
+
+		result, err := r.resolveLoadOrder(skills)
+		require.NoError(t, err)
+		assert.Len(t, result, 4)
+		for i := 0; i < 4; i++ {
+			assert.Equal(t, fmt.Sprintf("skill-%d", i+1), result[i].Name)
+		}
+	})
+}
+
+func TestRegistry_DelegationHints(t *testing.T) {
+	t.Run("skill with delegation hints and match", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill1 := SkillMeta{
+			Name: "base-skill",
+			DelegatesTo: map[string]string{
+				"specialized-skill": "For complex cases",
+			},
+		}
+		r.skills = []SkillMeta{skill1}
+
+		result := scoreSkill(&skill1, "base", nil)
+		assert.Greater(t, result.Score, 0.0, "Expected match")
+		assert.Len(t, result.Delegations, 1, "Expected 1 delegation")
+		assert.Equal(t, "specialized-skill", result.Delegations[0].ToSkill)
+		assert.Equal(t, "For complex cases", result.Delegations[0].Reason)
+	})
+
+	t.Run("skill with delegation hints but no match", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill := SkillMeta{
+			Name: "test",
+			DelegatesTo: map[string]string{
+				"other": "delegate reason",
+			},
+		}
+		r.skills = []SkillMeta{skill}
+
+		result := scoreSkill(&skill, "unrelated query", nil)
+		assert.Equal(t, 0.0, result.Score, "Expected no match")
+		assert.Len(t, result.Delegations, 0, "Expected 0 delegations when no match")
+	})
+
+	t.Run("skill without delegation hints", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill := SkillMeta{
+			Name: "test",
+		}
+		r.skills = []SkillMeta{skill}
+
+		result := scoreSkill(&skill, "test", nil)
+		assert.Greater(t, result.Score, 0.0, "Expected match by name")
+		assert.Len(t, result.Delegations, 0, "Expected 0 delegations for skill without hints")
+	})
+
+	t.Run("multiple delegation hints in one skill", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill := SkillMeta{
+			Name: "generic-skill",
+			DelegatesTo: map[string]string{
+				"go-code":      "For Go-specific implementations",
+				"python-code":  "For Python-specific implementations",
+				"architecture": "For system design tasks",
+			},
+		}
+		r.skills = []SkillMeta{skill}
+
+		result := scoreSkill(&skill, "generic", nil)
+		assert.Greater(t, result.Score, 0.0, "Expected match")
+		assert.Len(t, result.Delegations, 3, "Expected all 3 delegations")
+
+		delegationSkills := make([]string, len(result.Delegations))
+		for i, del := range result.Delegations {
+			delegationSkills[i] = del.ToSkill
+		}
+		assert.Contains(t, delegationSkills, "go-code")
+		assert.Contains(t, delegationSkills, "python-code")
+		assert.Contains(t, delegationSkills, "architecture")
+	})
+
+	t.Run("delegation hints with trigger match", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill := SkillMeta{
+			Name: "base-skill",
+			ExplicitTriggers: []Trigger{
+				{
+					Patterns: []string{"base.*"},
+					Weight:   0.7,
+				},
+			},
+			DelegatesTo: map[string]string{
+				"advanced-skill": "For advanced use cases",
+			},
+		}
+		r.skills = []SkillMeta{skill}
+
+		result := scoreSkill(&skill, "base implementation", nil)
+		assert.GreaterOrEqual(t, result.Score, 0.7, "Expected match with trigger weight")
+		assert.Len(t, result.Delegations, 1, "Expected delegation with trigger match")
+	})
+
+	t.Run("delegation hints with description match", func(t *testing.T) {
+		r := NewRegistry()
+
+		skill := SkillMeta{
+			Name:        "test-skill",
+			Description: "Test skill. Auto-activates for: testing.",
+			DelegatesTo: map[string]string{
+				"other-skill": "Delegation reason",
+			},
+		}
+		r.skills = []SkillMeta{skill}
+
+		ctx := &MatchContext{
+			Query: "testing",
+		}
+
+		matched := r.FindMatchingSkills("test-skill", ctx)
+		require.Greater(t, len(matched), 0, "Expected at least one match")
+		assert.Len(t, matched[0].Delegations, 1, "Expected delegation from description match")
+		assert.Equal(t, "other-skill", matched[0].Delegations[0].ToSkill)
 	})
 }

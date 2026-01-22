@@ -110,9 +110,10 @@ func matchDescription(skill *SkillMeta, query string) []MatchReason {
 // scoreSkill calculates match score for a single skill based on query and context.
 func scoreSkill(skill *SkillMeta, query string, ctx *MatchContext) MatchResult {
 	result := MatchResult{
-		Skill:     skill,
-		Score:     0,
-		MatchedBy: []MatchReason{},
+		Skill:       skill,
+		Score:       0,
+		MatchedBy:   []MatchReason{},
+		Delegations: []DelegationHint{},
 	}
 
 	queryLower := strings.ToLower(query)
@@ -139,6 +140,15 @@ func scoreSkill(skill *SkillMeta, query string, ctx *MatchContext) MatchResult {
 		for _, reason := range reasons {
 			result.Score += reason.Weight
 			result.MatchedBy = append(result.MatchedBy, reason)
+		}
+	}
+
+	if len(skill.DelegatesTo) > 0 && result.Score > 0 {
+		for toSkill, reason := range skill.DelegatesTo {
+			result.Delegations = append(result.Delegations, DelegationHint{
+				ToSkill: toSkill,
+				Reason:  reason,
+			})
 		}
 	}
 
@@ -214,11 +224,18 @@ func NewRegistry() *Registry {
 	}
 }
 
+// DelegationHint provides a hint for delegating work to another skill.
+type DelegationHint struct {
+	ToSkill string // Name of skill to delegate to
+	Reason  string // Why delegation should happen
+}
+
 // MatchResult represents a skill match with its confidence score and reasons.
 type MatchResult struct {
-	Skill     *SkillMeta    // The matched skill
-	Score     float64       // 0.0-1.0 confidence score
-	MatchedBy []MatchReason // List of what triggered the match
+	Skill       *SkillMeta       // The matched skill
+	Score       float64          // 0.0-1.0 confidence score
+	MatchedBy   []MatchReason    // List of what triggered the match
+	Delegations []DelegationHint // Hints for skill delegation
 }
 
 // MatchReason explains why a skill was matched.
@@ -266,9 +283,88 @@ func (r *Registry) GetSkill(name string) (domain.Skill, error) {
 	return skill, nil
 }
 
+// resolveLoadOrder performs topological sort on skills based on dependencies.
+// Returns skills sorted such that dependencies appear before dependents.
+func (r *Registry) resolveLoadOrder(skills []SkillMeta) ([]SkillMeta, error) {
+	if len(skills) == 0 {
+		return skills, nil
+	}
+
+	skillMap := make(map[string]SkillMeta, len(skills))
+	for _, skill := range skills {
+		skillMap[skill.Name] = skill
+	}
+
+	graph := make(map[string][]string, len(skills))
+	inDegree := make(map[string]int, len(skills))
+
+	for _, skill := range skills {
+		name := skill.Name
+		graph[name] = []string{}
+		inDegree[name] = 0
+	}
+
+	for _, skill := range skills {
+		name := skill.Name
+		deps := skill.DependsOn
+
+		if len(deps) == 0 {
+			continue
+		}
+
+		for _, dep := range deps {
+			if _, exists := skillMap[dep]; !exists {
+				return nil, fmt.Errorf("dependency not found: skill '%s' required by '%s'", dep, name)
+			}
+			graph[dep] = append(graph[dep], name)
+			inDegree[name]++
+		}
+	}
+
+	queue := make([]string, 0, len(skills))
+	for name, degree := range inDegree {
+		if degree == 0 {
+			queue = append(queue, name)
+		}
+	}
+
+	sort.Strings(queue)
+
+	var result []SkillMeta
+	for len(queue) > 0 {
+		name := queue[0]
+		queue = queue[1:]
+
+		skill := skillMap[name]
+		result = append(result, skill)
+
+		for _, dependent := range graph[name] {
+			inDegree[dependent]--
+			if inDegree[dependent] == 0 {
+				queue = append(queue, dependent)
+				sort.Strings(queue)
+			}
+		}
+	}
+
+	if len(result) != len(skills) {
+		var remaining []string
+		for name := range inDegree {
+			if inDegree[name] > 0 {
+				remaining = append(remaining, name)
+			}
+		}
+		return nil, fmt.Errorf("circular dependency detected among skills: %v", remaining)
+	}
+
+	return result, nil
+}
+
 // Load scans a directory for SKILL.md files and loads their metadata.
 func (r *Registry) Load(skillsPath string) error {
-	return filepath.Walk(skillsPath, func(path string, info os.FileInfo, err error) error {
+	var collected []SkillMeta
+
+	err := filepath.Walk(skillsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -288,9 +384,21 @@ func (r *Registry) Load(skillsPath string) error {
 		}
 
 		meta.QualityScore = r.scorer.Score(meta, string(content))
-		r.skills = append(r.skills, *meta)
+		collected = append(collected, *meta)
 		return nil
 	})
+
+	if err != nil {
+		return err
+	}
+
+	sorted, err := r.resolveLoadOrder(collected)
+	if err != nil {
+		return fmt.Errorf("resolve load order: %w", err)
+	}
+
+	r.skills = sorted
+	return nil
 }
 
 // RegisterSkill loads a skill from a given path and registers it.
@@ -368,9 +476,10 @@ func (r *Registry) FindMatchingSkills(query string, context ...*MatchContext) []
 	for name, skill := range r.runtimeSkills {
 		if strings.Contains(strings.ToLower(skill.Name()), strings.ToLower(query)) {
 			results = append(results, MatchResult{
-				Skill:     nil,
-				Score:     1.0,
-				MatchedBy: []MatchReason{{Type: "runtime", Value: name, Weight: 1.0}},
+				Skill:       nil,
+				Score:       1.0,
+				MatchedBy:   []MatchReason{{Type: "runtime", Value: name, Weight: 1.0}},
+				Delegations: []DelegationHint{},
 			})
 		}
 	}
@@ -390,9 +499,10 @@ func (r *Registry) matchByQuery(query string) []MatchResult {
 	for _, skill := range r.skills {
 		if strings.Contains(strings.ToLower(skill.Name), queryLower) {
 			results = append(results, MatchResult{
-				Skill:     &skill,
-				Score:     0.5,
-				MatchedBy: []MatchReason{{Type: "name", Value: skill.Name, Weight: 0.5}},
+				Skill:       &skill,
+				Score:       0.5,
+				MatchedBy:   []MatchReason{{Type: "name", Value: skill.Name, Weight: 0.5}},
+				Delegations: []DelegationHint{},
 			})
 		}
 	}
@@ -400,9 +510,10 @@ func (r *Registry) matchByQuery(query string) []MatchResult {
 	for name, skill := range r.runtimeSkills {
 		if strings.Contains(strings.ToLower(skill.Name()), queryLower) {
 			results = append(results, MatchResult{
-				Skill:     nil,
-				Score:     0.5,
-				MatchedBy: []MatchReason{{Type: "runtime", Value: name, Weight: 0.5}},
+				Skill:       nil,
+				Score:       0.5,
+				MatchedBy:   []MatchReason{{Type: "runtime", Value: name, Weight: 0.5}},
+				Delegations: []DelegationHint{},
 			})
 		}
 	}

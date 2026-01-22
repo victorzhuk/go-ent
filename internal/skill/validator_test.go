@@ -163,6 +163,142 @@ func TestValidateVersion(t *testing.T) {
 	}
 }
 
+func TestValidateNameFormat(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+		wantErr bool
+	}{
+		{
+			name: "valid lowercase with hyphens",
+			meta: &SkillMeta{
+				Name: "my-skill-name",
+			},
+			content: "---\nname: my-skill-name\n---",
+		},
+		{
+			name: "valid lowercase with numbers",
+			meta: &SkillMeta{
+				Name: "skill-123",
+			},
+			content: "---\nname: skill-123\n---",
+		},
+		{
+			name: "valid simple lowercase",
+			meta: &SkillMeta{
+				Name: "apis",
+			},
+			content: "---\nname: apis\n---",
+		},
+		{
+			name: "empty name",
+			meta: &SkillMeta{
+				Name: "",
+			},
+			content: "---\n---",
+		},
+		{
+			name: "uppercase letters",
+			meta: &SkillMeta{
+				Name: "MySkill",
+			},
+			content: "---\nname: MySkill\n---",
+			wantErr: true,
+		},
+		{
+			name: "spaces",
+			meta: &SkillMeta{
+				Name: "my skill",
+			},
+			content: "---\nname: my skill\n---",
+			wantErr: true,
+		},
+		{
+			name: "underscores",
+			meta: &SkillMeta{
+				Name: "my_skill",
+			},
+			content: "---\nname: my_skill\n---",
+			wantErr: true,
+		},
+		{
+			name: "special characters",
+			meta: &SkillMeta{
+				Name: "my.skill",
+			},
+			content: "---\nname: my.skill\n---",
+			wantErr: true,
+		},
+		{
+			name: "mixed case and spaces",
+			meta: &SkillMeta{
+				Name: "My Skill Name",
+			},
+			content: "---\nname: My Skill Name\n---",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateNameFormat(ctx)
+
+			if tt.wantErr {
+				assert.True(t, hasSeverity(issues, SeverityError), "expected error")
+			} else {
+				assert.Empty(t, issues, "expected no issues")
+			}
+		})
+	}
+}
+
+func TestNameFormatErrorHasSuggestion(t *testing.T) {
+	meta := &SkillMeta{
+		Name: "MySkill",
+	}
+	content := "---\nname: MySkill\n---"
+	ctx := &ValidationContext{
+		Content: content,
+		Lines:   splitLines(content),
+		Meta:    meta,
+	}
+
+	issues := validateNameFormat(ctx)
+
+	assert.Len(t, issues, 1)
+	assert.Equal(t, "SK002", issues[0].Rule)
+	assert.NotEmpty(t, issues[0].Suggestion)
+	assert.NotEmpty(t, issues[0].Example)
+	assert.Contains(t, issues[0].Message, "invalid name format")
+}
+
+func TestSK001NameRequiredHasSuggestionAndExample(t *testing.T) {
+	meta := &SkillMeta{
+		Description:      "A test skill",
+		StructureVersion: "v1",
+	}
+	content := "---\ndescription: A test skill\n---"
+	ctx := &ValidationContext{
+		Content: content,
+		Lines:   splitLines(content),
+		Meta:    meta,
+	}
+
+	issues := validateFrontmatter(ctx)
+
+	assert.NotEmpty(t, issues, "should have validation issues")
+	assert.Equal(t, "frontmatter", issues[0].Rule)
+	assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+	assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+	assert.Contains(t, issues[0].Message, "missing required field: name")
+}
+
 func TestValidateXMLTags(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -556,6 +692,342 @@ Another constraint</constraints>`,
 	}
 }
 
+func TestSK003ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "missing description field has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test-skill",
+				StructureVersion: "v1",
+			},
+			content: "---\nname: test-skill\n---",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateFrontmatter(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "SK003", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK004ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "unclosed examples tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<examples><example><input>test</input><output>test</output></example>`,
+		},
+		{
+			name: "no example tags has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<examples></examples>`,
+		},
+		{
+			name: "missing input/output tags has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<examples><example>content</example></examples>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateExamples(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "SK004", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK005ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "missing role section has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<instructions>test</instructions>`,
+		},
+		{
+			name: "unclosed role tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<role>content`,
+		},
+		{
+			name: "empty role section has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<role></role>`,
+		},
+		{
+			name: "role too short has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateRoleSection(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "SK005", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK006ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "missing instructions section has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role>`,
+		},
+		{
+			name: "unclosed instructions tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<instructions>content`,
+		},
+		{
+			name: "empty instructions section has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<instructions></instructions>`,
+		},
+		{
+			name: "instructions too short has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<instructions>test</instructions>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateInstructionsSection(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "SK006", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK007ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "empty constraints section has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<constraints></constraints>`,
+		},
+		{
+			name: "unclosed constraints tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<constraints>- test`,
+		},
+		{
+			name: "constraints not in list format has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<constraints>Test constraint
+Another constraint</constraints>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateConstraints(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "SK007", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK008ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "missing output format has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<role>test</role>`,
+		},
+		{
+			name: "unclosed output_format tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<output_format>Return JSON`,
+		},
+		{
+			name: "empty output format has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<output_format></output_format>`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateOutputFormat(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "output-format", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
+func TestSK009ErrorsHaveSuggestionAndExample(t *testing.T) {
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "insufficient scenarios has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<edge_cases>Test scenario</edge_cases>`,
+		},
+		{
+			name: "unclosed edge_cases tag has suggestion and example",
+			meta: &SkillMeta{
+				Name:             "test",
+				StructureVersion: "v2",
+			},
+			content: `<edge_cases>If test then delegate`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := &ValidationContext{
+				Content: tt.content,
+				Lines:   splitLines(tt.content),
+				Meta:    tt.meta,
+			}
+			issues := validateEdgeCases(ctx)
+
+			assert.NotEmpty(t, issues, "should have validation issues")
+			assert.Equal(t, "edge-cases", issues[0].Rule)
+			assert.NotEmpty(t, issues[0].Suggestion, "Suggestion should not be empty")
+			assert.NotEmpty(t, issues[0].Example, "Example should not be empty")
+		})
+	}
+}
+
 func TestValidateEdgeCases(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -904,6 +1376,51 @@ func TestValidationIssue_String(t *testing.T) {
 				Message:  "test message",
 			},
 			want: "[error] test-rule: test message",
+		},
+		{
+			name: "all fields populated",
+			issue: ValidationIssue{
+				Rule:       "SK002",
+				Severity:   SeverityError,
+				Message:    "invalid name format",
+				Suggestion: "use lowercase letters, numbers, and hyphens only",
+				Example:    "my-skill-name",
+				Line:       5,
+				Column:     10,
+			},
+			want: "[error] SK002:5: invalid name format\n  Suggestion: use lowercase letters, numbers, and hyphens only\n  Example: my-skill-name",
+		},
+		{
+			name: "empty suggestion and example",
+			issue: ValidationIssue{
+				Rule:     "test-rule",
+				Severity: SeverityError,
+				Message:  "test message",
+				Line:     10,
+			},
+			want: "[error] test-rule:10: test message",
+		},
+		{
+			name: "empty suggestion, populated example",
+			issue: ValidationIssue{
+				Rule:     "SK002",
+				Severity: SeverityError,
+				Message:  "invalid name format",
+				Example:  "my-skill-name",
+				Line:     5,
+			},
+			want: "[error] SK002:5: invalid name format\n  Example: my-skill-name",
+		},
+		{
+			name: "populated suggestion, empty example",
+			issue: ValidationIssue{
+				Rule:       "SK002",
+				Severity:   SeverityError,
+				Message:    "invalid name format",
+				Suggestion: "use lowercase letters, numbers, and hyphens only",
+				Line:       5,
+			},
+			want: "[error] SK002:5: invalid name format\n  Suggestion: use lowercase letters, numbers, and hyphens only",
 		},
 	}
 	for _, tt := range tests {
@@ -1775,6 +2292,275 @@ func TestIntegration_SK011InstructionLength(t *testing.T) {
 			} else {
 				for _, issue := range issues {
 					assert.NotEqual(t, "SK011", issue.Rule, "unexpected SK011 issue")
+				}
+			}
+		})
+	}
+}
+
+// TestValidSkillsPassValidation verifies valid skills pass without errors (3.2.4)
+func TestValidSkillsPassValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		meta    *SkillMeta
+		content string
+	}{
+		{
+			name: "valid v1 skill",
+			meta: &SkillMeta{
+				Name:             "test-skill-v1",
+				Description:      "A test skill for v1",
+				Version:          "1.0.0",
+				StructureVersion: "v1",
+				Triggers:         []string{"test", "testing"},
+			},
+			content: `---
+name: test-skill-v1
+description: A test skill for v1
+version: 1.0.0
+triggers:
+  - test
+  - testing
+---
+
+This is a valid v1 skill with proper frontmatter.`,
+		},
+		{
+			name: "valid v2 skill with all sections",
+			meta: &SkillMeta{
+				Name:             "test-skill-v2",
+				Description:      "A comprehensive v2 skill",
+				Version:          "1.0.0",
+				StructureVersion: "v2",
+				ExplicitTriggers: []Trigger{
+					{
+						Patterns: []string{"write.*test"},
+						Keywords: []string{"testing", "tdd"},
+						Weight:   0.8,
+					},
+				},
+			},
+			content: `<role>You are an expert test engineer focused on TDD and quality assurance.</role>
+
+<instructions>
+Write comprehensive tests using table-driven patterns.
+Ensure proper error handling and edge case coverage.
+Keep tests focused and maintainable.
+</instructions>
+
+<examples>
+<example>
+<input>user login with valid credentials</input>
+<output>login succeeds, returns session token</output>
+</example>
+<example>
+<input>user login with invalid password</input>
+<output>login fails, returns unauthorized error</output>
+</example>
+<example>
+<input>user login with empty username</input>
+<output>validation error: username required</output>
+</example>
+</examples>
+
+<output_format>JSON with test results including status, message, and duration</output_format>
+
+<constraints>
+- All tests must use testify/assert
+- Test functions must be parallel where possible
+- Mock only when absolutely necessary
+- Use table-driven tests for multiple cases
+</constraints>
+
+<edge_cases>
+If testing network calls, use testcontainers for realistic environments
+When performance testing is needed, delegate to go-perf skill
+For database testing, use testcontainers-go with postgres
+</edge_cases>`,
+		},
+		{
+			name: "valid v2 skill with minimal sections",
+			meta: &SkillMeta{
+				Name:             "minimal-skill",
+				Description:      "Minimal but valid skill",
+				Version:          "1.0.0",
+				StructureVersion: "v2",
+			},
+			content: `<role>You are a helpful assistant.</role>
+
+<instructions>Help the user with their requests.</instructions>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			v := NewValidator()
+			result := v.Validate(tt.meta, tt.content)
+
+			assert.True(t, result.Valid, "valid skill should pass validation")
+			assert.Equal(t, 0, result.ErrorCount(), "valid skill should have no errors")
+
+			for _, issue := range result.Issues {
+				assert.NotEqual(t, SeverityError, issue.Severity, "no severity error issues should be present")
+			}
+		})
+	}
+}
+
+// TestValidSkillsFromRegistry validates built-in skills pass without errors (3.2.4)
+func TestValidSkillsFromRegistry(t *testing.T) {
+	t.Parallel()
+
+	builtInSkills := []struct {
+		name string
+		path string
+	}{
+		{"go-code", ".claude/skills/ent/go/go-code/SKILL.md"},
+		{"go-arch", ".claude/skills/ent/go/go-arch/SKILL.md"},
+		{"go-api", ".claude/skills/ent/go/go-api/SKILL.md"},
+		{"go-test", ".claude/skills/ent/go/go-test/SKILL.md"},
+		{"go-db", ".claude/skills/ent/go/go-db/SKILL.md"},
+		{"go-sec", ".claude/skills/ent/go/go-sec/SKILL.md"},
+		{"api-design", ".claude/skills/ent/core/api-design/SKILL.md"},
+		{"arch-core", ".claude/skills/ent/core/arch-core/SKILL.md"},
+		{"debug-core", ".claude/skills/ent/core/debug-core/SKILL.md"},
+	}
+
+	registry := NewRegistry()
+
+	for _, skillInfo := range builtInSkills {
+		t.Run(skillInfo.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := os.Stat(skillInfo.path); os.IsNotExist(err) {
+				t.Skipf("skill file not found: %s", skillInfo.path)
+				return
+			}
+
+			err := registry.RegisterSkill(skillInfo.name, skillInfo.path)
+			if err != nil {
+				t.Fatalf("failed to load skill: %v", err)
+			}
+
+			result, err := registry.ValidateSkill(skillInfo.name)
+			assert.NoError(t, err, "validation should succeed")
+			assert.NotNil(t, result, "result should not be nil")
+
+			errorCount := result.ErrorCount()
+			warningCount := result.WarningCount()
+
+			t.Logf("Skill %s: errors=%d, warnings=%d, valid=%v",
+				skillInfo.name, errorCount, warningCount, result.Valid)
+
+			assert.Equal(t, 0, errorCount, "built-in skill should have no validation errors")
+			assert.True(t, result.Valid, "built-in skill should be valid")
+		})
+	}
+}
+
+// TestValidationRulesNoFalsePositives ensures no false positives for valid content (3.2.4)
+func TestValidationRulesNoFalsePositives(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		meta         *SkillMeta
+		content      string
+		noErrorRules []string
+	}{
+		{
+			name: "properly formatted name",
+			meta: &SkillMeta{
+				Name:             "my-valid-skill-123",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content:      `<role>test</role>`,
+			noErrorRules: []string{"SK002"},
+		},
+		{
+			name: "proper semver version",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				Version:          "v2.1.0",
+				StructureVersion: "v2",
+			},
+			content:      `<role>test</role>`,
+			noErrorRules: []string{"version"},
+		},
+		{
+			name: "balanced xml tags",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content:      `<role>content</role><instructions>content</instructions>`,
+			noErrorRules: []string{"xml-tags"},
+		},
+		{
+			name: "adequate role length",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content:      `<role>You are an experienced developer with expertise in system design and architecture.</role>`,
+			noErrorRules: []string{"SK005"},
+		},
+		{
+			name: "adequate instructions length",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content:      `<instructions>Follow the SOLID principles when designing your code. Ensure proper error handling and context propagation throughout all layers of the application.</instructions>`,
+			noErrorRules: []string{"SK006"},
+		},
+		{
+			name: "diverse examples",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content: `<examples>
+<example><input>valid string input</input><output>successful response</output></example>
+<example><input>empty string</input><output>error response</output></example>
+<example><input>null value</input><output>validation error</output></example>
+</examples>`,
+			noErrorRules: []string{"SK010"},
+		},
+		{
+			name: "concise instructions",
+			meta: &SkillMeta{
+				Name:             "test",
+				Description:      "Valid skill",
+				StructureVersion: "v2",
+			},
+			content:      `<instructions>Keep it simple and direct.</instructions>`,
+			noErrorRules: []string{"SK011"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			v := NewValidator()
+			result := v.Validate(tt.meta, tt.content)
+
+			for _, rule := range tt.noErrorRules {
+				for _, issue := range result.Issues {
+					if issue.Rule == rule && issue.Severity == SeverityError {
+						t.Errorf("false positive: rule %s triggered error for valid content: %s", rule, tt.name)
+					}
 				}
 			}
 		})

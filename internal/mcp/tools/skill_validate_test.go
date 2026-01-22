@@ -448,6 +448,24 @@ func TestFormatValidationOutput(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "issues with suggestion and example",
+			input: "test-skill",
+			output: SkillValidateOutput{
+				Valid: false,
+				Score: 50.0,
+				Issues: []skill.ValidationIssue{
+					{
+						Rule:       "SK002",
+						Severity:   skill.SeverityError,
+						Message:    "invalid name format",
+						Suggestion: "use lowercase letters, numbers, and hyphens only",
+						Example:    "my-skill-name",
+						Line:       2,
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -476,6 +494,16 @@ func TestFormatValidationOutput(t *testing.T) {
 					assert.Contains(t, formatted, string(issue.Severity))
 					assert.Contains(t, formatted, issue.Rule)
 					assert.Contains(t, formatted, issue.Message)
+
+					if issue.Suggestion != "" {
+						assert.Contains(t, formatted, "**Suggestion**:")
+						assert.Contains(t, formatted, issue.Suggestion)
+					}
+
+					if issue.Example != "" {
+						assert.Contains(t, formatted, "**Example**:")
+						assert.Contains(t, formatted, issue.Example)
+					}
 				}
 			}
 		})

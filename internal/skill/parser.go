@@ -21,6 +21,8 @@ type SkillMeta struct {
 	Tags             []string
 	AllowedTools     []string
 	StructureVersion string
+	DependsOn        []string
+	DelegatesTo      map[string]string
 	QualityScore     *QualityScore
 }
 
@@ -34,13 +36,15 @@ type Trigger struct {
 
 // skillMetaV2 represents v2 frontmatter structure for unmarshaling.
 type skillMetaV2 struct {
-	Name         string    `yaml:"name"`
-	Description  string    `yaml:"description"`
-	Version      string    `yaml:"version"`
-	Author       string    `yaml:"author"`
-	Tags         []string  `yaml:"tags"`
-	AllowedTools []string  `yaml:"allowedTools"`
-	Triggers     []Trigger `yaml:"triggers"`
+	Name         string            `yaml:"name"`
+	Description  string            `yaml:"description"`
+	Version      string            `yaml:"version"`
+	Author       string            `yaml:"author"`
+	Tags         []string          `yaml:"tags"`
+	AllowedTools []string          `yaml:"allowedTools"`
+	Triggers     []Trigger         `yaml:"triggers"`
+	DependsOn    []string          `yaml:"depends_on"`
+	DelegatesTo  map[string]string `yaml:"delegates_to"`
 }
 
 // Parser handles parsing of SKILL.md files.
@@ -135,6 +139,8 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			ExplicitTriggers: explicitTriggers,
 			FilePath:         path,
 			StructureVersion: "v2",
+			DependsOn:        v2Meta.DependsOn,
+			DelegatesTo:      v2Meta.DelegatesTo,
 		}
 	} else {
 		var meta struct {
@@ -162,6 +168,8 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			Triggers:         triggers,
 			FilePath:         path,
 			StructureVersion: "v1",
+			DependsOn:        nil,
+			DelegatesTo:      nil,
 		}
 	}
 

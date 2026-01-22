@@ -3,6 +3,9 @@
 ## Summary
 Add `depends_on` and `delegates_to` fields to enable skill composition and hierarchical relationships.
 
+## Status
+complete
+
 ## Problem
 Skills can't reference or delegate to other skills, leading to:
 - Duplication of common functionality
@@ -23,7 +26,7 @@ Registry handles:
 - Delegation hints in skill selection
 
 ## Breaking Changes
-- [ ] None - optional fields, backward compatible
+- [x] None - optional fields, backward compatible
 
 ## Alternatives
 1. **Duplication**: Copy common content

@@ -47,13 +47,30 @@ func ValidateGeneratedSkill(path string) error {
 				loc = fmt.Sprintf("%s:%d", loc, issue.Line)
 			}
 
+			var msg string
 			switch issue.Severity {
 			case skillpkg.SeverityError:
-				errors = append(errors, fmt.Sprintf("  [%s] %s: %s", issue.Severity, loc, issue.Message))
+				msg = fmt.Sprintf("  [%s] %s: %s", issue.Severity, loc, issue.Message)
 			case skillpkg.SeverityWarning:
-				warnings = append(warnings, fmt.Sprintf("  ⚠️  [%s] %s: %s", issue.Severity, loc, issue.Message))
+				msg = fmt.Sprintf("  ⚠️  [%s] %s: %s", issue.Severity, loc, issue.Message)
 			case skillpkg.SeverityInfo:
-				info = append(info, fmt.Sprintf("  ℹ️  [%s] %s: %s", issue.Severity, loc, issue.Message))
+				msg = fmt.Sprintf("  ℹ️  [%s] %s: %s", issue.Severity, loc, issue.Message)
+			}
+
+			if issue.Suggestion != "" {
+				msg += fmt.Sprintf("\n    Suggestion: %s", issue.Suggestion)
+			}
+			if issue.Example != "" {
+				msg += fmt.Sprintf("\n    Example: %s", issue.Example)
+			}
+
+			switch issue.Severity {
+			case skillpkg.SeverityError:
+				errors = append(errors, msg)
+			case skillpkg.SeverityWarning:
+				warnings = append(warnings, msg)
+			case skillpkg.SeverityInfo:
+				info = append(info, msg)
 			}
 		}
 

@@ -1,13 +1,13 @@
 [
   {
-    "SessionID": "019bdde0-37b9-7463-80c5-7efd9cc90bc9",
+    "SessionID": "019be23d-04fa-7441-a9ba-a8d8314ecd2f",
     "ToolName": "test_tool",
     "TokensIn": 0,
     "TokensOut": 0,
-    "Duration": 381,
+    "Duration": 371,
     "Success": true,
     "ErrorMsg": "",
-    "Timestamp": "2026-01-21T03:06:57.721290278+03:00",
+    "Timestamp": "2026-01-21T23:26:48.44228139+03:00",
     "Metadata": null
   }
 ]

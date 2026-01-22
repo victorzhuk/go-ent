@@ -7,6 +7,7 @@ import (
 )
 
 var semverRegex = regexp.MustCompile(`^v?\d+\.\d+\.\d+$`)
+var nameFormatRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 
 // validateFrontmatter checks required frontmatter fields.
 func validateFrontmatter(ctx *ValidationContext) []ValidationIssue {
@@ -14,19 +15,25 @@ func validateFrontmatter(ctx *ValidationContext) []ValidationIssue {
 
 	if ctx.Meta.Name == "" {
 		issues = append(issues, ValidationIssue{
-			Rule:     "frontmatter",
-			Severity: SeverityError,
-			Message:  "missing required field: name",
-			Line:     1,
+			Rule:       "frontmatter",
+			Severity:   SeverityError,
+			Message:    "missing required field: name",
+			Suggestion: "Add a 'name' field to the frontmatter",
+			Example: `---
+name: your-skill-name
+---`,
+			Line: 1,
 		})
 	}
 
 	if ctx.Meta.Description == "" {
 		issues = append(issues, ValidationIssue{
-			Rule:     "frontmatter",
-			Severity: SeverityError,
-			Message:  "missing required field: description",
-			Line:     1,
+			Rule:       "SK003",
+			Severity:   SeverityError,
+			Message:    "missing required field: description",
+			Suggestion: "Add a 'description' field explaining what the skill does and when to use it",
+			Example:    "Analyzes Go code for common issues. Use when reviewing Go files or debugging Go applications.",
+			Line:       1,
 		})
 	}
 
@@ -44,6 +51,26 @@ func validateFrontmatter(ctx *ValidationContext) []ValidationIssue {
 	}
 
 	return issues
+}
+
+// validateNameFormat checks that the name field follows the correct format.
+func validateNameFormat(ctx *ValidationContext) []ValidationIssue {
+	if ctx.Meta.Name == "" {
+		return nil
+	}
+
+	if !nameFormatRegex.MatchString(ctx.Meta.Name) {
+		return []ValidationIssue{{
+			Rule:       "SK002",
+			Severity:   SeverityError,
+			Message:    "invalid name format: use lowercase letters, numbers, and hyphens only",
+			Suggestion: "Use lowercase letters, numbers, and hyphens only",
+			Example:    "valid-skill-name-123",
+			Line:       findLineNumber(ctx.Lines, `name:`),
+		}}
+	}
+
+	return nil
 }
 
 // validateVersion checks semantic version format.
@@ -120,10 +147,16 @@ func validateRoleSection(ctx *ValidationContext) []ValidationIssue {
 			severity = SeverityError
 		}
 		return []ValidationIssue{{
-			Rule:     "role",
-			Severity: severity,
-			Message:  "missing <role> section",
-			Line:     0,
+			Rule:       "SK005",
+			Severity:   severity,
+			Message:    "missing <role> section",
+			Suggestion: "Add a <role> section that describes the AI's identity and responsibilities for this skill",
+			Example: `<role>
+You are a Go code expert specializing in performance optimization.
+
+Focus on identifying bottlenecks, suggesting efficient algorithms, and improving code structure.
+</role>`,
+			Line: 0,
 		}}
 	}
 
@@ -134,20 +167,35 @@ func validateRoleSection(ctx *ValidationContext) []ValidationIssue {
 
 	if closeIdx == -1 {
 		return []ValidationIssue{{
-			Rule:     "role",
-			Severity: SeverityError,
-			Message:  "<role> section not closed (missing </role>)",
-			Line:     findLineNumberForTag(ctx.Lines, "role"),
+			Rule:       "SK005",
+			Severity:   SeverityError,
+			Message:    "<role> section not closed (missing </role>)",
+			Suggestion: "Add the closing tag </role> after the role description",
+			Example: `<role>
+You are a senior Go developer with expertise in API design.
+
+Your responsibilities include:
+- Designing RESTful APIs following best practices
+- Writing clean, maintainable code
+- Ensuring proper error handling
+</role>`,
+			Line: findLineNumberForTag(ctx.Lines, "role"),
 		}}
 	}
 
 	roleContent := strings.TrimSpace(ctx.Content[openIdx+len(openTag) : closeIdx])
 	if roleContent == "" {
 		return []ValidationIssue{{
-			Rule:     "role",
-			Severity: SeverityError,
-			Message:  "<role> section is empty",
-			Line:     findLineNumberForTag(ctx.Lines, "role"),
+			Rule:       "SK005",
+			Severity:   SeverityError,
+			Message:    "<role> section is empty",
+			Suggestion: "Describe the AI's identity, expertise, and responsibilities within the role tags",
+			Example: `<role>
+You are a database migration specialist with deep knowledge of PostgreSQL and data modeling.
+
+Guide users through schema changes, data migrations, and performance optimization.
+</role>`,
+			Line: findLineNumberForTag(ctx.Lines, "role"),
 		}}
 	}
 
@@ -161,10 +209,16 @@ func validateRoleSection(ctx *ValidationContext) []ValidationIssue {
 
 	if nonEmptyLines < 2 {
 		return []ValidationIssue{{
-			Rule:     "role",
-			Severity: SeverityWarning,
-			Message:  "<role> section should have at least 2 lines of content",
-			Line:     findLineNumberForTag(ctx.Lines, "role"),
+			Rule:       "SK005",
+			Severity:   SeverityWarning,
+			Message:    "<role> section should have at least 2 lines of content",
+			Suggestion: "Expand the role definition to include the AI's identity and at least one responsibility or expertise area",
+			Example: `<role>
+You are a security expert specializing in authentication and authorization.
+
+Focus on OWASP best practices, secure coding patterns, and vulnerability prevention.
+</role>`,
+			Line: findLineNumberForTag(ctx.Lines, "role"),
 		}}
 	}
 
@@ -183,19 +237,84 @@ func validateInstructionsSection(ctx *ValidationContext) []ValidationIssue {
 			severity = SeverityError
 		}
 		return []ValidationIssue{{
-			Rule:     "instructions",
-			Severity: severity,
-			Message:  "missing <instructions> section",
-			Line:     0,
+			Rule:       "SK006",
+			Severity:   severity,
+			Message:    "missing <instructions> section",
+			Suggestion: "Add an <instructions> section with clear, actionable steps for the AI to follow",
+			Example: `<instructions>
+1. Parse the user request to understand the task
+2. Search the codebase for relevant files using grep or glob
+3. Read and analyze the identified files
+4. Provide a clear, concise answer with file references
+5. Use code examples only when directly relevant
+</instructions>`,
+			Line: 0,
 		}}
 	}
 
-	if !strings.Contains(ctx.Content, "</instructions>") {
+	openTag := "<instructions>"
+	closeTag := "</instructions>"
+	openIdx := strings.Index(ctx.Content, openTag)
+	closeIdx := strings.Index(ctx.Content, closeTag)
+
+	if closeIdx == -1 {
 		return []ValidationIssue{{
-			Rule:     "instructions",
-			Severity: SeverityError,
-			Message:  "<instructions> section not closed (missing </instructions>)",
-			Line:     findLineNumberForTag(ctx.Lines, "instructions"),
+			Rule:       "SK006",
+			Severity:   SeverityError,
+			Message:    "<instructions> section not closed (missing </instructions>)",
+			Suggestion: "Add the closing tag </instructions> after your instructions",
+			Example: `<instructions>
+When reviewing code:
+1. Check for security vulnerabilities
+2. Validate error handling
+3. Ensure proper resource cleanup
+</instructions>`,
+			Line: findLineNumberForTag(ctx.Lines, "instructions"),
+		}}
+	}
+
+	instructionsContent := strings.TrimSpace(ctx.Content[openIdx+len(openTag) : closeIdx])
+	if instructionsContent == "" {
+		return []ValidationIssue{{
+			Rule:       "SK006",
+			Severity:   SeverityError,
+			Message:    "<instructions> section is empty",
+			Suggestion: "Describe the steps and guidelines the AI should follow when using this skill",
+			Example: `<instructions>
+To implement a new feature:
+1. Understand the requirements from the issue
+2. Create a branch from main
+3. Implement the feature following code style
+4. Add tests for the new functionality
+5. Run all tests and ensure they pass
+6. Create a pull request with clear description
+</instructions>`,
+			Line: findLineNumberForTag(ctx.Lines, "instructions"),
+		}}
+	}
+
+	lines := strings.Split(instructionsContent, "\n")
+	nonEmptyLines := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			nonEmptyLines++
+		}
+	}
+
+	if nonEmptyLines < 2 {
+		return []ValidationIssue{{
+			Rule:       "SK006",
+			Severity:   SeverityWarning,
+			Message:    "<instructions> section should have at least 2 lines of content",
+			Suggestion: "Expand the instructions to include multiple steps or guidelines for the AI to follow",
+			Example: `<instructions>
+When generating SQL queries:
+- Use parameterized queries to prevent SQL injection
+- Order columns logically (primary keys first)
+- Include proper indexes for common query patterns
+- Use JOINs efficiently with ON clauses
+</instructions>`,
+			Line: findLineNumberForTag(ctx.Lines, "instructions"),
 		}}
 	}
 
@@ -214,10 +333,17 @@ func validateExamples(ctx *ValidationContext) []ValidationIssue {
 
 	if !strings.Contains(ctx.Content, "</examples>") {
 		return []ValidationIssue{{
-			Rule:     "examples",
-			Severity: SeverityError,
-			Message:  "<examples> section not closed (missing </examples>)",
-			Line:     findLineNumberForTag(ctx.Lines, "examples"),
+			Rule:       "SK004",
+			Severity:   SeverityError,
+			Message:    "<examples> section not closed (missing </examples>)",
+			Suggestion: "Add closing tag </examples> after your examples",
+			Example: `<examples>
+  <example>
+    <input>sample input</input>
+    <output>sample output</output>
+  </example>
+</examples>`,
+			Line: findLineNumberForTag(ctx.Lines, "examples"),
 		}}
 	}
 
@@ -231,10 +357,17 @@ func validateExamples(ctx *ValidationContext) []ValidationIssue {
 	exampleCount := strings.Count(examplesContent, "<example>")
 	if exampleCount == 0 {
 		return []ValidationIssue{{
-			Rule:     "examples",
-			Severity: SeverityWarning,
-			Message:  "<examples> section contains no <example> tags",
-			Line:     findLineNumberForTag(ctx.Lines, "examples"),
+			Rule:       "SK004",
+			Severity:   SeverityWarning,
+			Message:    "<examples> section contains no <example> tags",
+			Suggestion: "Add at least one <example> tag with <input> and <output> sub-tags",
+			Example: `<examples>
+  <example>
+    <input>Your sample input here</input>
+    <output>Expected output for this input</output>
+  </example>
+</examples>`,
+			Line: findLineNumberForTag(ctx.Lines, "examples"),
 		}}
 	}
 
@@ -243,10 +376,17 @@ func validateExamples(ctx *ValidationContext) []ValidationIssue {
 
 	if len(matches) != exampleCount {
 		return []ValidationIssue{{
-			Rule:     "examples",
-			Severity: SeverityError,
-			Message:  "each <example> must contain <input> and <output> tags",
-			Line:     findLineNumberForTag(ctx.Lines, "examples"),
+			Rule:       "SK004",
+			Severity:   SeverityError,
+			Message:    "each <example> must contain <input> and <output> tags",
+			Suggestion: "Each <example> tag must have exactly one <input> tag and one <output> tag",
+			Example: `<examples>
+  <example>
+    <input>User question or task</input>
+    <output>Expected AI response or output</output>
+  </example>
+</examples>`,
+			Line: findLineNumberForTag(ctx.Lines, "examples"),
 		}}
 	}
 
@@ -265,10 +405,15 @@ func validateConstraints(ctx *ValidationContext) []ValidationIssue {
 
 	if !strings.Contains(ctx.Content, "</constraints>") {
 		return []ValidationIssue{{
-			Rule:     "constraints",
-			Severity: SeverityError,
-			Message:  "<constraints> section not closed (missing </constraints>)",
-			Line:     findLineNumberForTag(ctx.Lines, "constraints"),
+			Rule:       "SK007",
+			Severity:   SeverityError,
+			Message:    "<constraints> section not closed (missing </constraints>)",
+			Suggestion: "Add the closing tag </constraints> after your constraint list",
+			Example: `<constraints>
+- Focus only on idiomatic Go
+- Do not suggest external dependencies
+</constraints>`,
+			Line: findLineNumberForTag(ctx.Lines, "constraints"),
 		}}
 	}
 
@@ -292,19 +437,32 @@ func validateConstraints(ctx *ValidationContext) []ValidationIssue {
 
 	if !hasListItems && constraintsContent != "" {
 		return []ValidationIssue{{
-			Rule:     "constraints",
-			Severity: SeverityWarning,
-			Message:  "<constraints> items should use list format (start with '- ')",
-			Line:     findLineNumberForTag(ctx.Lines, "constraints"),
+			Rule:       "SK007",
+			Severity:   SeverityWarning,
+			Message:    "<constraints> items should use list format (start with '- ')",
+			Suggestion: "Use bulleted list format for constraint items",
+			Example: `<constraints>
+- Focus only on idiomatic Go
+- Do not suggest external dependencies
+- Prefer standard library over third-party packages
+</constraints>`,
+			Line: findLineNumberForTag(ctx.Lines, "constraints"),
 		}}
 	}
 
 	if constraintsContent == "" {
 		return []ValidationIssue{{
-			Rule:     "constraints",
-			Severity: SeverityWarning,
-			Message:  "<constraints> section is empty",
-			Line:     findLineNumberForTag(ctx.Lines, "constraints"),
+			Rule:       "SK007",
+			Severity:   SeverityWarning,
+			Message:    "<constraints> section is empty",
+			Suggestion: "Add constraints that define boundaries, limitations, and scope for the skill",
+			Example: `<constraints>
+- Focus only on idiomatic Go patterns
+- Do not suggest external dependencies unless explicitly requested
+- Prefer standard library packages
+- Handle errors gracefully with proper wrapping
+</constraints>`,
+			Line: findLineNumberForTag(ctx.Lines, "constraints"),
 		}}
 	}
 
@@ -323,10 +481,16 @@ func validateEdgeCases(ctx *ValidationContext) []ValidationIssue {
 
 	if !strings.Contains(ctx.Content, "</edge_cases>") {
 		return []ValidationIssue{{
-			Rule:     "edge-cases",
-			Severity: SeverityError,
-			Message:  "<edge_cases> section not closed (missing </edge_cases>)",
-			Line:     findLineNumberForTag(ctx.Lines, "edge_cases"),
+			Rule:       "edge-cases",
+			Severity:   SeverityError,
+			Message:    "<edge_cases> section not closed (missing </edge_cases>)",
+			Suggestion: "Add the closing tag </edge_cases> after your edge case scenarios",
+			Example: `<edge_cases>
+- If user provides empty input
+- When file cannot be found
+- Should handle concurrent access
+</edge_cases>`,
+			Line: findLineNumberForTag(ctx.Lines, "edge_cases"),
 		}}
 	}
 
@@ -351,10 +515,17 @@ func validateEdgeCases(ctx *ValidationContext) []ValidationIssue {
 
 	if scenarioCount < 2 {
 		return []ValidationIssue{{
-			Rule:     "edge-cases",
-			Severity: SeverityWarning,
-			Message:  "<edge_cases> should describe at least 2 scenarios (use 'if', 'when', or 'should' keywords)",
-			Line:     findLineNumberForTag(ctx.Lines, "edge_cases"),
+			Rule:       "edge-cases",
+			Severity:   SeverityWarning,
+			Message:    "<edge_cases> should describe at least 2 scenarios (use 'if', 'when', or 'should' keywords)",
+			Suggestion: "Use scenario-based descriptions with keywords like 'if', 'when', or 'should' to describe edge cases",
+			Example: `<edge_cases>
+- If the input contains invalid characters
+- When the file is empty or corrupted
+- Should handle rate limit errors gracefully
+- If multiple concurrent requests arrive
+</edge_cases>`,
+			Line: findLineNumberForTag(ctx.Lines, "edge_cases"),
 		}}
 	}
 
@@ -373,19 +544,31 @@ func validateOutputFormat(ctx *ValidationContext) []ValidationIssue {
 			severity = SeverityError
 		}
 		return []ValidationIssue{{
-			Rule:     "output-format",
-			Severity: severity,
-			Message:  "missing <output_format> section",
-			Line:     0,
+			Rule:       "output-format",
+			Severity:   severity,
+			Message:    "missing <output_format> section",
+			Suggestion: "Add an <output_format> section specifying the expected response structure and format",
+			Example: `<output_format>
+Provide findings in a markdown table with columns: Issue, Location, Suggestion
+</output_format>`,
+			Line: 0,
 		}}
 	}
 
 	if !strings.Contains(ctx.Content, "</output_format>") {
 		return []ValidationIssue{{
-			Rule:     "output-format",
-			Severity: SeverityError,
-			Message:  "<output_format> section not closed (missing </output_format>)",
-			Line:     findLineNumberForTag(ctx.Lines, "output_format"),
+			Rule:       "output-format",
+			Severity:   SeverityError,
+			Message:    "<output_format> section not closed (missing </output_format>)",
+			Suggestion: "Add the closing tag </output_format> after specifying your output format",
+			Example: `<output_format>
+Provide code suggestions in a bulleted list with file references.
+
+Format:
+- [file_path:line] Issue description
+  Suggested fix
+</output_format>`,
+			Line: findLineNumberForTag(ctx.Lines, "output_format"),
 		}}
 	}
 
@@ -398,10 +581,25 @@ func validateOutputFormat(ctx *ValidationContext) []ValidationIssue {
 
 	if outputContent == "" {
 		return []ValidationIssue{{
-			Rule:     "output-format",
-			Severity: SeverityWarning,
-			Message:  "<output_format> section is empty",
-			Line:     findLineNumberForTag(ctx.Lines, "output_format"),
+			Rule:       "output-format",
+			Severity:   SeverityWarning,
+			Message:    "<output_format> section is empty",
+			Suggestion: "Describe the expected output format, structure, and any required elements",
+			Example: `<output_format>
+Return a JSON object with the following structure:
+{
+  "summary": "Brief description of findings",
+  "issues": [
+    {
+      "type": "issue_type",
+      "severity": "low|medium|high",
+      "location": "file:line",
+      "message": "Description of the issue"
+    }
+  ]
+}
+</output_format>`,
+			Line: findLineNumberForTag(ctx.Lines, "output_format"),
 		}}
 	}
 
