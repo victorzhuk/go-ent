@@ -139,12 +139,44 @@ func (f *Fixer) HasFixableXML(content string) bool {
 	return normalized != content
 }
 
+// fixTagTypos fixes common singular→plural tag typos.
+func (f *Fixer) fixTagTypos(content string) (string, []FixChange) {
+	var changes []FixChange
+	normalized := content
+
+	typos := map[string]string{
+		"<instruction>":  "<instructions>",
+		"</instruction>": "</instructions>",
+		"<example>":      "<examples>",
+		"</example>":     "</examples>",
+		"<constraint>":   "<constraints>",
+		"</constraint>":  "</constraints>",
+		"<edge_case>":    "<edge_cases>",
+		"</edge_case>":   "</edge_cases>",
+	}
+
+	for typo, correct := range typos {
+		if strings.Contains(normalized, typo) {
+			normalized = strings.ReplaceAll(normalized, typo, correct)
+			changes = append(changes, FixChange{
+				Rule:    "tag-typo",
+				Message: fmt.Sprintf("fixed tag typo: %s → %s", typo, correct),
+			})
+		}
+	}
+
+	return normalized, changes
+}
+
 // FixXMLSections normalizes XML-like section formatting in skill content.
 func (f *Fixer) FixXMLSections(content string) (string, []FixChange, error) {
 	var changes []FixChange
 
 	tags := []string{"triggers", "role", "instructions", "constraints", "edge_cases", "examples", "output_format"}
 	normalized := content
+
+	normalized, typoChanges := f.fixTagTypos(normalized)
+	changes = append(changes, typoChanges...)
 
 	for _, tag := range tags {
 		openTag := "<" + tag + ">"
@@ -244,6 +276,186 @@ func (f *Fixer) FixValidationIssues(content string) (string, []FixChange, error)
 	changes = append(changes, listChanges...)
 
 	return fixed, changes, nil
+}
+
+// FixCommonIssues combines all auto-fix operations with trigger suggestions.
+func (f *Fixer) FixCommonIssues(content, filePath string) (string, []FixChange, error) {
+	var allChanges []FixChange
+
+	fixed, valChanges, err := f.FixValidationIssues(content)
+	if err != nil {
+		return content, allChanges, fmt.Errorf("fix validation issues: %w", err)
+	}
+	allChanges = append(allChanges, valChanges...)
+
+	fixed, triggerChanges := f.suggestTriggers(fixed, filePath)
+	allChanges = append(allChanges, triggerChanges...)
+
+	return fixed, allChanges, nil
+}
+
+// suggestTriggers adds trigger pattern suggestions based on file metadata.
+func (f *Fixer) suggestTriggers(content, filePath string) (string, []FixChange) {
+	var changes []FixChange
+
+	lines := strings.Split(content, "\n")
+	fmStart := -1
+	fmEnd := -1
+	for i := 0; i < len(lines); i++ {
+		if lines[i] == "---" {
+			if fmStart == -1 {
+				fmStart = i
+			} else if fmEnd == -1 {
+				fmEnd = i
+				break
+			}
+		}
+	}
+
+	if fmStart == -1 || fmEnd == -1 {
+		return content, changes
+	}
+
+	if strings.Contains(content, "triggers:") {
+		return content, changes
+	}
+
+	frontmatterLines := lines[fmStart+1 : fmEnd]
+	var data map[string]interface{}
+	if err := yaml.Unmarshal([]byte(strings.Join(frontmatterLines, "\n")), &data); err != nil {
+		return content, changes
+	}
+
+	skillName := ""
+	if name, ok := data["name"].(string); ok {
+		skillName = name
+	}
+
+	suggestedTriggers := f.buildTriggerSuggestions(skillName, filePath)
+
+	if len(suggestedTriggers) == 0 {
+		return content, changes
+	}
+
+	data["triggers"] = suggestedTriggers
+
+	var buf strings.Builder
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(data); err != nil {
+		_ = encoder.Close()
+		return content, changes
+	}
+	_ = encoder.Close()
+
+	newFrontmatter := strings.TrimSpace(strings.TrimSuffix(buf.String(), "\n"))
+	var body string
+	if fmEnd+1 < len(lines) {
+		body = strings.Join(lines[fmEnd+1:], "\n")
+	}
+	newContent := fmt.Sprintf("---\n%s\n---\n%s", newFrontmatter, body)
+
+	changes = append(changes, FixChange{
+		Rule:    "trigger-suggestions",
+		Message: fmt.Sprintf("added %d trigger suggestion(s) based on skill name and location", len(suggestedTriggers)),
+	})
+
+	changes = append(changes, f.encodeTriggerChanges(suggestedTriggers)...)
+
+	return newContent, changes
+}
+
+// buildTriggerSuggestions generates trigger patterns based on skill metadata.
+func (f *Fixer) buildTriggerSuggestions(skillName, filePath string) []map[string]interface{} {
+	var triggers []map[string]interface{}
+
+	if skillName == "" {
+		return triggers
+	}
+
+	keywordPatterns := f.extractKeywords(skillName)
+
+	for _, kw := range keywordPatterns {
+		trigger := map[string]interface{}{
+			"patterns": []string{fmt.Sprintf("%s.*", kw)},
+			"weight":   0.7,
+		}
+		triggers = append(triggers, trigger)
+	}
+
+	if len(triggers) == 0 {
+		triggers = append(triggers, map[string]interface{}{
+			"patterns": []string{fmt.Sprintf("%s.*", skillName)},
+			"weight":   0.5,
+		})
+	}
+
+	return triggers
+}
+
+// extractKeywords extracts trigger keywords from skill name.
+func (f *Fixer) extractKeywords(name string) []string {
+	keywords := []string{}
+	parts := strings.Split(name, "-")
+
+	for _, part := range parts {
+		if (len(part) >= 2 && !f.isCommonWord(part)) || part == "go" {
+			keywords = append(keywords, part)
+		}
+	}
+
+	return keywords
+}
+
+// isCommonWord checks if a word is too generic for trigger.
+func (f *Fixer) isCommonWord(word string) bool {
+	commonWords := map[string]bool{
+		"the":  true,
+		"and":  true,
+		"for":  true,
+		"are":  true,
+		"but":  true,
+		"not":  true,
+		"you":  true,
+		"all":  true,
+		"can":  true,
+		"has":  true,
+		"had":  true,
+		"was":  true,
+		"were": true,
+		"been": true,
+		"be":   true,
+		"this": true,
+		"that": true,
+		"have": true,
+		"from": true,
+		"with": true,
+		"use":  true,
+		"make": true,
+		"get":  true,
+		"set":  true,
+		"add":  true,
+		"code": true,
+	}
+
+	return commonWords[strings.ToLower(word)]
+}
+
+// encodeTriggerChanges creates individual change entries for triggers.
+func (f *Fixer) encodeTriggerChanges(triggers []map[string]interface{}) []FixChange {
+	var changes []FixChange
+
+	for _, trigger := range triggers {
+		patterns := trigger["patterns"].([]string)
+		if len(patterns) > 0 {
+			changes = append(changes, FixChange{
+				Rule:    "trigger-pattern",
+				Message: fmt.Sprintf("suggested trigger pattern: %s", patterns[0]),
+			})
+		}
+	}
+
+	return changes
 }
 
 // fixFrontmatterFields adds missing required fields and normalizes invalid values.
@@ -514,4 +726,93 @@ func (f *Fixer) FixValidationFile(filePath string, content string) (*FixResult, 
 		Fixed:   true,
 		Changes: changes,
 	}, nil
+}
+
+// DryRunFile analyzes what would be fixed without modifying the file.
+func (f *Fixer) DryRunFile(content string) (*FixResult, []string, error) {
+	var allChanges []FixChange
+	var diffs []string
+
+	fmNormalized, fmChanges, err := f.FixFrontmatter(content)
+	if err != nil {
+		return nil, nil, fmt.Errorf("fix frontmatter: %w", err)
+	}
+	allChanges = append(allChanges, fmChanges...)
+
+	if fmNormalized != content {
+		diff := generateDiff(content, fmNormalized)
+		diffs = append(diffs, diff)
+	}
+
+	xmlNormalized, xmlChanges, err := f.FixXMLSections(fmNormalized)
+	if err != nil {
+		return nil, nil, fmt.Errorf("fix xml sections: %w", err)
+	}
+	allChanges = append(allChanges, xmlChanges...)
+
+	if xmlNormalized != fmNormalized {
+		diff := generateDiff(fmNormalized, xmlNormalized)
+		diffs = append(diffs, diff)
+	}
+
+	valNormalized, valChanges, err := f.FixValidationIssues(xmlNormalized)
+	if err != nil {
+		return nil, nil, fmt.Errorf("fix validation issues: %w", err)
+	}
+	allChanges = append(allChanges, valChanges...)
+
+	if valNormalized != xmlNormalized {
+		diff := generateDiff(xmlNormalized, valNormalized)
+		diffs = append(diffs, diff)
+	}
+
+	if len(allChanges) == 0 {
+		return &FixResult{
+			Fixed:   false,
+			Changes: []FixChange{},
+		}, nil, nil
+	}
+
+	return &FixResult{
+		Fixed:   true,
+		Changes: allChanges,
+	}, diffs, nil
+}
+
+// generateDiff creates a simple line-by-line diff.
+func generateDiff(original, modified string) string {
+	origLines := strings.Split(original, "\n")
+	modLines := strings.Split(modified, "\n")
+
+	var diff strings.Builder
+
+	maxLines := len(origLines)
+	if len(modLines) > maxLines {
+		maxLines = len(modLines)
+	}
+
+	for i := 0; i < maxLines; i++ {
+		origLine := ""
+		modLine := ""
+
+		if i < len(origLines) {
+			origLine = origLines[i]
+		}
+		if i < len(modLines) {
+			modLine = modLines[i]
+		}
+
+		if origLine == modLine {
+			diff.WriteString("  " + origLine + "\n")
+		} else {
+			if origLine != "" {
+				diff.WriteString("- " + origLine + "\n")
+			}
+			if modLine != "" {
+				diff.WriteString("+ " + modLine + "\n")
+			}
+		}
+	}
+
+	return diff.String()
 }

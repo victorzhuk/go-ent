@@ -828,3 +828,489 @@ func TestNormalizeVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestFixer_FixTagTypos(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name           string
+		input          string
+		expectedOutput string
+		expectedFixes  int
+	}{
+		{
+			name: "instruction to instructions",
+			input: `---
+name: test
+---
+
+<instruction>
+First step
+Second step
+</instruction>`,
+			expectedOutput: `---
+name: test
+---
+
+<instructions>
+First step
+Second step
+</instructions>`,
+			expectedFixes: 2,
+		},
+		{
+			name: "example to examples",
+			input: `---
+name: test
+---
+
+<example>
+Code snippet
+</example>`,
+			expectedOutput: `---
+name: test
+---
+
+<examples>
+Code snippet
+</examples>`,
+			expectedFixes: 2,
+		},
+		{
+			name: "constraint to constraints",
+			input: `---
+name: test
+---
+
+<constraint>
+Use Go
+Be simple
+</constraint>`,
+			expectedOutput: `---
+name: test
+---
+
+<constraints>
+Use Go
+Be simple
+</constraints>`,
+			expectedFixes: 2,
+		},
+		{
+			name: "edge_case to edge_cases",
+			input: `---
+name: test
+---
+
+<edge_case>
+Null pointer
+</edge_case>`,
+			expectedOutput: `---
+name: test
+---
+
+<edge_cases>
+Null pointer
+</edge_cases>`,
+			expectedFixes: 2,
+		},
+		{
+			name: "multiple typos",
+			input: `---
+name: test
+---
+
+<instruction>
+Test steps
+</instruction>
+
+<example>
+Code
+</example>
+
+<constraint>
+Rule
+</constraint>`,
+			expectedOutput: `---
+name: test
+---
+
+<instructions>
+Test steps
+</instructions>
+
+<examples>
+Code
+</examples>
+
+<constraints>
+Rule
+</constraints>`,
+			expectedFixes: 6,
+		},
+		{
+			name:           "no typos",
+			input:          `---\nname: test\n---\n\n<instructions>\nStep\n</instructions>`,
+			expectedOutput: `---\nname: test\n---\n\n<instructions>\nStep\n</instructions>`,
+			expectedFixes:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fixed, changes := f.fixTagTypos(tt.input)
+			assert.Equal(t, tt.expectedOutput, fixed)
+			assert.Len(t, changes, tt.expectedFixes)
+
+			for _, change := range changes {
+				assert.Equal(t, "tag-typo", change.Rule)
+				assert.Contains(t, change.Message, "→")
+			}
+		})
+	}
+}
+
+func TestFixer_FixXMLSections_WithTypos(t *testing.T) {
+	f := NewFixer()
+
+	input := `---
+name: test
+version: 1.0.0
+---
+
+<instruction>
+Step 1
+Step 2
+</instruction>
+
+<example>
+Code here
+</example>`
+
+	normalized, changes, err := f.FixXMLSections(input)
+	require.NoError(t, err)
+
+	assert.Contains(t, normalized, "<instructions>")
+	assert.Contains(t, normalized, "</instructions>")
+	assert.Contains(t, normalized, "<examples>")
+	assert.Contains(t, normalized, "</examples>")
+	assert.NotContains(t, normalized, "<instruction>")
+	assert.NotContains(t, normalized, "</instruction>")
+	assert.NotContains(t, normalized, "<example>")
+	assert.NotContains(t, normalized, "</example>")
+
+	assert.GreaterOrEqual(t, len(changes), 2)
+
+	typoFixes := 0
+	for _, change := range changes {
+		if change.Rule == "tag-typo" {
+			typoFixes++
+			assert.Contains(t, change.Message, "→")
+		}
+	}
+	assert.GreaterOrEqual(t, typoFixes, 4)
+}
+
+func TestFixer_FixCommonIssues(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name         string
+		input        string
+		filePath     string
+		wantFixed    bool
+		wantChanges  int
+		checkContent func(t *testing.T, content string)
+	}{
+		{
+			name: "adds missing fields and triggers",
+			input: `---
+description: Go coding patterns
+version: 1.0.0
+---
+
+Content`,
+			filePath:    "skills/go-code.md",
+			wantFixed:   true,
+			wantChanges: 4,
+			checkContent: func(t *testing.T, content string) {
+				assert.Contains(t, content, "name: unnamed-skill")
+				assert.Contains(t, content, "triggers:")
+			},
+		},
+		{
+			name: "suggests triggers from skill name",
+			input: `---
+name: go-api
+description: API design patterns
+version: 1.0.0
+---
+
+Content`,
+			filePath:    "skills/go-api.md",
+			wantFixed:   true,
+			wantChanges: 3,
+			checkContent: func(t *testing.T, content string) {
+				assert.Contains(t, content, "triggers:")
+				assert.Contains(t, content, "patterns:")
+			},
+		},
+		{
+			name: "no changes if already has triggers",
+			input: `---
+name: go-code
+description: Test
+version: 1.0.0
+triggers:
+  - patterns:
+      - "go.*"
+    weight: 0.8
+---
+
+Content`,
+			filePath:    "skills/go-code.md",
+			wantFixed:   false,
+			wantChanges: 0,
+			checkContent: func(t *testing.T, content string) {
+				assert.Contains(t, content, "triggers:")
+			},
+		},
+		{
+			name: "validates and fixes invalid name",
+			input: `---
+name: My Go Skill
+description: Test
+version: 1
+---
+
+Content`,
+			filePath:    "skills/my-go-skill.md",
+			wantFixed:   true,
+			wantChanges: 6,
+			checkContent: func(t *testing.T, content string) {
+				assert.Contains(t, content, "name: my-go-skill")
+				assert.Contains(t, content, "version: 1.0.0")
+				assert.Contains(t, content, "triggers:")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fixed, changes, err := f.FixCommonIssues(tt.input, tt.filePath)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantFixed, len(changes) > 0)
+			assert.Equal(t, tt.wantChanges, len(changes))
+
+			if tt.checkContent != nil {
+				tt.checkContent(t, fixed)
+			}
+		})
+	}
+}
+
+func TestFixer_ExtractKeywords(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "go-code",
+			input:    "go-code",
+			expected: []string{"go"},
+		},
+		{
+			name:     "simple word",
+			input:    "test",
+			expected: []string{"test"},
+		},
+		{
+			name:     "words with hyphens",
+			input:    "go-api-design",
+			expected: []string{"go", "api", "design"},
+		},
+		{
+			name:     "skips short words",
+			input:    "go-test",
+			expected: []string{"go", "test"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := f.extractKeywords(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestFixer_BuildTriggerSuggestions(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name          string
+		skillName     string
+		filePath      string
+		expectCount   int
+		expectPattern bool
+	}{
+		{
+			name:          "go-code skill",
+			skillName:     "go-code",
+			filePath:      "skills/go-code.md",
+			expectCount:   1,
+			expectPattern: true,
+		},
+		{
+			name:          "single word skill",
+			skillName:     "test",
+			filePath:      "skills/test.md",
+			expectCount:   1,
+			expectPattern: true,
+		},
+		{
+			name:          "empty skill name",
+			skillName:     "",
+			filePath:      "skills/unknown.md",
+			expectCount:   0,
+			expectPattern: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			triggers := f.buildTriggerSuggestions(tt.skillName, tt.filePath)
+			assert.Equal(t, tt.expectCount, len(triggers))
+
+			if tt.expectPattern {
+				assert.NotNil(t, triggers[0]["patterns"])
+				patterns := triggers[0]["patterns"].([]string)
+				assert.Greater(t, len(patterns), 0)
+			}
+		})
+	}
+}
+
+func TestFixer_DryRunFile(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name        string
+		input       string
+		wantFixed   bool
+		wantChanges int
+		checkDiffs  bool
+	}{
+		{
+			name: "fixes frontmatter and XML",
+			input: `---
+name: test
+version: 1.0.0
+---
+
+<role>
+  Expert
+
+</role>
+
+<instruction>
+  Step 1
+</instruction>`,
+			wantFixed:   true,
+			wantChanges: 5,
+			checkDiffs:  true,
+		},
+		{
+			name: "no changes needed",
+			input: `---
+name: test
+description: Test
+version: 1.0.0
+---
+
+<role>
+Expert
+</role>`,
+			wantFixed:   true,
+			wantChanges: 2,
+			checkDiffs:  true,
+		},
+		{
+			name: "fixes validation issues",
+			input: `---
+description: Test skill
+version: 1
+---
+
+Content`,
+			wantFixed:   true,
+			wantChanges: 2,
+			checkDiffs:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, diffs, err := f.DryRunFile(tt.input)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.wantFixed, result.Fixed)
+			assert.Equal(t, tt.wantChanges, len(result.Changes))
+
+			if tt.checkDiffs {
+				assert.Greater(t, len(diffs), 0)
+				for _, diff := range diffs {
+					assert.NotEmpty(t, diff)
+				}
+			} else {
+				assert.Nil(t, diffs)
+			}
+		})
+	}
+}
+
+func TestFixer_GenerateDiff(t *testing.T) {
+	f := NewFixer()
+
+	tests := []struct {
+		name     string
+		original string
+		modified string
+	}{
+		{
+			name:     "adds field",
+			original: "name: test",
+			modified: "name: test\ndescription: New",
+		},
+		{
+			name:     "changes line",
+			original: "version: 1.0.0",
+			modified: "version: 2.0.0",
+		},
+		{
+			name:     "no changes",
+			original: "unchanged line",
+			modified: "unchanged line",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, diff, err := f.DryRunFile(tt.original + "\n---\nContent")
+
+			if tt.original == tt.modified {
+				assert.NoError(t, err)
+			} else {
+				assert.NoError(t, err)
+				if len(diff) > 0 {
+					combinedDiff := strings.Join(diff, "\n")
+					assert.Contains(t, combinedDiff, "-")
+					assert.Contains(t, combinedDiff, "+")
+				}
+			}
+		})
+	}
+}

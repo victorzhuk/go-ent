@@ -72,6 +72,63 @@ autofix:
 | `2` | Invalid arguments | Workflow fails immediately |
 | `3` | File not found | Workflow fails immediately |
 
+## Dry Run Mode
+
+The `--dry-run` flag lets you preview what would be fixed without modifying any files.
+
+```bash
+# Preview fixes without making changes
+ent skill lint --dry-run
+
+# Preview with JSON output
+ent skill lint --dry-run --json
+```
+
+### Dry Run Output
+
+Dry run mode shows:
+- What changes would be applied
+- Color-coded diff of changes (green = added, red = removed)
+- List of affected rules
+
+Example output:
+
+```
+🔍 go-code (dry-run):
+  • normalized YAML frontmatter (sorted keys, formatted indentation)
+  • added 2 trigger suggestion(s) based on skill name and location
+
+  Diff:
+  - version: "1.0.0"
+  - name: go-code
+  + name: go-code
+  + triggers:
+  +   - patterns:
+  +       - "go.*"
+  +     weight: 0.7
+  +   - patterns:
+  +       - "code.*"
+  +     weight: 0.7
+  + description: Go coding patterns
+  - description: Go coding patterns
+```
+
+### When to Use Dry Run
+
+- **Before auto-fixing**: Preview what changes will be made
+- **CI pipelines**: Check what would change without side effects
+- **Code review**: Show reviewers what the fix will do
+- **Safety**: Verify changes are correct before applying
+
+### Dry Run vs Auto-Fix
+
+| Feature | --dry-run | --fix |
+|----------|-----------|--------|
+| Modifies files | No | Yes |
+| Shows changes | Yes | Yes |
+| Color diff | Yes | No |
+| Exit codes | 0 if no issues, 1 if issues found | 0 if fixes succeed, 1 if fail |
+
 ## Usage Scenarios
 
 ### Scenario 1: Validation-Only (PR Checks)

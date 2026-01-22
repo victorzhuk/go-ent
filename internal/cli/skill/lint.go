@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/victorzhuk/go-ent/internal/skill"
@@ -12,6 +13,7 @@ import (
 
 func newLintCmd() *cobra.Command {
 	var fix bool
+	var dryRun bool
 	var jsonOutput bool
 
 	cmd := &cobra.Command{
@@ -24,13 +26,17 @@ The lint command checks skill files for common issues such as:
   - Invalid XML section formatting
   - Required field validation
   - Formatting inconsistencies
+  - Tag typos (e.g., <instruction> → <instructions>)
 
 Use --fix to automatically fix common formatting issues.
+Use --dry-run to preview fixes without modifying files.
 Use --json for structured output suitable for CI/CD pipelines.
 
 Exit codes:
   0: all skills pass
   1: validation errors found
+  2: invalid arguments
+  3: file not found
 
 Examples:
   # Lint current directory
@@ -42,8 +48,17 @@ Examples:
   # Auto-fix issues
   ent skill lint --fix
 
+  # Preview fixes without modifying files (shows color diff)
+  ent skill lint --dry-run
+
   # JSON output for CI
-  ent skill lint --json`,
+  ent skill lint --json
+
+  # Dry run on specific path
+  ent skill lint --dry-run ./skills/go-code
+
+  # Combine flags (dry run with JSON)
+  ent skill lint --dry-run --json`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := "."
@@ -60,18 +75,19 @@ Examples:
 				return fmt.Errorf("path not found: %s", absPath)
 			}
 
-			return runLint(absPath, fix, jsonOutput)
+			return runLint(absPath, fix, dryRun, jsonOutput)
 		},
 		SilenceErrors: true,
 	}
 
 	cmd.Flags().BoolVar(&fix, "fix", false, "automatically fix common issues")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be fixed without writing files")
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "output results in JSON format")
 
 	return cmd
 }
 
-func runLint(path string, fix, jsonOutput bool) error {
+func runLint(path string, fix, dryRun, jsonOutput bool) error {
 	registry := skill.NewRegistry()
 
 	if err := registry.Load(path); err != nil {
@@ -101,6 +117,7 @@ func runLint(path string, fix, jsonOutput bool) error {
 			Issues:  result.Issues,
 			Fixed:   false,
 			Changes: []skill.FixChange{},
+			DryRun:  dryRun,
 		}
 
 		if fix {
@@ -149,6 +166,50 @@ func runLint(path string, fix, jsonOutput bool) error {
 			}
 		}
 
+		if dryRun {
+			fixer := skill.NewFixer()
+
+			hasFixableFrontmatter := fixer.HasFixableFrontmatter(string(content))
+			hasFixableXML := fixer.HasFixableXML(string(content))
+			hasFixableValidation := fixer.HasFixableValidationIssues(string(content))
+
+			if hasFixableFrontmatter || hasFixableXML || hasFixableValidation {
+				dryRunResult, diffs, err := fixer.DryRunFile(string(content))
+				if err != nil {
+					return fmt.Errorf("dry run skill file %s: %w", s.FilePath, err)
+				}
+
+				if dryRunResult.Fixed {
+					lintResult.Fixed = true
+					lintResult.Changes = dryRunResult.Changes
+
+					fmt.Printf("\n🔍 %s (dry-run):\n", s.Name)
+					for _, change := range lintResult.Changes {
+						fmt.Printf("  • %s\n", change.Message)
+					}
+
+					if len(diffs) > 0 {
+						fmt.Printf("\n  Diff:\n")
+						for _, diff := range diffs {
+							lines := strings.Split(diff, "\n")
+							for _, line := range lines {
+								if len(line) > 0 {
+									if strings.HasPrefix(line, "+") {
+										fmt.Printf("\x1b[32m%s\x1b[0m\n", line)
+									} else if strings.HasPrefix(line, "-") {
+										fmt.Printf("\x1b[31m%s\x1b[0m\n", line)
+									} else {
+										fmt.Printf("  %s\n", line)
+									}
+								}
+							}
+						}
+					}
+					fmt.Println()
+				}
+			}
+		}
+
 		results = append(results, lintResult)
 	}
 
@@ -172,6 +233,7 @@ type LintResult struct {
 	Issues  []skill.ValidationIssue
 	Fixed   bool
 	Changes []skill.FixChange
+	DryRun  bool
 }
 
 func printConsoleResults(results []LintResult) error {
