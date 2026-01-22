@@ -66,13 +66,6 @@ func (r *RegistryStore) Load() (*Registry, error) {
 	return reg, nil
 }
 
-func (r *RegistryStore) Save(reg *Registry) error {
-	// Save is deprecated - use UpdateTask instead
-	// BoltDB operations are transactional and immediate
-	reg.SyncedAt = time.Now()
-	return r.bolt.SetMeta("synced_at", reg.SyncedAt.Format(time.RFC3339))
-}
-
 func (r *RegistryStore) Exists() bool {
 	boltPath := filepath.Join(r.store.RootPath(), "openspec", "registry.db")
 	_, err := os.Stat(boltPath)
@@ -361,8 +354,6 @@ func (r *RegistryStore) Stats() (*RegistryStats, error) {
 	return stats, nil
 }
 
-// parseTasksFile is deprecated - use StateStore.ParseTasksWithDependencies instead
-// Kept for backward compatibility during migration
 // recalculateBlockedByBolt updates BlockedBy for a specific task using BoltDB
 func (r *RegistryStore) recalculateBlockedByBolt(taskID TaskID) error {
 	task, err := r.bolt.GetTask(taskID)

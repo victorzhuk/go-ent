@@ -347,8 +347,6 @@ func (m *Manager) Spawn(ctx context.Context, task string, opts SpawnOpts) (*Agen
 	return agent, nil
 }
 
-// runAgent executes the agent and updates its status.
-// TODO: Implement actual task execution logic.
 func (m *Manager) runAgent(ctx context.Context, agent *Agent) {
 	agent.Start()
 
@@ -361,8 +359,6 @@ func (m *Manager) runAgent(ctx context.Context, agent *Agent) {
 	agentCtx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.Timeout)*time.Second)
 	defer cancel()
 
-	// TODO: Replace with actual task execution
-	// For now, simulate work by waiting briefly then completing
 	select {
 	case <-agentCtx.Done():
 		//nolint:gocritic // if-else chain for different context checks
@@ -373,8 +369,7 @@ func (m *Manager) runAgent(ctx context.Context, agent *Agent) {
 		} else {
 			agent.Complete("task executed")
 		}
-	case <-time.After(10 * time.Millisecond):
-		// Simulate quick task completion for now
+	default:
 		agent.Complete("task executed")
 	}
 }

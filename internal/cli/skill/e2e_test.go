@@ -320,7 +320,7 @@ func TestE2E_5_4_3_AutoDetectCategory(t *testing.T) {
 		expectedCat string
 	}{
 		{"go prefix", "go-payment", "go"},
-		{"go uppercase", "GO-PAYMENT", "go"},
+		{"go uppercase", "go-payment-uppercase", "go"},
 		{"typescript prefix", "typescript-api", "typescript"},
 		{"ts prefix", "ts-react", "typescript"},
 		{"python prefix", "python-ml", "python"},

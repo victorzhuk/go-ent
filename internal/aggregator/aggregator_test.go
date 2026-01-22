@@ -1135,7 +1135,7 @@ func TestMergeFirstSuccess(t *testing.T) {
 		_, err := agg.Merge()
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "no successful results")
+		assert.Contains(t, err.Error(), "no completed workers")
 	})
 }
 

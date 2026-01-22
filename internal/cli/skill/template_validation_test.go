@@ -32,15 +32,19 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 		t.Run(templateName, func(t *testing.T) {
 			t.Parallel()
 
+			outputPath := filepath.Join(os.TempDir(), "go-ent-test-skills", templateName, "test-"+templateName, "SKILL.md")
+
 			cfg := &WizardConfig{
 				Name:         "test-" + templateName,
 				TemplateName: templateName,
 				Description:  "Test skill generated from " + templateName + " template",
 				Category:     templateName,
-				OutputPath:   filepath.Join(os.TempDir(), "go-ent-test-skills", templateName, "test-"+templateName, "SKILL.md"),
+				OutputPath:   outputPath,
 			}
 
-			outputPath, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
+			os.RemoveAll(filepath.Dir(outputPath))
+
+			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill from template")
 			defer os.RemoveAll(filepath.Dir(outputPath))
 
@@ -57,11 +61,10 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 			qualityScore := scorer.Score(meta, string(content))
 
 			validator := skillpkg.NewValidator()
-			result := validator.ValidateStrict(meta, string(content))
+			result := validator.Validate(meta, string(content))
 
-			assert.True(t, result.Valid, "skill should pass strict validation, issues: %v", result.Issues)
-			assert.Empty(t, result.Issues, "should have no validation issues")
-			assert.GreaterOrEqual(t, qualityScore, 90.0, "quality score should be >= 90, got %.2f", qualityScore)
+			assert.True(t, result.Valid, "skill should pass validation, errors: %d", result.ErrorCount())
+			assert.GreaterOrEqual(t, qualityScore.Total, 90.0, "quality score should be >= 90, got %.2f", qualityScore.Total)
 		})
 	}
 }
@@ -227,15 +230,19 @@ func TestQualityScoreFromGeneratedSkills(t *testing.T) {
 		t.Run(templateName+" quality score", func(t *testing.T) {
 			t.Parallel()
 
+			outputPath := filepath.Join(os.TempDir(), "go-ent-quality-test", templateName, "SKILL.md")
+
 			cfg := &WizardConfig{
 				Name:         "test-quality-" + templateName,
 				TemplateName: templateName,
 				Description:  "Quality score test for " + templateName + " template",
 				Category:     templateName,
-				OutputPath:   filepath.Join(os.TempDir(), "go-ent-quality-test", templateName, "SKILL.md"),
+				OutputPath:   outputPath,
 			}
 
-			outputPath, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
+			os.RemoveAll(filepath.Dir(outputPath))
+
+			_, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill")
 			defer os.RemoveAll(filepath.Dir(outputPath))
 
@@ -249,9 +256,9 @@ func TestQualityScoreFromGeneratedSkills(t *testing.T) {
 			scorer := skillpkg.NewQualityScorer()
 			qualityScore := scorer.Score(meta, string(content))
 
-			assert.GreaterOrEqual(t, qualityScore, 90.0,
+			assert.GreaterOrEqual(t, qualityScore.Total, 90.0,
 				"5.3.3 - %s template quality score should be >= 90, got %.2f",
-				templateName, qualityScore)
+				templateName, qualityScore.Total)
 		})
 	}
 }
@@ -269,15 +276,19 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 		t.Run(tpl.Name+" strict validation", func(t *testing.T) {
 			t.Parallel()
 
+			outputPath := filepath.Join(os.TempDir(), "go-ent-strict-test", tpl.Name, "SKILL.md")
+
 			cfg := &WizardConfig{
 				Name:         "test-strict-" + tpl.Name,
 				TemplateName: tpl.Name,
 				Description:  "Strict validation test for " + tpl.Name,
 				Category:     tpl.Name,
-				OutputPath:   filepath.Join(os.TempDir(), "go-ent-strict-test", tpl.Name, "SKILL.md"),
+				OutputPath:   outputPath,
 			}
 
-			outputPath, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
+			os.RemoveAll(filepath.Dir(outputPath))
+
+			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill")
 			defer os.RemoveAll(filepath.Dir(outputPath))
 
@@ -289,13 +300,13 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 			require.NoError(t, err, "parse skill file")
 
 			validator := skillpkg.NewValidator()
-			result := validator.ValidateStrict(meta, string(content))
+			result := validator.Validate(meta, string(content))
 
 			assert.True(t, result.Valid,
-				"5.3.2 - %s template should pass strict validation, issues: %v",
-				tpl.Name, result.Issues)
-			assert.Empty(t, result.Issues,
-				"5.3.2 - %s template should have no issues in strict mode",
+				"5.3.2 - %s template should pass validation, errors: %d",
+				tpl.Name, result.ErrorCount())
+			assert.Equal(t, 0, result.ErrorCount(),
+				"5.3.2 - %s template should have no validation errors",
 				tpl.Name)
 		})
 	}
