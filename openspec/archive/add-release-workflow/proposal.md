@@ -1,5 +1,7 @@
 # Change: Add Release Workflow
 
+## Status: complete
+
 ## Why
 Enable automated releases for v0.1.0 and future versions using GitHub Actions and GoReleaser. Current `.goreleaser.yml` exists but lacks automation and has inconsistencies (Go version mismatch, CHANGELOG placeholders).
 

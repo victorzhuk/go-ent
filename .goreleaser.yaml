@@ -23,15 +23,15 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/victorzhuk/go-ent/internal/version.version={{.Version}}
-      - -X github.com/victorzhuk/go-ent/internal/version.vcsRef={{.ShortCommit}}
+      -     -X github.com/victorzhuk/go-ent/internal/version.vcsRef={{.ShortCommit}}
 
 archives:
   - id: default
-    format: tar.gz
+    formats: [tar.gz, zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 checksum:
   name_template: checksums.txt

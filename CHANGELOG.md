@@ -64,7 +64,7 @@ sed -i 's/go_ent_agent_execute/agent_execute/g' scripts/*.sh
 
 ---
 
-## [0.2.0] - 2025-XX-XX
+## [0.2.0] - 2025-12-15
 
 ### Added
 - Agent execution system with automatic complexity-based selection
@@ -81,7 +81,7 @@ sed -i 's/go_ent_agent_execute/agent_execute/g' scripts/*.sh
 
 ---
 
-## [0.1.0] - 2025-XX-XX
+## [0.1.0] - 2025-12-01
 
 ### Added
 - Initial release of go-ent MCP server

@@ -1,4 +1,4 @@
-.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates
+.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates release-dry-run snapshot release-check
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -53,6 +53,18 @@ test-templates: ## Test all skill templates
 validate-templates: ## Validate all skill templates
 	@echo "Validating all skill templates..."
 	@go run ./cmd/go-ent skill list-templates >/dev/null && \
-	go run ./cmd/go-ent skill show-template go-complete >/dev/null && \
-	go run ./cmd/go-ent skill show-template go-basic >/dev/null && \
-	echo "All templates validated successfully"
+		go run ./cmd/go-ent skill show-template go-complete >/dev/null && \
+		go run ./cmd/go-ent skill show-template go-basic >/dev/null && \
+		echo "All templates validated successfully"
+
+release-dry-run: ## Run GoReleaser in dry-run mode (snapshot build)
+	@echo "Running GoReleaser dry-run..."
+	@goreleaser release --snapshot --clean
+	@echo "Dry-run complete: dist/"
+
+snapshot: release-dry-run ## Alias for release-dry-run
+
+release-check: ## Validate GoReleaser configuration
+	@echo "Validating GoReleaser configuration..."
+	@goreleaser check
+	@echo "GoReleaser configuration is valid"
