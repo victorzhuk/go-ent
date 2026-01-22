@@ -1,5 +1,7 @@
 # Change: Align Agent Prompts with Constitutional AI Principles
 
+## Status: complete
+
 ## Why
 Align agent prompts with Anthropic's Constitutional AI principles to improve judgment, reduce over-application of rules, and enable thoughtful escalation. Current prompts may cause agents to rigidly follow rules without considering context or exercising appropriate judgment.
 
