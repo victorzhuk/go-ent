@@ -1,5 +1,7 @@
 # Proposal: Progressive Skill Loading
 
+## Status: complete
+
 ## Summary
 Implement three-level loading: metadata (~100 tokens), core (<5k tokens), extended (unlimited) to optimize context usage.
 
@@ -17,8 +19,15 @@ Three disclosure levels:
 
 Registry loads Level 1 by default, upgrades to Level 2/3 on demand.
 
+## Success Criteria
+- [x] LoadLevel enum defined with three levels
+- [x] Parser supports progressive loading for all three levels
+- [x] Registry defaults to Level 1 loading
+- [x] UpgradeSkill method for on-demand upgrades
+- [x] All tests pass with token limits verified
+
 ## Breaking Changes
-- [ ] None - transparent to skill authors, registry implementation detail
+- [x] None - transparent to skill authors, registry implementation detail
 
 ## Alternatives
 1. **Full loading**: Current approach

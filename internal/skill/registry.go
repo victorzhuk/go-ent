@@ -360,7 +360,10 @@ func (r *Registry) resolveLoadOrder(skills []SkillMeta) ([]SkillMeta, error) {
 	return result, nil
 }
 
-// Load scans a directory for SKILL.md files and loads their metadata.
+// Load scans a directory for SKILL.md files and loads their metadata (Level 1).
+// Level 1 includes: frontmatter (name, description, triggers, etc.)
+// Full file content is read only for quality scoring, not stored.
+// Use UpgradeToLevel to load Level 2 (core) or Level 3 (extended) on demand.
 func (r *Registry) Load(skillsPath string) error {
 	var collected []SkillMeta
 
@@ -378,6 +381,8 @@ func (r *Registry) Load(skillsPath string) error {
 			return fmt.Errorf("parse %s: %w", path, err)
 		}
 
+		// Read full file for quality scoring (needed for structure/content analysis)
+		// Note: Full content is not stored at Level 1, only used for scoring.
 		content, err := os.ReadFile(path) // #nosec G304 -- controlled skill file path
 		if err != nil {
 			return fmt.Errorf("read %s: %w", path, err)
@@ -784,4 +789,52 @@ func (r *Registry) GetQualityReport() map[string]float64 {
 		}
 	}
 	return report
+}
+
+// UpgradeSkill upgrades a skill's content to the specified load level.
+// If the skill is already at or above the target level, returns nil.
+// Automatically re-qualifies the skill at the new level.
+//
+// Usage patterns:
+//
+//  1. On match (Level 2/LoadCore): Load core content for analysis
+//     matches := registry.FindMatchingSkills(query, ctx)
+//     if len(matches) > 0 {
+//     selected := matches[0].Skill
+//     if err := registry.UpgradeSkill(selected.Name, LoadCore); err != nil {
+//     return err
+//     }
+//     // Now selected.Core has role, instructions, etc.
+//     }
+//
+//  2. On execution (Level 3/LoadExtended): Load full content for detailed work
+//     if err := registry.UpgradeSkill(skill.Name, LoadExtended); err != nil {
+//     return err
+//     }
+//     // Now skill.Full.Body has complete content
+func (r *Registry) UpgradeSkill(name string, targetLevel LoadLevel) error {
+	skill, err := r.Get(name)
+	if err != nil {
+		return err
+	}
+
+	if err := r.parser.UpgradeToLevel(skill, targetLevel); err != nil {
+		return fmt.Errorf("upgrade %s: %w", name, err)
+	}
+
+	for i := range r.skills {
+		if r.skills[i].Name == name {
+			r.skills[i] = *skill
+			break
+		}
+	}
+
+	return nil
+}
+
+// PrepareForExecution upgrades a skill to Level 3 for execution.
+// This loads full body content including references and scripts.
+// Use this when a skill has been matched and is about to be executed.
+func (r *Registry) PrepareForExecution(name string) error {
+	return r.UpgradeSkill(name, LoadExtended)
 }

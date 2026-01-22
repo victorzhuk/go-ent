@@ -24,6 +24,24 @@ type SkillMeta struct {
 	DependsOn        []string
 	DelegatesTo      map[string]string
 	QualityScore     *QualityScore
+	LoadLevel        LoadLevel
+	Core             *CoreContent
+	Full             *FullContent
+}
+
+// CoreContent holds the Level 2 content for a skill.
+type CoreContent struct {
+	Role         string
+	Instructions string
+	Constraints  string
+	Examples     string
+}
+
+// FullContent holds Level 3 content for a skill (complete file body).
+type FullContent struct {
+	Body       string
+	References []string
+	Scripts    []string
 }
 
 // Trigger represents an explicit trigger for skill activation.
@@ -45,6 +63,34 @@ type skillMetaV2 struct {
 	Triggers     []Trigger         `yaml:"triggers"`
 	DependsOn    []string          `yaml:"depends_on"`
 	DelegatesTo  map[string]string `yaml:"delegates_to"`
+}
+
+// LoadLevel represents how much of a skill's content has been loaded.
+type LoadLevel int
+
+const (
+	// LoadMetadata loads only frontmatter + triggers (~100 tokens)
+	LoadMetadata LoadLevel = iota
+
+	// LoadCore loads metadata + role + instructions + constraints + examples (<5k tokens)
+	LoadCore
+
+	// LoadExtended loads everything including references/, scripts/, detailed docs
+	LoadExtended
+)
+
+// String returns the string representation of LoadLevel.
+func (l LoadLevel) String() string {
+	switch l {
+	case LoadMetadata:
+		return "metadata"
+	case LoadCore:
+		return "core"
+	case LoadExtended:
+		return "extended"
+	default:
+		return "unknown"
+	}
 }
 
 // Parser handles parsing of SKILL.md files.
@@ -86,7 +132,9 @@ func (p *Parser) parseFrontmatterV2(frontmatter string) (*skillMetaV2, error) {
 	return &meta, nil
 }
 
-// ParseSkillFile parses a SKILL.md file and extracts metadata.
+// ParseSkillFile parses a SKILL.md file and extracts metadata (Level 1).
+// Level 1 includes: frontmatter (name, description, triggers, etc.)
+// For full content loading, use UpgradeToLevel.
 func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 	f, err := os.Open(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
@@ -141,6 +189,7 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			StructureVersion: "v2",
 			DependsOn:        v2Meta.DependsOn,
 			DelegatesTo:      v2Meta.DelegatesTo,
+			LoadLevel:        LoadMetadata,
 		}
 	} else {
 		var meta struct {
@@ -170,10 +219,57 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			StructureVersion: "v1",
 			DependsOn:        nil,
 			DelegatesTo:      nil,
+			LoadLevel:        LoadMetadata,
 		}
 	}
 
 	return result, nil
+}
+
+// UpgradeToLevel upgrades a skill's content to the specified load level.
+// If the skill is already at or above the target level, returns nil.
+func (p *Parser) UpgradeToLevel(meta *SkillMeta, targetLevel LoadLevel) error {
+	if meta.LoadLevel >= targetLevel {
+		return nil
+	}
+
+	switch targetLevel {
+	case LoadCore:
+		content, err := os.ReadFile(meta.FilePath) // #nosec G304 -- controlled config/template file path
+		if err != nil {
+			return fmt.Errorf("read: %w", err)
+		}
+
+		core := &CoreContent{
+			Role:         p.extractXMLTag(string(content), "role"),
+			Instructions: p.extractXMLTag(string(content), "instructions"),
+			Constraints:  p.extractXMLTag(string(content), "constraints"),
+			Examples:     p.extractXMLTag(string(content), "examples"),
+		}
+		meta.Core = core
+		meta.LoadLevel = LoadCore
+		return nil
+	case LoadExtended:
+		if meta.Core == nil {
+			if err := p.UpgradeToLevel(meta, LoadCore); err != nil {
+				return err
+			}
+		}
+
+		content, err := os.ReadFile(meta.FilePath) // #nosec G304 -- controlled config/template file path
+		if err != nil {
+			return fmt.Errorf("read: %w", err)
+		}
+
+		full := &FullContent{
+			Body: string(content),
+		}
+		meta.Full = full
+		meta.LoadLevel = LoadExtended
+		return nil
+	default:
+		return nil
+	}
 }
 
 // extractFrontmatter extracts YAML frontmatter between --- delimiters.
@@ -210,6 +306,24 @@ func (p *Parser) extractFrontmatter(f *os.File) (string, error) {
 	}
 
 	return strings.Join(lines, "\n"), nil
+}
+
+// extractXMLTag extracts content between opening and closing XML tags.
+func (p *Parser) extractXMLTag(content, tagName string) string {
+	openTag := "<" + tagName + ">"
+	closeTag := "</" + tagName + ">"
+
+	openIdx := strings.Index(content, openTag)
+	if openIdx == -1 {
+		return ""
+	}
+
+	closeIdx := strings.Index(content, closeTag)
+	if closeIdx == -1 {
+		return ""
+	}
+
+	return strings.TrimSpace(content[openIdx+len(openTag) : closeIdx])
 }
 
 // extractTriggers extracts keywords from "Auto-activates for:" in description.
