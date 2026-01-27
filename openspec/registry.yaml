@@ -1,7 +1,66 @@
 version: '1.0'
-synced_at: '2026-01-17T20:30:00+03:00'
+synced_at: '2026-01-27T12:00:00+03:00'
 
 changes:
+  simplify-01-delete-unused:
+    id: simplify-01-delete-unused
+    title: 'Delete Unused Packages (Simplification Phase 1)'
+    status: complete
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-01-delete-unused/tasks.md
+    total: 19
+    completed: 19
+    in_progress: 0
+    blocked: 0
+    completed_at: '2026-01-27T12:00:00+03:00'
+
+  simplify-02-merge-packages:
+    id: simplify-02-merge-packages
+    title: 'Merge Small Packages (Simplification Phase 2)'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-02-merge-packages/tasks.md
+    total: 6
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - simplify-01-delete-unused
+
+  simplify-03-acp-client:
+    id: simplify-03-acp-client
+    title: 'Create ACP Client for OpenCode (Simplification Phase 3)'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-03-acp-client/tasks.md
+    total: 10
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - simplify-02-merge-packages
+
+  simplify-04-mcp-tools:
+    id: simplify-04-mcp-tools
+    title: 'Reduce MCP Tools to Core Set (Simplification Phase 4)'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-04-mcp-tools/tasks.md
+    total: 14
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - simplify-03-acp-client
+
+  simplify-05-cli-cleanup:
+    id: simplify-05-cli-cleanup
+    title: 'CLI Cleanup and ACP Integration (Simplification Phase 5)'
+    status: pending
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-05-cli-cleanup/tasks.md
+    total: 11
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - simplify-04-mcp-tools
+
   add-ast-operations:
     id: add-ast-operations
     title: ''

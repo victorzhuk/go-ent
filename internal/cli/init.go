@@ -1,530 +1,503 @@
 package cli
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-
-	goent "github.com/victorzhuk/go-ent"
-	"github.com/victorzhuk/go-ent/internal/agent"
-	"github.com/victorzhuk/go-ent/internal/model"
-	"github.com/victorzhuk/go-ent/internal/toolinit"
 )
 
-// newInitCmd creates the init command for setting up tool configurations
+var pluginFS interface {
+	ReadDir(name string) ([]os.DirEntry, error)
+	ReadFile(name string) ([]byte, error)
+}
+
+func SetPluginFS(fs interface {
+	ReadDir(name string) ([]os.DirEntry, error)
+	ReadFile(name string) ([]byte, error)
+}) {
+	pluginFS = fs
+}
+
+type agentMeta struct {
+	Name         string   `yaml:"name"`
+	Description  string   `yaml:"description"`
+	Model        string   `yaml:"model"`
+	Color        string   `yaml:"color"`
+	Skills       []string `yaml:"skills"`
+	Tools        []string `yaml:"tools"`
+	Dependencies []string `yaml:"dependencies"`
+	Tags         []string `yaml:"tags"`
+	Role         string
+	Complexity   string
+}
+
+func loadAgents() (map[string]*agentMeta, error) {
+	agents := make(map[string]*agentMeta)
+
+	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/meta")
+	if err != nil {
+		return nil, fmt.Errorf("read agents/meta directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".yaml") {
+			continue
+		}
+
+		path := filepath.Join("plugins/go-ent/agents/meta", entry.Name())
+		data, err := pluginFS.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", path, err)
+		}
+
+		var meta agentMeta
+		if err := yaml.Unmarshal(data, &meta); err != nil {
+			return nil, fmt.Errorf("parse %s: %w", path, err)
+		}
+
+		for _, tag := range meta.Tags {
+			if strings.HasPrefix(tag, "role:") {
+				meta.Role = strings.TrimPrefix(tag, "role:")
+			}
+			if strings.HasPrefix(tag, "complexity:") {
+				meta.Complexity = strings.TrimPrefix(tag, "complexity:")
+			}
+		}
+
+		agents[meta.Name] = &meta
+	}
+
+	return agents, nil
+}
+
+func loadPrompts() (map[string]string, error) {
+	prompts := make(map[string]string)
+
+	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/prompts/agents")
+	if err != nil {
+		return nil, fmt.Errorf("read agents/prompts/agents directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
+			continue
+		}
+
+		path := filepath.Join("plugins/go-ent/agents/prompts/agents", entry.Name())
+		data, err := pluginFS.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", path, err)
+		}
+
+		name := strings.TrimSuffix(entry.Name(), ".md")
+		prompts[name] = string(data)
+	}
+
+	return prompts, nil
+}
+
+func loadShared() (string, error) {
+	sharedFiles := []string{
+		"_principals.md",
+		"_judgment.md",
+		"_openspec.md",
+		"_conventions.md",
+		"_handoffs.md",
+		"_tooling.md",
+	}
+
+	var shared strings.Builder
+
+	for _, filename := range sharedFiles {
+		path := filepath.Join("plugins/go-ent/agents/prompts/shared", filename)
+		data, err := pluginFS.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("read %s: %w", path, err)
+		}
+
+		shared.Write(data)
+		shared.WriteString("\n\n")
+	}
+
+	return shared.String(), nil
+}
+
+func loadTemplate(tool string) (*template.Template, error) {
+	var templateFile string
+
+	switch tool {
+	case "claude":
+		templateFile = "plugins/go-ent/agents/templates/claude.yaml.tmpl"
+	case "opencode":
+		templateFile = "plugins/go-ent/agents/templates/opencode.yaml.tmpl"
+	default:
+		return nil, fmt.Errorf("unsupported tool: %s", tool)
+	}
+
+	data, err := pluginFS.ReadFile(templateFile)
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", templateFile, err)
+	}
+
+	tpl, err := template.New("agent").Parse(string(data))
+	if err != nil {
+		return nil, fmt.Errorf("parse template: %w", err)
+	}
+
+	return tpl, nil
+}
+
+func renderAgent(meta *agentMeta, prompt, shared string, tpl *template.Template) (string, error) {
+	var result strings.Builder
+
+	if err := tpl.Execute(&result, meta); err != nil {
+		return "", fmt.Errorf("execute template: %w", err)
+	}
+
+	result.WriteString("---\n\n")
+	result.WriteString(shared)
+	result.WriteString("\n\n")
+	result.WriteString(prompt)
+
+	return result.String(), nil
+}
+
+func getAgentPath(tool, prefix, name string) string {
+	switch tool {
+	case "claude":
+		return filepath.Join(".claude", "agents", prefix, name+".md")
+	case "opencode":
+		return filepath.Join(".opencode", "agent", name+".md")
+	default:
+		return ""
+	}
+}
+
+func writeFile(path, content string, force, dryRun bool) error {
+	if _, err := os.Stat(path); err == nil && !force {
+		return fmt.Errorf("file already exists: %s (use --force to overwrite)", path)
+	}
+
+	if dryRun {
+		fmt.Printf("Would create: %s\n", path)
+		return nil
+	}
+
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0750); err != nil {
+		return fmt.Errorf("create directory %s: %w", dir, err)
+	}
+
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		return fmt.Errorf("write file %s: %w", path, err)
+	}
+
+	fmt.Printf("Created: %s\n", path)
+	return nil
+}
+
+func copyCommands(tool, prefix string, force, dryRun bool) error {
+	entries, err := pluginFS.ReadDir("plugins/go-ent/commands")
+	if err != nil {
+		return fmt.Errorf("read commands directory: %w", err)
+	}
+
+	var targetDir string
+	switch tool {
+	case "claude":
+		targetDir = filepath.Join(".claude", "commands", prefix)
+	case "opencode":
+		targetDir = filepath.Join(".opencode", "commands", prefix)
+	default:
+		return fmt.Errorf("unsupported tool: %s", tool)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
+			continue
+		}
+
+		srcPath := filepath.Join("plugins/go-ent/commands", entry.Name())
+		data, err := pluginFS.ReadFile(srcPath)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", srcPath, err)
+		}
+
+		dstPath := filepath.Join(targetDir, entry.Name())
+		if err := writeFile(dstPath, string(data), force, dryRun); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func copySkills(tool, prefix string, force, dryRun bool) error {
+	var walk func(dir string) error
+
+	walk = func(dir string) error {
+		entries, err := pluginFS.ReadDir(dir)
+		if err != nil {
+			return fmt.Errorf("read directory %s: %w", dir, err)
+		}
+
+		for _, entry := range entries {
+			srcPath := filepath.Join(dir, entry.Name())
+
+			if entry.IsDir() {
+				if err := walk(srcPath); err != nil {
+					return err
+				}
+				continue
+			}
+
+			if !strings.HasSuffix(entry.Name(), ".md") {
+				continue
+			}
+
+			data, err := pluginFS.ReadFile(srcPath)
+			if err != nil {
+				return fmt.Errorf("read %s: %w", srcPath, err)
+			}
+
+			relPath := strings.TrimPrefix(srcPath, "plugins/go-ent/skills/")
+
+			var targetDir string
+			switch tool {
+			case "claude":
+				targetDir = filepath.Join(".claude", "skills", prefix)
+			case "opencode":
+				targetDir = filepath.Join(".opencode", "skills", prefix)
+			default:
+				return fmt.Errorf("unsupported tool: %s", tool)
+			}
+
+			dstPath := filepath.Join(targetDir, relPath)
+			if err := writeFile(dstPath, string(data), force, dryRun); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return walk("plugins/go-ent/skills")
+}
+
+func printSummary(agentCount, commandCount, skillCount int, tool, prefix string, dryRun bool) {
+	var toolName string
+	var commandFormat string
+	var restartRequired bool
+
+	switch tool {
+	case "claude":
+		toolName = "Claude Code"
+		commandFormat = "/ent:plan"
+		restartRequired = true
+	case "opencode":
+		toolName = "OpenCode"
+		commandFormat = "/plan"
+		restartRequired = false
+	default:
+		toolName = tool
+		commandFormat = "/ent:plan"
+		restartRequired = true
+	}
+
+	var agentPath string
+	switch tool {
+	case "claude":
+		agentPath = filepath.Join(".claude", "agents", prefix)
+	case "opencode":
+		agentPath = filepath.Join(".opencode", "agent")
+	}
+
+	var commandPath string
+	switch tool {
+	case "claude":
+		commandPath = filepath.Join(".claude", "commands", prefix)
+	case "opencode":
+		commandPath = filepath.Join(".opencode", "commands", prefix)
+	}
+
+	var skillPath string
+	switch tool {
+	case "claude":
+		skillPath = filepath.Join(".claude", "skills", prefix)
+	case "opencode":
+		skillPath = filepath.Join(".opencode", "skills", prefix)
+	}
+
+	if dryRun {
+		fmt.Printf("\n✅ Preview: Would initialize go-ent for %s\n\n", toolName)
+		fmt.Println("Would create:")
+		fmt.Printf("  %d agents in %s/\n", agentCount, agentPath)
+		fmt.Printf("  %d commands in %s/\n", commandCount, commandPath)
+		fmt.Printf("  %d skills in %s/\n", skillCount, skillPath)
+		return
+	}
+
+	fmt.Printf("\n✅ Initialized go-ent for %s\n\n", toolName)
+	fmt.Println("Created:")
+	fmt.Printf("  %d agents in %s/\n", agentCount, agentPath)
+	fmt.Printf("  %d commands in %s/\n", commandCount, commandPath)
+	fmt.Printf("  %d skills in %s/\n", skillCount, skillPath)
+
+	fmt.Println("\nNext steps:")
+	if restartRequired {
+		fmt.Println("  1. Restart Claude Code")
+		fmt.Printf("  2. Run: %s \"description\"\n", commandFormat)
+	} else {
+		fmt.Printf("  1. Run: %s \"description\"\n", commandFormat)
+	}
+}
+
+type initFlags struct {
+	tool   string
+	prefix string
+	force  bool
+	dryRun bool
+}
+
 func newInitCmd() *cobra.Command {
-	var (
-		tool          string
-		agents        []string // --agents flag (comma-separated)
-		includeDeps   bool     // --include-deps flag
-		noDeps        bool     // --no-deps flag
-		force         bool
-		dryRun        bool
-		update        bool     // --update flag
-		updateFilter  string   // optional filter for update
-		modelOverride []string // --model heavy=opus (repeatable)
-	)
+	flags := &initFlags{}
 
 	cmd := &cobra.Command{
-		Use:   "init [path]",
-		Short: "Initialize tool configuration (Claude Code, OpenCode)",
-		Long: `Initialize tool-specific configuration for go-ent plugin.
+		Use:   "init",
+		Short: "Initialize go-ent in the current project",
+		Long: `Initialize go-ent configuration for the current project.
 
-Generates agents, commands, and skills for the specified tool in the target directory.
-Supports both Claude Code (.claude) and OpenCode (.opencode) configurations.
+This command creates the necessary configuration files and agent definitions
+for use with Claude Code or OpenCode.
 
-Auto-detection:
-  If no tool is specified, detects based on existing directories:
-  - .claude/  → claude
-  - .opencode/ → opencode
-  - none → prompts for selection
+Supported tools:
+  claude     - Configure for Claude Code
+  opencode   - Configure for OpenCode
 
 Examples:
-  # Auto-detect tool based on existing directory
-  go-ent init
-
-  # Initialize Claude Code configuration
-  go-ent init --tool=claude
-
-  # Initialize OpenCode configuration
-  go-ent init --tool=opencode
-
-  # Initialize both tools
-  go-ent init --tool=all
-
-  # Initialize in specific directory
-  go-ent init /path/to/project --tool=claude
-
-  # Preview changes without writing
-  go-ent init --dry-run
-
-  # Force overwrite existing configuration
-  go-ent init --force --tool=claude`,
-		Args: cobra.MaximumNArgs(1),
+  ent init --tool=claude
+  ent init --tool=opencode
+  ent init --tool=claude,opencode
+  ent init --tool=claude --prefix=myproject
+  ent init --tool=claude --dry-run`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Determine target path
-			targetPath := "."
-			if len(args) > 0 {
-				targetPath = args[0]
+			if flags.tool == "" {
+				return errors.New("--tool is required")
 			}
 
-			// Validate mutually exclusive flags
-			if includeDeps && noDeps {
-				return fmt.Errorf("--include-deps and --no-deps are mutually exclusive")
+			if pluginFS == nil {
+				return errors.New("plugin filesystem not initialized")
 			}
 
-			// Parse model overrides from --model flags
-			modelOverrides := make(map[string]string)
-			for _, override := range modelOverride {
-				parts := strings.SplitN(override, "=", 2)
-				if len(parts) != 2 {
-					return fmt.Errorf("invalid model override format: %s (expected pattern=model)", override)
+			agents, err := loadAgents()
+			if err != nil {
+				return fmt.Errorf("load agents: %w", err)
+			}
+
+			prompts, err := loadPrompts()
+			if err != nil {
+				return fmt.Errorf("load prompts: %w", err)
+			}
+
+			shared, err := loadShared()
+			if err != nil {
+				return fmt.Errorf("load shared: %w", err)
+			}
+
+			agentCount := len(agents)
+
+			tools := strings.Split(flags.tool, ",")
+			for _, tool := range tools {
+				tool = strings.TrimSpace(tool)
+
+				tpl, err := loadTemplate(tool)
+				if err != nil {
+					return fmt.Errorf("load template for %s: %w", tool, err)
 				}
-				modelOverrides[parts[0]] = parts[1]
-			}
 
-			// Parse agents from --agents flag (comma-separated)
-			var agentsList []string
-			if len(agents) > 0 {
-				for _, a := range agents {
-					if a != "" {
-						parts := strings.Split(a, ",")
-						agentsList = append(agentsList, parts...)
+				for name, meta := range agents {
+					prompt, ok := prompts[name]
+					if !ok {
+						return fmt.Errorf("prompt not found for agent: %s", name)
+					}
+
+					content, err := renderAgent(meta, prompt, shared, tpl)
+					if err != nil {
+						return fmt.Errorf("render agent %s: %w", name, err)
+					}
+
+					path := getAgentPath(tool, flags.prefix, name)
+					if err := writeFile(path, content, flags.force, flags.dryRun); err != nil {
+						return err
 					}
 				}
+
+				entries, err := pluginFS.ReadDir("plugins/go-ent/commands")
+				if err != nil {
+					return fmt.Errorf("read commands directory: %w", err)
+				}
+				commandCount := 0
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+						commandCount++
+					}
+				}
+
+				if err := copyCommands(tool, flags.prefix, flags.force, flags.dryRun); err != nil {
+					return fmt.Errorf("copy commands: %w", err)
+				}
+
+				var countSkills func(dir string) (int, error)
+				countSkills = func(dir string) (int, error) {
+					entries, err := pluginFS.ReadDir(dir)
+					if err != nil {
+						return 0, err
+					}
+					count := 0
+					for _, entry := range entries {
+						if entry.IsDir() {
+							c, err := countSkills(filepath.Join(dir, entry.Name()))
+							if err != nil {
+								return 0, err
+							}
+							count += c
+							continue
+						}
+						if strings.HasSuffix(entry.Name(), ".md") {
+							count++
+						}
+					}
+					return count, nil
+				}
+				skillCount, err := countSkills("plugins/go-ent/skills")
+				if err != nil {
+					return fmt.Errorf("count skills: %w", err)
+				}
+
+				if err := copySkills(tool, flags.prefix, flags.force, flags.dryRun); err != nil {
+					return fmt.Errorf("copy skills: %w", err)
+				}
+
+				printSummary(agentCount, commandCount, skillCount, tool, flags.prefix, flags.dryRun)
 			}
 
-			cfg := InitConfig{
-				Path:           targetPath,
-				Tool:           tool,
-				Agents:         agentsList,
-				IncludeDeps:    includeDeps,
-				NoDeps:         noDeps,
-				Force:          force,
-				DryRun:         dryRun,
-				Verbose:        verbose,
-				Update:         update,
-				UpdateFilter:   updateFilter,
-				ModelOverrides: modelOverrides,
-			}
-
-			return InitTools(cmd.Context(), cfg)
+			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&tool, "tool", "", "tool to initialize (required: claude, opencode, all)")
-	cmd.Flags().StringArrayVar(&agents, "agents", nil, "agent names to include (comma-separated, e.g., planner,tester)")
-	cmd.Flags().BoolVar(&includeDeps, "include-deps", false, "auto-resolve transitive dependencies")
-	cmd.Flags().BoolVar(&noDeps, "no-deps", false, "skip dependency validation")
-	cmd.Flags().BoolVar(&force, "force", false, "overwrite existing configuration")
-	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "preview changes without writing files")
-	cmd.Flags().BoolVar(&update, "update", false, "update existing configuration")
-	cmd.Flags().StringVar(&updateFilter, "update-filter", "", "filter components to update (agents, skills, commands - comma separated)")
-	cmd.Flags().StringArrayVar(&modelOverride, "model", nil, "override model for agents by tag pattern (e.g., heavy=opus, planning:heavy=opus)")
-
-	// Mark --tool as required
+	cmd.Flags().StringVar(&flags.tool, "tool", "", "Target tool(s) (required, comma-separated: claude,opencode)")
 	_ = cmd.MarkFlagRequired("tool")
 
+	cmd.Flags().StringVar(&flags.prefix, "prefix", "ent", "Prefix for configuration directories")
+	cmd.Flags().BoolVar(&flags.force, "force", false, "Overwrite existing files")
+	cmd.Flags().BoolVar(&flags.dryRun, "dry-run", false, "Preview changes without writing files")
+
 	return cmd
-}
-
-// InitConfig holds configuration for the init command
-type InitConfig struct {
-	Path           string
-	Tool           string
-	Agents         []string // --agents flag
-	IncludeDeps    bool     // --include-deps flag
-	NoDeps         bool     // --no-deps flag
-	Force          bool
-	DryRun         bool
-	Verbose        bool
-	Update         bool              // --update flag
-	UpdateFilter   string            // --update=agents,skills
-	ModelOverrides map[string]string // --model heavy=opus
-}
-
-// ResolveAgentList resolves the list of agents based on requested names and dependency flags.
-func ResolveAgentList(fs fs.FS, requested []string, includeDeps, noDeps bool) ([]string, error) {
-	// If noDeps is set, return requested agents as-is
-	if noDeps {
-		if len(requested) == 0 {
-			return []string{}, nil
-		}
-		return requested, nil
-	}
-
-	// Load agent metadata from fs
-	metaDir := "plugins/go-ent/agents/meta"
-	agentMetas, err := loadAgentMetas(fs, metaDir)
-	if err != nil {
-		return nil, fmt.Errorf("load agent metas: %w", err)
-	}
-
-	// If no specific agents requested, return all agents sorted
-	if len(requested) == 0 {
-		graph := agent.NewDependencyGraph()
-		for name, meta := range agentMetas {
-			graph.AddNode(name, meta)
-		}
-		resolver := agent.NewResolver(graph)
-		allAgents, err := resolver.TopologicalSort()
-		if err != nil {
-			return nil, fmt.Errorf("topological sort: %w", err)
-		}
-		return allAgents, nil
-	}
-
-	// Build dependency graph from all agents
-	graph := agent.NewDependencyGraph()
-	for name, meta := range agentMetas {
-		graph.AddNode(name, meta)
-	}
-
-	// Add edges for dependencies
-	for name, meta := range agentMetas {
-		for _, dep := range meta.Dependencies {
-			graph.AddEdge(name, dep)
-		}
-	}
-
-	// Validate all requested agents exist
-	for _, name := range requested {
-		if !graph.HasNode(name) {
-			return nil, fmt.Errorf("agent not found: %s", name)
-		}
-	}
-
-	// If includeDeps is set, resolve transitive dependencies
-	if includeDeps {
-		resolver := agent.NewResolver(graph)
-		resolved, err := resolver.ResolveDependencies(requested)
-		if err != nil {
-			// Check if it's a missing dependency error and provide better message
-			if strings.Contains(err.Error(), "agent not found:") {
-				return nil, fmt.Errorf("dependency not found: %s", strings.TrimPrefix(err.Error(), "agent not found: "))
-			}
-			return nil, fmt.Errorf("resolve dependencies: %w", err)
-		}
-		return resolved, nil
-	}
-
-	// Otherwise validate that all dependencies exist
-	for _, name := range requested {
-		for _, dep := range agentMetas[name].Dependencies {
-			if !graph.HasNode(dep) {
-				return nil, fmt.Errorf("dependency not found: %s depends on %s", name, dep)
-			}
-		}
-	}
-
-	// Return requested agents
-	return requested, nil
-}
-
-// loadAgentMetas loads agent metadata from the given fs.FS path
-func loadAgentMetas(fsys fs.FS, metaDir string) (map[string]agent.AgentMeta, error) {
-	entries, err := fs.ReadDir(fsys, metaDir)
-	if err != nil {
-		return nil, fmt.Errorf("read dir: %w", err)
-	}
-
-	metas := make(map[string]agent.AgentMeta)
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !strings.HasSuffix(name, ".yaml") && !strings.HasSuffix(name, ".yml") {
-			continue
-		}
-
-		path := filepath.Join(metaDir, name)
-		meta, err := loadAgentMeta(fsys, path)
-		if err != nil {
-			return nil, fmt.Errorf("load %s: %w", name, err)
-		}
-		metas[meta.Name] = meta
-	}
-
-	return metas, nil
-}
-
-// loadAgentMeta loads a single agent metadata file from fs.FS
-func loadAgentMeta(fsys fs.FS, path string) (agent.AgentMeta, error) {
-	data, err := fs.ReadFile(fsys, path)
-	if err != nil {
-		return agent.AgentMeta{}, fmt.Errorf("read file: %w", err)
-	}
-
-	var yamlMeta struct {
-		Name         string   `yaml:"name"`
-		Description  string   `yaml:"description"`
-		Model        string   `yaml:"model"`
-		Color        string   `yaml:"color"`
-		Skills       []string `yaml:"skills"`
-		Tools        []string `yaml:"tools"`
-		Dependencies []string `yaml:"dependencies,omitempty"`
-	}
-	if err := yaml.Unmarshal(data, &yamlMeta); err != nil {
-		return agent.AgentMeta{}, fmt.Errorf("unmarshal yaml: %w", err)
-	}
-
-	if yamlMeta.Name == "" {
-		return agent.AgentMeta{}, fmt.Errorf("name is required")
-	}
-
-	tools := make(map[string]bool)
-	for _, tool := range yamlMeta.Tools {
-		tools[tool] = true
-	}
-
-	return agent.AgentMeta{
-		Name:         yamlMeta.Name,
-		Description:  yamlMeta.Description,
-		Model:        yamlMeta.Model,
-		Color:        yamlMeta.Color,
-		Skills:       yamlMeta.Skills,
-		Tools:        tools,
-		Dependencies: yamlMeta.Dependencies,
-	}, nil
-}
-
-// InitTools initializes tool configurations
-func InitTools(ctx context.Context, cfg InitConfig) error {
-	// Validate tool is provided (flag is marked required, but double-check)
-	tool := cfg.Tool
-	if tool == "" {
-		return fmt.Errorf("--tool is required (must be claude, opencode, or all)")
-	}
-
-	// Resolve absolute path
-	absPath, err := filepath.Abs(cfg.Path)
-	if err != nil {
-		return fmt.Errorf("resolve path: %w", err)
-	}
-
-	// Validate tool
-	tool = strings.ToLower(tool)
-	if tool != "claude" && tool != "opencode" && tool != "all" {
-		return fmt.Errorf("invalid tool: %s (must be claude, opencode, or all)", tool)
-	}
-
-	// Generate configurations
-	var tools []string
-	if tool == "all" {
-		tools = []string{"claude", "opencode"}
-	} else {
-		tools = []string{tool}
-	}
-
-	for _, t := range tools {
-		if err := generateToolConfig(ctx, absPath, t, cfg); err != nil {
-			return fmt.Errorf("generate %s config: %w", t, err)
-		}
-	}
-
-	return nil
-}
-
-// generateToolConfig generates configuration for a specific tool
-func generateToolConfig(ctx context.Context, path, tool string, cfg InitConfig) error {
-	// Create adapter
-	var adapter toolinit.Adapter
-	switch tool {
-	case "claude":
-		adapter = toolinit.NewClaudeAdapter()
-	case "opencode":
-		adapter = toolinit.NewOpenCodeAdapter()
-	default:
-		return fmt.Errorf("unknown tool: %s", tool)
-	}
-
-	// Load model configuration
-	globalModelCfg, _ := model.LoadGlobal()
-	projectModelCfg, _ := model.LoadProject(path)
-	modelCfg := model.Merge(globalModelCfg, projectModelCfg)
-	if modelCfg == nil {
-		modelCfg = model.DefaultConfig()
-	}
-
-	// Prepare generation config
-	agentsList, err := ResolveAgentList(goent.PluginFS, cfg.Agents, cfg.IncludeDeps, cfg.NoDeps)
-	if err != nil {
-		return err
-	}
-
-	genCfg := &toolinit.GenerateConfig{
-		Path:           path,
-		PluginFS:       goent.PluginFS,
-		Agents:         agentsList,
-		Force:          cfg.Force,
-		DryRun:         cfg.DryRun,
-		ModelOverrides: cfg.ModelOverrides,
-		ModelConfig:    modelCfg,
-	}
-
-	// Print banner
-	if cfg.DryRun {
-		fmt.Printf("\n╔════════════════════════════════════════╗\n")
-		fmt.Printf("║  DRY RUN: %s Configuration Preview  ║\n", strings.ToUpper(tool))
-		fmt.Printf("╚════════════════════════════════════════╝\n\n")
-	} else {
-		fmt.Printf("\n╔════════════════════════════════════════╗\n")
-		fmt.Printf("║  Initializing %s Configuration     ║\n", strings.ToUpper(tool))
-		fmt.Printf("╚════════════════════════════════════════╝\n\n")
-	}
-
-	// Check existing configuration
-	targetDir := filepath.Join(path, adapter.TargetDir())
-	existingInfo, _ := toolinit.LoadEntInfo(targetDir)
-
-	// Handle update mode
-	if cfg.Update {
-		if existingInfo == nil {
-			fmt.Println("⚠️  No existing installation found - performing fresh install")
-		} else if !toolinit.ShouldUpdate(existingInfo) && !cfg.Force {
-			fmt.Printf("✅ Already up to date (version %s)\n", existingInfo.Version)
-			return nil
-		}
-	} else if stat, err := os.Stat(targetDir); err == nil && stat.IsDir() {
-		if !cfg.Force {
-			return fmt.Errorf("%s already exists\n\nUse --force to overwrite or --update to update", targetDir)
-		}
-		if cfg.Verbose {
-			fmt.Printf("⚠️  Overwriting existing configuration at %s\n\n", targetDir)
-		}
-	}
-
-	// Generate configuration
-	if err := adapter.Generate(ctx, genCfg); err != nil {
-		return err
-	}
-
-	// Print success message
-	if cfg.DryRun {
-		fmt.Printf("\n✅ Preview complete\n")
-		fmt.Printf("   Run without --dry-run to create files\n\n")
-	} else {
-		fmt.Printf("\n✅ Configuration created successfully\n")
-		fmt.Printf("   Location: %s\n\n", targetDir)
-
-		// Print summary
-		if err := printSummary(adapter, targetDir); err != nil {
-			if cfg.Verbose {
-				fmt.Printf("⚠️  Could not generate summary: %v\n", err)
-			}
-		}
-
-		// Print next steps
-		printNextSteps(tool)
-	}
-
-	return nil
-}
-
-// printSummary prints a summary of generated files
-func printSummary(adapter toolinit.Adapter, targetDir string) error {
-	// Count files in each directory
-	counts := map[string]int{
-		"commands": 0,
-		"command":  0,
-		"agents":   0,
-		"agent":    0,
-		"skills":   0,
-		"skill":    0,
-	}
-
-	for dir := range counts {
-		dirPath := filepath.Join(targetDir, dir)
-		if stat, err := os.Stat(dirPath); err == nil && stat.IsDir() {
-			count, _ := countFiles(dirPath)
-			counts[dir] = count
-		}
-	}
-
-	// Determine which directories exist
-	var commandDir, agentDir, skillDir string
-	if counts["commands"] > 0 {
-		commandDir = "commands"
-	} else if counts["command"] > 0 {
-		commandDir = "command"
-	}
-	if counts["agents"] > 0 {
-		agentDir = "agents"
-	} else if counts["agent"] > 0 {
-		agentDir = "agent"
-	}
-	if counts["skills"] > 0 {
-		skillDir = "skills"
-	} else if counts["skill"] > 0 {
-		skillDir = "skill"
-	}
-
-	fmt.Printf("📊 Summary:\n")
-	if commandDir != "" {
-		fmt.Printf("   Commands: %d file(s) in %s/\n", counts[commandDir], commandDir)
-	}
-	if agentDir != "" {
-		fmt.Printf("   Agents:   %d file(s) in %s/\n", counts[agentDir], agentDir)
-	}
-	if skillDir != "" {
-		fmt.Printf("   Skills:   %d file(s) in %s/\n", counts[skillDir], skillDir)
-	}
-	fmt.Println()
-
-	return nil
-}
-
-// countFiles counts files in a directory recursively
-func countFiles(dir string) (int, error) {
-	count := 0
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			count++
-		}
-		return nil
-	})
-	return count, err
-}
-
-// printNextSteps prints next steps for the user
-func printNextSteps(tool string) {
-	fmt.Printf("📖 Next Steps:\n\n")
-
-	switch tool {
-	case "claude":
-		fmt.Printf("   1. Restart Claude Code to load the plugin\n")
-		fmt.Printf("   2. Use /plan to create change proposals\n")
-		fmt.Printf("   3. Available agents:\n")
-		fmt.Printf("      • @planner-smoke - Quick triage (Haiku)\n")
-		fmt.Printf("      • @architect - System design (Opus)\n")
-		fmt.Printf("      • @planner - Detailed planning (Sonnet)\n")
-		fmt.Printf("      • @decomposer - Task breakdown (Sonnet)\n")
-		fmt.Printf("\n   4. For execution, use OpenCode with /task and /bug\n\n")
-
-	case "opencode":
-		fmt.Printf("   1. Restart OpenCode to load the plugin\n")
-		fmt.Printf("   2. Use /task to execute tasks from registry\n")
-		fmt.Printf("   3. Use /bug to fix bugs with TDD workflow\n")
-		fmt.Printf("   4. Available agents:\n")
-		fmt.Printf("      • @task-smoke - Simple tasks (GLM 4.7)\n")
-		fmt.Printf("      • @task-heavy - Complex tasks (Kimi K2)\n")
-		fmt.Printf("      • @coder - Implementation (GLM 4.7)\n")
-		fmt.Printf("      • @debugger-smoke - Simple debugging (GLM 4.7)\n")
-		fmt.Printf("      • @debugger-heavy - Complex debugging (Kimi K2)\n")
-		fmt.Printf("      • ...and 5 more execution agents\n")
-		fmt.Printf("\n   5. For planning, use Claude Code with /plan\n\n")
-	}
-
-	fmt.Printf("💡 Tip: Use --verbose flag to see detailed output\n")
-	fmt.Printf("💡 Tip: Run 'go-ent init --dry-run' to preview changes\n\n")
 }

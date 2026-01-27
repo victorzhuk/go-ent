@@ -22,7 +22,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ## Build Commands
 
 ```bash
-make build          # Build binary to bin/go-ent
+make build          # Build binary to bin/ent
 make test           # Run all tests with race detection and coverage
 make test-templates # Test all skill templates
 make lint           # Run golangci-lint

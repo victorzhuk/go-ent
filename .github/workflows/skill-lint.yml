@@ -44,8 +44,8 @@ jobs:
         with:
           go-version: '1.23'
 
-      # Build go-ent CLI
-      - name: Build go-ent
+      # Build ent
+      - name: Build ent
         run: make build
 
       # Lint all skill files in JSON format
@@ -54,7 +54,7 @@ jobs:
           echo "🔍 Linting skill and command files..."
 
           # Run skill lint with JSON output
-          LINT_OUTPUT=$(./bin/go-ent skill lint --json plugins/ 2>&1)
+          LINT_OUTPUT=$(./bin/ent skill lint --json plugins/ 2>&1)
           LINT_EXIT=$?
 
           # Save output for artifact
@@ -113,7 +113,7 @@ jobs:
           echo "🔧 Running skill lint with auto-fix..."
 
           # Run skill lint with --fix flag
-          LINT_OUTPUT=$(./bin/go-ent skill lint --fix --json plugins/ 2>&1)
+          LINT_OUTPUT=$(./bin/ent skill lint --fix --json plugins/ 2>&1)
           LINT_EXIT=$?
 
           # Save output for artifact

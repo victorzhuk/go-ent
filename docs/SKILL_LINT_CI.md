@@ -33,7 +33,7 @@ validate:
   steps:
     - Checkout code
     - Set up Go
-    - Build go-ent
+    - Build ent
     - Lint skills (validation only)
     - Upload lint results as artifact
 ```
@@ -52,7 +52,7 @@ autofix:
   steps:
     - Checkout code
     - Set up Go
-    - Build go-ent
+    - Build ent
     - Run skill lint with --fix flag
     - Upload lint results as artifact
     - Commit auto-fixed changes (if any)
@@ -295,7 +295,7 @@ If you don't need auto-fix, remove the `autofix` job and `workflow_dispatch` tri
 
 **Solutions:**
 1. Cache Go dependencies
-2. Build go-ent in a separate workflow and cache
+2. Build ent in a separate workflow and cache
 3. Use path filters to only lint changed files
 
 ## Best Practices
@@ -335,7 +335,7 @@ jobs:
         run: make build
 
       - name: Skill lint
-        run: ./bin/go-ent skill lint --json plugins/
+        run: ./bin/ent skill lint --json plugins/
 
       - name: Go tests
         run: make test
@@ -359,7 +359,7 @@ jobs:
         run: make build
 
       - name: Auto-fix skills
-        run: ./bin/go-ent skill lint --fix --json plugins/
+        run: ./bin/ent skill lint --fix --json plugins/
 
       - name: Commit changes
         run: |
@@ -374,4 +374,4 @@ jobs:
 
 - [Skill Authoring Guide](SKILL-AUTHORING.md) - Creating and maintaining skills
 - [CLI Examples](CLI_EXAMPLES.md) - Using the skill lint command locally
-- [Development Guide](DEVELOPMENT.md) - Developing go-ent itself
+- [Development Guide](DEVELOPMENT.md) - Developing ent itself

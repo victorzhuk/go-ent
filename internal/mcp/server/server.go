@@ -1,23 +1,14 @@
 package server
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/internal/agent"
-	"github.com/victorzhuk/go-ent/internal/agent/background"
-	"github.com/victorzhuk/go-ent/internal/config"
-	"github.com/victorzhuk/go-ent/internal/marketplace"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
-	"github.com/victorzhuk/go-ent/internal/metrics"
-	"github.com/victorzhuk/go-ent/internal/plugin"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/version"
-	"github.com/victorzhuk/go-ent/internal/worker"
 )
 
 func New() *mcp.Server {
@@ -32,32 +23,6 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		},
 		nil,
 	)
-
-	cfg, err := config.Load(".")
-	if err != nil {
-		slog.Warn("failed to load config, using defaults", "error", err)
-		cfg = config.DefaultConfig()
-	}
-
-	tools.SetMetricsEnabled(cfg.Metrics.Enabled)
-	if !cfg.Metrics.Enabled {
-		slog.Info("metrics collection disabled by configuration")
-	}
-
-	metricsStore, err := metrics.NewStore("data/metrics.json", 7*24*time.Hour)
-	if err != nil {
-		slog.Warn("failed to initialize metrics store", "error", err)
-		tools.InitMetricsStore(nil)
-	} else {
-		slog.Info("metrics system initialized",
-			"enabled", true,
-			"storage", "file",
-			"storage_path", "data/metrics.json",
-			"retention_days", 7,
-			"max_entries", 1000,
-		)
-		tools.InitMetricsStore(metricsStore)
-	}
 
 	// Initialize skill registry
 	registry := skill.NewRegistry()
@@ -79,64 +44,8 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		slog.Info("loaded skills", "count", len(registry.All()), "path", skillsPath)
 	}
 
-	// Initialize agent registry
-	agentRegistry := agent.NewRegistry()
-	slog.Debug("initialized agent registry")
-
-	pluginsDir := "plugins"
-	exe, err := os.Executable()
-	if err == nil {
-		exeDir := filepath.Dir(exe)
-		pluginsDir = filepath.Join(exeDir, "..", "plugins")
-	}
-
-	marketplaceClient := marketplace.NewClient()
-	marketplaceSearcher := marketplace.NewSearcher(marketplaceClient)
-	registryWrapper := &skillRegistryWrapper{registry: registry, agentRegistry: agentRegistry}
-	pluginManager := plugin.NewManager(pluginsDir, registryWrapper, marketplaceClient, nil)
-
-	if err := pluginManager.Initialize(context.TODO()); err != nil {
-		slog.Warn("failed to initialize plugin manager", "error", err)
-	} else {
-		slog.Info("plugin manager initialized", "plugins_dir", pluginsDir)
-	}
-
-	backgroundManager := background.NewManager(nil, background.DefaultConfig())
-	slog.Info("background agent manager initialized", "default_role", background.DefaultConfig().DefaultRole, "default_model", background.DefaultConfig().DefaultModel)
-
-	workerManager := worker.NewWorkerManagerWithoutTracking()
-	slog.Info("worker manager initialized")
-
-	providerConfig, err := config.LoadProviders(".")
-	if err != nil {
-		slog.Warn("failed to load providers config, using defaults", "error", err)
-		providerConfig = config.DefaultProvidersConfig()
-	} else {
-		slog.Info("providers config loaded", "providers", len(providerConfig.Providers))
-	}
-
-	tools.Register(s, registry, pluginManager, marketplaceSearcher, backgroundManager, workerManager, providerConfig)
+	// Register MCP tools
+	tools.Register(s, registry)
 
 	return s
-}
-
-type skillRegistryWrapper struct {
-	registry      *skill.Registry
-	agentRegistry *agent.Registry
-}
-
-func (w *skillRegistryWrapper) RegisterSkill(name, path string) error {
-	return w.registry.RegisterSkill(name, path)
-}
-
-func (w *skillRegistryWrapper) RegisterAgent(name, path string) error {
-	return w.agentRegistry.RegisterAgent(name, path)
-}
-
-func (w *skillRegistryWrapper) UnregisterSkill(name string) error {
-	return w.registry.UnregisterSkill(name)
-}
-
-func (w *skillRegistryWrapper) UnregisterAgent(name string) error {
-	return w.agentRegistry.UnregisterAgent(name)
 }

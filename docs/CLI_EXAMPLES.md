@@ -1,6 +1,6 @@
 # CLI Usage Examples
 
-This document provides practical examples of using the `go-ent` CLI commands.
+This document provides practical examples of using the `ent` CLI commands.
 
 ## Table of Contents
 
@@ -464,10 +464,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install go-ent
+      - name: Install ent
         run: |
-          curl -L https://github.com/user/go-ent/releases/latest/download/go-ent-linux-amd64 -o /usr/local/bin/go-ent
-          chmod +x /usr/local/bin/go-ent
+          curl -L https://github.com/user/go-ent/releases/latest/download/ent-linux-amd64 -o /usr/local/bin/ent
+          chmod +x /usr/local/bin/ent
 
       - name: Validate config
         run: ent config show

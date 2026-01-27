@@ -9,7 +9,7 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build binary to bin/ent
-	@go build $(LDFLAGS) -o bin/ent ./cmd/go-ent
+	@go build $(LDFLAGS) -o bin/ent ./cmd/ent
 	@echo "Build complete: bin/ent"
 
 test: ## Run all tests with race detection and coverage
@@ -52,9 +52,9 @@ test-templates: ## Test all skill templates
 
 validate-templates: ## Validate all skill templates
 	@echo "Validating all skill templates..."
-	@go run ./cmd/go-ent skill list-templates >/dev/null && \
-		go run ./cmd/go-ent skill show-template go-complete >/dev/null && \
-		go run ./cmd/go-ent skill show-template go-basic >/dev/null && \
+	@go run ./cmd/ent skill list-templates >/dev/null && \
+		go run ./cmd/ent skill show-template go-complete >/dev/null && \
+		go run ./cmd/ent skill show-template go-basic >/dev/null && \
 		echo "All templates validated successfully"
 
 release-dry-run: ## Run GoReleaser in dry-run mode (snapshot build)

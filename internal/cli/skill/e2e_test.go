@@ -33,13 +33,13 @@ func copyDir(src, dst string) error {
 		if err != nil {
 			return err
 		}
-		defer srcFile.Close()
+		defer func() { _ = srcFile.Close() }()
 
 		dstFile, err := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, info.Mode())
 		if err != nil {
 			return err
 		}
-		defer dstFile.Close()
+		defer func() { _ = dstFile.Close() }()
 
 		_, err = io.Copy(dstFile, srcFile)
 		return err
@@ -53,10 +53,10 @@ func TestE2E_5_4_1_CompleteWorkflow(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	_ = os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
+	_ = os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
+	defer func() { _ = os.Unsetenv("GO_ENT_TEMPLATE_DIR") }()
+	defer func() { _ = os.Unsetenv("GO_ENT_SKILLS_DIR") }()
 
 	t.Run("list select generate validate", func(t *testing.T) {
 		stdout, _, err := runCommand("skill", "list-templates")

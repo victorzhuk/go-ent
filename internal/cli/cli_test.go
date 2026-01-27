@@ -90,7 +90,7 @@ func TestVersionCommand(t *testing.T) {
 	t.Run("version subcommand", func(t *testing.T) {
 		stdout, stderr, err := executeCommandWithCapture(t, "version")
 		require.NoError(t, err)
-		assert.Contains(t, stdout, "go-ent")
+		assert.Contains(t, stdout, "ent")
 		assert.Contains(t, stdout, "go:")
 		assert.Empty(t, stderr)
 	})
@@ -105,13 +105,14 @@ func TestHelpCommand(t *testing.T) {
 		{
 			"root help",
 			[]string{"--help"},
-			[]string{"go-ent", "Available Commands"},
+			[]string{"ent", "Available Commands"},
 		},
-		{
-			"agent help",
-			[]string{"agent", "--help"},
-			[]string{"agent", "list", "info"},
-		},
+		// TODO: Phase 5 - Re-enable after agent command restored
+		// {
+		// 	"agent help",
+		// 	[]string{"agent", "--help"},
+		// 	[]string{"agent", "list", "info"},
+		// },
 		{
 			"skill help",
 			[]string{"skill", "--help"},
@@ -140,30 +141,8 @@ func TestHelpCommand(t *testing.T) {
 	}
 }
 
-func TestAgentCommands(t *testing.T) {
-	t.Run("agent list", func(t *testing.T) {
-		stdout, stderr, err := executeCommand(t, "agent", "list")
-
-		// Command should execute (may fail if agents path doesn't exist, which is ok)
-		if err == nil {
-			assert.NotEmpty(t, stdout)
-			assert.Empty(t, stderr)
-		}
-	})
-
-	t.Run("agent list with flags", func(t *testing.T) {
-		stdout, _, err := executeCommand(t, "agent", "list", "--detailed")
-
-		if err == nil {
-			assert.NotEmpty(t, stdout)
-		}
-	})
-
-	t.Run("agent info without name", func(t *testing.T) {
-		_, _, err := executeCommand(t, "agent", "info")
-		require.Error(t, err, "should require agent name")
-	})
-}
+// TODO: Phase 5 - Re-enable after agent command restored
+// func TestAgentCommands(t *testing.T) { ... }
 
 func TestSkillCommands(t *testing.T) {
 	t.Run("skill list", func(t *testing.T) {
@@ -261,73 +240,21 @@ func TestConfigCommands(t *testing.T) {
 	})
 }
 
-func TestRunCommand(t *testing.T) {
-	t.Run("run requires task description", func(t *testing.T) {
-		_, _, err := executeCommand(t, "run")
-		require.Error(t, err)
-	})
-
-	t.Run("run with dry-run", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "--dry-run", "add logging")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Agent Selection")
-		assert.Contains(t, stdout, "Dry run mode")
-	})
-
-	t.Run("run with agent override", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "--dry-run", "--agent", "architect", "design system")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "architect")
-		assert.Contains(t, stdout, "manually overridden")
-	})
-
-	t.Run("run with task type", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "--dry-run", "--type", "bugfix", "fix memory leak")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Agent Selection")
-		assert.Contains(t, stdout, "Complexity")
-	})
-
-	t.Run("run with files", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "--dry-run", "--files", "repo.go,service.go", "refactor code")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Agent Selection")
-	})
-
-	t.Run("run with budget", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "--dry-run", "--budget", "1000", "simple task")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Agent Selection")
-	})
-
-	t.Run("run without dry-run shows not implemented", func(t *testing.T) {
-		stdout, _, err := executeCommandWithCapture(t, "run", "test task")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Execution engine not yet implemented")
-	})
-
-	t.Run("run help", func(t *testing.T) {
-		stdout, _, err := executeCommand(t, "run", "--help")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "Execute a task with automatic agent selection")
-		assert.Contains(t, stdout, "--agent")
-		assert.Contains(t, stdout, "--type")
-		assert.Contains(t, stdout, "--dry-run")
-	})
-}
+// TODO: Phase 5 - Re-enable after run command restored
+// func TestRunCommand(t *testing.T) { ... }
 
 func TestGlobalFlags(t *testing.T) {
 	t.Run("verbose flag", func(t *testing.T) {
 		stdout, stderr, err := executeCommandWithCapture(t, "--verbose", "version")
 		require.NoError(t, err)
-		assert.Contains(t, stdout, "go-ent")
+		assert.Contains(t, stdout, "ent")
 		assert.Empty(t, stderr)
 	})
 
 	t.Run("config flag", func(t *testing.T) {
 		stdout, stderr, err := executeCommandWithCapture(t, "--config", "/tmp/test-config.yaml", "version")
 		require.NoError(t, err)
-		assert.Contains(t, stdout, "go-ent")
+		assert.Contains(t, stdout, "ent")
 		assert.Empty(t, stderr)
 	})
 }

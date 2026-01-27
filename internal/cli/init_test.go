@@ -1,12 +1,7 @@
-package cli_test
-
-//nolint:gosec // test file with necessary file operations
+package cli
 
 import (
-	"bytes"
-	"context"
-	"io"
-	"io/fs"
+	"embed"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,895 +9,577 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	goent "github.com/victorzhuk/go-ent"
-	"github.com/victorzhuk/go-ent/internal/cli"
+	rootpkg "github.com/victorzhuk/go-ent"
 )
 
-func TestInitCommand_ToolRequired(t *testing.T) {
+func TestGetAgentPath(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
-		name        string
-		args        []string
-		wantErr     bool
-		errContains string
+		name     string
+		tool     string
+		prefix   string
+		agent    string
+		expected string
 	}{
 		{
-			name:        "no --tool flag",
-			args:        []string{"init"},
-			wantErr:     true,
-			errContains: "required",
+			name:     "Claude Code with default prefix",
+			tool:     "claude",
+			prefix:   "ent",
+			agent:    "coder",
+			expected: filepath.Join(".claude", "agents", "ent", "coder.md"),
 		},
 		{
-			name:        "empty --tool flag",
-			args:        []string{"init", "--tool="},
-			wantErr:     true,
-			errContains: "required",
+			name:     "Claude Code with custom prefix",
+			tool:     "claude",
+			prefix:   "myproject",
+			agent:    "architect",
+			expected: filepath.Join(".claude", "agents", "myproject", "architect.md"),
 		},
 		{
-			name:        "invalid tool value",
-			args:        []string{"init", "--tool=invalid"},
-			wantErr:     true,
-			errContains: "invalid tool",
+			name:     "OpenCode with default prefix",
+			tool:     "opencode",
+			prefix:   "ent",
+			agent:    "coder",
+			expected: filepath.Join(".opencode", "agent", "coder.md"),
 		},
 		{
-			name:        "valid tool claude",
-			args:        []string{"init", "--tool=claude", "--dry-run"},
-			wantErr:     false,
-			errContains: "",
+			name:     "OpenCode with custom prefix (no effect)",
+			tool:     "opencode",
+			prefix:   "myproject",
+			agent:    "architect",
+			expected: filepath.Join(".opencode", "agent", "architect.md"),
 		},
 		{
-			name:        "valid tool opencode",
-			args:        []string{"init", "--tool=opencode", "--dry-run"},
-			wantErr:     false,
-			errContains: "",
-		},
-		{
-			name:        "valid tool all",
-			args:        []string{"init", "--tool=all", "--dry-run"},
-			wantErr:     false,
-			errContains: "",
+			name:     "Unsupported tool returns empty",
+			tool:     "cursor",
+			prefix:   "ent",
+			agent:    "coder",
+			expected: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stdout, _, err := executeCommandWithCapture(t, tt.args...)
+			t.Parallel()
 
-			if tt.wantErr {
-				require.Error(t, err)
-				if tt.errContains != "" {
-					assert.Contains(t, err.Error(), tt.errContains)
-				}
-			} else {
+			result := getAgentPath(tt.tool, tt.prefix, tt.agent)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestLoadAgents(t *testing.T) {
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	agents, err := loadAgents()
+	require.NoError(t, err)
+	assert.Greater(t, len(agents), 0)
+
+	coder, ok := agents["coder"]
+	require.True(t, ok, "coder agent should exist")
+	assert.Equal(t, "coder", coder.Name)
+	assert.Equal(t, "Go developer. Implements features, writes code.", coder.Description)
+	assert.Equal(t, "execution", coder.Role)
+	assert.Equal(t, "standard", coder.Complexity)
+	assert.Contains(t, coder.Skills, "go-code")
+	assert.Contains(t, coder.Tools, "Read")
+}
+
+func TestLoadPrompts(t *testing.T) {
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	prompts, err := loadPrompts()
+	require.NoError(t, err)
+	assert.Greater(t, len(prompts), 0)
+
+	coderPrompt, ok := prompts["coder"]
+	require.True(t, ok, "coder prompt should exist")
+	assert.Contains(t, coderPrompt, "You are a senior Go backend developer")
+	assert.Contains(t, coderPrompt, "Implement features from tasks.md")
+}
+
+func TestLoadShared(t *testing.T) {
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	shared, err := loadShared()
+	require.NoError(t, err)
+	assert.NotEmpty(t, shared)
+
+	expectedContent := []string{
+		"# Principal Hierarchy for Constitutional AI",
+		"# Judgment Guidance for Constitutional AI",
+		"# OpenSpec Workflow",
+		"# Code Conventions",
+		"# Agent Handoffs",
+		"# Tooling Reference",
+	}
+
+	for _, content := range expectedContent {
+		assert.Contains(t, shared, content, "shared content should include section: %s", content)
+	}
+}
+
+func TestLoadTemplate(t *testing.T) {
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	t.Run("Claude template", func(t *testing.T) {
+
+		tpl, err := loadTemplate("claude")
+		require.NoError(t, err)
+		assert.NotNil(t, tpl)
+	})
+
+	t.Run("OpenCode template", func(t *testing.T) {
+
+		tpl, err := loadTemplate("opencode")
+		require.NoError(t, err)
+		assert.NotNil(t, tpl)
+	})
+
+	t.Run("Unsupported tool", func(t *testing.T) {
+
+		tpl, err := loadTemplate("cursor")
+		assert.Error(t, err)
+		assert.Nil(t, tpl)
+		assert.Contains(t, err.Error(), "unsupported tool")
+	})
+}
+
+func TestRenderAgent(t *testing.T) {
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	meta := &agentMeta{
+		Name:        "test",
+		Description: "Test agent",
+		Model:       "main",
+		Color:       "#FF0000",
+		Role:        "execution",
+		Complexity:  "standard",
+		Skills:      []string{"go-code"},
+		Tools:       []string{"Read", "Write"},
+	}
+
+	tpl, err := loadTemplate("claude")
+	require.NoError(t, err)
+
+	prompt := "Test prompt content\n"
+	shared := "Shared content\n"
+
+	result, err := renderAgent(meta, prompt, shared, tpl)
+	require.NoError(t, err)
+	assert.NotEmpty(t, result)
+
+	assert.Contains(t, result, "name: test")
+	assert.Contains(t, result, "description: \"Test agent\"")
+	assert.Contains(t, result, "model: main")
+	assert.Contains(t, result, "---")
+	assert.Contains(t, result, "Shared content")
+	assert.Contains(t, result, "Test prompt content")
+}
+
+func TestWriteFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	t.Run("Create new file", func(t *testing.T) {
+
+		testPath := filepath.Join(tmpDir, "new", "file.md")
+		content := "Test content"
+
+		err := writeFile(testPath, content, false, false)
+		require.NoError(t, err)
+
+		data, err := os.ReadFile(testPath)
+		require.NoError(t, err)
+		assert.Equal(t, content, string(data))
+	})
+
+	t.Run("Overwrite existing file with force", func(t *testing.T) {
+		testPath := filepath.Join(tmpDir, "force", "file.md")
+		err := os.MkdirAll(filepath.Dir(testPath), 0750)
+		require.NoError(t, err)
+		err = os.WriteFile(testPath, []byte("old"), 0600)
+		require.NoError(t, err)
+
+		err = writeFile(testPath, "new", true, false)
+		require.NoError(t, err)
+
+		data, err := os.ReadFile(testPath)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+	})
+
+	t.Run("Error on existing file without force", func(t *testing.T) {
+		testPath := filepath.Join(tmpDir, "error", "file.md")
+		err := os.MkdirAll(filepath.Dir(testPath), 0750)
+		require.NoError(t, err)
+		err = os.WriteFile(testPath, []byte("existing"), 0600)
+		require.NoError(t, err)
+
+		err = writeFile(testPath, "new", false, false)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "file already exists")
+	})
+
+	t.Run("Dry run does not create file", func(t *testing.T) {
+		testPath := filepath.Join(tmpDir, "dryrun", "file.md")
+		content := "Test content"
+
+		err := writeFile(testPath, content, false, true)
+		require.NoError(t, err)
+
+		_, err = os.Stat(testPath)
+		assert.True(t, os.IsNotExist(err))
+	})
+}
+
+func TestCopyCommands(t *testing.T) {
+	t.Run("Copy commands to Claude Code", func(t *testing.T) {
+
+		tmpDir := t.TempDir()
+
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
+
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
+
+		err = copyCommands("claude", "ent", false, false)
+		require.NoError(t, err)
+
+		cmdDir := filepath.Join(tmpDir, ".claude", "commands", "ent")
+		entries, err := os.ReadDir(cmdDir)
+		require.NoError(t, err)
+		assert.Greater(t, len(entries), 0)
+
+		for _, entry := range entries {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+				path := filepath.Join(cmdDir, entry.Name())
+				data, err := os.ReadFile(path)
 				require.NoError(t, err)
+				assert.NotEmpty(t, string(data))
 			}
+		}
+	})
 
-			if !tt.wantErr {
-				assert.NotEmpty(t, stdout)
-			}
-		})
-	}
+	t.Run("Copy commands to OpenCode", func(t *testing.T) {
+
+		tmpDir := t.TempDir()
+
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
+
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
+
+		err = copyCommands("opencode", "ent", false, false)
+		require.NoError(t, err)
+
+		cmdDir := filepath.Join(tmpDir, ".opencode", "commands", "ent")
+		entries, err := os.ReadDir(cmdDir)
+		require.NoError(t, err)
+		assert.Greater(t, len(entries), 0)
+	})
 }
 
-func TestResolveAgentList_AllAgents(t *testing.T) {
-	t.Parallel()
+func TestCopySkills(t *testing.T) {
+	t.Run("Copy skills to Claude Code", func(t *testing.T) {
 
-	agents, err := cli.ResolveAgentList(goent.PluginFS, nil, false, false)
-	require.NoError(t, err)
-	assert.NotEmpty(t, agents)
-}
+		tmpDir := t.TempDir()
 
-func TestResolveAgentList_SpecificAgents(t *testing.T) {
-	t.Parallel()
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-	tests := []struct {
-		name          string
-		agentsFlag    []string
-		includeDeps   bool
-		noDeps        bool
-		wantErr       bool
-		errContains   string
-		expectedCount int
-	}{
-		{
-			name:          "single agent with no deps",
-			agentsFlag:    []string{"planner"},
-			includeDeps:   false,
-			noDeps:        false,
-			wantErr:       false,
-			errContains:   "",
-			expectedCount: 1,
-		},
-		{
-			name:          "single agent with no deps validation",
-			agentsFlag:    []string{"planner"},
-			includeDeps:   false,
-			noDeps:        true,
-			wantErr:       false,
-			errContains:   "",
-			expectedCount: 1,
-		},
-		{
-			name:          "single agent with include deps",
-			agentsFlag:    []string{"planner"},
-			includeDeps:   true,
-			noDeps:        false,
-			wantErr:       false,
-			errContains:   "",
-			expectedCount: 1,
-		},
-		{
-			name:          "empty list",
-			agentsFlag:    []string{},
-			includeDeps:   false,
-			noDeps:        false,
-			wantErr:       false,
-			errContains:   "",
-			expectedCount: -1,
-		},
-		{
-			name:          "non-existent agent",
-			agentsFlag:    []string{"nonexistent"},
-			includeDeps:   true,
-			noDeps:        false,
-			wantErr:       true,
-			errContains:   "agent not found",
-			expectedCount: 0,
-		},
-		{
-			name:          "multiple agents",
-			agentsFlag:    []string{"planner", "tester"},
-			includeDeps:   false,
-			noDeps:        true,
-			wantErr:       false,
-			errContains:   "",
-			expectedCount: 2,
-		},
-	}
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
 
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, tt.includeDeps, tt.noDeps)
+		err = copySkills("claude", "ent", false, false)
+		require.NoError(t, err)
 
-			if tt.wantErr {
-				require.Error(t, err)
-				if tt.errContains != "" {
-					assert.Contains(t, err.Error(), tt.errContains)
+		skillDir := filepath.Join(tmpDir, ".claude", "skills", "ent")
+
+		var walkAndCount func(dir string) (int, error)
+		walkAndCount = func(dir string) (int, error) {
+			count := 0
+			entries, err := os.ReadDir(dir)
+			if err != nil {
+				return 0, err
+			}
+
+			for _, entry := range entries {
+				path := filepath.Join(dir, entry.Name())
+				if entry.IsDir() {
+					c, err := walkAndCount(path)
+					if err != nil {
+						return 0, err
+					}
+					count += c
+					continue
 				}
-				assert.Nil(t, agents)
-			} else {
-				require.NoError(t, err)
-				assert.NotNil(t, agents)
-
-				if tt.expectedCount == -1 {
-					assert.NotEmpty(t, agents)
-				} else {
-					assert.Len(t, agents, tt.expectedCount)
+				if strings.HasSuffix(entry.Name(), ".md") {
+					count++
+					data, err := os.ReadFile(path)
+					require.NoError(t, err)
+					assert.NotEmpty(t, string(data))
 				}
 			}
-		})
-	}
-}
+			return count, nil
+		}
 
-func TestResolveAgentList_IncludeDeps(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		agentsFlag       []string
-		expectedInResult []string
-	}{
-		{
-			name:             "planner has no deps",
-			agentsFlag:       []string{"planner"},
-			expectedInResult: []string{"planner"},
-		},
-		{
-			name:             "tester has no deps",
-			agentsFlag:       []string{"tester"},
-			expectedInResult: []string{"tester"},
-		},
-		{
-			name:             "reproducer with all transitive deps",
-			agentsFlag:       []string{"reproducer"},
-			expectedInResult: []string{"acceptor", "architect", "coder", "debugger", "debugger-fast", "debugger-heavy", "planner", "reproducer", "researcher", "reviewer", "tester"},
-		},
-		{
-			name:             "multiple agents with transitive deps",
-			agentsFlag:       []string{"planner", "tester", "reproducer"},
-			expectedInResult: []string{"acceptor", "architect", "coder", "debugger", "debugger-fast", "debugger-heavy", "planner", "reproducer", "researcher", "reviewer", "tester"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, true, false)
-			require.NoError(t, err)
-			require.NotEmpty(t, agents)
-
-			agentsSet := make(map[string]bool)
-			for _, a := range agents {
-				agentsSet[a] = true
-			}
-
-			for _, expected := range tt.expectedInResult {
-				assert.True(t, agentsSet[expected], "expected agent %s in result", expected)
-			}
-
-			assert.Len(t, agents, len(tt.expectedInResult))
-		})
-	}
-}
-
-func TestResolveAgentList_TopologicalOrder(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		agentsFlag []string
-		minCount   int
-	}{
-		{
-			name:       "planner has no dependencies",
-			agentsFlag: []string{"planner"},
-			minCount:   1,
-		},
-		{
-			name:       "multiple agents with transitive deps",
-			agentsFlag: []string{"planner", "tester", "reproducer"},
-			minCount:   11,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, true, false)
-			require.NoError(t, err)
-			require.NotEmpty(t, agents)
-
-			assert.GreaterOrEqual(t, len(agents), tt.minCount)
-
-			seen := make(map[string]bool)
-			for _, agent := range agents {
-				_, exists := seen[agent]
-				assert.False(t, exists, "duplicate agent: %s", agent)
-				seen[agent] = true
-			}
-		})
-	}
-}
-
-func TestResolveAgentList_NoDuplicates(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		agentsFlag []string
-	}{
-		{
-			name:       "single agent",
-			agentsFlag: []string{"planner"},
-		},
-		{
-			name:       "multiple agents",
-			agentsFlag: []string{"planner", "tester", "reproducer"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, true, false)
-			require.NoError(t, err)
-			require.NotEmpty(t, agents)
-
-			seen := make(map[string]bool)
-			for _, agent := range agents {
-				_, exists := seen[agent]
-				assert.False(t, exists, "duplicate agent found: %s", agent)
-				seen[agent] = true
-			}
-		})
-	}
-}
-
-func TestResolveAgentList_NoDepsSkipValidation(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name        string
-		agentsFlag  []string
-		expectedLen int
-	}{
-		{
-			name:        "single agent",
-			agentsFlag:  []string{"planner"},
-			expectedLen: 1,
-		},
-		{
-			name:        "multiple agents",
-			agentsFlag:  []string{"planner", "tester", "reproducer"},
-			expectedLen: 3,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, false, true)
-			require.NoError(t, err)
-			assert.NotNil(t, agents)
-			assert.Len(t, agents, tt.expectedLen)
-
-			for i, expected := range tt.agentsFlag {
-				assert.Equal(t, expected, agents[i])
-			}
-		})
-	}
-}
-
-func TestInitCommand_MutuallyExclusiveFlags(t *testing.T) {
-	t.Parallel()
-
-	_, _, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--include-deps", "--no-deps", "--dry-run")
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "mutually exclusive")
-}
-
-func TestInitCommand_DryRun(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
-
-	require.NoError(t, os.Chdir(tmpDir))
-
-	t.Run("empty agents list", func(t *testing.T) {
-		_, stderr, err := executeCommandWithCapture(t,
-			"init", "--tool=claude", "--agents", "", "--no-deps", "--dry-run")
-
+		count, err := walkAndCount(skillDir)
 		require.NoError(t, err)
-		assert.Empty(t, stderr)
+		assert.Greater(t, count, 0)
 	})
+}
 
-	t.Run("non-existent agent name", func(t *testing.T) {
+func TestInitCmd_ToolParsing(t *testing.T) {
+	t.Run("Single tool - claude", func(t *testing.T) {
 		tmpDir := t.TempDir()
+
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer func() { _ = os.Chdir(oldWd) }()
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-		require.NoError(t, os.Chdir(tmpDir))
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
 
-		_, _, err = executeCommandWithCapture(t,
-			"init", "--tool=claude", "--agents", "nonexistent", "--include-deps", "--dry-run")
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
 
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "agent not found")
+		rootCmd := NewRootCmd()
+		rootCmd.SetArgs([]string{"init", "--tool=claude"})
+
+		err = rootCmd.Execute()
+		require.NoError(t, err)
+
+		agentDir := filepath.Join(tmpDir, ".claude", "agents", "ent")
+		_, err = os.Stat(agentDir)
+		require.NoError(t, err)
 	})
 
-	t.Run("mix of valid and invalid agents", func(t *testing.T) {
+	t.Run("Single tool - opencode", func(t *testing.T) {
 		tmpDir := t.TempDir()
+
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer func() { _ = os.Chdir(oldWd) }()
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-		require.NoError(t, os.Chdir(tmpDir))
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
 
-		agents, err := cli.ResolveAgentList(goent.PluginFS, []string{"planner", "nonexistent"}, true, false)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "agent not found")
-		assert.Nil(t, agents)
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
+
+		rootCmd := NewRootCmd()
+		rootCmd.SetArgs([]string{"init", "--tool=opencode"})
+
+		err = rootCmd.Execute()
+		require.NoError(t, err)
+
+		agentDir := filepath.Join(tmpDir, ".opencode", "agent")
+		_, err = os.Stat(agentDir)
+		require.NoError(t, err)
 	})
 
-	t.Run("all tools generates both directories", func(t *testing.T) {
+	t.Run("Multiple tools - claude,opencode", func(t *testing.T) {
 		tmpDir := t.TempDir()
+
 		oldWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer func() { _ = os.Chdir(oldWd) }()
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-		require.NoError(t, os.Chdir(tmpDir))
-
-		_, stderr, err := executeCommandWithCapture(t,
-			"init", "--tool=all", "--no-deps", "--agents", "planner")
-
+		err = os.Chdir(tmpDir)
 		require.NoError(t, err)
-		assert.Empty(t, stderr)
 
-		claudeDir := filepath.Join(tmpDir, ".claude")
-		opencodeDir := filepath.Join(tmpDir, ".opencode")
+		var fs embed.FS = rootpkg.PluginFS
+		SetPluginFS(fs)
 
-		assert.DirExists(t, claudeDir)
-		assert.DirExists(t, opencodeDir)
+		rootCmd := NewRootCmd()
+		rootCmd.SetArgs([]string{"init", "--tool=claude,opencode"})
+
+		err = rootCmd.Execute()
+		require.NoError(t, err)
+
+		_, err = os.Stat(filepath.Join(tmpDir, ".claude", "agents", "ent"))
+		require.NoError(t, err)
+
+		_, err = os.Stat(filepath.Join(tmpDir, ".opencode", "agent"))
+		require.NoError(t, err)
+	})
+
+	t.Run("Missing --tool flag", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = os.Chdir(oldWd) })
+
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+
+		rootCmd := NewRootCmd()
+		rootCmd.SetArgs([]string{"init"})
+
+		err = rootCmd.Execute()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "tool")
 	})
 }
 
-func TestInitCommand_CustomPath(t *testing.T) {
+func TestInitCmd_DryRun(t *testing.T) {
 	tmpDir := t.TempDir()
-	customPath := filepath.Join(tmpDir, "my-project")
-
-	require.NoError(t, os.MkdirAll(customPath, 0750))
 
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	stdout, stderr, err := executeCommandWithCapture(t,
-		"init", customPath, "--tool=claude", "--no-deps", "--agents", "planner")
-
+	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, stdout)
-	assert.Empty(t, stderr)
 
-	targetDir := filepath.Join(customPath, ".claude")
-	assert.DirExists(t, targetDir)
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	rootCmd := NewRootCmd()
+	rootCmd.SetArgs([]string{"init", "--tool=claude", "--dry-run"})
+
+	err = rootCmd.Execute()
+	require.NoError(t, err)
+
+	_, err = os.Stat(filepath.Join(tmpDir, ".claude"))
+	assert.True(t, os.IsNotExist(err), "dry-run should not create files")
 }
 
-func TestInitCommand_VerboseFlag(t *testing.T) {
+func TestInitCmd_Force(t *testing.T) {
 	tmpDir := t.TempDir()
+
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	stdout, stderr, err := executeCommandWithCapture(t,
-		"--verbose", "init", "--tool=claude", "--no-deps", "--agents", "planner")
-
+	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, stdout)
-	assert.Empty(t, stderr)
+
+	agentDir := filepath.Join(tmpDir, ".claude", "agents", "ent")
+	err = os.MkdirAll(agentDir, 0750)
+	require.NoError(t, err)
+
+	existingFile := filepath.Join(agentDir, "coder.md")
+	err = os.WriteFile(existingFile, []byte("old content"), 0600)
+	require.NoError(t, err)
+
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	rootCmd := NewRootCmd()
+	rootCmd.SetArgs([]string{"init", "--tool=claude", "--force"})
+
+	err = rootCmd.Execute()
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(existingFile)
+	require.NoError(t, err)
+	assert.NotEqual(t, "old content", string(data))
+	assert.Contains(t, string(data), "name: coder")
 }
 
-func TestInitCommand_ModelOverride(t *testing.T) {
+func TestInitCmd_CustomPrefix(t *testing.T) {
 	tmpDir := t.TempDir()
+
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	stdout, stderr, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--model", "heavy=opus", "--no-deps", "--agents", "planner")
-
+	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, stdout)
-	assert.Empty(t, stderr)
 
-	targetDir := filepath.Join(tmpDir, ".claude")
-	agentFile := filepath.Join(targetDir, "agents", "ent", "planner.md")
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
 
-	assert.FileExists(t, agentFile)
+	rootCmd := NewRootCmd()
+	rootCmd.SetArgs([]string{"init", "--tool=claude", "--prefix=myproject"})
 
-	content, err := os.ReadFile(agentFile) // #nosec G304 -- test file
+	err = rootCmd.Execute()
 	require.NoError(t, err)
-	contentStr := string(content)
 
-	// Model override may add prefix to agent name
-	assert.Contains(t, contentStr, "name:")
-	assert.Contains(t, contentStr, "planner")
+	agentDir := filepath.Join(tmpDir, ".claude", "agents", "myproject")
+	_, err = os.Stat(agentDir)
+	require.NoError(t, err)
+
+	cmdDir := filepath.Join(tmpDir, ".claude", "commands", "myproject")
+	_, err = os.Stat(cmdDir)
+	require.NoError(t, err)
 }
 
-func TestInitCommand_ExistingConfigWithForce(t *testing.T) {
+func TestInitCmd_Integration(t *testing.T) {
 	tmpDir := t.TempDir()
+
 	oldWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	targetDir := filepath.Join(tmpDir, ".claude")
-	require.NoError(t, os.MkdirAll(targetDir, 0750))
-
-	existingFile := filepath.Join(targetDir, "agents", "ent", "planner.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(existingFile), 0750))
-	require.NoError(t, os.WriteFile(existingFile, []byte("old content"), 0600))
-
-	_, stderr, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--no-deps", "--agents", "planner")
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "already exists")
-	assert.Empty(t, stderr)
-
-	oldContent, _ := os.ReadFile(existingFile) // #nosec G304 -- test file
-	assert.Equal(t, "old content", string(oldContent))
-
-	newStdout, newStderr, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--force", "--no-deps", "--agents", "planner")
-
+	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, newStdout)
-	assert.Empty(t, newStderr)
 
-	newContent, err := os.ReadFile(existingFile) // #nosec G304 -- test file
+	var fs embed.FS = rootpkg.PluginFS
+	SetPluginFS(fs)
+
+	rootCmd := NewRootCmd()
+	rootCmd.SetArgs([]string{"init", "--tool=claude,opencode"})
+
+	err = rootCmd.Execute()
 	require.NoError(t, err)
-	assert.NotEqual(t, "old content", string(newContent))
-}
 
-func TestInitCommand_DryRunOutputFormat(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldWd, err := os.Getwd()
+	agentDir := filepath.Join(tmpDir, ".claude", "agents", "ent")
+	entries, err := os.ReadDir(agentDir)
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	assert.Greater(t, len(entries), 0)
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	stdout, stderr, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--dry-run")
-
+	coderPath := filepath.Join(agentDir, "coder.md")
+	data, err := os.ReadFile(coderPath)
 	require.NoError(t, err)
-	assert.NotEmpty(t, stdout)
-	assert.Empty(t, stderr)
+	content := string(data)
 
-	assert.Contains(t, stdout, "DRY RUN")
-	assert.Contains(t, stdout, "CLAUDE")
-	assert.Contains(t, stdout, "Preview")
-	assert.Contains(t, stdout, "Run without --dry-run")
-}
+	assert.Contains(t, content, "name: coder")
+	assert.Contains(t, content, "---")
+	assert.Contains(t, content, "# Principal Hierarchy for Constitutional AI")
 
-func TestResolveAgentList_TransitiveDependencies(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name            string
-		agentsFlag      []string
-		expectedDeps    []string
-		transitiveCheck []struct {
-			agent    string
-			transDep string
-		}
-	}{
-		{
-			name:         "architect transitive deps include planner and coder and their deps",
-			agentsFlag:   []string{"architect"},
-			expectedDeps: []string{"architect", "planner", "coder"},
-			transitiveCheck: []struct {
-				agent    string
-				transDep string
-			}{
-				{"architect", "tester"},
-				{"architect", "reviewer"},
-				{"architect", "debugger"},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, true, false)
-			require.NoError(t, err)
-			require.NotEmpty(t, agents)
-
-			agentsSet := make(map[string]bool)
-			for _, a := range agents {
-				agentsSet[a] = true
-			}
-
-			for _, dep := range tt.expectedDeps {
-				assert.True(t, agentsSet[dep], "expected agent %s in result", dep)
-			}
-
-			for _, check := range tt.transitiveCheck {
-				assert.True(t, agentsSet[check.transDep],
-					"expected transitive dependency %s for agent %s", check.transDep, check.agent)
-			}
-		})
-	}
-}
-
-func TestResolveAgentList_ComplexDependencyGraph(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		agentsFlag []string
-		minAgents  int
-		maxAgents  int
-	}{
-		{
-			name:       "architect with all transitive deps",
-			agentsFlag: []string{"architect"},
-			minAgents:  6,
-			maxAgents:  10,
-		},
-		{
-			name:       "coder with all transitive deps",
-			agentsFlag: []string{"coder"},
-			minAgents:  3,
-			maxAgents:  5,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, true, false)
-			require.NoError(t, err)
-			require.NotEmpty(t, agents)
-
-			assert.GreaterOrEqual(t, len(agents), tt.minAgents)
-			assert.LessOrEqual(t, len(agents), tt.maxAgents)
-
-			seen := make(map[string]bool)
-			for _, agent := range agents {
-				_, exists := seen[agent]
-				assert.False(t, exists, "duplicate agent: %s", agent)
-				seen[agent] = true
-			}
-		})
-	}
-}
-
-func TestInitCommand_DirectoryStructure(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldWd, err := os.Getwd()
+	cmdDir := filepath.Join(tmpDir, ".claude", "commands", "ent")
+	cmdEntries, err := os.ReadDir(cmdDir)
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	assert.Greater(t, len(cmdEntries), 0)
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	_, stderr, err := executeCommandWithCapture(t,
-		"init", "--tool=claude", "--no-deps", "--agents", "planner")
-
+	skillDir := filepath.Join(tmpDir, ".claude", "skills", "ent")
+	skillEntries, err := os.ReadDir(skillDir)
 	require.NoError(t, err)
-	assert.Empty(t, stderr)
+	assert.Greater(t, len(skillEntries), 0)
 
-	targetDir := filepath.Join(tmpDir, ".claude")
-	assert.DirExists(t, targetDir)
-
-	agentsDir := filepath.Join(targetDir, "agents")
-	assert.DirExists(t, agentsDir)
-
-	agentFile := filepath.Join(agentsDir, "ent", "planner.md")
-	assert.FileExists(t, agentFile)
-}
-
-func testInitCmdExecute(t *testing.T, cfg cli.InitConfig) (string, string, error) {
-	t.Helper()
-
-	oldStdout := os.Stdout
-	oldStderr := os.Stderr
-	defer func() {
-		os.Stdout = oldStdout
-		os.Stderr = oldStderr
-	}()
-
-	rOut, wOut, _ := os.Pipe()
-	rErr, wErr, _ := os.Pipe()
-	os.Stdout = wOut
-	os.Stderr = wErr
-
-	err := cli.InitTools(context.Background(), cfg)
-
-	_ = wOut.Close()
-	_ = wErr.Close()
-
-	var outBuf, errBuf bytes.Buffer
-	_, _ = io.Copy(&outBuf, rOut)
-	_, _ = io.Copy(&errBuf, rErr)
-
-	return outBuf.String(), errBuf.String(), err
-}
-
-func TestInitCommand_SpecificTools(t *testing.T) {
-	tests := []struct {
-		name      string
-		tool      string
-		targetDir string
-	}{
-		{
-			name:      "claude tool",
-			tool:      "claude",
-			targetDir: ".claude",
-		},
-		{
-			name:      "opencode tool",
-			tool:      "opencode",
-			targetDir: ".opencode",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-			oldWd, err := os.Getwd()
-			require.NoError(t, err)
-			defer func() { _ = os.Chdir(oldWd) }()
-
-			require.NoError(t, os.Chdir(tmpDir))
-
-			cfg := cli.InitConfig{
-				Path:   tmpDir,
-				Tool:   tt.tool,
-				Agents: []string{"planner"},
-				NoDeps: true,
-				DryRun: false,
-				Force:  true,
-			}
-
-			stdout, stderr, err := testInitCmdExecute(t, cfg)
-
-			require.NoError(t, err)
-			assert.NotEmpty(t, stdout)
-			assert.Empty(t, stderr)
-
-			targetDir := filepath.Join(tmpDir, tt.targetDir)
-			assert.DirExists(t, targetDir)
-		})
-	}
-}
-
-func TestInitCommand_CircularDependencyDetection(t *testing.T) {
-	mockFS := createMockFSWithCycle(t)
-
-	_, err := cli.ResolveAgentList(mockFS, []string{"a"}, true, false)
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "cycle")
-}
-
-func createMockFSWithCycle(t *testing.T) fs.FS {
-	t.Helper()
-
-	metas := map[string]string{
-		"a.yaml": `name: a
-description: Agent A
-dependencies:
-  - b
-`,
-		"b.yaml": `name: b
-description: Agent B
-dependencies:
-  - c
-`,
-		"c.yaml": `name: c
-description: Agent C
-dependencies:
-  - a
-`,
-	}
-
-	dir := t.TempDir()
-	metaDir := filepath.Join(dir, "plugins", "go-ent", "agents", "meta")
-	require.NoError(t, os.MkdirAll(metaDir, 0750))
-
-	for name, content := range metas {
-		path := filepath.Join(metaDir, name)
-		require.NoError(t, os.WriteFile(path, []byte(content), 0600))
-	}
-
-	return os.DirFS(dir)
-}
-
-func TestInitCommand_MissingDependencyValidation(t *testing.T) {
-	mockFS := createMockFSWithMissingDep(t)
-
-	_, err := cli.ResolveAgentList(mockFS, []string{"a"}, true, false)
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "dependency not found")
-	assert.Contains(t, err.Error(), "missing")
-}
-
-func createMockFSWithMissingDep(t *testing.T) fs.FS {
-	t.Helper()
-
-	metas := map[string]string{
-		"a.yaml": `name: a
-description: Agent A
-dependencies:
-  - missing
-`,
-	}
-
-	dir := t.TempDir()
-	metaDir := filepath.Join(dir, "plugins", "go-ent", "agents", "meta")
-	require.NoError(t, os.MkdirAll(metaDir, 0750))
-
-	for name, content := range metas {
-		path := filepath.Join(metaDir, name)
-		require.NoError(t, os.WriteFile(path, []byte(content), 0600))
-	}
-
-	return os.DirFS(dir)
-}
-
-func TestInitCommand_GeneratedAgentContent(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldWd, err := os.Getwd()
+	opencodeAgentDir := filepath.Join(tmpDir, ".opencode", "agent")
+	opencodeEntries, err := os.ReadDir(opencodeAgentDir)
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(oldWd) }()
+	assert.Greater(t, len(opencodeEntries), 0)
 
-	require.NoError(t, os.Chdir(tmpDir))
-
-	cfg := cli.InitConfig{
-		Path:   tmpDir,
-		Tool:   "claude",
-		Agents: []string{"planner"},
-		NoDeps: true,
-		DryRun: false,
-		Force:  true,
-	}
-
-	_, outStderr, outErr := testInitCmdExecute(t, cfg)
-	require.NoError(t, outErr)
-	assert.Empty(t, outStderr)
-
-	agentFile := filepath.Join(tmpDir, ".claude", "agents", "ent", "planner.md")
-	content, err := os.ReadFile(agentFile) // #nosec G304 -- test file
+	opencodeCoderPath := filepath.Join(opencodeAgentDir, "coder.md")
+	opencodeData, err := os.ReadFile(opencodeCoderPath)
 	require.NoError(t, err)
-	contentStr := string(content)
+	opencodeContent := string(opencodeData)
 
-	lines := strings.Split(contentStr, "\n")
-
-	assert.True(t, len(lines) > 3, "file should have multiple lines")
-
-	frontmatterEnd := -1
-	for i, line := range lines {
-		if strings.TrimSpace(line) == "---" {
-			if frontmatterEnd == -1 {
-				frontmatterEnd = i
-			}
-		}
-	}
-
-	assert.NotEqual(t, -1, frontmatterEnd, "should have frontmatter")
-
-	hasBody := false
-	for i := frontmatterEnd + 1; i < len(lines); i++ {
-		if strings.TrimSpace(lines[i]) != "" {
-			hasBody = true
-			break
-		}
-	}
-
-	assert.True(t, hasBody, "should have body content after frontmatter")
-}
-
-func TestResolveAgentList_AgentSetEquality(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		agentsFlag    []string
-		includeDeps   bool
-		expectedCount int
-	}{
-		{
-			name:          "planner with include-deps should have same count as no deps",
-			agentsFlag:    []string{"planner"},
-			includeDeps:   true,
-			expectedCount: 1,
-		},
-		{
-			name:          "multiple agents include deps",
-			agentsFlag:    []string{"planner", "tester"},
-			includeDeps:   true,
-			expectedCount: 2,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			agents, err := cli.ResolveAgentList(goent.PluginFS, tt.agentsFlag, tt.includeDeps, false)
-			require.NoError(t, err)
-			assert.Len(t, agents, tt.expectedCount)
-		})
-	}
+	assert.Contains(t, opencodeContent, "name: coder")
+	assert.Contains(t, opencodeContent, "---")
 }

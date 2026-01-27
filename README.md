@@ -79,7 +79,7 @@ Add the plugin source to your Claude Code settings:
 
 Then restart Claude Code.
 
-### 2. Using go-ent
+### 2. Using ent
 
 **Via MCP (in Claude Code):**
 
@@ -98,11 +98,11 @@ Call go_ent_spec_list tool with type="spec"
 
 **Via CLI (standalone):**
 
-The `go-ent` binary can also be used as a standalone CLI:
+The `ent` binary can also be used as a standalone CLI:
 
 ```bash
-# Initialize configuration
-ent config init
+# Initialize ent configuration
+ent init --tool=claude
 
 # View configuration
 ent config show
@@ -122,11 +122,11 @@ The LLM (Claude Code) will generate code based on specs and templates, not copy-
 
 ### MCP Server
 
-The `go-ent` binary is now an MCP server that provides tools for managing `openspec` folders:
+The `ent` binary is now an MCP server that provides tools for managing `openspec` folders:
 
 ```
 go-ent/
-├── cmd/go-ent/              # MCP server
+├── cmd/ent/                # MCP server
 │   └── main.go             # stdio transport
 ├── internal/
 │   ├── mcp/
@@ -221,10 +221,32 @@ project/openspec/
 
 ## CLI Commands
 
-The `go-ent` binary can run in two modes:
+The `ent` binary can run in two modes:
 
 1. **MCP Server Mode** (default): Communicates via stdio with Claude Code
 2. **CLI Mode**: Standalone command-line interface for automation and scripting
+
+### Initialization
+
+```bash
+# Initialize ent configuration for Claude Code
+ent init --tool=claude
+
+# Initialize for OpenCode
+ent init --tool=opencode
+
+# Initialize for both platforms
+ent init --tool=claude,opencode
+
+# Use custom prefix for agent directories
+ent init --tool=claude --prefix=myproject
+
+# Preview changes without writing files
+ent init --tool=claude --dry-run
+
+# Force overwrite existing files
+ent init --tool=claude --force
+```
 
 ### Configuration Management
 
@@ -574,7 +596,7 @@ make build
 
 ```
 go-ent/
-├── cmd/go-ent/              # MCP server binary
+├── cmd/ent/                 # MCP server binary
 │   └── main.go
 ├── internal/
 │   ├── mcp/
@@ -657,7 +679,7 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 
 ## Migration from v1.x
 
-v1.x used template-based file generation (`go-ent init`). v2.0 uses:
+v1.x used template-based file generation (`ent init`). v2.0 uses:
 
 - **MCP server** instead of CLI
 - **Spec-driven development** instead of template copying
