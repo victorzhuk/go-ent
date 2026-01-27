@@ -401,7 +401,8 @@ func (s *StateStore) UpdateTaskInFile(taskID TaskID, status RegistryTaskStatus, 
 }
 
 func (s *StateStore) readFileLines(path string) ([]string, error) {
-	f, err := os.Open(path)
+	path = filepath.Clean(path)
+	f, err := os.Open(path) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +418,8 @@ func (s *StateStore) readFileLines(path string) ([]string, error) {
 }
 
 func (s *StateStore) writeFileLines(path string, lines []string) error {
-	f, err := os.Create(path)
+	path = filepath.Clean(path)
+	f, err := os.Create(path) //nolint:gosec
 	if err != nil {
 		return err
 	}

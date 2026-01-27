@@ -81,6 +81,13 @@ func Load(projectRoot string) (*Config, error) {
 // Metrics Section:
 //   - GOENT_METRICS_ENABLED: Enable or disable metrics collection (true|false)
 //
+// Summarization Section:
+//   - GOENT_SUMMARIZATION_ENABLED: Enable automatic summarization (true|false)
+//   - GOENT_SUMMARIZATION_THRESHOLD_FILE_COUNT: File count threshold (int)
+//   - GOENT_SUMMARIZATION_THRESHOLD_CONTEXT_LENGTH: Context length threshold (int)
+//   - GOENT_SUMMARIZATION_THRESHOLD_TOKEN_COUNT: Token count threshold (int)
+//   - GOENT_SUMMARIZATION_MODEL: LLM model to use for summarization (string)
+//
 // # Error Handling
 //
 // Invalid environment variable values will cause LoadWithEnv to return an error:
@@ -139,6 +146,42 @@ func LoadWithEnv(projectRoot string, getenv func(string) string) (*Config, error
 			return nil, fmt.Errorf("invalid GOENT_METRICS_ENABLED: %w", err)
 		}
 		cfg.Metrics.Enabled = val
+	}
+
+	if v := getenv("GOENT_SUMMARIZATION_ENABLED"); v != "" {
+		var val bool
+		if _, err := fmt.Sscanf(v, "%t", &val); err != nil {
+			return nil, fmt.Errorf("invalid GOENT_SUMMARIZATION_ENABLED: %w", err)
+		}
+		cfg.Summarization.Enabled = val
+	}
+
+	if v := getenv("GOENT_SUMMARIZATION_THRESHOLD_FILE_COUNT"); v != "" {
+		var val int
+		if _, err := fmt.Sscanf(v, "%d", &val); err != nil {
+			return nil, fmt.Errorf("invalid GOENT_SUMMARIZATION_THRESHOLD_FILE_COUNT: %w", err)
+		}
+		cfg.Summarization.Threshold.FileCount = val
+	}
+
+	if v := getenv("GOENT_SUMMARIZATION_THRESHOLD_CONTEXT_LENGTH"); v != "" {
+		var val int
+		if _, err := fmt.Sscanf(v, "%d", &val); err != nil {
+			return nil, fmt.Errorf("invalid GOENT_SUMMARIZATION_THRESHOLD_CONTEXT_LENGTH: %w", err)
+		}
+		cfg.Summarization.Threshold.ContextLength = val
+	}
+
+	if v := getenv("GOENT_SUMMARIZATION_THRESHOLD_TOKEN_COUNT"); v != "" {
+		var val int
+		if _, err := fmt.Sscanf(v, "%d", &val); err != nil {
+			return nil, fmt.Errorf("invalid GOENT_SUMMARIZATION_THRESHOLD_TOKEN_COUNT: %w", err)
+		}
+		cfg.Summarization.Threshold.TokenCount = val
+	}
+
+	if v := getenv("GOENT_SUMMARIZATION_MODEL"); v != "" {
+		cfg.Summarization.Model = v
 	}
 
 	if err := cfg.Validate(); err != nil {

@@ -155,24 +155,16 @@ func (m *MemoryStore) evaluatePattern(patterns []*Pattern, stats *PatternStats, 
 		return nil
 	}
 
-	var taskTypeMatch bool
 	var fileCountMatch bool
 	var contextSizeMatch bool
 
 	for _, p := range patterns {
-		if p.TaskType == taskType {
-			taskTypeMatch = true
-		}
 		if fileCount > 0 && p.FileCount == fileCount {
 			fileCountMatch = true
 		}
 		if contextSize > 0 && p.ContextSize == contextSize {
 			contextSizeMatch = true
 		}
-	}
-
-	if !taskTypeMatch && len(patterns) > 0 {
-		taskType = patterns[0].TaskType
 	}
 
 	confidence := stats.SuccessRate / 100.0
@@ -190,11 +182,6 @@ func (m *MemoryStore) evaluatePattern(patterns []*Pattern, stats *PatternStats, 
 
 	if confidence < 0.6 {
 		return nil
-	}
-
-	recommendedFor := []string{}
-	if taskType != "" {
-		recommendedFor = append(recommendedFor, taskType)
 	}
 
 	if len(patterns) > 0 {

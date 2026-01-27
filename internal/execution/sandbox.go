@@ -139,7 +139,7 @@ func (s *Sandbox) CheckFileAccess(path string) error {
 	}
 
 	for _, allowed := range s.allowFS {
-		if path == allowed || matchesPattern(path, allowed) {
+		if matchesPattern(path, allowed) {
 			return nil
 		}
 	}
@@ -170,10 +170,19 @@ func (s *Sandbox) GetLimits() ResourceLimits {
 
 // matchesPattern checks if a string matches a pattern (simple wildcard support).
 func matchesPattern(s, pattern string) bool {
-	// Simple pattern matching - can be enhanced with filepath.Match
 	if pattern == "*" {
 		return true
 	}
-	// For now, exact match
-	return s == pattern
+
+	// Exact match
+	if s == pattern {
+		return true
+	}
+
+	// Directory prefix match: if pattern is a directory, allow any file under it
+	if len(s) > len(pattern) && s[:len(pattern)] == pattern && s[len(pattern)] == '/' {
+		return true
+	}
+
+	return false
 }

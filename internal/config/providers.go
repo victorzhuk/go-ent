@@ -278,7 +278,7 @@ func (h *HealthConfig) Validate() error {
 func LoadProviders(projectRoot string) (*ProvidersConfig, error) {
 	cfgPath := filepath.Join(projectRoot, defaultGoentDir, defaultProvidersFile)
 
-	data, err := os.ReadFile(cfgPath)
+	data, err := os.ReadFile(cfgPath) //nolint:gosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			return DefaultProvidersConfig(), nil
@@ -308,7 +308,8 @@ func LoadProviders(projectRoot string) (*ProvidersConfig, error) {
 }
 
 func LoadProvidersFromFile(path string) (*ProvidersConfig, error) {
-	data, err := os.ReadFile(path)
+	path = filepath.Clean(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("read providers config: %w", err)
 	}

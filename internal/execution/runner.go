@@ -90,11 +90,20 @@ type TaskContext struct {
 	// TaskID identifies the specific task.
 	TaskID string
 
-	// Files are relevant file paths for this task.
+	// Files are the relevant file paths for this task.
 	Files []string
 
 	// WorkflowID identifies the workflow if part of one.
 	WorkflowID string
+
+	// IsSummarized indicates if context has been summarized.
+	IsSummarized bool
+
+	// SummarizationCount tracks how many times context was summarized.
+	SummarizationCount int
+
+	// OriginalContext holds the pre-summarization context if summarized.
+	OriginalContext *TaskContext
 }
 
 // BudgetLimit defines spending constraints.
@@ -119,4 +128,34 @@ func (r *Result) TotalTokens() int {
 // Failed returns true if execution failed.
 func (r *Result) Failed() bool {
 	return !r.Success
+}
+
+// LLM model constants for summarization.
+const (
+	LLMModelClaude35   = "claude-3.5-sonnet"
+	LLMModelClaude4    = "claude-4-5-20251101"
+	LLMModelGPT4       = "gpt-4"
+	LLMModelGPT4Turbo  = "gpt-4-turbo"
+	LLMModelGPT35Turbo = "gpt-3.5-turbo"
+)
+
+// SummarizationThreshold defines when to trigger automatic context summarization.
+type SummarizationThreshold struct {
+	// FileCount triggers summarization when context exceeds this many files.
+	FileCount int
+
+	// ContextLength triggers summarization when total character count exceeds this.
+	ContextLength int
+
+	// TokenCount triggers summarization when estimated tokens exceed this.
+	TokenCount int
+}
+
+// DefaultSummarizationThreshold returns default thresholds.
+func DefaultSummarizationThreshold() SummarizationThreshold {
+	return SummarizationThreshold{
+		FileCount:     50,
+		ContextLength: 50000,
+		TokenCount:    10000,
+	}
 }

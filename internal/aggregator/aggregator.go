@@ -1656,8 +1656,7 @@ func ExtractPattern(result *WorkerResult) *memory.Pattern {
 	pattern.FileCount = len(result.FileEdits)
 	if result.Metadata != nil {
 		if contextSize, ok := result.Metadata["context_size"]; ok {
-			if _, err := fmt.Sscanf(contextSize, "%d", &pattern.ContextSize); err == nil {
-			}
+			_, _ = fmt.Sscanf(contextSize, "%d", &pattern.ContextSize)
 		}
 	}
 

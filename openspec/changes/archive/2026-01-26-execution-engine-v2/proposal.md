@@ -1,5 +1,7 @@
 # Proposal: Complete Execution Engine (v2 Features)
 
+## Status: complete
+
 ## Overview
 
 Implement v2 features for the execution engine to enable long-running executions, state persistence, and advanced context management. This completes the execution engine with capabilities for interrupting and resuming executions, handling large contexts via LLM summarization, and persistent state tracking.

@@ -679,6 +679,10 @@ MIT
 ## References
 
 - [CLI Examples](docs/CLI_EXAMPLES.md) - Comprehensive CLI usage guide
+- [Execution Engine v2](docs/EXECUTION_ENGINE_V2.md) - Execution engine v2 feature documentation
+- [Execution Engine Examples](docs/EXECUTION_ENGINE_EXAMPLES.md) - Practical code examples
+- [Execution Engine API](docs/EXECUTION_ENGINE_API.md) - Complete API reference
+- [Execution Engine Troubleshooting](docs/EXECUTION_ENGINE_TROUBLESHOOTING.md) - Debugging and recovery guide
 - [MCP Specification](https://modelcontextprotocol.io)
 - [Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)
 - [Development Guide](docs/DEVELOPMENT.md)

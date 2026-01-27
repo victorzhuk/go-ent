@@ -110,7 +110,7 @@ func (f *Fixer) FixFile(filePath string, content string) (*FixResult, error) {
 		}, nil
 	}
 
-	if err := os.WriteFile(filePath, []byte(normalized), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(normalized), 0600); err != nil {
 		return nil, fmt.Errorf("write file: %w", err)
 	}
 
@@ -717,7 +717,7 @@ func (f *Fixer) FixValidationFile(filePath string, content string) (*FixResult, 
 		}, nil
 	}
 
-	if err := os.WriteFile(filePath, []byte(fixed), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(fixed), 0600); err != nil {
 		return nil, fmt.Errorf("write file: %w", err)
 	}
 

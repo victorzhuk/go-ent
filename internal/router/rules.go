@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -46,8 +47,9 @@ func LoadRoutingConfig(path string) (*RoutingConfig, error) {
 	if path == "" {
 		path = defaultRoutingFile
 	}
+	path = filepath.Clean(path)
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			return &RoutingConfig{

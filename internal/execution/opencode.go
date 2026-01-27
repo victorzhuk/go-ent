@@ -6,15 +6,21 @@ import (
 	"log/slog"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/victorzhuk/go-ent/internal/domain"
+)
+
+const (
+	defaultOpenCodeTimeout = 30 * time.Second
 )
 
 // OpenCodeRunner executes tasks via OpenCode CLI subprocess.
 type OpenCodeRunner struct {
 	binaryPath string
 	logger     *slog.Logger
+	timeout    time.Duration
 }
 
 // NewOpenCodeRunner creates a new OpenCode subprocess runner.
@@ -25,7 +31,14 @@ func NewOpenCodeRunner(logger *slog.Logger) *OpenCodeRunner {
 	return &OpenCodeRunner{
 		binaryPath: "opencode",
 		logger:     logger,
+		timeout:    defaultOpenCodeTimeout,
 	}
+}
+
+// WithTimeout sets a custom timeout for OpenCode execution.
+func (r *OpenCodeRunner) WithTimeout(timeout time.Duration) *OpenCodeRunner {
+	r.timeout = timeout
+	return r
 }
 
 // Runtime returns the runtime this runner supports.
@@ -130,8 +143,11 @@ func (r *OpenCodeRunner) buildPrompt(req *Request) string {
 
 // executeSubprocess spawns OpenCode process and captures output.
 func (r *OpenCodeRunner) executeSubprocess(ctx context.Context, prompt string, req *Request) (string, error) {
+	// Add timeout to context
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
 	// Build OpenCode command
-	// Example: opencode --model sonnet --prompt "task description"
 	args := []string{}
 
 	// Add model selection if specified
@@ -148,9 +164,22 @@ func (r *OpenCodeRunner) executeSubprocess(ctx context.Context, prompt string, r
 		cmd.Dir = req.Context.ProjectPath
 	}
 
+	// Set process group ID for cleanup
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
+
 	// Execute and capture output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		// Check if timeout occurred
+		if ctx.Err() == context.DeadlineExceeded {
+			// Kill entire process group
+			if cmd.Process != nil {
+				_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			}
+			return string(output), fmt.Errorf("opencode subprocess timeout after %v", r.timeout)
+		}
 		return string(output), fmt.Errorf("opencode subprocess: %w", err)
 	}
 

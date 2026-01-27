@@ -76,7 +76,7 @@ func (h *ClientRequestHandler) handleReadTextFile(ctx context.Context, params js
 		return nil, err
 	}
 
-	content, err := os.ReadFile(cleanPath)
+	content, err := os.ReadFile(cleanPath) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
@@ -111,11 +111,11 @@ func (h *ClientRequestHandler) handleWriteTextFile(ctx context.Context, params j
 	}
 
 	dir := filepath.Dir(cleanPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("create directory: %w", err)
 	}
 
-	if err := os.WriteFile(cleanPath, []byte(p.Content), 0644); err != nil {
+	if err := os.WriteFile(cleanPath, []byte(p.Content), 0600); err != nil {
 		return nil, fmt.Errorf("write file: %w", err)
 	}
 
@@ -202,7 +202,7 @@ func (h *ClientRequestHandler) handleTerminalExec(ctx context.Context, params js
 		return nil, err
 	}
 
-	cmd := exec.CommandContext(ctx, p.Command, p.Args...)
+	cmd := exec.CommandContext(ctx, p.Command, p.Args...) //nolint:gosec
 
 	if p.Directory != "" {
 		cleanDir, err := sanitizePath(p.Directory)

@@ -13,6 +13,44 @@ func (m *MetricsConfig) Validate() error {
 	return nil
 }
 
+// SummarizationConfig configures context summarization behavior.
+type SummarizationConfig struct {
+	// Enabled enables automatic summarization (default: true).
+	Enabled bool `yaml:"enabled"`
+
+	// Threshold defines when to trigger summarization.
+	Threshold ThresholdConfig `yaml:"threshold"`
+
+	// Model is the LLM model to use for summarization.
+	Model string `yaml:"model"`
+}
+
+// ThresholdConfig defines summarization triggers.
+type ThresholdConfig struct {
+	// FileCount triggers summarization when context exceeds this many files.
+	FileCount int `yaml:"file_count"`
+
+	// ContextLength triggers summarization when total character count exceeds this.
+	ContextLength int `yaml:"context_length"`
+
+	// TokenCount triggers summarization when estimated tokens exceed this.
+	TokenCount int `yaml:"token_count"`
+}
+
+// Validate validates the summarization configuration.
+func (s *SummarizationConfig) Validate() error {
+	if s.Threshold.FileCount < 0 {
+		return ErrInvalidConfig
+	}
+	if s.Threshold.ContextLength < 0 {
+		return ErrInvalidConfig
+	}
+	if s.Threshold.TokenCount < 0 {
+		return ErrInvalidConfig
+	}
+	return nil
+}
+
 // Config represents the complete go-ent configuration.
 // Supports hierarchical loading from project-level (.go-ent/config.yaml)
 // with environment variable overrides.
@@ -40,6 +78,9 @@ type Config struct {
 
 	// Metrics configures metrics collection and privacy settings.
 	Metrics MetricsConfig `yaml:"metrics,omitempty"`
+
+	// Summarization configures context summarization behavior.
+	Summarization SummarizationConfig `yaml:"summarization,omitempty"`
 }
 
 // RuntimeConfig configures execution environment preferences.
@@ -115,6 +156,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.Metrics.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Summarization.Validate(); err != nil {
 		return err
 	}
 

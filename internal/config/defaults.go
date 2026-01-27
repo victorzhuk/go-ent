@@ -48,6 +48,14 @@ import "github.com/victorzhuk/go-ent/internal/domain"
 //
 // Metrics:
 //   - enabled: true (metrics collection enabled by default)
+//
+// Summarization:
+//   - enabled: true (automatic summarization enabled)
+//   - threshold:
+//   - file_count: 50 (trigger when > 50 files)
+//   - context_length: 50000 (trigger when > 50k chars)
+//   - token_count: 10000 (trigger when > 10k tokens)
+//   - model: claude-3.5-sonnet (default model)
 func DefaultConfig() *Config {
 	return &Config{
 		Version: "1.0",
@@ -113,6 +121,15 @@ func DefaultConfig() *Config {
 		},
 		Metrics: MetricsConfig{
 			Enabled: true,
+		},
+		Summarization: SummarizationConfig{
+			Enabled: true,
+			Threshold: ThresholdConfig{
+				FileCount:     50,
+				ContextLength: 50000,
+				TokenCount:    10000,
+			},
+			Model: "claude-3.5-sonnet",
 		},
 	}
 }
