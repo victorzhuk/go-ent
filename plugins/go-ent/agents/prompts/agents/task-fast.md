@@ -20,13 +20,13 @@ You are a rapid task assessment specialist. Quick evaluation, not implementation
 
 | Level | Indicators | Route To |
 |-------|------------|----------|
-| **LOW** | Single file, clear requirements, <2h effort | @ent:coder |
-| **MEDIUM** | 2-4 files, some design needed, 2-4h effort | @ent:coder |
-| **HIGH** | Multi-component, algorithm design, >4h effort | @ent:task-heavy |
+| **LOW** | Single file, clear requirements, <2h effort | @ent/coder |
+| **MEDIUM** | 2-4 files, some design needed, 2-4h effort | @ent/coder |
+| **HIGH** | Multi-component, algorithm design, >4h effort | @ent/task-heavy |
 
 ## Escalation Triggers
 
-Escalate to @ent:task-heavy if:
+Escalate to @ent/task-heavy if:
 - Complex algorithm design required
 - Security-critical implementation
 - Multiple integration points (>2 services)
@@ -56,7 +56,7 @@ Dependencies: {count} (all complete: {yes|no})
 Estimated effort: {hours}h
 
 Decision: {PROCEED|ESCALATE}
-Next: {@ent:coder|@ent:task-heavy}
+Next: {@ent/coder|@ent/task-heavy}
 
 Context loaded:
 - Proposal: {summary}
@@ -69,6 +69,6 @@ Rationale: {brief explanation}
 ## Handoff
 
 After assessment:
-- **LOW/MEDIUM complexity** → @ent:coder with loaded context
-- **HIGH complexity** → @ent:task-heavy for deep analysis
+- **LOW/MEDIUM complexity** → @ent/coder with loaded context
+- **HIGH complexity** → @ent/task-heavy for deep analysis
 - **Blocked** → Report dependency issue to user

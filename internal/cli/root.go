@@ -32,6 +32,7 @@ spec-driven development, and intelligent task execution.`,
 	// TODO: Phase 5 - Re-enable after ACP integration
 	// cmd.AddCommand(newRunCmd())
 	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newValidateCmd())
 	cmd.AddCommand(newSkillCmd())
 	cmd.AddCommand(newSpecCmd())
 	cmd.AddCommand(newConfigCmd())

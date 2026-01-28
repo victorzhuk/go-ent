@@ -1,0 +1,37 @@
+# Tool Presets for Agent Configuration
+#
+# These presets reduce duplication by grouping commonly used tools.
+# Agents reference presets by name instead of listing individual tools.
+
+presets:
+  # Basic file reading without modification
+  read-only:
+    - Read
+    - Glob
+    - Grep
+
+  # Full editing capabilities (read + write)
+  editing:
+    - Read
+    - Write
+    - Edit
+    - Bash
+    - Glob
+    - Grep
+
+  # Serena symbolic analysis tools (read-only)
+  serena-analysis:
+    - mcp__plugin_serena_serena__find_symbol
+    - mcp__plugin_serena_serena__find_referencing_symbols
+    - mcp__plugin_serena_serena__get_symbols_overview
+    - mcp__plugin_serena_serena__search_for_pattern
+    - mcp__plugin_serena_serena__list_dir
+    - mcp__plugin_serena_serena__read_file
+
+  # Serena editing tools (disallowed by default for safety)
+  serena-editing:
+    - mcp__plugin_serena_serena__replace_symbol_body
+    - mcp__plugin_serena_serena__insert_after_symbol
+    - mcp__plugin_serena_serena__insert_before_symbol
+    - mcp__plugin_serena_serena__create_text_file
+    - mcp__plugin_serena_serena__replace_content

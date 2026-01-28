@@ -1,18 +1,8 @@
-name: task-fast
+name: ent:task-fast
 description: Quick task assessment and routing. Fast complexity evaluation.
+extends: task
 model: fast
 color: "#87CEEB"
-skills:
-  - arch-core
-tools:
-  - Read
-  - Grep
-  - Glob
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
 dependencies:
-  - coder
-  - task-heavy
+  - ent:coder
+  - ent:task-heavy

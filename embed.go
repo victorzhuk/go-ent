@@ -13,6 +13,9 @@ import "embed"
 // Commands, skills, hooks, and scripts
 //
 //go:embed plugins/go-ent/agents/meta/*.yaml
+//go:embed plugins/go-ent/agents/meta/bases/*.yaml
+//go:embed plugins/go-ent/agents/presets/*.yaml
+//go:embed plugins/go-ent/agents/schema/*.json
 //go:embed plugins/go-ent/agents/prompts/shared/*.md
 //go:embed plugins/go-ent/agents/prompts/agents/*.md
 //go:embed plugins/go-ent/agents/templates/*.tmpl

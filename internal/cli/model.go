@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/victorzhuk/go-ent/internal/model"
+	"github.com/victorzhuk/go-ent/internal/config"
 )
 
 func newModelCmd() *cobra.Command {
@@ -28,12 +28,12 @@ func newModelListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List current model mappings",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			global, _ := model.LoadGlobal()
-			project, _ := model.LoadProject(".")
-			cfg := model.Merge(global, project)
+			global, _ := config.LoadGlobalModelConfig()
+			project, _ := config.LoadProjectModelConfig(".")
+			cfg := config.MergeModelConfigs(global, project)
 
 			if cfg == nil {
-				cfg = model.DefaultConfig()
+				cfg = config.DefaultModelConfig()
 			}
 
 			if runtime != "" {
@@ -76,7 +76,7 @@ func newModelSetCmd() *cobra.Command {
 			category := args[0]
 			modelID := args[1]
 
-			if !model.IsValid(category) {
+			if !config.IsValidModelCategory(category) {
 				return fmt.Errorf("invalid category: %s (must be fast, main, or heavy)", category)
 			}
 
@@ -84,13 +84,13 @@ func newModelSetCmd() *cobra.Command {
 				return fmt.Errorf("--runtime flag is required")
 			}
 
-			var cfg *model.Config
+			var cfg *config.ModelConfig
 			var err error
 
 			if global {
-				cfg, err = model.LoadGlobal()
+				cfg, err = config.LoadGlobalModelConfig()
 			} else {
-				cfg, err = model.LoadProject(".")
+				cfg, err = config.LoadProjectModelConfig(".")
 			}
 
 			if err != nil {
@@ -98,29 +98,29 @@ func newModelSetCmd() *cobra.Command {
 			}
 
 			if cfg == nil {
-				cfg = model.DefaultConfig()
+				cfg = config.DefaultModelConfig()
 			}
 
 			mapping, ok := cfg.Runtimes[runtime]
 			if !ok {
-				mapping = model.Mapping{}
+				mapping = config.ModelMapping{}
 			}
 
-			switch model.Category(category) {
-			case model.Fast:
+			switch config.ModelCategory(category) {
+			case config.ModelFast:
 				mapping.Fast = modelID
-			case model.Main:
+			case config.ModelMain:
 				mapping.Main = modelID
-			case model.Heavy:
+			case config.ModelHeavy:
 				mapping.Heavy = modelID
 			}
 
 			cfg.Runtimes[runtime] = mapping
 
 			if global {
-				err = model.SaveGlobal(cfg)
+				err = config.SaveGlobalModelConfig(cfg)
 			} else {
-				err = model.SaveProject(".", cfg)
+				err = config.SaveProjectModelConfig(".", cfg)
 			}
 
 			if err != nil {
@@ -146,13 +146,13 @@ func newModelResetCmd() *cobra.Command {
 		Use:   "reset",
 		Short: "Reset model mappings to defaults",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := model.DefaultConfig()
+			cfg := config.DefaultModelConfig()
 
 			if runtime != "" {
 				// Only reset specific runtime
-				existing, _ := model.LoadGlobal()
+				existing, _ := config.LoadGlobalModelConfig()
 				if existing != nil && !global {
-					existing, _ = model.LoadProject(".")
+					existing, _ = config.LoadProjectModelConfig(".")
 				}
 
 				if existing != nil {
@@ -166,9 +166,9 @@ func newModelResetCmd() *cobra.Command {
 
 			var err error
 			if global {
-				err = model.SaveGlobal(cfg)
+				err = config.SaveGlobalModelConfig(cfg)
 			} else {
-				err = model.SaveProject(".", cfg)
+				err = config.SaveProjectModelConfig(".", cfg)
 			}
 
 			if err != nil {

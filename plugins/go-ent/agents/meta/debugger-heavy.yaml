@@ -1,5 +1,6 @@
-name: debugger-heavy
+name: ent:debugger-heavy
 description: Complex debugging. Concurrency, performance, multi-component issues.
+extends: debugger
 model: heavy
 color: "#8B0000"
 skills:
@@ -8,25 +9,7 @@ skills:
   - debug-core
   - go-sec
   - go-test
-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
-disallowedTools:
-  - mcp__plugin_serena_serena__replace_symbol_body
-  - mcp__plugin_serena_serena__insert_after_symbol
-  - mcp__plugin_serena_serena__insert_before_symbol
-  - mcp__plugin_serena_serena__create_text_file
-  - mcp__plugin_serena_serena__replace_content
 dependencies:
-  - reviewer
-  - acceptor
-  - tester
+  - ent:reviewer
+  - ent:acceptor
+  - ent:tester

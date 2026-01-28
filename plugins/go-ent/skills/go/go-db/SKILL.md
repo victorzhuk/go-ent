@@ -3,14 +3,25 @@ name: go-db
 description: "PostgreSQL, ClickHouse, Redis integration with pgx, squirrel, goose. Auto-activates for: database work, migrations, queries, repositories, caching."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "database", "pgx", "squirrel", "postgres"]
+quality_score: 89
+category: "go"
 depends_on: [go-code]
 ---
 
 <triggers>
-- keywords: ["database", "sql"]
-  file_pattern: "**/*_repo.go"
-  weight: 0.8
+keywords:
+  - "database"
+  - "sql"
+  - "postgres"
+  - "repository"
+  - "migration"
+file_pattern: "**/*_repo.go"
+weight: 0.8
 </triggers>
 
 # Go Database
@@ -197,21 +208,62 @@ If architecture decisions are needed: Delegate to go-arch skill for repository p
 </edge_cases>
 
 <examples>
+<example>
+<input>Implement user repository with CRUD operations</input>
+<output>
+```go
+type Repository struct {
+    pool *pgxpool.Pool
+}
 
-## Squirrel Queries with Joins
-For detailed implementation, see: `references/squirrel-queries.md`
+func New(pool *pgxpool.Pool) *Repository {
+    return &Repository{pool: pool}
+}
 
-## Redis Cache-Aside Pattern
-For detailed implementation, see: `references/caching-patterns.md`
+// Save inserts or updates user
+func (r *Repository) Save(ctx context.Context, user *entity.User) error {
+    query := `
+        INSERT INTO users (id, email, name, created_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id) DO UPDATE
+        SET email = EXCLUDED.email, name = EXCLUDED.name
+    `
+    
+    _, err := r.pool.Exec(ctx, query, user.ID, user.Email, user.Name, user.CreatedAt)
+    if err != nil {
+        return fmt.Errorf("save user: %w", err)
+    }
+    
+    return nil
+}
 
-## Goose Migrations with Rollback Strategy
-For detailed implementation, see: `references/goose-migrations.md`
+// FindByID retrieves user by ID
+func (r *Repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+    query := `SELECT id, email, name, created_at FROM users WHERE id = $1`
+    
+    var user entity.User
+    err := r.pool.QueryRow(ctx, query, id).Scan(&user.ID, &user.Email, &user.Name, &user.CreatedAt)
+    if err != nil {
+        if errors.Is(err, pgx.ErrNoRows) {
+            return nil, contract.ErrNotFound
+        }
+        return nil, fmt.Errorf("find user: %w", err)
+    }
+    
+    return &user, nil
+}
+```
 
-## Database Transactions with Error Handling
-For detailed implementation, see: `references/transactions.md`
+**Pattern**: Parameterized queries ($1, $2), error wrapping with context, domain error mapping (ErrNoRows → ErrNotFound).
+</output>
+</example>
 
-## CRUD Operations with Error Handling
-For detailed implementation, see: `references/crud-operations.md`
+For additional database implementation examples, see:
+- `references/squirrel-queries.md` - Complex queries with joins
+- `references/caching-patterns.md` - Redis cache-aside pattern
+- `references/goose-migrations.md` - Migration with rollback strategy
+- `references/transactions.md` - Transaction handling
+- `references/crud-operations.md` - Complete CRUD patterns
 
 </examples>
 

@@ -3,7 +3,14 @@ name: go-test
 description: "Testing patterns with testify, testcontainers, table-driven tests. Auto-activates for: writing tests, TDD, coverage, integration tests, mocks."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "testing", "tdd", "testify", "testcontainers"]
+quality_score: 91
+category: "go"
+depends_on: ["go-code"]
 ---
 
 <triggers>
@@ -12,8 +19,6 @@ tags: ["go", "testing", "tdd", "testify", "testcontainers"]
     - "testing"
   file_pattern: "**/*_test.go"
   weight: 0.8
-  depends_on:
-    - go-code
 </triggers>
 
 # Go Testing
@@ -224,173 +229,14 @@ func TestNewUser(t *testing.T) {
 <example>
 <input>Write integration test for user repository with testcontainers</input>
 <output>
-```go
-type UserRepoSuite struct {
-    suite.Suite
-    ctx       context.Context
-    container *testcontainers.PostgreSQLContainer
-    pool      *pgxpool.Pool
-    repo      *userRepo.Repository
-}
-
-func (s *UserRepoSuite) SetupSuite() {
-    s.ctx = context.Background()
-
-    container, err := postgres.Run(s.ctx, "postgres:alpine",
-        postgres.WithDatabase("testdb"),
-        postgres.WithUsername("testuser"),
-        postgres.WithPassword("testpass"),
-    )
-    s.Require().NoError(err)
-    s.container = container
-
-    connStr, err := container.ConnectionString(s.ctx, "sslmode=disable")
-    s.Require().NoError(err)
-
-    pool, err := pgxpool.New(s.ctx, connStr)
-    s.Require().NoError(err)
-    s.pool = pool
-
-    // Run migrations
-    _, err = s.pool.Exec(s.ctx, `
-        CREATE TABLE users (
-            id UUID PRIMARY KEY,
-            email VARCHAR(255) NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL
-        )
-    `)
-    s.Require().NoError(err)
-
-    s.repo = userRepo.New(s.pool)
-}
-
-func (s *UserRepoSuite) TearDownSuite() {
-    if s.pool != nil {
-        s.pool.Close()
-    }
-    if s.container != nil {
-        _ = testcontainers.TerminateContainer(s.ctx, s.container)
-    }
-}
-
-func (s *UserRepoSuite) TestSave() {
-    user := entity.User{
-        ID:        uuid.Must(uuid.NewV7()),
-        Email:     "test@example.com",
-        Name:      "Test User",
-        CreatedAt: time.Now(),
-    }
-
-    err := s.repo.Save(s.ctx, &user)
-    s.NoError(err)
-
-    // Verify
-    found, err := s.repo.FindByID(s.ctx, user.ID)
-    s.NoError(err)
-    s.Equal(user.ID, found.ID)
-    s.Equal(user.Email, found.Email)
-    s.Equal(user.Name, found.Name)
-}
-
-func TestUserRepoSuite(t *testing.T) {
-    suite.Run(t, new(UserRepoSuite))
-}
-```
-
-**Pattern**: SetupSuite for container, TearDownSuite for cleanup, testify/suite for test organization.
+See `references/testcontainers-setup.md` for complete testcontainers setup with PostgreSQL, migrations, and repository tests.
 </output>
 </example>
 
 <example>
 <input>Write usecase test with mocked repository</input>
 <output>
-```go
-func TestCreateUserUC_Execute(t *testing.T) {
-    type mocks struct {
-        userRepo *mock_userRepo.MockUserRepo
-    }
-
-    type args struct {
-        req CreateUserReq
-    }
-
-    tests := []struct {
-        name    string
-        setup   func(m *mocks)
-        args    args
-        want    *CreateUserResp
-        wantErr error
-    }{
-        {
-            name: "success",
-            setup: func(m *mocks) {
-                m.userRepo.EXPECT().
-                    Save(gomock.Any(), gomock.Any()).
-                    Return(nil)
-            },
-            args: args{
-                req: CreateUserReq{
-                    Email: "test@example.com",
-                    Name:  "Test User",
-                },
-            },
-            want: &CreateUserResp{
-                ID: uuid.Must(uuid.NewV7()),
-            },
-            wantErr: nil,
-        },
-        {
-            name: "duplicate email",
-            setup: func(m *mocks) {
-                m.userRepo.EXPECT().
-                    Save(gomock.Any(), gomock.Any()).
-                    Return(contract.ErrConflict)
-            },
-            args: args{
-                req: CreateUserReq{
-                    Email: "existing@example.com",
-                    Name:  "Test User",
-                },
-            },
-            want:    nil,
-            wantErr: contract.ErrConflict,
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            t.Parallel()
-
-            ctrl := gomock.NewController(t)
-            defer ctrl.Finish()
-
-            m := &mocks{
-                userRepo: mock_userRepo.NewMockUserRepo(ctrl),
-            }
-
-            if tt.setup != nil {
-                tt.setup(m)
-            }
-
-            uc := NewCreateUserUC(m.userRepo, slog.New(slog.DiscardHandler))
-            got, err := uc.Execute(context.Background(), tt.args.req)
-
-            if tt.wantErr != nil {
-                require.Error(t, err)
-                assert.ErrorIs(t, err, tt.wantErr)
-                assert.Nil(t, got)
-                return
-            }
-
-            require.NoError(t, err)
-            assert.Equal(t, tt.want.ID, got.ID)
-        })
-    }
-}
-```
-
-**Pattern**: gomock for type-safe mocks, setup function per test, gomock.Any() for context param matching.
+See `references/usecase-mocking.md` for complete UseCase testing with gomock, setup functions, and type-safe mocks.
 </output>
 </example>
 </examples>

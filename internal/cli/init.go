@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,20 +25,32 @@ func SetPluginFS(fs interface {
 	pluginFS = fs
 }
 
+type toolPresets struct {
+	Presets map[string][]string `yaml:"presets"`
+}
+
 type agentMeta struct {
-	Name         string   `yaml:"name"`
-	Description  string   `yaml:"description"`
-	Model        string   `yaml:"model"`
-	Color        string   `yaml:"color"`
-	Skills       []string `yaml:"skills"`
-	Tools        []string `yaml:"tools"`
-	Dependencies []string `yaml:"dependencies"`
-	Tags         []string `yaml:"tags"`
-	Role         string
-	Complexity   string
+	Name                  string   `yaml:"name"`
+	Description           string   `yaml:"description"`
+	Extends               string   `yaml:"extends"`
+	Model                 string   `yaml:"model"`
+	Color                 string   `yaml:"color"`
+	Role                  string   `yaml:"role"`
+	Complexity            string   `yaml:"complexity"`
+	Skills                []string `yaml:"skills"`
+	Tools                 []string `yaml:"tools"`
+	ToolPresets           []string `yaml:"toolPresets"`
+	DisallowedToolPresets []string `yaml:"disallowedToolPresets"`
+	DisallowedTools       []string `yaml:"disallowedTools"`
+	Dependencies          []string `yaml:"dependencies"`
 }
 
 func loadAgents() (map[string]*agentMeta, error) {
+	bases, err := loadBases()
+	if err != nil {
+		return nil, fmt.Errorf("load bases: %w", err)
+	}
+
 	agents := make(map[string]*agentMeta)
 
 	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/meta")
@@ -61,19 +74,220 @@ func loadAgents() (map[string]*agentMeta, error) {
 			return nil, fmt.Errorf("parse %s: %w", path, err)
 		}
 
-		for _, tag := range meta.Tags {
-			if strings.HasPrefix(tag, "role:") {
-				meta.Role = strings.TrimPrefix(tag, "role:")
+		if meta.Extends != "" {
+			base, ok := bases[meta.Extends]
+			if !ok {
+				return nil, fmt.Errorf("%s: extends unknown base: %s", entry.Name(), meta.Extends)
 			}
-			if strings.HasPrefix(tag, "complexity:") {
-				meta.Complexity = strings.TrimPrefix(tag, "complexity:")
-			}
+			merged := mergeAgents(base, &meta)
+			meta = *merged
+		}
+
+		if err := validateAgent(&meta, entry.Name()); err != nil {
+			return nil, err
 		}
 
 		agents[meta.Name] = &meta
 	}
 
 	return agents, nil
+}
+
+func loadBases() (map[string]*agentMeta, error) {
+	bases := make(map[string]*agentMeta)
+
+	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/meta/bases")
+	if err != nil {
+		return bases, nil
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".yaml") {
+			continue
+		}
+
+		path := filepath.Join("plugins/go-ent/agents/meta/bases", entry.Name())
+		data, err := pluginFS.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", path, err)
+		}
+
+		var meta agentMeta
+		if err := yaml.Unmarshal(data, &meta); err != nil {
+			return nil, fmt.Errorf("parse %s: %w", path, err)
+		}
+
+		baseName := strings.TrimSuffix(entry.Name(), ".yaml")
+		bases[baseName] = &meta
+	}
+
+	return bases, nil
+}
+
+func mergeAgents(base, variant *agentMeta) *agentMeta {
+	merged := *base
+
+	if variant.Name != "" {
+		merged.Name = variant.Name
+	}
+	if variant.Description != "" {
+		merged.Description = variant.Description
+	}
+	if variant.Model != "" {
+		merged.Model = variant.Model
+	}
+	if variant.Color != "" {
+		merged.Color = variant.Color
+	}
+	if variant.Role != "" {
+		merged.Role = variant.Role
+	}
+	if variant.Complexity != "" {
+		merged.Complexity = variant.Complexity
+	}
+
+	if len(variant.Skills) > 0 {
+		merged.Skills = variant.Skills
+	}
+	if len(variant.Tools) > 0 {
+		merged.Tools = variant.Tools
+	}
+	if len(variant.ToolPresets) > 0 {
+		merged.ToolPresets = variant.ToolPresets
+	}
+	if len(variant.DisallowedToolPresets) > 0 {
+		merged.DisallowedToolPresets = variant.DisallowedToolPresets
+	}
+	if len(variant.DisallowedTools) > 0 {
+		merged.DisallowedTools = variant.DisallowedTools
+	}
+	if len(variant.Dependencies) > 0 {
+		merged.Dependencies = variant.Dependencies
+	}
+
+	return &merged
+}
+
+func loadToolPresets() (*toolPresets, error) {
+	data, err := pluginFS.ReadFile("plugins/go-ent/agents/presets/tools.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("read tool presets: %w", err)
+	}
+
+	var presets toolPresets
+	if err := yaml.Unmarshal(data, &presets); err != nil {
+		return nil, fmt.Errorf("parse tool presets: %w", err)
+	}
+
+	return &presets, nil
+}
+
+func expandToolPresets(meta *agentMeta, presets *toolPresets) {
+	toolSet := make(map[string]bool)
+
+	for _, tools := range meta.Tools {
+		toolSet[tools] = true
+	}
+
+	for _, presetName := range meta.ToolPresets {
+		tools, ok := presets.Presets[presetName]
+		if !ok {
+			continue
+		}
+		for _, tool := range tools {
+			toolSet[tool] = true
+		}
+	}
+
+	disallowedSet := make(map[string]bool)
+	for _, tool := range meta.DisallowedTools {
+		disallowedSet[tool] = true
+	}
+
+	for _, presetName := range meta.DisallowedToolPresets {
+		tools, ok := presets.Presets[presetName]
+		if !ok {
+			continue
+		}
+		for _, tool := range tools {
+			disallowedSet[tool] = true
+		}
+	}
+
+	for tool := range disallowedSet {
+		delete(toolSet, tool)
+	}
+
+	meta.Tools = make([]string, 0, len(toolSet))
+	for tool := range toolSet {
+		meta.Tools = append(meta.Tools, tool)
+	}
+}
+
+func validateAgent(meta *agentMeta, filename string) error {
+	if meta.Name == "" {
+		return fmt.Errorf("%s: name is required", filename)
+	}
+
+	if !strings.HasPrefix(meta.Name, "ent:") {
+		return fmt.Errorf("%s: name must start with 'ent:' (got: %s)", filename, meta.Name)
+	}
+
+	if meta.Description == "" {
+		return fmt.Errorf("%s: description is required", filename)
+	}
+
+	if len(meta.Description) < 10 {
+		return fmt.Errorf("%s: description must be at least 10 characters", filename)
+	}
+
+	if meta.Model == "" {
+		return fmt.Errorf("%s: model is required", filename)
+	}
+
+	validModels := map[string]bool{"fast": true, "main": true, "heavy": true}
+	if !validModels[meta.Model] {
+		return fmt.Errorf("%s: model must be one of [fast, main, heavy] (got: %s)", filename, meta.Model)
+	}
+
+	if meta.Color != "" && !strings.HasPrefix(meta.Color, "#") {
+		return fmt.Errorf("%s: color must be a hex code starting with # (got: %s)", filename, meta.Color)
+	}
+
+	if meta.Role != "" {
+		validRoles := map[string]bool{"planning": true, "execution": true, "validation": true, "research": true}
+		if !validRoles[meta.Role] {
+			return fmt.Errorf("%s: role must be one of [planning, execution, validation, research] (got: %s)", filename, meta.Role)
+		}
+	}
+
+	if meta.Complexity != "" {
+		validComplexity := map[string]bool{"simple": true, "standard": true, "heavy": true}
+		if !validComplexity[meta.Complexity] {
+			return fmt.Errorf("%s: complexity must be one of [simple, standard, heavy] (got: %s)", filename, meta.Complexity)
+		}
+	}
+
+	validPresets := map[string]bool{"read-only": true, "editing": true, "serena-analysis": true, "serena-editing": true}
+	for _, preset := range meta.ToolPresets {
+		if !validPresets[preset] {
+			return fmt.Errorf("%s: unknown tool preset: %s", filename, preset)
+		}
+	}
+
+	for _, preset := range meta.DisallowedToolPresets {
+		if !validPresets[preset] {
+			return fmt.Errorf("%s: unknown disallowed tool preset: %s", filename, preset)
+		}
+	}
+
+	for _, dep := range meta.Dependencies {
+		if !strings.HasPrefix(dep, "ent:") {
+			return fmt.Errorf("%s: dependency must start with 'ent:' (got: %s)", filename, dep)
+		}
+	}
+
+	return nil
 }
 
 func loadPrompts() (map[string]string, error) {
@@ -96,7 +310,7 @@ func loadPrompts() (map[string]string, error) {
 		}
 
 		name := strings.TrimSuffix(entry.Name(), ".md")
-		prompts[name] = string(data)
+		prompts["ent:"+name] = string(data)
 	}
 
 	return prompts, nil
@@ -153,6 +367,14 @@ func loadTemplate(tool string) (*template.Template, error) {
 	return tpl, nil
 }
 
+func processIncludes(content string, params map[string]string) string {
+	for key, value := range params {
+		placeholder := "{{" + key + "}}"
+		content = strings.ReplaceAll(content, placeholder, value)
+	}
+	return content
+}
+
 func renderAgent(meta *agentMeta, prompt, shared string, tpl *template.Template) (string, error) {
 	var result strings.Builder
 
@@ -160,20 +382,74 @@ func renderAgent(meta *agentMeta, prompt, shared string, tpl *template.Template)
 		return "", fmt.Errorf("execute template: %w", err)
 	}
 
-	result.WriteString("---\n\n")
-	result.WriteString(shared)
+	roleParams := map[string]string{
+		"ROLE":         getRoleDisplay(meta),
+		"ROLE_CONTEXT": getRoleContext(meta),
+		"AGENT_NAME":   meta.Name,
+	}
+
+	processedPrompt := processIncludes(prompt, roleParams)
+	processedShared := processIncludes(shared, roleParams)
+
+	// Template already includes closing ---, just add content
+	result.WriteString("\n")
+	result.WriteString(processedShared)
 	result.WriteString("\n\n")
-	result.WriteString(prompt)
+	result.WriteString(processedPrompt)
 
 	return result.String(), nil
 }
 
+func getRoleDisplay(meta *agentMeta) string {
+	roleMap := map[string]string{
+		"planning":   "Planning",
+		"execution":  "Implementation",
+		"validation": "Validation",
+		"research":   "Research",
+	}
+
+	if display, ok := roleMap[meta.Role]; ok {
+		return display
+	}
+
+	baseName := meta.Name
+	if idx := strings.LastIndex(baseName, ":"); idx != -1 {
+		baseName = baseName[idx+1:]
+	}
+
+	if len(baseName) > 0 {
+		return strings.ToUpper(baseName[:1]) + baseName[1:]
+	}
+	return baseName
+}
+
+func getRoleContext(meta *agentMeta) string {
+	contextMap := map[string]string{
+		"planning":   "task breakdown and architecture design",
+		"execution":  "code implementation and development",
+		"validation": "testing and quality assurance",
+		"research":   "investigation and analysis",
+	}
+
+	if context, ok := contextMap[meta.Role]; ok {
+		return context
+	}
+	return "software development"
+}
+
 func getAgentPath(tool, prefix, name string) string {
+	// Extract base name from prefixed name (e.g., "ent:coder" -> "coder")
+	baseName := name
+	if idx := strings.LastIndex(name, ":"); idx != -1 {
+		baseName = name[idx+1:]
+	}
+
 	switch tool {
 	case "claude":
-		return filepath.Join(".claude", "agents", prefix, name+".md")
+		return filepath.Join(".claude", "agents", prefix, baseName+".md")
 	case "opencode":
-		return filepath.Join(".opencode", "agent", name+".md")
+		// Use same prefixed structure as Claude: .opencode/agents/<prefix>/<name>.md
+		return filepath.Join(".opencode", "agents", prefix, baseName+".md")
 	default:
 		return ""
 	}
@@ -213,6 +489,7 @@ func copyCommands(tool, prefix string, force, dryRun bool) error {
 	case "claude":
 		targetDir = filepath.Join(".claude", "commands", prefix)
 	case "opencode":
+		// Use same prefixed structure as Claude: .opencode/commands/<prefix>/
 		targetDir = filepath.Join(".opencode", "commands", prefix)
 	default:
 		return fmt.Errorf("unsupported tool: %s", tool)
@@ -239,9 +516,9 @@ func copyCommands(tool, prefix string, force, dryRun bool) error {
 }
 
 func copySkills(tool, prefix string, force, dryRun bool) error {
-	var walk func(dir string) error
+	var walk func(dir string, baseTargetDir string) error
 
-	walk = func(dir string) error {
+	walk = func(dir string, baseTargetDir string) error {
 		entries, err := pluginFS.ReadDir(dir)
 		if err != nil {
 			return fmt.Errorf("read directory %s: %w", dir, err)
@@ -251,7 +528,7 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 			srcPath := filepath.Join(dir, entry.Name())
 
 			if entry.IsDir() {
-				if err := walk(srcPath); err != nil {
+				if err := walk(srcPath, filepath.Join(baseTargetDir, entry.Name())); err != nil {
 					return err
 				}
 				continue
@@ -266,19 +543,7 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 				return fmt.Errorf("read %s: %w", srcPath, err)
 			}
 
-			relPath := strings.TrimPrefix(srcPath, "plugins/go-ent/skills/")
-
-			var targetDir string
-			switch tool {
-			case "claude":
-				targetDir = filepath.Join(".claude", "skills", prefix)
-			case "opencode":
-				targetDir = filepath.Join(".opencode", "skills", prefix)
-			default:
-				return fmt.Errorf("unsupported tool: %s", tool)
-			}
-
-			dstPath := filepath.Join(targetDir, relPath)
+			dstPath := filepath.Join(baseTargetDir, entry.Name())
 			if err := writeFile(dstPath, string(data), force, dryRun); err != nil {
 				return err
 			}
@@ -287,7 +552,9 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 		return nil
 	}
 
-	return walk("plugins/go-ent/skills")
+	// Use same prefixed structure for both Claude and OpenCode
+	baseTargetDir := filepath.Join("."+tool, "skills", prefix)
+	return walk("plugins/go-ent/skills", baseTargetDir)
 }
 
 func printSummary(agentCount, commandCount, skillCount int, tool, prefix string, dryRun bool) {
@@ -310,29 +577,10 @@ func printSummary(agentCount, commandCount, skillCount int, tool, prefix string,
 		restartRequired = true
 	}
 
-	var agentPath string
-	switch tool {
-	case "claude":
-		agentPath = filepath.Join(".claude", "agents", prefix)
-	case "opencode":
-		agentPath = filepath.Join(".opencode", "agent")
-	}
-
-	var commandPath string
-	switch tool {
-	case "claude":
-		commandPath = filepath.Join(".claude", "commands", prefix)
-	case "opencode":
-		commandPath = filepath.Join(".opencode", "commands", prefix)
-	}
-
-	var skillPath string
-	switch tool {
-	case "claude":
-		skillPath = filepath.Join(".claude", "skills", prefix)
-	case "opencode":
-		skillPath = filepath.Join(".opencode", "skills", prefix)
-	}
+	// Use same prefixed structure for both Claude and OpenCode
+	agentPath := filepath.Join("."+tool, "agents", prefix)
+	commandPath := filepath.Join("."+tool, "commands", prefix)
+	skillPath := filepath.Join("."+tool, "skills", prefix)
 
 	if dryRun {
 		fmt.Printf("\n✅ Preview: Would initialize go-ent for %s\n\n", toolName)
@@ -401,6 +649,15 @@ Examples:
 				return fmt.Errorf("load agents: %w", err)
 			}
 
+			presets, err := loadToolPresets()
+			if err != nil {
+				return fmt.Errorf("load tool presets: %w", err)
+			}
+
+			for _, meta := range agents {
+				expandToolPresets(meta, presets)
+			}
+
 			prompts, err := loadPrompts()
 			if err != nil {
 				return fmt.Errorf("load prompts: %w", err)
@@ -422,11 +679,19 @@ Examples:
 					return fmt.Errorf("load template for %s: %w", tool, err)
 				}
 
+				global, _ := config.LoadGlobalModelConfig()
+				project, _ := config.LoadProjectModelConfig(".")
+				cfg := config.MergeModelConfigs(global, project)
+				resolver := config.NewModelResolver(cfg, tool)
+
 				for name, meta := range agents {
 					prompt, ok := prompts[name]
 					if !ok {
 						return fmt.Errorf("prompt not found for agent: %s", name)
 					}
+
+					meta.Model = resolver.ResolveAgent(meta.Model)
+					_ = cfg
 
 					content, err := renderAgent(meta, prompt, shared, tpl)
 					if err != nil {
@@ -498,6 +763,46 @@ Examples:
 	cmd.Flags().StringVar(&flags.prefix, "prefix", "ent", "Prefix for configuration directories")
 	cmd.Flags().BoolVar(&flags.force, "force", false, "Overwrite existing files")
 	cmd.Flags().BoolVar(&flags.dryRun, "dry-run", false, "Preview changes without writing files")
+
+	return cmd
+}
+
+func newValidateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate agent definitions",
+		Long: `Validate all agent definition files against the schema.
+
+This command checks that all agent YAML files in plugins/go-ent/agents/meta/
+conform to the required schema, including:
+  - Required fields (name, description, model)
+  - Valid enum values (model, role, complexity)
+  - Proper naming conventions (ent: prefix)
+  - Valid tool preset references
+  - Proper dependency references
+
+Examples:
+  ent validate`,
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if pluginFS == nil {
+				return errors.New("plugin filesystem not initialized")
+			}
+
+			agents, err := loadAgents()
+			if err != nil {
+				return fmt.Errorf("validation failed: %w", err)
+			}
+
+			fmt.Printf("✅ Validated %d agent definitions\n", len(agents))
+			fmt.Println("\nAll agents passed validation:")
+			for name := range agents {
+				fmt.Printf("  ✓ %s\n", name)
+			}
+
+			return nil
+		},
+	}
 
 	return cmd
 }

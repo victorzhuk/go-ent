@@ -685,7 +685,7 @@ v1.x used template-based file generation (`ent init`). v2.0 uses:
 - **Spec-driven development** instead of template copying
 - **LLM code generation** instead of string replacement
 
-See [MIGRATION_PLAN_GOENT_V3.md](docs/MIGRATION_PLAN_GOENT_V3.md) for the v3.0 multi-agent architecture migration plan.
+See [Historical Documentation](docs/archive/README.md) for archived planning documents.
 
 ## Contributing
 
@@ -700,12 +700,30 @@ MIT
 
 ## References
 
-- [CLI Examples](docs/CLI_EXAMPLES.md) - Comprehensive CLI usage guide
-- [Execution Engine v2](docs/EXECUTION_ENGINE_V2.md) - Execution engine v2 feature documentation
+### Documentation
+
+- **[Documentation Index](docs/INDEX.md)** - Central navigation hub for all documentation
+- [CLI Reference](docs/CLI_REFERENCE.md) - Complete CLI command reference
+- [CLI Examples](docs/CLI_EXAMPLES.md) - Common usage patterns
+- [Configuration Reference](docs/CONFIGURATION.md) - All configuration options
+- [OpenSpec Workflow](docs/OPENSPEC_WORKFLOW.md) - Spec-driven development guide
+- [Agents and Skills](docs/AGENTS_AND_SKILLS.md) - Agent system and skills
+- [MCP API Reference](docs/MCP_API.md) - MCP tools API documentation
+- [Commands Reference](docs/COMMANDS_REFERENCE.md) - Slash command reference
+- [Architecture](docs/ARCHITECTURE.md) - System architecture overview
+- [Development Guide](docs/DEVELOPMENT.md) - Self-hosted development workflow
+- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute
+- [Skill Authoring](docs/SKILL-AUTHORING.md) - Creating skills v2 format
+
+### Execution Engine v2
+
+- [Execution Engine v2](docs/EXECUTION_ENGINE_V2.md) - Feature documentation
 - [Execution Engine Examples](docs/EXECUTION_ENGINE_EXAMPLES.md) - Practical code examples
-- [Execution Engine API](docs/EXECUTION_ENGINE_API.md) - Complete API reference
-- [Execution Engine Troubleshooting](docs/EXECUTION_ENGINE_TROUBLESHOOTING.md) - Debugging and recovery guide
-- [MCP Specification](https://modelcontextprotocol.io)
+- [Execution Engine API](docs/EXECUTION_ENGINE_API.md) - API reference
+- [Execution Engine Troubleshooting](docs/EXECUTION_ENGINE_TROUBLESHOOTING.md) - Debugging guide
+
+### External Resources
+
+- [MCP Specification](https://modelcontextprotocol.io) - Model Context Protocol
 - [Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)
-- [Development Guide](docs/DEVELOPMENT.md)
-- [Migration Plan v3.0](docs/MIGRATION_PLAN_GOENT_V3.md)
+- [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) - OpenSpec standard

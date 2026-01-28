@@ -1,16 +1,26 @@
 ---
 name: go-migration
-description: "Design and implement database migrations for Go applications. Use for schema changes, data migrations."
+description: "Design and implement database migrations for Go applications. Auto-activates for: schema changes, data migrations, goose migrations, database evolution, rollback strategies."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "database", "migration", "schema"]
+quality_score: 84
+category: "go"
 depends_on: [go-db]
 ---
 
 <triggers>
-- keywords: ["migration", "schema change", "database migration"]
-  file_pattern: "**/migrations/*.sql"
-  weight: 0.8
+keywords:
+  - "migration"
+  - "schema change"
+  - "database migration"
+  - "goose"
+file_pattern: "**/migrations/*.sql"
+weight: 0.8
 </triggers>
 
 # Go Migration
@@ -355,49 +365,7 @@ ALTER TABLE accounts RENAME TO users;
 <example>
 <input>Migrate user status based on account age using Go migration</input>
 <output>
-```go
-func upMigrateUserStatus(tx *sql.Tx) error {
-    rows, err := tx.Query(`
-        SELECT id, created_at 
-        FROM users 
-        WHERE status IS NULL
-    `)
-    if err != nil {
-        return fmt.Errorf("query users: %w", err)
-    }
-    defer rows.Close()
-
-    for rows.Next() {
-        var id string
-        var createdAt time.Time
-        if err := rows.Scan(&id, &createdAt); err != nil {
-            return fmt.Errorf("scan row: %w", err)
-        }
-
-        status := "active"
-        if createdAt.Before(time.Now().AddDate(-1, 0, 0)) {
-            status = "inactive"
-        }
-
-        if _, err := tx.Exec(
-            "UPDATE users SET status = $1 WHERE id = $2",
-            status, id,
-        ); err != nil {
-            return fmt.Errorf("update user: %w", err)
-        }
-    }
-
-    return rows.Err()
-}
-
-func downMigrateUserStatus(tx *sql.Tx) error {
-    _, err := tx.Exec("UPDATE users SET status = NULL WHERE status IN ('active', 'inactive')")
-    if err != nil {
-        return fmt.Errorf("revert migration: %w", err)
-    }
-    return nil
-}
-```
+See `references/rollback-patterns.md` for complete rollback strategies including data migrations, non-rollbackable operations, and complex Go migrations with state preservation.
 </output>
 </example>
 

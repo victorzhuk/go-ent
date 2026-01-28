@@ -1,0 +1,11 @@
+name: ent:planner
+description: Task planner. Breaks features into actionable tasks.
+model: main
+color: "#32CD32"
+skills:
+  - go-arch
+  - go-code
+toolPresets:
+  - read-only
+  - serena-analysis
+dependencies: []

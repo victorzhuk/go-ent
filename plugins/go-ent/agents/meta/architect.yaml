@@ -1,23 +1,16 @@
-name: architect
+name: ent:architect
 description: System architect. Designs components, layers, data flow.
 model: heavy
 color: "#4169E1"
+role: planning
+complexity: heavy
 skills:
   - go-arch
   - go-api
   - api-design
-tools:
-  - Read
-  - Glob
-  - Grep
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
+toolPresets:
+  - read-only
+  - serena-analysis
 dependencies:
-  - planner
-  - coder
-tags:
-  - "role:planning"
-  - "complexity:heavy"
+  - ent:planner
+  - ent:coder

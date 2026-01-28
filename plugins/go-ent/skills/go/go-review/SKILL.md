@@ -3,7 +3,13 @@ name: go-review
 description: "Code review patterns and quality checks. Auto-activates for: code review, quality checks, PR review, architecture validation."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "review", "code-quality", "linting"]
+quality_score: 80
+category: "go"
 ---
 
 <triggers>

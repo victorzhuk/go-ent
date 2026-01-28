@@ -1,4 +1,4 @@
-name: reviewer
+name: ent:reviewer
 description: Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions.
 model: heavy
 color: "#4169E1"
@@ -6,15 +6,10 @@ skills:
   - go-review
   - security-core
   - go-sec
+toolPresets:
+  - read-only
+  - serena-analysis
 tools:
-  - Read
-  - Grep
-  - Glob
   - Bash
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
 dependencies:
   []

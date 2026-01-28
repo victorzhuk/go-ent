@@ -3,14 +3,24 @@ name: api-design
 description: "API design principles and best practices. Auto-activates for: REST API design, GraphQL schemas, gRPC services, API contracts, versioning strategies."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["api-design", "rest", "graphql", "openapi", "api-practices"]
+quality_score: 88
+category: "core"
 ---
 
 # API Design
 
 <triggers>
-- keywords: ["api design", "rest api"]
-  weight: 0.8
+keywords:
+  - "api design"
+  - "rest api"
+  - "graphql"
+  - "openapi"
+weight: 0.8
 </triggers>
 
 <role>
@@ -154,205 +164,14 @@ If rate limiting requirements vary: Implement tiered limits based on user roles 
 <example>
 <input>Design REST endpoint for user management with CRUD operations</input>
 <output>
-```yaml
-openapi: 3.0.0
-paths:
-  /users:
-    get:
-      summary: List users
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-
-    post:
-      summary: Create user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
-      responses:
-        '201':
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-  /users/{id}:
-    get:
-      summary: Get user by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-    put:
-      summary: Update user
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
-      responses:
-        '200':
-          description: User updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-    delete:
-      summary: Delete user
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: User deleted
-
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-```
+See `references/rest-patterns.md` for complete OpenAPI specification with resource-oriented design, pagination, and proper HTTP methods.
 </output>
 </example>
 
 <example>
 <input>Design GraphQL schema for blog with posts and comments</input>
 <output>
-```graphql
-type Query {
-  posts(first: Int, after: String): PostConnection!
-  post(id: ID!): Post
-  comments(postId: ID!): [Comment!]!
-}
-
-type Mutation {
-  createPost(input: CreatePostInput!): Post!
-  updatePost(id: ID!, input: UpdatePostInput!): Post!
-  deletePost(id: ID!): Boolean!
-  createComment(input: CreateCommentInput!): Comment!
-}
-
-type Post {
-  id: ID!
-  title: String!
-  content: String!
-  author: User!
-  comments(first: Int, after: String): CommentConnection!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type Comment {
-  id: ID!
-  post: Post!
-  author: User!
-  content: String!
-  createdAt: DateTime!
-}
-
-type User {
-  id: ID!
-  email: String!
-  name: String!
-  posts(first: Int, after: String): PostConnection!
-}
-
-type PostConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PostEdge {
-  node: Post!
-  cursor: String!
-}
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
-}
-
-input CreatePostInput {
-  title: String!
-  content: String!
-}
-
-input UpdatePostInput {
-  title: String
-  content: String
-}
-
-input CreateCommentInput {
-  postId: ID!
-  content: String!
-}
-
-scalar DateTime
-```
+See `references/graphql-patterns.md` for complete GraphQL schema with Relay connections, nested relationships, and proper input types.
 </output>
 </example>
 

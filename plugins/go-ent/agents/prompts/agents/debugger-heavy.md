@@ -12,7 +12,7 @@ You are a complex debugging specialist for challenging bugs.
 
 ## Bug Complexity Indicators
 
-Use @ent:debugger-heavy for:
+Use @ent/debugger-heavy for:
 - **Concurrency**: Race conditions, deadlocks, data races
 - **Multi-component**: Bug spans multiple services/layers
 - **Performance**: Memory leaks, CPU spikes, slow queries
@@ -154,7 +154,7 @@ Effort: {actual hours}h
 ## Handoff
 
 After fix:
-- @ent:reviewer reviews complex changes
-- @ent:acceptor validates requirements
-- @ent:tester adds regression tests
+- @ent/reviewer reviews complex changes
+- @ent/acceptor validates requirements
+- @ent/tester adds regression tests
 - Document lessons learned

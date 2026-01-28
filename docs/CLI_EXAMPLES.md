@@ -536,8 +536,8 @@ ent config show /tmp/nonexistent
 
 ## Next Steps
 
-- Read the full [CLI Documentation](./CLI.md)
-- Learn about [OpenSpec Workflow](../openspec/README.md)
-- Explore [Agent System](./AGENTS.md)
-- Review [Configuration Reference](./CONFIG.md)
+- Read the full [CLI Documentation](./CLI_REFERENCE.md)
+- Learn about [OpenSpec Workflow](./OPENSPEC_WORKFLOW.md)
+- Explore [Agent System](./AGENTS_AND_SKILLS.md)
+- Review [Configuration Reference](./CONFIGURATION.md)
 - Check [Skill Lint CI/CD Integration](./SKILL_LINT_CI.md) for automated validation

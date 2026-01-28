@@ -1,14 +1,28 @@
 ---
 name: go-config
-description: "Handle configuration in Go applications (env, files, flags). Use for config setup or issues."
+description: "Handle configuration in Go applications (env, files, flags). Auto-activates for: config setup, environment variables, feature flags, secrets handling, configuration validation."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "config", "environment"]
-triggers:
-  - keywords: ["config", "configuration", "environment", "env var", "feature flag", "secret"]
-    file_patterns: ["config.go", "**/config/*.go", "**/*config*.go"]
-    weight: 0.8
+quality_score: 85
+category: "go"
 ---
+
+<triggers>
+  keywords:
+    - "config"
+    - "configuration"
+    - "environment"
+    - "env var"
+    - "feature flag"
+    - "secret"
+  file_pattern: "config.go|**/config/*.go|**/*config*.go"
+  weight: 0.8
+</triggers>
 
 # Go Configuration
 
@@ -229,56 +243,7 @@ func LoadSecrets(getenv func(string) string) (*Secrets, error) {
 
 ## Config Watching (Hot Reload)
 
-```go
-package config
-
-import (
-    "os"
-    "time"
-)
-
-type Watcher struct {
-    path     string
-    interval time.Duration
-    callback func(*Config)
-    stop     chan struct{}
-}
-
-func NewWatcher(path string, interval time.Duration, callback func(*Config)) *Watcher {
-    return &Watcher{
-        path:     path,
-        interval: interval,
-        callback: callback,
-        stop:     make(chan struct{}),
-    }
-}
-
-func (w *Watcher) Start() {
-    var lastMod time.Time
-    
-    for {
-        select {
-        case <-w.stop:
-            return
-        case <-time.After(w.interval):
-            info, err := os.Stat(w.path)
-            if err != nil {
-                continue
-            }
-            if info.ModTime().After(lastMod) {
-                lastMod = info.ModTime()
-                if cfg, err := LoadFromFile(w.path); err == nil {
-                    w.callback(cfg)
-                }
-            }
-        }
-    }
-}
-
-func (w *Watcher) Stop() {
-    close(w.stop)
-}
-```
+See `references/config-watching.md` for hot-reload implementation with file watching and automatic config reloading.
 
 ## Configuration Hierarchy
 
@@ -374,269 +339,20 @@ If secrets require encryption: Delegate to go-sec skill for vault integration an
 </edge_cases>
 
 <examples>
-
 <example>
-<input>Create config structure with environment variables for a web server</input>
+<input>Implement environment variable configuration</input>
 <output>
-```go
-package config
-
-import (
-    "time"
-
-    "github.com/caarlos0/env/v11"
-)
-
-type Config struct {
-    Server ServerConfig `envPrefix:"SERVER_"`
-    DB     DBConfig     `envPrefix:"DB_"`
-}
-
-type ServerConfig struct {
-    Host    string        `env:"HOST" envDefault:"0.0.0.0"`
-    Port    int           `env:"PORT" envDefault:"8080"`
-    Timeout time.Duration `env:"TIMEOUT" envDefault:"30s"`
-    Debug   bool          `env:"DEBUG" envDefault:"false"`
-}
-
-type DBConfig struct {
-    DSN      string        `env:"DSN,required"`
-    MaxConns int           `env:"MAX_CONNS" envDefault:"25"`
-    Timeout  time.Duration `env:"TIMEOUT" envDefault:"5s"`
-}
-
-func LoadFromEnv(getenv func(string) string) (*Config, error) {
-    var cfg Config
-    if err := env.ParseWithOptions(&cfg, env.Options{Environment: getenv}); err != nil {
-        return nil, err
-    }
-    return &cfg, nil
-}
-```
+See `references/env-config.md` for complete environment variable configuration with injectable getenv, nested structs, and validation.
 </output>
 </example>
 
-<example>
-<input>Load config from YAML file with validation</input>
-<output>
-```go
-package config
-
-import (
-    "fmt"
-    "os"
-
-    "gopkg.in/yaml.v3"
-)
-
-type Config struct {
-    Server ServerConfig `yaml:"server"`
-    DB     DBConfig     `yaml:"database"`
-}
-
-type ServerConfig struct {
-    Host string `yaml:"host"`
-    Port int    `yaml:"port"`
-}
-
-type DBConfig struct {
-    Host     string `yaml:"host"`
-    Port     int    `yaml:"port"`
-    Database string `yaml:"database"`
-}
-
-func LoadFromFile(path string) (*Config, error) {
-    data, err := os.ReadFile(path)
-    if err != nil {
-        return nil, fmt.Errorf("read file: %w", err)
-    }
-
-    var cfg Config
-    if err := yaml.Unmarshal(data, &cfg); err != nil {
-        return nil, fmt.Errorf("parse yaml: %w", err)
-    }
-
-    if err := cfg.Validate(); err != nil {
-        return nil, fmt.Errorf("validate: %w", err)
-    }
-
-    return &cfg, nil
-}
-
-func (c *Config) Validate() error {
-    if c.Server.Port < 1 || c.Server.Port > 65535 {
-        return fmt.Errorf("invalid server port: %d", c.Server.Port)
-    }
-    if c.DB.Host == "" {
-        return fmt.Errorf("database host required")
-    }
-    if c.DB.Database == "" {
-        return fmt.Errorf("database name required")
-    }
-    return nil
-}
-```
-</output>
-</example>
-
-<example>
-<input>Implement feature flags with thread-safe enable/disable</input>
-<output>
-```go
-package feature
-
-import "sync"
-
-type Flags struct {
-    mu           sync.RWMutex
-    enabledFlags map[string]bool
-}
-
-func New() *Flags {
-    return &Flags{
-        enabledFlags: make(map[string]bool),
-    }
-}
-
-func (f *Flags) Enable(name string) {
-    f.mu.Lock()
-    defer f.mu.Unlock()
-    f.enabledFlags[name] = true
-}
-
-func (f *Flags) Disable(name string) {
-    f.mu.Lock()
-    defer f.mu.Unlock()
-    f.enabledFlags[name] = false
-}
-
-func (f *Flags) Enabled(name string) bool {
-    f.mu.RLock()
-    defer f.mu.RUnlock()
-    return f.enabledFlags[name]
-}
-
-func (f *Flags) LoadFromMap(flags map[string]bool) {
-    f.mu.Lock()
-    defer f.mu.Unlock()
-    for k, v := range flags {
-        f.enabledFlags[k] = v
-    }
-}
-```
-</output>
-</example>
-
-<example>
-<input>Handle secrets with environment variables and redaction for logging</input>
-<output>
-```go
-package config
-
-import (
-    "fmt"
-    "strings"
-
-    "github.com/caarlos0/env/v11"
-)
-
-type Secrets struct {
-    APIKey     string `env:"API_KEY,required"`
-    DBPassword string `env:"DB_PASSWORD,required"`
-    Token      string `env:"TOKEN,required"`
-}
-
-func LoadSecrets(getenv func(string) string) (*Secrets, error) {
-    var s Secrets
-    if err := env.ParseWithOptions(&s, env.Options{Environment: getenv}); err != nil {
-        return nil, err
-    }
-    return &s, nil
-}
-
-func (s *Secrets) String() string {
-    return fmt.Sprintf(
-        "{APIKey: %s, DBPassword: %s, Token: %s}",
-        s.mask(s.APIKey),
-        s.mask(s.DBPassword),
-        s.mask(s.Token),
-    )
-}
-
-func (s *Secrets) mask(val string) string {
-    if val == "" {
-        return "<empty>"
-    }
-    if len(val) <= 8 {
-        return "***"
-    }
-    return val[:4] + strings.Repeat("*", len(val)-8) + val[len(val)-4:]
-}
-```
-</output>
-</example>
-
-<example>
-<input>Merge config from file and environment with env taking precedence</input>
-<output>
-```go
-package config
-
-import (
-    "os"
-
-    "github.com/caarlos0/env/v11"
-    "gopkg.in/yaml.v3"
-)
-
-type Config struct {
-    Server ServerConfig `yaml:"server" envPrefix:"SERVER_"`
-    DB     DBConfig     `yaml:"database" envPrefix:"DB_"`
-}
-
-type ServerConfig struct {
-    Host string `yaml:"host" env:"HOST" envDefault:"0.0.0.0"`
-    Port int    `yaml:"port" env:"PORT" envDefault:"8080"`
-}
-
-type DBConfig struct {
-    DSN string `yaml:"dsn" env:"DSN,required"`
-}
-
-func Load(getenv func(string) string, file string) (*Config, error) {
-    cfg, err := LoadFromFile(file)
-    if err != nil {
-        cfg = &Config{}
-    }
-
-    if err := env.ParseWithOptions(cfg, env.Options{Environment: getenv}); err != nil {
-        return nil, fmt.Errorf("parse env: %w", err)
-    }
-
-    return cfg, nil
-}
-
-func LoadFromFile(path string) (*Config, error) {
-    data, err := os.ReadFile(path)
-    if err != nil && !os.IsNotExist(err) {
-        return nil, err
-    }
-
-    if os.IsNotExist(err) {
-        return &Config{}, nil
-    }
-
-    var cfg Config
-    if err := yaml.Unmarshal(data, &cfg); err != nil {
-        return nil, fmt.Errorf("parse yaml: %w", err)
-    }
-
-    return &cfg, nil
-}
-```
-</output>
-</example>
-
+For additional configuration examples, see:
+- `references/env-config.md` - Environment variable configuration
+- `references/yaml-config.md` - YAML file loading with validation
+- `references/feature-flags.md` - Thread-safe feature flag implementation
+- `references/secrets-handling.md` - Secrets with redaction
+- `references/config-merging.md` - File + environment merging
+- `references/config-watching.md` - Hot reload implementation
 </examples>
 
 <output_format>

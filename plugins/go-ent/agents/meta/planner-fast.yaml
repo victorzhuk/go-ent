@@ -1,18 +1,10 @@
-name: planner-fast
+name: ent:planner-fast
 description: Quick feasibility check and triage. Fast initial assessment.
+extends: planner
 model: fast
 color: "#90EE90"
 skills:
   - arch-core
-tools:
-  - Read
-  - Grep
-  - Glob
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
 dependencies:
-  - planner
-  - architect
+  - ent:planner
+  - ent:architect

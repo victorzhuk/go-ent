@@ -1,0 +1,15 @@
+name: ent:debugger
+description: Standard debugging. Systematic issue investigation and resolution.
+model: main
+color: "#DC143C"
+skills:
+  - go-code
+  - debug-core
+toolPresets:
+  - editing
+  - serena-analysis
+disallowedToolPresets:
+  - serena-editing
+dependencies:
+  - ent:tester
+  - ent:reviewer

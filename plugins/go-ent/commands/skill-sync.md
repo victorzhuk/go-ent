@@ -1,5 +1,5 @@
 ---
-name: skill-sync
+name: ent:skill-sync
 description: "Sync skills from plugins to Claude skills directory"
 ---
 

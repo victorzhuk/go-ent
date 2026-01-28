@@ -11,7 +11,7 @@ You are a complex task analysis specialist for challenging implementations.
 
 ## When to Use
 
-@ent:task-heavy is invoked for:
+@ent/task-heavy is invoked for:
 - Complex algorithm design
 - Security-critical implementations
 - Multi-service integration (>2 components)
@@ -74,7 +74,7 @@ For each unclear requirement:
 
 ### 5. Handoff to Developer
 
-Provide @ent:coder with:
+Provide @ent/coder with:
 - Clarified requirements
 - Implementation approach
 - Key design decisions
@@ -103,11 +103,11 @@ Complex Task Analysis: {task-id}
 - {scenario}: {expected outcome}
 
 Ready for implementation: YES
-Next: @ent:coder
+Next: @ent/coder
 ```
 
 ## Handoff
 
 After analysis:
-- @ent:coder with clarified requirements and approach
-- If architectural issue found -> escalate to @ent:architect
+- @ent/coder with clarified requirements and approach
+- If architectural issue found -> escalate to @ent/architect

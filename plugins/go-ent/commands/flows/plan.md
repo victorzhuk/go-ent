@@ -1,4 +1,5 @@
 ---
+name: ent:plan-flow
 description: Complete planning workflow with research and task breakdown
 ---
 
@@ -12,10 +13,10 @@ Complete planning workflow: clarify → research → design → decompose.
 
 | Agent           | Phase                          | Tier     |
 |-----------------|--------------------------------|----------|
-| @ent:planner-fast | Initial assessment            | fast     |
-| @ent:architect  | Architecture and design        | heavy    |
-| @ent:planner    | Detailed planning              | standard |
-| @ent:decomposer | Task breakdown                | standard |
+| @ent/planner-fast | Initial assessment            | fast     |
+| @ent/architect  | Architecture and design        | heavy    |
+| @ent/planner    | Detailed planning              | standard |
+| @ent/decomposer | Task breakdown                | standard |
 
 **Escalation**: planner-fast → architect → planner → decomposer
 
@@ -25,7 +26,7 @@ Complete planning workflow: clarify → research → design → decompose.
 
 ### Phase 1: Initial Assessment
 
-**Agent**: @ent:planner-fast
+**Agent**: @ent/planner-fast
 
 **Goal**: Quick feasibility check
 
@@ -85,7 +86,7 @@ For each technology choice:
 
 ### Phase 4: Architecture & Design
 
-**Agent**: @ent:architect
+**Agent**: @ent/architect
 
 **Goal**: Create detailed design documents
 
@@ -100,7 +101,7 @@ For each technology choice:
 
 ### Phase 5: Specification
 
-**Agent**: @ent:planner
+**Agent**: @ent/planner
 
 **Goal**: Create detailed requirements
 
@@ -113,7 +114,7 @@ For each technology choice:
 
 ### Phase 6: Task Decomposition
 
-**Agent**: @ent:decomposer
+**Agent**: @ent/decomposer
 
 **Goal**: Break down work into executable tasks
 

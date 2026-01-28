@@ -150,5 +150,5 @@ Dependencies: Valid DAG, no cycles ✓
 After decomposition:
 - Tasks sync to `openspec/registry.yaml`
 - Ready for execution via `/ent:plan` command
-- @ent:coder executes standard tasks
+- @ent/coder executes standard tasks
 - Complex tasks escalate automatically based on complexity

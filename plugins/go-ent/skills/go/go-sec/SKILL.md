@@ -3,7 +3,13 @@ name: go-sec
 description: "Security patterns, OWASP, authentication, authorization. Auto-activates for: security concerns, authentication, authorization, input validation, secrets."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "security", "owasp", "authentication", "authorization"]
+quality_score: 81
+category: "go"
 ---
 
 <triggers>

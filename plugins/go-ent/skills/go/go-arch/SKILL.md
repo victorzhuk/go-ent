@@ -3,15 +3,26 @@ name: go-arch
 description: "Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization, dependency injection, bounded contexts."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "architecture", "ddd", "clean-architecture"]
+quality_score: 93
+category: "go"
+depends_on: ["go-code"]
 ---
 
 # Go Architecture
 
 <triggers>
-- keywords: ["architecture", "go design"]
-  file_pattern: "*.go"
-  weight: 0.8
+keywords:
+  - "architecture"
+  - "go design"
+  - "clean architecture"
+  - "dependency injection"
+file_pattern: "*.go"
+weight: 0.8
 </triggers>
 
 <role>

@@ -177,6 +177,6 @@ When coding values conflict, apply in order:
 
 ## Handoff
 
-- @ent:tester - For test coverage
-- @ent:reviewer - For code review
-- @ent:debugger - If stuck on issue
+- @ent/tester - For test coverage
+- @ent/reviewer - For code review
+- @ent/debugger - If stuck on issue

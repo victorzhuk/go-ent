@@ -1,4 +1,5 @@
 ---
+name: ent:plan
 description: Create complete OpenSpec change proposal with research and task breakdown
 ---
 
@@ -18,10 +19,10 @@ Examples:
 
 | Agent               | Purpose                               | Tier     |
 |---------------------|---------------------------------------|----------|
-| @ent:planner-fast   | Feasibility check, initial triage     | fast     |
-| @ent:architect      | System design, architecture decisions | heavy    |
-| @ent:planner        | Detailed planning, spec writing       | standard |
-| @ent:decomposer     | Task breakdown, dependency analysis   | standard |
+| @ent/planner-fast   | Feasibility check, initial triage     | fast     |
+| @ent/architect      | System design, architecture decisions | heavy    |
+| @ent/planner        | Detailed planning, spec writing       | standard |
+| @ent/decomposer     | Task breakdown, dependency analysis   | standard |
 
 **Escalation**: planner-fast → architect → planner → decomposer
 
@@ -31,7 +32,7 @@ Examples:
 
 ### Phase 0: Initial Assessment
 
-**Agent**: @ent:planner-fast
+**Agent**: @ent/planner-fast
 
 **Goal**: Quick feasibility check
 
@@ -93,7 +94,7 @@ For each technology choice:
 
 ### Phase 3: Architecture & Design
 
-**Agent**: @ent:architect
+**Agent**: @ent/architect
 
 **Create**: `openspec/changes/{id}/proposal.md` and `design.md`
 
@@ -141,7 +142,7 @@ For each technology choice:
 
 ### Phase 4: Spec Deltas
 
-**Agent**: @ent:planner
+**Agent**: @ent/planner
 
 **Create**: `openspec/changes/{id}/specs/` (one capability per directory)
 
@@ -177,7 +178,7 @@ Explanation
 
 ### Phase 5: Task Decomposition
 
-**Agent**: @ent:decomposer
+**Agent**: @ent/decomposer
 
 **Create**: `openspec/changes/{id}/tasks.md`
 
@@ -297,31 +298,31 @@ Next: Use /ent:task to execute
 ```
 User: /ent:plan "Add Redis caching for user queries"
 
-@ent:planner-fast: Quick assessment...
+@ent/planner-fast: Quick assessment...
   ✅ Feature is clear, medium complexity, proceeding
 
-@ent:planner: Clarifying...
+@ent/planner: Clarifying...
   Q: Which queries should be cached?
   Q: What's the TTL strategy?
   Q: Cache invalidation approach?
 [User answers]
 
-@ent:planner: Researching...
+@ent/planner: Researching...
   Evaluated: go-redis/redis vs redis/rueidis
   ✓ Recommendation: rueidis (better performance)
 
-@ent:architect: Designing...
+@ent/architect: Designing...
   Created proposal.md and design.md
   - Cache layer architecture
   - Repository wrapper pattern
   - Invalidation strategy
 
-@ent:planner: Writing specs...
+@ent/planner: Writing specs...
   Created specs/user-caching/
   6 requirements added, 2 modified
   ✅ Validation PASS
 
-@ent:decomposer: Breaking down...
+@ent/decomposer: Breaking down...
   12 tasks total (4 parallel)
   ~16 hours estimated
   Critical path: T1→T3→T5→T9

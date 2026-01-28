@@ -3,8 +3,22 @@ name: security-core
 description: "Security fundamentals and OWASP principles. Auto-activates for: authentication, authorization, input validation, SQL injection, XSS, CSRF, security headers."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["security", "owasp", "auth", "authorization", "input-validation"]
+quality_score: 87
+category: "core"
 ---
+
+<triggers>
+  keywords:
+    - "security"
+    - "authentication"
+    - "authorization"
+  weight: 0.8
+</triggers>
 
 # Security Core
 
@@ -95,548 +109,64 @@ If compliance requirements exist (PCI-DSS, HIPAA, GDPR): Map security controls t
 
 If dealing with highly sensitive data: Implement additional controls (MFA, hardware security modules, air-gapped systems).
 
-If security adds significant UX friction: Balance security with usability through risk-based authentication and渐进式实施.
+If security adds significant UX friction: Balance security with usability through risk-based authentication and progressive implementation.
 </edge_cases>
 
 <examples>
 <example>
-<input>Implement secure authentication with password hashing</input>
+<input>Implement secure password authentication</input>
 <output>
 ```go
-package auth
-
 import (
-    "context"
-    "crypto/subtle"
-    "errors"
-    "fmt"
-    "time"
-
-    "golang.org/x/crypto/bcrypt"
-    "golang.org/x/time/rate"
+    "crypto/rand"
+    "encoding/base64"
+    "golang.org/x/crypto/argon2"
 )
 
-var (
-    ErrInvalidCredentials = errors.New("invalid credentials")
-    ErrUserNotFound      = errors.New("user not found")
-    ErrAccountLocked     = errors.New("account locked")
-    ErrRateLimitExceeded = errors.New("rate limit exceeded")
-)
-
-type PasswordHasher interface {
-    Hash(password string) (string, error)
-    Compare(hashedPassword, password string) (bool, error)
-}
-
-type BCryptHasher struct {
-    cost int
-}
-
-func NewBCryptHasher(cost int) *BCryptHasher {
-    return &BCryptHasher{cost: cost}
-}
-
-func (h *BCryptHasher) Hash(password string) (string, error) {
-    if len(password) < 8 {
-        return "", fmt.Errorf("password too short (min 8 characters)")
-    }
-    if len(password) > 128 {
-        return "", fmt.Errorf("password too long (max 128 characters)")
+// HashPassword hashes password using Argon2id
+func HashPassword(password string) (string, error) {
+    salt := make([]byte, 16)
+    if _, err := rand.Read(salt); err != nil {
+        return "", fmt.Errorf("generate salt: %w", err)
     }
 
-    hash, err := bcrypt.GenerateFromPassword([]byte(password), h.cost)
+    hash := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
+    
+    // Format: salt.hash (base64 encoded)
+    return fmt.Sprintf("%s.%s",
+        base64.RawStdEncoding.EncodeToString(salt),
+        base64.RawStdEncoding.EncodeToString(hash),
+    ), nil
+}
+
+// VerifyPassword compares password with stored hash
+func VerifyPassword(password, storedHash string) (bool, error) {
+    parts := strings.Split(storedHash, ".")
+    if len(parts) != 2 {
+        return false, errors.New("invalid hash format")
+    }
+
+    salt, err := base64.RawStdEncoding.DecodeString(parts[0])
     if err != nil {
-        return "", fmt.Errorf("hash password: %w", err)
+        return false, fmt.Errorf("decode salt: %w", err)
     }
-    return string(hash), nil
+
+    hash := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
+    expectedHash := base64.RawStdEncoding.EncodeToString(hash)
+    
+    return parts[1] == expectedHash, nil
 }
-
-func (h *BCryptHasher) Compare(hashedPassword, password string) (bool, error) {
-    err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-    if err == bcrypt.ErrMismatchedHashAndPassword {
-        return false, nil
-    }
-    if err != nil {
-        return false, fmt.Errorf("compare password: %w", err)
-    }
-    return true, nil
-}
-
-type RateLimiter struct {
-    limiter *rate.Limiter
-}
-
-func NewRateLimiter(rps int) *RateLimiter {
-    return &RateLimiter{
-        limiter: rate.NewLimiter(rate.Every(time.Second/time.Duration(rps)), rps),
-    }
-}
-
-func (l *RateLimiter) Allow() bool {
-    return l.limiter.Allow()
-}
-
-type AuthenticationService struct {
-    repo         UserRepository
-    hasher      PasswordHasher
-    rateLimiter *RateLimiter
-    failedAttempts *FailedLoginTracker
-}
-
-func NewAuthenticationService(
-    repo UserRepository,
-    hasher PasswordHasher,
-    rateLimiter *RateLimiter,
-) *AuthenticationService {
-    return &AuthenticationService{
-        repo:         repo,
-        hasher:      hasher,
-        rateLimiter: rateLimiter,
-        failedAttempts: NewFailedLoginTracker(),
-    }
-}
-
-func (s *AuthenticationService) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
-    // Rate limiting - prevent brute force
-    if !s.rateLimiter.Allow() {
-        return nil, ErrRateLimitExceeded
-    }
-
-    // Check if account is locked
-    if s.failedAttempts.IsLocked(req.Username) {
-        return nil, ErrAccountLocked
-    }
-
-    // Fetch user (don't reveal whether user exists)
-    user, err := s.repo.FindByUsername(ctx, req.Username)
-    if err != nil {
-        // Log failure for security monitoring
-        s.failedAttempts.RecordFailed(req.Username)
-        return nil, ErrInvalidCredentials
-    }
-
-    // Compare passwords using constant-time comparison
-    // to prevent timing attacks
-    hashedPassword, err := s.repo.GetPasswordHash(ctx, user.ID)
-    if err != nil {
-        s.failedAttempts.RecordFailed(req.Username)
-        return nil, ErrInvalidCredentials
-    }
-
-    match, err := s.hasher.Compare(hashedPassword, req.Password)
-    if err != nil {
-        s.failedAttempts.RecordFailed(req.Username)
-        return nil, ErrInvalidCredentials
-    }
-
-    if !match {
-        s.failedAttempts.RecordFailed(req.Username)
-        return nil, ErrInvalidCredentials
-    }
-
-    // Clear failed attempts on successful login
-    s.failedAttempts.Clear(req.Username)
-
-    // Generate JWT token
-    token, err := s.generateToken(user)
-    if err != nil {
-        return nil, fmt.Errorf("generate token: %w", err)
-    }
-
-    // Log successful login for audit
-    logSecurityEvent("login_success", map[string]any{
-        "user_id": user.ID,
-        "username": user.Username,
-    })
-
-    return &LoginResponse{
-        Token: token,
-        User:  user,
-    }, nil
-}
-
-func (s *AuthenticationService) Register(ctx context.Context, req *RegisterRequest) error {
-    // Validate password strength
-    if err := validatePassword(req.Password); err != nil {
-        return fmt.Errorf("invalid password: %w", err)
-    }
-
-    // Hash password
-    hashedPassword, err := s.hasher.Hash(req.Password)
-    if err != nil {
-        return fmt.Errorf("hash password: %w", err)
-    }
-
-    // Create user
-    user := &User{
-        Username: req.Username,
-        Email:    req.Email,
-        Password: hashedPassword,
-    }
-
-    if err := s.repo.Create(ctx, user); err != nil {
-        return fmt.Errorf("create user: %w", err)
-    }
-
-    logSecurityEvent("user_registered", map[string]any{
-        "user_id": user.ID,
-        "username": user.Username,
-    })
-
-    return nil
-}
-
-func validatePassword(password string) error {
-    if len(password) < 8 {
-        return fmt.Errorf("must be at least 8 characters")
-    }
-    if len(password) > 128 {
-        return fmt.Errorf("must be at most 128 characters")
-    }
-    hasUpper, hasLower, hasDigit, hasSpecial := false, false, false, false
-    for _, c := range password {
-        switch {
-        case c >= 'A' && c <= 'Z':
-            hasUpper = true
-        case c >= 'a' && c <= 'z':
-            hasLower = true
-        case c >= '0' && c <= '9':
-            hasDigit = true
-        case c >= ' ' && c <= '~':
-            hasSpecial = true
-        }
-    }
-    if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
-        return fmt.Errorf("must contain uppercase, lowercase, digit, and special character")
-    }
-    return nil
-}
-
-**Security Features**:**Security Features**: bcrypt hashing, rate limiting, account lockout, constant-time comparison, generic errors, password validation, security logging.</example>
-
-<example>
-<input>Prevent SQL injection with parameterized queries</input>
-<output>
-```go
-package userrepo
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/jackc/pgx/v5"
-    "github.com/jackc/pgx/v5/pgxpool"
-)
-
-type repository struct {
-    pool *pgxpool.Pool
-}
-
-func New(pool *pgxpool.Pool) *repository {
-    return &repository{pool: pool}
-}
-
-// ❌ VULNERABLE: String concatenation (SQL injection)
-func (r *repository) FindByUsernameVulnerable(ctx context.Context, username string) (*User, error) {
-    query := fmt.Sprintf("SELECT id, email FROM users WHERE username = '%s'", username)
-    // If username = "admin' OR '1'='1", this returns all users!
-
-    var user User
-    err := r.pool.QueryRow(ctx, query).Scan(&user.ID, &user.Email)
-    if err != nil {
-        return nil, err
-    }
-    return &user, nil
-}
-
-// ✅ SECURE: Parameterized query
-func (r *repository) FindByUsername(ctx context.Context, username string) (*User, error) {
-    const query = `SELECT id, username, email FROM users WHERE username = $1`
-
-    var user User
-    err := r.pool.QueryRow(ctx, query, username).Scan(
-        &user.ID,
-        &user.Username,
-        &user.Email,
-    )
-
-    if err != nil {
-        if errors.Is(err, pgx.ErrNoRows) {
-            return nil, ErrNotFound
-        }
-        return nil, fmt.Errorf("query user: %w", err)
-    }
-
-    return &user, nil
-}
-
-// ✅ SECURE: Batch insert with parameterized query
-func (r *repository) CreateBatch(ctx context.Context, users []*User) error {
-    const query = `
-        INSERT INTO users (id, username, email, created_at)
-        VALUES ($1, $2, $3, $4)
-    `
-
-    tx, err := r.pool.Begin(ctx)
-    if err != nil {
-        return fmt.Errorf("begin transaction: %w", err)
-    }
-    defer tx.Rollback(ctx)
-
-    for _, user := range users {
-        _, err := tx.Exec(ctx, query,
-            user.ID,
-            user.Username,
-            user.Email,
-            user.CreatedAt,
-        )
-        if err != nil {
-            return fmt.Errorf("insert user %s: %w", user.ID, err)
-        }
-    }
-
-    if err := tx.Commit(ctx); err != nil {
-        return fmt.Errorf("commit transaction: %w", err)
-    }
-
-    return nil
-}
-
-// ✅ SECURE: Dynamic query with allowlist
-func (r *repository) FindByField(ctx context.Context, field string, value any) (*User, error) {
-    // Allowlist of valid fields to prevent injection
-    allowedFields := map[string]bool{
-        "username": true,
-        "email":    true,
-    }
-
-    if !allowedFields[field] {
-        return nil, fmt.Errorf("invalid field: %s", field)
-    }
-
-    query := fmt.Sprintf("SELECT id, username, email FROM users WHERE %s = $1", field)
-
-    var user User
-    err := r.pool.QueryRow(ctx, query, value).Scan(
-        &user.ID,
-        &user.Username,
-        &user.Email,
-    )
-
-    if err != nil {
-        if errors.Is(err, pgx.ErrNoRows) {
-            return nil, ErrNotFound
-        }
-        return nil, fmt.Errorf("query user: %w", err)
-    }
-
-    return &user, nil
-}
-
-// ✅ SECURE: Using squirrel for complex queries
-func (r *repository) FindWithFilters(ctx context.Context, filters UserFilters) ([]*User, error) {
-    query := sq.Select("id", "username", "email").
-        From("users").
-        PlaceholderFormat(sq.Dollar)
-
-    if filters.Username != "" {
-        query = query.Where(sq.Eq{"username": filters.Username})
-    }
-    if filters.Email != "" {
-        query = query.Where(sq.Eq{"email": filters.Email})
-    }
-    if filters.CreatedAfter != nil {
-        query = query.Where(sq.Gt{"created_at": filters.CreatedAfter})
-    }
-
-    sql, args, err := query.ToSql()
-    if err != nil {
-        return nil, fmt.Errorf("build query: %w", err)
-    }
-
-    rows, err := r.pool.Query(ctx, sql, args...)
-    if err != nil {
-        return nil, fmt.Errorf("query users: %w", err)
-    }
-    defer rows.Close()
-
-    var users []*User
-    for rows.Next() {
-        var user User
-        if err := rows.Scan(&user.ID, &user.Username, &user.Email); err != nil {
-            return nil, fmt.Errorf("scan user: %w", err)
-        }
-        users = append(users, &user)
-    }
-
-    return users, nil
-}
-
-**Key Security Principles**:**Key Security Principles**: Never concatenate user input, use parameterized queries, validate field names with allowlists, use query builders for complex queries.</example>
-
-<example>
-<input>Implement input validation and XSS prevention</input>
-<output>
-```go
-package handlers
-
-import (
-    "encoding/json"
-    "html"
-    "net/http"
-    "regexp"
-    "strings"
-
-    "github.com/go-playground/validator/v10"
-)
-
-// Validator struct
-type Validator struct {
-    validate *validator.Validate
-}
-
-func NewValidator() *Validator {
-    v := validator.New()
-    v.RegisterValidation("username", validateUsername)
-    v.RegisterValidation("safehtml", validateSafeHTML)
-    return &Validator{validate: v}
-}
-
-// Custom validation for username
-func validateUsername(fl validator.FieldLevel) bool {
-    username := fl.Field().String()
-    // Only allow alphanumeric, dash, underscore
-    matched, _ := regexp.MatchString(`^[a-zA-Z0-9_-]{3,20}$`, username)
-    return matched
-}
-
-// Custom validation for safe HTML (no tags)
-func validateSafeHTML(fl validator.FieldLevel) bool {
-    input := fl.Field().String()
-    // Check for HTML tags
-    return !strings.ContainsAny(input, "<>")
-}
-
-// Request DTO with validation tags
-type CreateUserRequest struct {
-    Username string `json:"username" validate:"required,username"`
-    Email    string `json:"email" validate:"required,email"`
-    Password string `json:"password" validate:"required,min=8,max=128"`
-    Bio      string `json:"bio" validate:"max=500,safehtml"`
-}
-
-// Response DTO with escaped output
-type UserResponse struct {
-    ID       string `json:"id"`
-    Username string `json:"username"`
-    Email    string `json:"email"`
-    Bio      string `json:"bio"`
-}
-
-type Handler struct {
-    validator *Validator
-}
-
-func NewHandler() *Handler {
-    return &Handler{validator: NewValidator()}
-}
-
-func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-    // 1. Content-Type validation
-    ct := r.Header.Get("Content-Type")
-    if ct != "application/json" {
-        http.Error(w, "Invalid content type", http.StatusUnsupportedMediaType)
-        return
-    }
-
-    // 2. Decode request
-    var req CreateUserRequest
-    decoder := json.NewDecoder(r)
-    decoder.DisallowUnknownFields() // Prevent mass assignment
-
-    if err := decoder.Decode(&req); err != nil {
-        http.Error(w, "Invalid JSON", http.StatusBadRequest)
-        return
-    }
-
-    // 3. Validate input
-    if err := h.validator.validate.Struct(&req); err != nil {
-        var validationErrors []string
-        for _, err := range err.(validator.ValidationErrors) {
-            validationErrors = append(validationErrors, fmt.Sprintf(
-                "%s failed validation: %s",
-                err.Field(),
-                err.Tag(),
-            ))
-        }
-
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]any{
-            "error": "Validation failed",
-            "details": validationErrors,
-        })
-        return
-    }
-
-    // 4. Process (business logic)
-    user, err := h.userService.Create(r.Context(), &req)
-    if err != nil {
-        http.Error(w, "Failed to create user", http.StatusInternalServerError)
-        return
-    }
-
-    // 5. Prepare response with escaped output
-    resp := UserResponse{
-        ID:       user.ID,
-        Username: html.EscapeString(user.Username),  // Escape HTML
-        Email:    html.EscapeString(user.Email),     // Escape HTML
-        Bio:      html.EscapeString(user.Bio),       // Escape HTML
-    }
-
-    // 6. Set security headers
-    w.Header().Set("Content-Type", "application/json")
-    w.Header().Set("X-Content-Type-Options", "nosniff")
-    w.Header().Set("X-Frame-Options", "DENY")
-
-    json.NewEncoder(w).Encode(resp)
-}
-
-// Security headers middleware
-func SecurityHeaders(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Security-Policy",
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
-            "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self';")
-        w.Header().Set("X-Frame-Options", "DENY")
-        w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
-        w.Header().Set("X-Content-Type-Options", "nosniff")
-        w.Header().Set("X-XSS-Protection", "1; mode=block")
-        w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-        next.ServeHTTP(w, r)
-    })
-}
-
-// URL sanitization
-func SanitizeURL(input string) string {
-    input = strings.ToLower(input)
-    if strings.Contains(input, "javascript:") || strings.Contains(input, "data:") || strings.Contains(input, "vbscript:") {
-        return ""
-    }
-    return html.EscapeString(input)
-}
-
-**XSS Prevention Checklist**:**XSS Prevention Checklist**: Input validation with allowlists, output encoding, CSP headers, disable unknown fields, security headers middleware, file upload validation, URL sanitization.</example>
+```
+
+**Pattern**: Use Argon2id (not bcrypt) for password hashing, store salt with hash, constant-time comparison.
+</output>
+</example>
+
+For additional security implementation examples, see:
+- `references/authentication.md` - Secure authentication with password hashing
+- `references/sql-injection.md` - Parameterized query patterns
+- `references/input-validation.md` - Input validation and XSS prevention
 </examples>
-
-<triggers>
-  keywords:
-    - "security"
-    - "authentication"
-    - "authorization"
-  weight: 0.8
-</triggers>
 
 <output_format>
 Provide security guidance and implementations:

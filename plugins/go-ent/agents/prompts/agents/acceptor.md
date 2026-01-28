@@ -114,5 +114,5 @@ Verdict: {ACCEPTED | NEEDS_WORK}
 
 After acceptance:
 - **ACCEPTED** → Mark task complete
-- **NEEDS WORK** → Return to @ent:coder with specific list
-- **REJECTED** → Escalate to @ent:architect (may need design change)
+- **NEEDS WORK** → Return to @ent/coder with specific list
+- **REJECTED** → Escalate to @ent/architect (may need design change)

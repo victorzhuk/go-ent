@@ -145,6 +145,6 @@ Next Steps:
 ## Handoff
 
 After investigation:
-- **Bug root cause** → @ent:debugger-fast/@ent:debugger-heavy with analysis
-- **Technology choice** → @ent:architect/@ent:planner with recommendation
-- **Complex issue** → @ent:debugger-heavy for fix implementation
+- **Bug root cause** → @ent/debugger-fast/@ent/debugger-heavy with analysis
+- **Technology choice** → @ent/architect/@ent/planner with recommendation
+- **Complex issue** → @ent/debugger-heavy for fix implementation

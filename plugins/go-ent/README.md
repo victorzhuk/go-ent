@@ -306,7 +306,7 @@ Create in [appropriate location]:
 ## Handoff
 
 After completion, delegate to:
-- @ent:otheragent - Reason for handoff
+- @ent/otheragent - Reason for handoff
 ```
 
 **Step 3: Test the agent**

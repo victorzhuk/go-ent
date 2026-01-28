@@ -1,4 +1,5 @@
 ---
+name: ent:task
 description: Execute OpenSpec tasks with TDD and validation (project)
 ---
 
@@ -18,12 +19,12 @@ Examples:
 
 | Agent            | Purpose                                | Tier     |
 |------------------|----------------------------------------|----------|
-| @ent:task-fast   | Quick assessment, complexity routing   | fast     |
-| @ent:task-heavy  | Complex task analysis, clarification   | heavy    |
-| @ent:coder       | Code implementation                    | standard |
-| @ent:reviewer    | Code review (optional)                 | standard |
-| @ent:tester      | Test creation and validation           | fast     |
-| @ent:acceptor    | Acceptance validation                  | fast     |
+| @ent/task-fast   | Quick assessment, complexity routing   | fast     |
+| @ent/task-heavy  | Complex task analysis, clarification   | heavy    |
+| @ent/coder       | Code implementation                    | standard |
+| @ent/reviewer    | Code review (optional)                 | standard |
+| @ent/tester      | Test creation and validation           | fast     |
+| @ent/acceptor    | Acceptance validation                  | fast     |
 
 **Escalation**: task-fast → (task-heavy if complex) → coder → reviewer → tester → acceptor
 
@@ -33,7 +34,7 @@ Examples:
 
 ### Phase 1: Assessment
 
-**Agent**: @ent:task-fast
+**Agent**: @ent/task-fast
 
 **Goal**: Quick task assessment and routing
 
@@ -41,9 +42,9 @@ Examples:
 1. Load task from registry or select next unblocked
 2. Assess complexity (see escalation triggers)
 3. Load change context (proposal, design, tasks.md)
-4. **Decision**: Proceed to @ent:coder or escalate to @ent:task-heavy
+4. **Decision**: Proceed to @ent/coder or escalate to @ent/task-heavy
 
-**Escalation to @ent:task-heavy if**:
+**Escalation to @ent/task-heavy if**:
 - Task requires algorithm design
 - Security-critical implementation
 - Multiple integration points (>2)
@@ -53,7 +54,7 @@ Examples:
 
 ### Phase 2: Deep Analysis (Conditional)
 
-**Agent**: @ent:task-heavy
+**Agent**: @ent/task-heavy
 
 **Goal**: Clarify complex requirements, design approach
 
@@ -62,11 +63,11 @@ Examples:
 2. Design implementation approach
 3. Identify risks and edge cases
 4. Document clarified requirements
-5. Hand off to @ent:coder with clear spec
+5. Hand off to @ent/coder with clear spec
 
 ### Phase 3: Implementation
 
-**Agent**: @ent:coder
+**Agent**: @ent/coder
 
 **Goal**: Implement task with TDD
 
@@ -85,19 +86,19 @@ Examples:
 
 ### Phase 4: Review (Conditional)
 
-**Agent**: @ent:reviewer
+**Agent**: @ent/reviewer
 
 **Condition**: When changes are non-trivial or touch critical paths
 
 **Goal**: Code quality review
 
 **Outcome**:
-- **APPROVED** → Continue to @ent:tester
-- **CHANGES_REQUESTED** → Return to @ent:coder with specific fixes
+- **APPROVED** → Continue to @ent/tester
+- **CHANGES_REQUESTED** → Return to @ent/coder with specific fixes
 
 ### Phase 5: Testing
 
-**Agent**: @ent:tester
+**Agent**: @ent/tester
 
 **Goal**: Validate implementation with tests
 
@@ -107,11 +108,11 @@ Examples:
 3. Check edge cases covered
 4. **Decision**: PASS or FAIL
 
-**If FAIL**: Return to @ent:coder with failure details
+**If FAIL**: Return to @ent/coder with failure details
 
 ### Phase 6: Acceptance
 
-**Agent**: @ent:acceptor
+**Agent**: @ent/acceptor
 
 **Goal**: Final validation against spec
 
@@ -123,8 +124,8 @@ Examples:
 
 **Outcome**:
 - **ACCEPTED** → Mark task complete
-- **NEEDS_WORK** → Return to @ent:coder
-- **REJECTED** → Escalate to @ent:architect
+- **NEEDS_WORK** → Return to @ent/coder
+- **REJECTED** → Escalate to @ent/architect
 
 ### Phase 7: Complete
 

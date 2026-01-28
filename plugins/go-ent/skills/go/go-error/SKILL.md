@@ -1,14 +1,28 @@
 ---
 name: go-error
-description: "Implement Go error handling patterns (wrapping, custom errors, error types). Use for error design."
+description: "Implement Go error handling patterns (wrapping, custom errors, error types). Auto-activates for: error handling, error wrapping, custom errors, sentinel errors, error chains."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "error", "error-handling"]
-triggers:
-  - keywords: ["error handling", "error wrapping", "custom error", "error type", "sentinel error", "error chain"]
-    file_patterns: ["errors.go", "**/errors/*.go", "**/*error*.go"]
-    weight: 0.8
+quality_score: 86
+category: "go"
 ---
+
+<triggers>
+  keywords:
+    - "error handling"
+    - "error wrapping"
+    - "custom error"
+    - "error type"
+    - "sentinel error"
+    - "error chain"
+  file_pattern: "errors.go|**/errors/*.go|**/*error*.go"
+  weight: 0.8
+</triggers>
 
 # Go Error Handling
 
@@ -304,323 +318,66 @@ If error handling requires retry: Implement retry logic with backoff, don't rely
 </edge_cases>
 
 <examples>
-
 <example>
-<input>Wrap database error with context at repository layer</input>
+<input>Implement error wrapping across layers</input>
 <output>
 ```go
-package user
-
-import (
-    "database/sql"
-    "fmt"
-)
-
-type Repository struct {
-    db *sql.DB
-}
-
-func (r *Repository) GetUser(id string) (*User, error) {
-    var u User
-    err := r.db.QueryRow(
-        "SELECT id, name, email FROM users WHERE id = $1",
-        id,
-    ).Scan(&u.ID, &u.Name, &u.Email)
-    
-    if err != nil {
-        if errors.Is(err, sql.ErrNoRows) {
-            return nil, ErrUserNotFound
-        }
-        return nil, fmt.Errorf("query user %s: %w", id, err)
-    }
-    
-    return &u, nil
-}
-
-func (r *Repository) CreateUser(u User) (*User, error) {
-    if u.Email == "" {
-        return nil, fmt.Errorf("create user: %w", &InvalidInputError{
-            Field:   "email",
-            Message: "email is required",
-        })
-    }
-    
-    err := r.db.QueryRow(
-        "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id",
-        u.Name, u.Email,
-    ).Scan(&u.ID)
-    
-    if err != nil {
-        return nil, fmt.Errorf("insert user: %w", err)
-    }
-    
-    return &u, nil
-}
-```
-</output>
-</example>
-
-<example>
-<input>Implement custom error types for domain validation</input>
-<output>
-```go
-package user
-
-import "fmt"
-
+// Domain layer - custom error types
 type ValidationError struct {
     Field   string
     Message string
 }
 
 func (e *ValidationError) Error() string {
-    return fmt.Sprintf("validation failed: %s: %s", e.Field, e.Message)
+    return fmt.Sprintf("%s: %s", e.Field, e.Message)
 }
 
-type UserNotFoundError struct {
-    ID string
-}
-
-func (e *UserNotFoundError) Error() string {
-    return fmt.Sprintf("user not found: %s", e.ID)
-}
-
-func (e *UserNotFoundError) Is(target error) bool {
-    _, ok := target.(*UserNotFoundError)
-    return ok
-}
-
-type UserAlreadyExistsError struct {
-    Email string
-}
-
-func (e *UserAlreadyExistsError) Error() string {
-    return fmt.Sprintf("user already exists with email: %s", e.Email)
-}
-
-func (e *UserAlreadyExistsError) Is(target error) bool {
-    _, ok := target.(*UserAlreadyExistsError)
-    return ok
-}
-
-func ValidateUser(u User) error {
-    if u.Name == "" {
-        return &ValidationError{Field: "name", Message: "name is required"}
-    }
-    if u.Email == "" {
-        return &ValidationError{Field: "email", Message: "email is required"}
-    }
-    return nil
-}
-```
-</output>
-</example>
-
-<example>
-<input>Define sentinel errors and handle with errors.Is()</input>
-<output>
-```go
-package user
-
-import "errors"
-
-var (
-    ErrUserNotFound     = errors.New("user not found")
-    ErrInvalidInput     = errors.New("invalid input")
-    ErrUserExists       = errors.New("user already exists")
-    ErrUnauthorized     = errors.New("unauthorized access")
-    ErrInternalError    = errors.New("internal server error")
-)
-
-type Service struct {
-    repo *Repository
-}
-
-func (s *Service) GetUser(id string) (*User, error) {
-    u, err := s.repo.GetUser(id)
+// Repository layer - wrap infrastructure errors
+func (r *Repository) FindByEmail(ctx context.Context, email string) (*User, error) {
+    var user User
+    err := r.pool.QueryRow(ctx, "SELECT * FROM users WHERE email = $1", email).Scan(&user.ID, &user.Email)
     if err != nil {
-        if errors.Is(err, ErrUserNotFound) {
-            return nil, fmt.Errorf("get user: %w", ErrUserNotFound)
+        if errors.Is(err, pgx.ErrNoRows) {
+            return nil, contract.ErrNotFound
         }
-        return nil, fmt.Errorf("get user: %w", err)
+        return nil, fmt.Errorf("query user by email: %w", err)
     }
-    return u, nil
+    return &user, nil
 }
 
-func (s *Service) DeleteUser(id string) error {
-    if err := s.repo.Delete(id); err != nil {
-        if errors.Is(err, ErrUserNotFound) {
-            return ErrUserNotFound
-        }
-        return fmt.Errorf("delete user: %w", err)
-    }
-    return nil
-}
-
-func (s *Service) HandleGetUser(id string) error {
-    u, err := s.GetUser(id)
-    if err != nil {
-        if errors.Is(err, ErrUserNotFound) {
-            return fmt.Errorf("user %s not found", id)
-        }
-        return err
-    }
-    
-    fmt.Printf("Found user: %s\n", u.Name)
-    return nil
-}
-```
-</output>
-</example>
-
-<example>
-<input>Inspect error chains with errors.As() to extract error details</input>
-<output>
-```go
-package user
-
-import (
-    "errors"
-    "fmt"
-)
-
-func HandleError(err error) {
-    if err == nil {
-        return
-    }
-    
-    switch {
-    case errors.Is(err, ErrUserNotFound):
-        fmt.Println("User not found")
-        
-    case errors.Is(err, ErrInvalidInput):
-        var ve *ValidationError
-        if errors.As(err, &ve) {
-            fmt.Printf("Validation error: %s - %s\n", ve.Field, ve.Message)
-        }
-        
-    case errors.Is(err, ErrUserExists):
-        var uae *UserAlreadyExistsError
-        if errors.As(err, &uae) {
-            fmt.Printf("User exists: %s\n", uae.Email)
-        }
-        
-    default:
-        var paymentErr *payment.PaymentError
-        if errors.As(err, &paymentErr) {
-            fmt.Printf("Payment error [%s]: %s\n", paymentErr.Code, paymentErr.Message)
-            if paymentErr.Cause != nil {
-                fmt.Printf("  Caused by: %v\n", paymentErr.Cause)
-            }
-            return
-        }
-        
-        fmt.Printf("Unexpected error: %v\n", err)
-    }
-}
-
-func ExampleUsage() {
-    err := CreateUser(User{Email: "existing@example.com"})
-    HandleError(err)
-    
-    err = GetUser("nonexistent")
-    HandleError(err)
-    
-    err = CreateUser(User{Name: "John", Email: ""})
-    HandleError(err)
-}
-```
-</output>
-</example>
-
-<example>
-<input>Build error chain across application layers with proper context</input>
-<output>
-```go
-package user
-
-import (
-    "fmt"
-    "net/http"
-)
-
-type Service struct {
-    repo *Repository
-}
-
-func (s *Service) CreateUser(req CreateUserRequest) (*User, error) {
-    if err := s.validate(req); err != nil {
-        return nil, fmt.Errorf("validate request: %w", err)
-    }
-    
-    u, err := s.repo.Create(req.User)
-    if err != nil {
-        if errors.Is(err, ErrUserExists) {
-            return nil, fmt.Errorf("create user: %w", ErrUserExists)
-        }
-        return nil, fmt.Errorf("create user in repository: %w", err)
-    }
-    
-    return u, nil
-}
-
-func (s *Service) validate(req CreateUserRequest) error {
-    if req.Name == "" {
-        return &ValidationError{Field: "name", Message: "name is required"}
-    }
+// UseCase layer - business context
+func (uc *CreateUserUC) Execute(ctx context.Context, req CreateUserReq) (*CreateUserResp, error) {
     if req.Email == "" {
-        return &ValidationError{Field: "email", Message: "email is required"}
-    }
-    return nil
-}
-
-type Handler struct {
-    service *Service
-}
-
-func (h *Handler) HandleCreateUser(w http.ResponseWriter, r *http.Request) error {
-    var req CreateUserRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        return fmt.Errorf("decode request: %w", err)
+        return nil, &ValidationError{Field: "email", Message: "required"}
     }
     
-    u, err := h.service.CreateUser(req)
-    if err != nil {
-        var ve *ValidationError
-        if errors.As(err, &ve) {
-            return fmt.Errorf("invalid request: %w", ve)
-        }
-        if errors.Is(err, ErrUserExists) {
-            return fmt.Errorf("user already exists: %w", err)
-        }
-        return fmt.Errorf("create user: %w", err)
+    user, err := uc.userRepo.FindByEmail(ctx, req.Email)
+    if err != nil && !errors.Is(err, contract.ErrNotFound) {
+        return nil, fmt.Errorf("check existing user: %w", err)
+    }
+    if user != nil {
+        return nil, contract.ErrConflict
     }
     
-    return json.NewEncoder(w).Encode(u)
-}
-
-func main() {
-    handler := &Handler{service: &Service{repo: &Repository{}}}
-    
-    err := handler.HandleCreateUser(w, r)
-    if err != nil {
-        var ve *ValidationError
-        if errors.As(err, &ve) {
-            http.Error(w, ve.Error(), http.StatusBadRequest)
-            return
-        }
-        if errors.Is(err, ErrUserExists) {
-            http.Error(w, "user already exists", http.StatusConflict)
-            return
-        }
-        http.Error(w, "internal server error", http.StatusInternalServerError)
-        log.Printf("create user failed: %v", err)
+    // Create user...
+    if err := uc.userRepo.Save(ctx, newUser); err != nil {
+        return nil, fmt.Errorf("save user: %w", err)
     }
+    
+    return &CreateUserResp{ID: newUser.ID}, nil
 }
 ```
+
+**Pattern**: Domain errors at top, wrap with context at each layer, map infrastructure errors to domain errors, use errors.Is() for comparison.
 </output>
 </example>
 
+For additional error handling examples, see:
+- `references/error-wrapping.md` - Repository layer error wrapping
+- `references/custom-errors.md` - Domain validation error types
+- `references/sentinel-errors.md` - Sentinel errors with errors.Is()
+- `references/error-chains.md` - Error chains with errors.As()
+- `references/layered-errors.md` - Cross-layer error propagation
 </examples>
 
 <output_format>

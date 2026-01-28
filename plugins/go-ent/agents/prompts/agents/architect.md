@@ -129,5 +129,5 @@ When architectural values conflict, apply in order:
 ## Handoff
 
 After design, delegate to:
-- @ent:planner - Break into tasks
-- @ent:coder - Implementation
+- @ent/planner - Break into tasks
+- @ent/coder - Implementation

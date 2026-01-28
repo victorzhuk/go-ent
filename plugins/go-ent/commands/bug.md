@@ -1,4 +1,5 @@
 ---
+name: ent:bug
 description: Debug and fix bugs with reproduction and root cause analysis
 ---
 
@@ -19,15 +20,15 @@ Examples:
 
 | Agent                 | Purpose                                 | Tier     |
 |-----------------------|-----------------------------------------|----------|
-| @ent:reproducer       | Create minimal failing test             | fast     |
-| @ent:researcher       | Code analysis, root cause investigation | fast     |
-| @ent:debugger-fast    | Simple bugs, single component           | fast     |
-| @ent:debugger         | Standard debugging, multiple components | standard |
-| @ent:debugger-heavy   | Complex bugs (concurrency, performance) | heavy    |
-| @ent:coder            | Implement fix                           | fast     |
-| @ent:reviewer         | Code review                             | standard |
-| @ent:tester           | Validate fix                            | fast     |
-| @ent:acceptor         | Verify no regression                    | fast     |
+| @ent/reproducer       | Create minimal failing test             | fast     |
+| @ent/researcher       | Code analysis, root cause investigation | fast     |
+| @ent/debugger-fast    | Simple bugs, single component           | fast     |
+| @ent/debugger         | Standard debugging, multiple components | standard |
+| @ent/debugger-heavy   | Complex bugs (concurrency, performance) | heavy    |
+| @ent/coder            | Implement fix                           | fast     |
+| @ent/reviewer         | Code review                             | standard |
+| @ent/tester           | Validate fix                            | fast     |
+| @ent/acceptor         | Verify no regression                    | fast     |
 
 **Escalation**: debugger-fast → debugger → debugger-heavy (when multi-component, concurrency, performance, or architecture changes needed)
 

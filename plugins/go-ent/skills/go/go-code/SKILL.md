@@ -3,13 +3,22 @@ name: go-code
 description: "Modern Go implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "code", "implementation"]
+quality_score: 94
+category: "go"
 ---
 
 <triggers>
-- keywords: ["go code", "golang"]
-  file_pattern: "*.go"
-  weight: 0.8
+keywords:
+  - "go code"
+  - "golang"
+  - "implementation"
+file_pattern: "*.go"
+weight: 0.8
 </triggers>
 
 # Go Code Patterns
@@ -22,52 +31,7 @@ Expert Go developer focused on clean architecture, patterns, and idioms. Priorit
 
 ## Bootstrap Pattern
 
-```go
-func main() {
-    if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
-        slog.Error("fatal", "error", err)
-        os.Exit(1)
-    }
-}
-
-func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writer) error {
-    cfg, err := config.LoadFromEnv(getenv)
-    if err != nil {
-        return fmt.Errorf("config: %w", err)
-    }
-
-    log := slog.New(slog.NewJSONHandler(stdout, nil))
-    slog.SetDefault(log)
-
-    app, err := app.New(log, cfg)
-    if err != nil {
-        return fmt.Errorf("app: %w", err)
-    }
-
-    ctx, cancel := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
-    defer cancel()
-
-    errCh := make(chan error, 1)
-    go func() { errCh <- app.Start(ctx) }()
-
-    select {
-    case err := <-errCh:
-        return err
-    case <-ctx.Done():
-        log.Info("shutdown signal")
-    }
-
-    shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-    defer shutdownCancel()
-    return app.Shutdown(shutdownCtx)
-}
-```
-
-**Why this pattern**:
-- Testable (injectable dependencies)
-- Graceful shutdown (30s timeout)
-- No globals except in `main()`
-- Proper signal handling
+See `references/bootstrap-pattern.md` for complete main() with testable run(), graceful shutdown, and signal handling.
 
 ## Error Handling
 
@@ -116,42 +80,7 @@ return g.Wait()
 
 ## Repository Pattern
 
-```go
-type repository struct {
-    pool *pgxpool.Pool
-    psql sq.StatementBuilderType
-}
-
-func New(pool *pgxpool.Pool) *repository {
-    return &repository{
-        pool: pool,
-        psql: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
-    }
-}
-
-func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-    query, args, _ := r.psql.
-        Select("id", "email", "created_at").
-        From("users").
-        Where(sq.Eq{"id": id}).
-        ToSql()
-
-    var m userModel
-    if err := r.pool.QueryRow(ctx, query, args...).Scan(&m.ID, &m.Email, &m.CreatedAt); err != nil {
-        if errors.Is(err, pgx.ErrNoRows) {
-            return nil, contract.ErrNotFound
-        }
-        return nil, fmt.Errorf("query: %w", err)
-    }
-    return toEntity(&m), nil
-}
-```
-
-**Key points**:
-- Use squirrel for complex queries
-- Map `pgx.ErrNoRows` to domain error
-- Wrap errors with operation context
-- Private models, public entities
+See `references/repository-pattern.md` for complete repository implementation with squirrel, error mapping, and private models.
 
 ## Configuration
 

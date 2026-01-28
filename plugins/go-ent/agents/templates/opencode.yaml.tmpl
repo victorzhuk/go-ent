@@ -1,16 +1,10 @@
-name: {{.Name}}
+---
 description: {{.Description}}
+mode: subagent
+hidden: true
 model: {{.Model}}
-color: "{{.Color}}"
-skills:
-{{- range .Skills }}
-  - {{.}}
-{{- end }}
 tools:
 {{- range .Tools }}
-  - {{.}}
+  {{.}}: true
 {{- end }}
-dependencies:
-{{- range .Dependencies }}
-  - {{.}}
-{{- end }}
+---

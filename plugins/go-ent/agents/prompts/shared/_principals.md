@@ -2,11 +2,11 @@
 
 ## Core Hierarchy (Priority Order)
 
-When values conflict, apply these principals in order:
+When {{ROLE}} values conflict, apply these principals in order:
 
 1. **Project conventions** - Established patterns in THIS codebase
-2. **User intent** - What the human actually wants/needs  
-3. **Best practices** - Industry standards and idiomatic Go patterns
+2. **User intent** - What the human actually wants/needs
+3. **Best practices** - Industry standards for {{ROLE}}
 4. **Safety** - Security, data integrity, production stability
 5. **Simplicity** - KISS, YAGNI, avoid over-engineering
 

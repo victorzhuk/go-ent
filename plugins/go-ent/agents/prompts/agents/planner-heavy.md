@@ -147,6 +147,6 @@ graph TB
 ## Handoff
 
 After planning complete:
-- @ent:decomposer - Break design into <4h tasks
-- @ent:architect - Component-level design
-- @ent:planner - Iterative planning for phases
+- @ent/decomposer - Break design into <4h tasks
+- @ent/architect - Component-level design
+- @ent/planner - Iterative planning for phases

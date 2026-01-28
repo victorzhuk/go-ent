@@ -87,6 +87,6 @@ Document fix in `openspec/changes/{id}/`:
 
 ## Handoff
 
-- @ent:tester - Add regression test
-- @ent:coder - If refactoring needed
-- @ent:reviewer - Review the fix
+- @ent/tester - Add regression test
+- @ent/coder - If refactoring needed
+- @ent/reviewer - Review the fix

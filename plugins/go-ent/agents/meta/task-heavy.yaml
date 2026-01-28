@@ -1,5 +1,6 @@
-name: task-heavy
+name: ent:task-heavy
 description: Complex task analysis. Deep reasoning for difficult implementations.
+extends: task
 model: heavy
 color: "#4B0082"
 skills:
@@ -8,15 +9,6 @@ skills:
   - go-api
   - go-db
   - debug-core
-tools:
-  - Read
-  - Grep
-  - Glob
-  - mcp__plugin_serena_serena__find_symbol
-  - mcp__plugin_serena_serena__find_referencing_symbols
-  - mcp__plugin_serena_serena__get_symbols_overview
-  - mcp__plugin_serena_serena__search_for_pattern
-  - mcp__plugin_serena_serena__list_dir
 dependencies:
-  - coder
-  - architect
+  - ent:coder
+  - ent:architect

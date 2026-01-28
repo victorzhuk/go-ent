@@ -1,23 +1,13 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
-
-These instructions are for AI assistants working in this project.
-
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
-
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
 
 # AGENTS.md
+
+Agent system reference for go-ent development.
+
+**Complete Documentation**:
+- [Documentation Index](docs/INDEX.md) - All documentation
+- [Agents and Skills](docs/AGENTS_AND_SKILLS.md) - Agent architecture and skills
+- [CLI Reference](docs/CLI_REFERENCE.md) - Complete CLI commands
+- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute
 
 ## Build Commands
 
@@ -60,7 +50,7 @@ ent skill show-template go-complete
 ent skill add-template /path/to/template
 ```
 
-See [README.md](README.md#cli-commands) for complete CLI documentation.
+See [CLI Reference](docs/CLI_REFERENCE.md) for complete CLI documentation.
 
 ## Running Single Tests
 

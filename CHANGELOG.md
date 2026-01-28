@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Complete documentation refactoring with INDEX.md navigation hub
+- CLI_REFERENCE.md with complete command documentation
+- CONFIGURATION.md with all configuration options
+- OPENSPEC_WORKFLOW.md aligned with Fission-AI/OpenSpec standards
+
+---
+
+## [0.3.0] - 2026-01-27
+
+### Added
+- **MCP Server Entry Point**: `ent` binary now serves as MCP server with CLI fallback
+- **Execution Engine v2**: Complete rewrite of task execution system
+  - Improved state management
+  - Better error handling
+  - Parallel task execution support
+- **Constitutional AI Alignment**: Agent prompts aligned with Anthropic's Constitutional AI principles
+- **Automated Releases**: GitHub Actions workflow for automated releases
+- **Skill Validation Refactor**: Enhanced skill validation for v2 format
+
+### Changed
+- MCP server architecture for better Claude Code integration
+- Agent prompt structure for improved reliability
+- Skill loading system with progressive enhancement
+
+### Fixed
+- MCP tool registration in Claude Code
+- Skill validation edge cases
+- CLI command parsing
+
+---
+
+## [0.2.1] - 2026-01-22
+
+### Added
+- **Plugin System**: Modular architecture for extending functionality
+- **Skill Quality Scoring**: Research-backed quality assessment (0-100)
+- **Progressive Skill Loading**: Three-stage loading (metadata → core → extended)
+- **Skill Linting Tool**: Automated validation with `ent skill validate`
+- **Skill Templates**: Reusable patterns for common development tasks
+- **Context-Aware Matching**: Skills matched based on conversation context
+- **Background Agents**: Long-running agent processes
+- **AST Operations**: AST-based code querying and refactoring
+
+### Changed
+- Skill format to v2 with XML sections
+- Agent system to support delegation chains
+- Command system to support workflow composition
+
+### Deprecated
+- Skill v1 format (use `ent skill migrate` to upgrade)
+
 ---
 
 ## [3.0.0] - 2026-01-09

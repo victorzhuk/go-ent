@@ -3,14 +3,22 @@ name: go-perf
 description: "Performance profiling, optimization, benchmarks. Auto-activates for: performance issues, profiling, optimization, memory leaks, benchmarking."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["go", "performance", "profiling", "benchmarks", "optimization"]
+quality_score: 82
+category: "go"
 ---
 
 <triggers>
-- keywords:
-    - performance
-    - optimize
-  weight: 0.8
+keywords:
+  - "performance"
+  - "optimize"
+  - "profiling"
+  - "benchmark"
+weight: 0.8
 </triggers>
 
 # Go Performance
@@ -106,6 +114,20 @@ if err := limiter.Wait(ctx); err != nil {
     return err
 }
 ```
+
+## Context7
+
+For up-to-date documentation on Go profiling and performance libraries, use:
+
+```
+mcp__context7__resolve(library: "runtime/pprof")
+mcp__context7__resolve(library: "net/http/pprof")
+```
+
+For third-party performance tools:
+- `golang.org/x/time/rate` — Rate limiting
+- `golang.org/x/sync/errgroup` — Concurrent error handling
+- `golang.org/x/sync/singleflight` — Duplicate suppression
 
 </instructions>
 

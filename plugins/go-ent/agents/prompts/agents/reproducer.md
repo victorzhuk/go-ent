@@ -107,7 +107,7 @@ Minimal input:
 Reproduction rate: {percentage}%
 Test runtime: {time}
 
-Next: Hand off to @ent:researcher/@ent:debugger-fast
+Next: Hand off to @ent/researcher/@ent/debugger-fast
 ```
 
 ## Quality Checklist
@@ -132,5 +132,5 @@ Good reproduction has:
 After reproduction:
 - Test file created/updated
 - Documentation written
-- Hand off to @ent:researcher for root cause investigation
-- Or directly to @ent:debugger-fast for simple bugs
+- Hand off to @ent/researcher for root cause investigation
+- Or directly to @ent/debugger-fast for simple bugs

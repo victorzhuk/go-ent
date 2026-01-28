@@ -3,14 +3,25 @@ name: arch-core
 description: "Architecture patterns and system design principles. Auto-activates for: architecture decisions, design patterns, system boundaries, component interaction, architectural trade-offs."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["architecture", "ddd", "clean-architecture", "layers", "design-patterns"]
+quality_score: 92
+category: "core"
 ---
 
 # Architecture Core
 
 <triggers>
-- keywords: ["architecture", "clean architecture", "ddd"]
-  weight: 0.8
+keywords:
+  - "architecture"
+  - "clean architecture"
+  - "ddd"
+  - "design"
+  - "system design"
+weight: 0.8
 </triggers>
 
 <role>

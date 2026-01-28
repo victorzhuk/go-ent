@@ -1,4 +1,5 @@
 ---
+name: ent:bug-flow
 description: Debug and fix bugs with reproduction and root cause analysis
 ---
 
@@ -12,15 +13,15 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 | Agent               | Phase                          | Tier     |
 |---------------------|--------------------------------|----------|
-| @ent:reproducer     | Create minimal failing test    | fast     |
-| @ent:researcher     | Code analysis, investigation   | fast     |
-| @ent:debugger-fast  | Simple bugs, single component  | fast     |
-| @ent:debugger       | Standard debugging             | standard |
-| @ent:debugger-heavy | Complex bugs                   | heavy    |
-| @ent:coder          | Implement fix                  | fast     |
-| @ent:reviewer       | Code review                    | standard |
-| @ent:tester         | Validate fix                   | fast     |
-| @ent:acceptor       | Verify no regression           | fast     |
+| @ent/reproducer     | Create minimal failing test    | fast     |
+| @ent/researcher     | Code analysis, investigation   | fast     |
+| @ent/debugger-fast  | Simple bugs, single component  | fast     |
+| @ent/debugger       | Standard debugging             | standard |
+| @ent/debugger-heavy | Complex bugs                   | heavy    |
+| @ent/coder          | Implement fix                  | fast     |
+| @ent/reviewer       | Code review                    | standard |
+| @ent/tester         | Validate fix                   | fast     |
+| @ent/acceptor       | Verify no regression           | fast     |
 
 **Escalation**: reproducer → researcher → debugger-fast/debugger/debugger-heavy → coder → reviewer → tester → acceptor
 
@@ -30,7 +31,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 1: Reproduce Bug
 
-**Agent**: @ent:reproducer
+**Agent**: @ent/reproducer
 
 **Goal**: Create minimal, reliable reproduction
 
@@ -44,7 +45,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 2: Root Cause Analysis
 
-**Agent**: @ent:researcher
+**Agent**: @ent/researcher
 
 **Goal**: Understand the underlying issue
 
@@ -70,7 +71,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 3: Determine Fix Strategy
 
-**Agent**: @ent:debugger-fast / @ent:debugger / @ent:debugger-heavy
+**Agent**: @ent/debugger-fast / @ent/debugger / @ent/debugger-heavy
 
 **Goal**: Design and implement the fix
 
@@ -93,7 +94,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 4: Implement Fix
 
-**Agent**: @ent:coder
+**Agent**: @ent/coder
 
 **Goal**: Apply the designed fix
 
@@ -105,7 +106,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 5: Validate Fix
 
-**Agent**: @ent:tester
+**Agent**: @ent/tester
 
 **Goal**: Ensure fix works and no regressions
 
@@ -126,7 +127,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 6: Acceptance
 
-**Agent**: @ent:acceptor
+**Agent**: @ent/acceptor
 
 **Goal**: Final validation
 
@@ -138,7 +139,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 **Outcome**:
 - **ACCEPTED** → Mark bug complete
-- **NEEDS_WORK** → Return to @ent:coder
+- **NEEDS_WORK** → Return to @ent/coder
 
 ### Phase 7: Complete
 

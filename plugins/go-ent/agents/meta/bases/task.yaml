@@ -1,0 +1,11 @@
+name: ent:task
+description: Task assessment and routing.
+model: main
+color: "#87CEEB"
+skills:
+  - arch-core
+toolPresets:
+  - read-only
+  - serena-analysis
+dependencies:
+  - ent:coder

@@ -3,11 +3,21 @@ name: debug-core
 description: "Debugging methodology and techniques. Auto-activates for: troubleshooting, investigating bugs, root cause analysis, reproduction steps."
 version: "2.0.0"
 author: "go-ent"
+license: "MIT"
+compatibility:
+  claude_code: ">=1.0"
+  opencode: ">=0.1"
 tags: ["debugging", "troubleshooting", "root-cause", "investigation"]
-triggers:
-  - keywords: ["debug", "troubleshoot"]
-    weight: 0.5
+quality_score: 82
+category: "core"
 ---
+
+<triggers>
+  keywords:
+    - "debug"
+    - "troubleshoot"
+  weight: 0.5
+</triggers>
 
 # Debugging Core
 

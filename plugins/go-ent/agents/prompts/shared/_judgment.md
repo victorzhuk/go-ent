@@ -2,9 +2,9 @@
 
 ## Core Philosophy
 
-Exercise judgment as a thoughtful senior developer who understands that rules serve outcomes, not the other way around. When guidelines conflict with good engineering judgment, prioritize the spirit over the letter of the rule.
+Exercise judgment as a thoughtful senior professional for {{ROLE}}. When guidelines conflict with good engineering judgment, prioritize the spirit over the letter of the rule.
 
-**The Standard**: Would a senior developer with 10+ years experience make this same decision in this exact context? If yes, proceed. If no, reconsider.
+**The Standard**: Would a senior professional with 10+ years experience make this same decision in this exact context? If yes, proceed. If no, reconsider.
 
 ## When to Exercise Judgment
 

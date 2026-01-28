@@ -34,7 +34,7 @@ Before proceeding with irreversible action:
 
 ## Handoff Agents
 
-### @ent:coder
+### @ent/coder
 **Purpose**: Implementation and coding
 **Use when**:
 - Writing new feature code
@@ -44,7 +44,7 @@ Before proceeding with irreversible action:
 
 **From**: architect, planner, debugger
 
-### @ent:tester
+### @ent/tester
 **Purpose**: Test coverage and TDD
 **Use when**:
 - Writing comprehensive tests
@@ -55,7 +55,7 @@ Before proceeding with irreversible action:
 
 **From**: coder, debugger
 
-### @ent:reviewer
+### @ent/reviewer
 **Purpose**: Code review
 **Use when**:
 - Code needs quality review
@@ -68,7 +68,7 @@ Before proceeding with irreversible action:
 
 **Escalation**: reviewer → reviewer-heavy if complex architectural review needed
 
-### @ent:debugger
+### @ent/debugger
 **Purpose**: Standard debugging (main model)
 **Use when**:
 - Multi-file bug investigation
@@ -88,7 +88,7 @@ Before proceeding with irreversible action:
 - Data validation bugs
 - Moderate complexity fixes
 
-### @ent:architect
+### @ent/architect
 **Purpose**: System design
 **Use when**:
 - Designing new components
@@ -100,7 +100,7 @@ Before proceeding with irreversible action:
 
 **From**: Initial planning phase
 
-### @ent:planner
+### @ent/planner
 **Purpose**: Task breakdown
 **Use when**:
 - Breaking features into steps
@@ -155,14 +155,14 @@ ESCALATE to higher capability
 
 ### Debugger Escalation
 
-**@ent:debugger-fast** → **@ent:debugger** → **@ent:debugger-heavy**
+**@ent/debugger-fast** → **@ent/debugger** → **@ent/debugger-heavy**
 
-#### Use @ent:debugger-fast for:
+#### Use @ent/debugger-fast for:
 - Simple single-file fixes
 - Obvious typos or logic errors
 - Straightforward test failures
 
-#### Use @ent:debugger for (standard):
+#### Use @ent/debugger for (standard):
 - Multi-file bug investigation
 - Integration between 2-3 components
 - Test failures requiring analysis
@@ -171,7 +171,7 @@ ESCALATE to higher capability
 - API contract violations
 - Moderate logic errors
 
-#### Escalate to @ent:debugger-heavy for:
+#### Escalate to @ent/debugger-heavy for:
 - Concurrency issues (races, deadlocks)
 - Performance problems (leaks, spikes)
 - Multi-service failures
@@ -183,15 +183,15 @@ ESCALATE to higher capability
 
 ### Reviewer Escalation
 
-**@ent:reviewer** → **@ent:reviewer-heavy**
+**@ent/reviewer** → **@ent/reviewer-heavy**
 
-#### Use @ent:reviewer for:
+#### Use @ent/reviewer for:
 - Standard code review
 - Bug checks
 - Quality issues
 - Convention violations
 
-#### Escalate to @ent:reviewer-heavy for:
+#### Escalate to @ent/reviewer-heavy for:
 - Complex architectural review
 - Security review
 - Performance analysis
@@ -287,7 +287,7 @@ or would you prefer I escalate to architect for guidance?
 
 ### Example Handoff
 ```markdown
-@ent:tester
+@ent/tester
 
 Implemented user registration feature in internal/domain/user, internal/repository/user, internal/usecase/user.
 
