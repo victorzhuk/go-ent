@@ -12,6 +12,8 @@ import (
 type OpenCodeFrontmatter struct {
 	Name        string          `yaml:"name"`
 	Description string          `yaml:"description"`
+	Mode        string          `yaml:"mode,omitempty"`
+	Hidden      bool            `yaml:"hidden,omitempty"`
 	Model       string          `yaml:"model,omitempty"`
 	Skills      []string        `yaml:"skills,omitempty"`
 	Tools       map[string]bool `yaml:"tools,omitempty"`
@@ -39,6 +41,8 @@ func (t *OpenCodeTarget) Generate(agent *AgentSource, prompts *PromptContent) ([
 	fm := OpenCodeFrontmatter{
 		Name:        agent.Name,
 		Description: agent.Description,
+		Mode:        agent.OpenCode.Mode,
+		Hidden:      agent.OpenCode.Hidden,
 		Model:       agent.Model.OpenCode,
 		Skills:      agent.Skills,
 		Tools:       agent.Tools.OpenCode,

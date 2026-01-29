@@ -1,8 +1,11 @@
 name: coder
 description: Go developer. Implements features, writes code.
 model:
-  claude: sonnet
-  opencode: anthropic/claude-sonnet-4-20250514
+  claude: main
+  opencode: main
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-code
   - go-test

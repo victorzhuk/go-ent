@@ -55,15 +55,15 @@ func Default() *Config {
 		Models: ModelAliases{
 			Fast: ToolModels{
 				Claude:   "haiku",
-				OpenCode: "anthropic/claude-3-5-haiku-20241022",
+				OpenCode: "zai-coding-plan/glm-4.5-air",
 			},
 			Main: ToolModels{
 				Claude:   "sonnet",
-				OpenCode: "anthropic/claude-sonnet-4-20250514",
+				OpenCode: "zai-coding-plan/glm-4.7",
 			},
 			Heavy: ToolModels{
 				Claude:   "opus",
-				OpenCode: "anthropic/claude-opus-4-20250514",
+				OpenCode: "kimi-for-coding/k2p5",
 			},
 		},
 		OpenSpec: OpenSpecConfig{

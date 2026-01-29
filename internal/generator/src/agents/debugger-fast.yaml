@@ -1,8 +1,11 @@
 name: debugger-fast
 description: Quick debugging for simple issues. Fast troubleshooting.
 model:
-  claude: haiku
-  opencode: anthropic/claude-3-5-haiku-20241022
+  claude: fast
+  opencode: fast
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-code
 tools:

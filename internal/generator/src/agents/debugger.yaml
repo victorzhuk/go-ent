@@ -1,8 +1,11 @@
 name: debugger
 description: Standard debugging. Systematic issue investigation and resolution.
 model:
-  claude: sonnet
-  opencode: anthropic/claude-sonnet-4-20250514
+  claude: main
+  opencode: main
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-test
   - go-code

@@ -1,8 +1,11 @@
 name: researcher
 description: Research root causes, investigate code, analyze bugs. Deep code analysis.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-code
 tools:

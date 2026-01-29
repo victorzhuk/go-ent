@@ -1,8 +1,11 @@
 name: planner-heavy
 description: Complex architectural planning. Deep analysis for large-scale changes.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-arch
   - go-api

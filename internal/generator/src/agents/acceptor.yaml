@@ -1,8 +1,11 @@
 name: acceptor
 description: Validate acceptance criteria and requirements. Ensure spec compliance.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-test
 tools:

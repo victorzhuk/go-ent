@@ -4,19 +4,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/victorzhuk/go-ent/internal/genconfig"
 )
 
 // Generator orchestrates agent generation for multiple targets
 type Generator struct {
 	SrcDir  string
 	Targets []Target
+	Config  *genconfig.Config
 }
 
 // New creates a new Generator
-func New(srcDir string, targets ...Target) *Generator {
+func New(srcDir string, cfg *genconfig.Config, targets ...Target) *Generator {
 	return &Generator{
 		SrcDir:  srcDir,
 		Targets: targets,
+		Config:  cfg,
 	}
 }
 
@@ -42,6 +46,12 @@ func (g *Generator) GenerateAgent(name string) error {
 	agent, prompts, err := LoadAgentSource(g.SrcDir, name)
 	if err != nil {
 		return fmt.Errorf("load source: %w", err)
+	}
+
+	// Resolve model aliases
+	if g.Config != nil {
+		agent.Model.Claude = g.ResolveModel(agent.Model.Claude, "claude")
+		agent.Model.OpenCode = g.ResolveModel(agent.Model.OpenCode, "opencode")
 	}
 
 	// Generate for each target
@@ -74,4 +84,32 @@ func (g *Generator) writeOutput(path string, data []byte) error {
 	}
 
 	return nil
+}
+
+// ResolveModel resolves a model alias to a tool-specific model ID
+func (g *Generator) ResolveModel(alias, tool string) string {
+	if g.Config == nil {
+		return ""
+	}
+
+	var models genconfig.ToolModels
+	switch alias {
+	case "fast":
+		models = g.Config.Models.Fast
+	case "main":
+		models = g.Config.Models.Main
+	case "heavy":
+		models = g.Config.Models.Heavy
+	default:
+		return alias
+	}
+
+	switch tool {
+	case "claude":
+		return models.Claude
+	case "opencode":
+		return models.OpenCode
+	default:
+		return ""
+	}
 }

@@ -1,8 +1,11 @@
 name: decomposer
 description: Task breakdown and dependency analysis. Creates implementable task graph.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-arch
 tools:

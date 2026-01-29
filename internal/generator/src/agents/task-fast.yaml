@@ -1,8 +1,11 @@
 name: task-fast
 description: Quick task complexity evaluation. Fast assessment and routing.
 model:
-  claude: haiku
-  opencode: anthropic/claude-3-5-haiku-20241022
+  claude: fast
+  opencode: fast
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-code
 tools:

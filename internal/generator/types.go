@@ -2,13 +2,14 @@ package generator
 
 // AgentSource represents the unified source format for an agent
 type AgentSource struct {
-	Name        string        `yaml:"name"`
-	Description string        `yaml:"description"`
-	Model       ModelConfig   `yaml:"model"`
-	Skills      []string      `yaml:"skills"`
-	Tools       ToolsConfig   `yaml:"tools"`
-	Prompts     PromptsConfig `yaml:"prompts"`
-	Color       string        `yaml:"color,omitempty"`
+	Name        string         `yaml:"name"`
+	Description string         `yaml:"description"`
+	Model       ModelConfig    `yaml:"model"`
+	Skills      []string       `yaml:"skills"`
+	Tools       ToolsConfig    `yaml:"tools"`
+	Prompts     PromptsConfig  `yaml:"prompts"`
+	OpenCode    OpenCodeConfig `yaml:"opencode,omitempty"`
+	Color       string         `yaml:"color,omitempty"`
 }
 
 // ModelConfig maps model aliases to tool-specific model IDs
@@ -42,4 +43,10 @@ type PromptsConfig struct {
 type PromptContent struct {
 	Shared map[string]string // prompt name -> content
 	Main   string            // agent-specific content
+}
+
+// OpenCodeConfig holds OpenCode-specific agent configuration
+type OpenCodeConfig struct {
+	Mode   string `yaml:"mode,omitempty"`   // primary, subagent, all
+	Hidden bool   `yaml:"hidden,omitempty"` // hide from UI
 }

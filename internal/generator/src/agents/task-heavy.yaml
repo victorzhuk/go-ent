@@ -1,8 +1,11 @@
 name: task-heavy
 description: Complex task analysis with deep reasoning. Difficult implementations.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-arch
   - go-code

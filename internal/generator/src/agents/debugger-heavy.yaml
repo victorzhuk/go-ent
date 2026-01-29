@@ -1,8 +1,11 @@
 name: debugger-heavy
 description: Complex debugging. Concurrency, performance, multi-component issues.
 model:
-  claude: opus
-  opencode: anthropic/claude-opus-4-20250514
+  claude: heavy
+  opencode: heavy
+opencode:
+  mode: subagent
+  hidden: true
 skills:
   - go-test
   - go-code

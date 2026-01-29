@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/victorzhuk/go-ent/internal/cli/skill"
 	"github.com/victorzhuk/go-ent/internal/genconfig"
 	"github.com/victorzhuk/go-ent/internal/generator"
 	"github.com/victorzhuk/go-ent/internal/genspec"
@@ -26,6 +27,7 @@ func main() {
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(generateCmd())
 	rootCmd.AddCommand(validateCmd())
+	rootCmd.AddCommand(skill.NewCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -144,7 +146,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run generator
-	gen := generator.New("src", targets...)
+	gen := generator.New("src", cfg, targets...)
 	if err := gen.GenerateAll(); err != nil {
 		return fmt.Errorf("generate: %w", err)
 	}
