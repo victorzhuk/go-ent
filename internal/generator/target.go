@@ -10,4 +10,12 @@ type Target interface {
 
 	// OutputPath returns the output file path relative to project root
 	OutputPath(agentName string) string
+
+	// GenerateSkill transforms skill source into target-specific format
+	// For Claude: keeps all fields
+	// For OpenCode: strips Claude-specific fields (version, author, etc.)
+	GenerateSkill(skill *SkillSource) ([]byte, error)
+
+	// SkillOutputPath returns the output file path for a skill
+	SkillOutputPath(category, name string) string
 }

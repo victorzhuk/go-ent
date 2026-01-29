@@ -66,3 +66,37 @@ func (t *OpenCodeTarget) Generate(agent *AgentSource, prompts *PromptContent) ([
 
 	return []byte(sb.String()), nil
 }
+
+func (t *OpenCodeTarget) SkillOutputPath(category, name string) string {
+	return filepath.Join(t.OutputDir, "..", "skills", category, name, "SKILL.md")
+}
+
+func (t *OpenCodeTarget) GenerateSkill(skill *SkillSource) ([]byte, error) {
+	// For OpenCode: strip Claude-specific fields
+	// Only keep: name, description, triggers
+	type OpenCodeSkill struct {
+		Name        string   `yaml:"name"`
+		Description string   `yaml:"description"`
+		Triggers    Triggers `yaml:"triggers"`
+	}
+
+	stripped := OpenCodeSkill{
+		Name:        skill.Name,
+		Description: skill.Description,
+		Triggers:    skill.Triggers,
+	}
+
+	fmData, err := yaml.Marshal(&stripped)
+	if err != nil {
+		return nil, fmt.Errorf("marshal skill frontmatter: %w", err)
+	}
+
+	// Build final markdown with frontmatter
+	var sb strings.Builder
+	sb.WriteString("---\n")
+	sb.Write(fmData)
+	sb.WriteString("---\n\n")
+	sb.WriteString(skill.Content)
+
+	return []byte(sb.String()), nil
+}

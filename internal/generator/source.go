@@ -5,7 +5,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/victorzhuk/go-ent/pkg"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,7 +18,7 @@ func readFile(path string) ([]byte, error) {
 		return data, nil
 	}
 	// Fall back to embedded sources
-	return EmbeddedSrc.ReadFile(path)
+	return pkg.FS.ReadFile(path)
 }
 
 // listDir lists directory from local or embedded FS
@@ -26,7 +28,7 @@ func listDir(path string) ([]fs.DirEntry, error) {
 		return entries, nil
 	}
 	// Fall back to embedded
-	return EmbeddedSrc.ReadDir(path)
+	return pkg.FS.ReadDir(path)
 }
 
 // LoadAgentSource loads an agent from src/agents/{name}.yaml and src/agents/{name}.prompt.md
@@ -101,4 +103,80 @@ func ListAgents(srcDir string) ([]string, error) {
 	}
 
 	return agents, nil
+}
+
+// LoadSkillSource loads a skill from skills/{category}/{name}/SKILL.md
+// Skills are markdown files with YAML frontmatter
+func LoadSkillSource(skillsDir, category, name string) (*SkillSource, error) {
+	skillPath := filepath.Join(skillsDir, category, name, "SKILL.md")
+	data, err := readFile(skillPath)
+	if err != nil {
+		return nil, fmt.Errorf("read skill %s: %w", skillPath, err)
+	}
+
+	// Parse frontmatter and content
+	content := string(data)
+
+	// Split frontmatter and content
+	parts := strings.SplitN(content, "---", 3)
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid skill format: missing frontmatter in %s", skillPath)
+	}
+
+	frontmatter := parts[1]
+	skillContent := strings.TrimSpace(parts[2])
+
+	// Parse YAML frontmatter
+	var skill SkillSource
+	if err := yaml.Unmarshal([]byte(frontmatter), &skill); err != nil {
+		return nil, fmt.Errorf("unmarshal skill frontmatter: %w", err)
+	}
+
+	skill.Content = skillContent
+	return &skill, nil
+}
+
+// ListSkills lists all available skills by category and name
+// Returns map[category][]name
+func ListSkills(skillsDir string) (map[string][]string, error) {
+	categories, err := listDir(skillsDir)
+	if err != nil {
+		return nil, fmt.Errorf("read skills dir: %w", err)
+	}
+
+	result := make(map[string][]string)
+
+	for _, catEntry := range categories {
+		if !catEntry.IsDir() {
+			continue
+		}
+
+		category := catEntry.Name()
+		categoryPath := filepath.Join(skillsDir, category)
+
+		skills, err := listDir(categoryPath)
+		if err != nil {
+			continue // Skip categories we can't read
+		}
+
+		var skillNames []string
+		for _, skillEntry := range skills {
+			if !skillEntry.IsDir() {
+				continue
+			}
+
+			skillName := skillEntry.Name()
+			// Verify SKILL.md exists
+			skillFile := filepath.Join(categoryPath, skillName, "SKILL.md")
+			if _, err := readFile(skillFile); err == nil {
+				skillNames = append(skillNames, skillName)
+			}
+		}
+
+		if len(skillNames) > 0 {
+			result[category] = skillNames
+		}
+	}
+
+	return result, nil
 }

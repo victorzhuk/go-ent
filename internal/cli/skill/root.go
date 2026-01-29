@@ -72,6 +72,7 @@ Examples:
   ent skill analyze --all --csv`,
 	}
 
+	cmd.AddCommand(newGenerateCmd())
 	cmd.AddCommand(newListCmd())
 	cmd.AddCommand(newInfoCmd())
 	cmd.AddCommand(newAnalyzeCmd())

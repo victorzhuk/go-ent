@@ -68,3 +68,24 @@ func (t *ClaudeTarget) Generate(agent *AgentSource, prompts *PromptContent) ([]b
 
 	return []byte(sb.String()), nil
 }
+
+func (t *ClaudeTarget) SkillOutputPath(category, name string) string {
+	return filepath.Join(t.OutputDir, "..", "skills", category, name, "SKILL.md")
+}
+
+func (t *ClaudeTarget) GenerateSkill(skill *SkillSource) ([]byte, error) {
+	// For Claude: keep all fields (no stripping)
+	fmData, err := yaml.Marshal(skill)
+	if err != nil {
+		return nil, fmt.Errorf("marshal skill frontmatter: %w", err)
+	}
+
+	// Build final markdown with frontmatter
+	var sb strings.Builder
+	sb.WriteString("---\n")
+	sb.Write(fmData)
+	sb.WriteString("---\n\n")
+	sb.WriteString(skill.Content)
+
+	return []byte(sb.String()), nil
+}

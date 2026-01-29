@@ -30,9 +30,9 @@ func (e *TemplateEngine) Funcs() template.FuncMap {
 }
 
 // include reads a shared section from the embedded filesystem.
-// Reads file from plugins/go-ent/agents/prompts/shared/{name}.md
+// Reads file from agents/prompts/shared/{name}.md
 func (e *TemplateEngine) include(name string) string {
-	path := fmt.Sprintf("plugins/go-ent/agents/prompts/shared/%s.md", name)
+	path := fmt.Sprintf("agents/prompts/shared/%s.md", name)
 	content, err := e.fs.ReadFile(path)
 	if err != nil {
 		return ""

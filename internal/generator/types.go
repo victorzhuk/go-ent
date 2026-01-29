@@ -50,3 +50,31 @@ type OpenCodeConfig struct {
 	Mode   string `yaml:"mode,omitempty"`   // primary, subagent, all
 	Hidden bool   `yaml:"hidden,omitempty"` // hide from UI
 }
+
+// SkillSource represents the unified source format for a skill
+// Skills are single markdown files with YAML frontmatter
+type SkillSource struct {
+	// Standard fields (kept for all tools)
+	Name        string   `yaml:"name"`
+	Description string   `yaml:"description"`
+	Triggers    Triggers `yaml:"triggers"`
+
+	// Claude-specific fields (stripped for OpenCode)
+	Version       string            `yaml:"version,omitempty"`
+	Author        string            `yaml:"author,omitempty"`
+	License       string            `yaml:"license,omitempty"`
+	Compatibility map[string]string `yaml:"compatibility,omitempty"`
+	Tags          []string          `yaml:"tags,omitempty"`
+	QualityScore  int               `yaml:"quality_score,omitempty"`
+	Category      string            `yaml:"category,omitempty"`
+
+	// Content (after frontmatter)
+	Content string `yaml:"-"` // Not in YAML, stored separately
+}
+
+// Triggers defines skill activation triggers
+type Triggers struct {
+	Keywords    []string `yaml:"keywords,omitempty"`
+	FilePattern string   `yaml:"file_pattern,omitempty"`
+	Weight      float64  `yaml:"weight,omitempty"`
+}

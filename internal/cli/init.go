@@ -10,20 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/victorzhuk/go-ent/internal/config"
+	"github.com/victorzhuk/go-ent/pkg"
 	"gopkg.in/yaml.v3"
 )
-
-var pluginFS interface {
-	ReadDir(name string) ([]os.DirEntry, error)
-	ReadFile(name string) ([]byte, error)
-}
-
-func SetPluginFS(fs interface {
-	ReadDir(name string) ([]os.DirEntry, error)
-	ReadFile(name string) ([]byte, error)
-}) {
-	pluginFS = fs
-}
 
 type toolPresets struct {
 	Presets map[string][]string `yaml:"presets"`
@@ -114,7 +103,7 @@ func loadAgents() (map[string]*agentMeta, error) {
 
 	agents := make(map[string]*agentMeta)
 
-	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/meta")
+	entries, err := pkg.FS.ReadDir("agents/meta")
 	if err != nil {
 		return nil, fmt.Errorf("read agents/meta directory: %w", err)
 	}
@@ -124,8 +113,8 @@ func loadAgents() (map[string]*agentMeta, error) {
 			continue
 		}
 
-		path := filepath.Join("plugins/go-ent/agents/meta", entry.Name())
-		data, err := pluginFS.ReadFile(path)
+		path := filepath.Join("agents/meta", entry.Name())
+		data, err := pkg.FS.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
 		}
@@ -157,7 +146,7 @@ func loadAgents() (map[string]*agentMeta, error) {
 func loadBases() (map[string]*agentMeta, error) {
 	bases := make(map[string]*agentMeta)
 
-	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/meta/bases")
+	entries, err := pkg.FS.ReadDir("agents/meta/bases")
 	if err != nil {
 		return bases, nil
 	}
@@ -167,8 +156,8 @@ func loadBases() (map[string]*agentMeta, error) {
 			continue
 		}
 
-		path := filepath.Join("plugins/go-ent/agents/meta/bases", entry.Name())
-		data, err := pluginFS.ReadFile(path)
+		path := filepath.Join("agents/meta/bases", entry.Name())
+		data, err := pkg.FS.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
 		}
@@ -230,7 +219,7 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 }
 
 func loadToolPresets() (*toolPresets, error) {
-	data, err := pluginFS.ReadFile("plugins/go-ent/agents/presets/tools.yaml")
+	data, err := pkg.FS.ReadFile("agents/presets/tools.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("read tool presets: %w", err)
 	}
@@ -364,7 +353,7 @@ func validateAgent(meta *agentMeta, filename string) error {
 func loadPrompts() (map[string]string, error) {
 	prompts := make(map[string]string)
 
-	entries, err := pluginFS.ReadDir("plugins/go-ent/agents/prompts/agents")
+	entries, err := pkg.FS.ReadDir("agents/prompts/agents")
 	if err != nil {
 		return nil, fmt.Errorf("read agents/prompts/agents directory: %w", err)
 	}
@@ -374,8 +363,8 @@ func loadPrompts() (map[string]string, error) {
 			continue
 		}
 
-		path := filepath.Join("plugins/go-ent/agents/prompts/agents", entry.Name())
-		data, err := pluginFS.ReadFile(path)
+		path := filepath.Join("agents/prompts/agents", entry.Name())
+		data, err := pkg.FS.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
 		}
@@ -400,8 +389,8 @@ func loadShared() (string, error) {
 	var shared strings.Builder
 
 	for _, filename := range sharedFiles {
-		path := filepath.Join("plugins/go-ent/agents/prompts/shared", filename)
-		data, err := pluginFS.ReadFile(path)
+		path := filepath.Join("agents/prompts/shared", filename)
+		data, err := pkg.FS.ReadFile(path)
 		if err != nil {
 			return "", fmt.Errorf("read %s: %w", path, err)
 		}
@@ -418,14 +407,14 @@ func loadTemplate(tool string) (*template.Template, error) {
 
 	switch tool {
 	case "claude":
-		templateFile = "plugins/go-ent/agents/templates/claude.yaml.tmpl"
+		templateFile = "agents/templates/claude.yaml.tmpl"
 	case "opencode":
-		templateFile = "plugins/go-ent/agents/templates/opencode.yaml.tmpl"
+		templateFile = "agents/templates/opencode.yaml.tmpl"
 	default:
 		return nil, fmt.Errorf("unsupported tool: %s", tool)
 	}
 
-	data, err := pluginFS.ReadFile(templateFile)
+	data, err := pkg.FS.ReadFile(templateFile)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", templateFile, err)
 	}
@@ -550,7 +539,7 @@ func writeFile(path, content string, force, dryRun bool) error {
 }
 
 func copyCommands(tool, prefix string, force, dryRun bool) error {
-	entries, err := pluginFS.ReadDir("plugins/go-ent/commands")
+	entries, err := pkg.FS.ReadDir("commands")
 	if err != nil {
 		return fmt.Errorf("read commands directory: %w", err)
 	}
@@ -571,8 +560,8 @@ func copyCommands(tool, prefix string, force, dryRun bool) error {
 			continue
 		}
 
-		srcPath := filepath.Join("plugins/go-ent/commands", entry.Name())
-		data, err := pluginFS.ReadFile(srcPath)
+		srcPath := filepath.Join("commands", entry.Name())
+		data, err := pkg.FS.ReadFile(srcPath)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", srcPath, err)
 		}
@@ -590,7 +579,7 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 	var walk func(dir string, baseTargetDir string) error
 
 	walk = func(dir string, baseTargetDir string) error {
-		entries, err := pluginFS.ReadDir(dir)
+		entries, err := pkg.FS.ReadDir(dir)
 		if err != nil {
 			return fmt.Errorf("read directory %s: %w", dir, err)
 		}
@@ -609,7 +598,7 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 				continue
 			}
 
-			data, err := pluginFS.ReadFile(srcPath)
+			data, err := pkg.FS.ReadFile(srcPath)
 			if err != nil {
 				return fmt.Errorf("read %s: %w", srcPath, err)
 			}
@@ -625,7 +614,7 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 
 	// Use same prefixed structure for both Claude and OpenCode
 	baseTargetDir := filepath.Join("."+tool, "skills", prefix)
-	return walk("plugins/go-ent/skills", baseTargetDir)
+	return walk("skills", baseTargetDir)
 }
 
 func printSummary(agentCount, commandCount, skillCount int, tool, prefix string, dryRun bool) {
@@ -711,7 +700,8 @@ Examples:
 				return errors.New("--tool is required")
 			}
 
-			if pluginFS == nil {
+			// Plugin FS is now always available via pkg.FS
+			if false {
 				return errors.New("plugin filesystem not initialized")
 			}
 
@@ -776,7 +766,7 @@ Examples:
 					}
 				}
 
-				entries, err := pluginFS.ReadDir("plugins/go-ent/commands")
+				entries, err := pkg.FS.ReadDir("commands")
 				if err != nil {
 					return fmt.Errorf("read commands directory: %w", err)
 				}
@@ -793,7 +783,7 @@ Examples:
 
 				var countSkills func(dir string) (int, error)
 				countSkills = func(dir string) (int, error) {
-					entries, err := pluginFS.ReadDir(dir)
+					entries, err := pkg.FS.ReadDir(dir)
 					if err != nil {
 						return 0, err
 					}
@@ -813,7 +803,7 @@ Examples:
 					}
 					return count, nil
 				}
-				skillCount, err := countSkills("plugins/go-ent/skills")
+				skillCount, err := countSkills("skills")
 				if err != nil {
 					return fmt.Errorf("count skills: %w", err)
 				}
@@ -845,7 +835,7 @@ func newValidateCmd() *cobra.Command {
 		Short: "Validate agent definitions",
 		Long: `Validate all agent definition files against the schema.
 
-This command checks that all agent YAML files in plugins/go-ent/agents/meta/
+This command checks that all agent YAML files in agents/meta/
 conform to the required schema, including:
   - Required fields (name, description, model)
   - Valid enum values (model, role, complexity)
@@ -857,7 +847,8 @@ Examples:
   ent validate`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if pluginFS == nil {
+			// Plugin FS is now always available via pkg.FS
+			if false {
 				return errors.New("plugin filesystem not initialized")
 			}
 

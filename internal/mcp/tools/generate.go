@@ -10,7 +10,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/template"
-	"github.com/victorzhuk/go-ent/internal/templates"
+	"github.com/victorzhuk/go-ent/pkg"
 )
 
 type GenerateInput struct {
@@ -104,7 +104,7 @@ func generateHandler(ctx context.Context, req *mcp.CallToolRequest, input Genera
 	}
 
 	// Create template engine
-	engine := template.NewEngine(templates.TemplateFS)
+	engine := template.NewEngine(pkg.FS)
 
 	// Prepare template variables
 	vars := template.TemplateVars{
