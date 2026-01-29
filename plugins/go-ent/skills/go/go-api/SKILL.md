@@ -1,36 +1,36 @@
 ---
 name: go-api
-description: "Spec-first API design with OpenAPI/ogen and gRPC/protobuf. Auto-activates for: API design, OpenAPI specs, code generation, protobuf, REST endpoints, gRPC services."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Spec-first API design with OpenAPI/ogen and gRPC/protobuf. Auto-activates for: API design, OpenAPI specs, code generation, protobuf, REST endpoints, gRPC services.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "api", "http", "openapi", "ogen"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - api
+    - http
+    - openapi
+    - ogen
 quality_score: 90
-category: "go"
+category: go
+triggers:
+    keywords:
+        - go api
+        - rest
+        - grpc
+        - ogen
+        - protobuf
+    file_pattern: '**/api/*.go'
+    weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "go api"
-  - "rest"
-  - "grpc"
-  - "ogen"
-  - "protobuf"
-file_pattern: "**/api/*.go"
-weight: 0.8
-</triggers>
+## Role
 
-# Go API — Spec-First
-
-<role>
 Expert Go API designer specializing in REST and gRPC services. Focus on spec-first development, code generation, proper error handling, and transport layer separation.
-</role>
 
-<instructions>
-
+## Instructions
 ## Approach
 
 1. **REST**: Write OpenAPI spec → Generate with ogen → Wrap server
@@ -132,9 +132,8 @@ mcp__context7__resolve(library: "protoc")
 mcp__context7__resolve(library: "grpc-go")
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include spec-first design (OpenAPI for REST, protobuf for gRPC)
 - Include code generation with ogen/protoc
 - Include transport layer with zero business logic
@@ -150,9 +149,9 @@ mcp__context7__resolve(library: "grpc-go")
 - Bound to transport layer only, call usecases for business logic
 - Follow REST conventions for HTTP (status codes, resource naming)
 - Follow gRPC best practices (streaming, deadlines, metadata)
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If API requirements are unclear: Ask about transport type (REST/gRPC), target consumers, performance requirements, and versioning strategy.
 
 If spec is ambiguous or incomplete: Request clarification on endpoints, request/response structures, error handling, and authentication requirements.
@@ -170,9 +169,8 @@ If authentication/authorization is needed: Delegate to go-sec skill for security
 If validation requirements are complex: Suggest using validation middleware or domain-level validation.
 
 If versioning strategy is needed: Recommend URL versioning (/v1/, /v2/) or header-based versioning.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Implement REST handler with validation</input>
 <output>
@@ -238,9 +236,9 @@ For additional API implementation examples, see:
 - `references/rest-handler.md` - REST API handler with OpenAPI
 - `references/grpc-handler.md` - gRPC service with protobuf
 - `references/middleware.md` - Logging and metrics middleware
-</examples>
 
-<output_format>
+## Output Format
+
 Provide API design and implementation guidance with the following structure:
 
 1. **Spec-First Approach**: OpenAPI for REST, protobuf for gRPC, code generation
@@ -253,4 +251,4 @@ Provide API design and implementation guidance with the following structure:
 8. **Best Practices**: REST conventions, gRPC patterns, versioning strategy
 
 Focus on production-ready API patterns that balance usability, performance, and maintainability.
-</output_format>
+

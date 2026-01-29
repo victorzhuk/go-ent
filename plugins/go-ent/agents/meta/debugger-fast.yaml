@@ -1,9 +1,24 @@
-name: ent:debugger-fast
+name: debugger-fast
 description: Quick debugging for simple issues. Fast troubleshooting.
-extends: debugger
 model: fast
-color: "#FF6347"
+color: '#FF6347'
+skills:
+    - debug-core
+    - go-code
+toolPresets:
+    - editing
+disallowedToolPresets:
+    - serena-editing
 dependencies:
-  - ent:tester
-  - ent:coder
-  - ent:reviewer
+    - reviewer
+    - coder
+    - tester
+prompts:
+    shared:
+        - _conventions
+        - _judgment
+        - _principals
+        - _tooling
+        - _handoffs
+        - _openspec
+    main: agents/debugger-fast

@@ -1,37 +1,36 @@
 ---
 name: go-db
-description: "PostgreSQL, ClickHouse, Redis integration with pgx, squirrel, goose. Auto-activates for: database work, migrations, queries, repositories, caching."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'PostgreSQL, ClickHouse, Redis integration with pgx, squirrel, goose. Auto-activates for: database work, migrations, queries, repositories, caching.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "database", "pgx", "squirrel", "postgres"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - database
+    - pgx
+    - squirrel
+    - postgres
 quality_score: 89
-category: "go"
-depends_on: [go-code]
+category: go
+triggers:
+    keywords:
+        - database
+        - sql
+        - postgres
+        - repository
+        - migration
+    file_pattern: '**/*_repo.go'
+    weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "database"
-  - "sql"
-  - "postgres"
-  - "repository"
-  - "migration"
-file_pattern: "**/*_repo.go"
-weight: 0.8
-</triggers>
+## Role
 
-# Go Database
-
-<role>
 Expert Go database engineer specializing in PostgreSQL, ClickHouse, and Redis integration. Focus on repository pattern, query optimization, migrations, and connection pooling.
-</role>
 
-<instructions>
-
+## Instructions
 ## Stack
 
 - **PostgreSQL** — pgx/v5, squirrel
@@ -166,9 +165,8 @@ mcp__context7__resolve(library: "goose")
 mcp__context7__resolve(library: "go-redis")
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include repository pattern with private models and public entities
 - Include squirrel for complex queries (joins, dynamic WHERE, pagination)
 - Include proper connection pooling with pgxpool
@@ -185,9 +183,9 @@ mcp__context7__resolve(library: "go-redis")
 - Bound to repository layer with entity types from domain
 - Follow SQL best practices (indexes, constraints, proper data types)
 - Use context for all database operations with proper timeouts
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If query complexity is high (multiple joins, CTEs needed): Suggest creating a database view or materialized view instead of complex queries in code.
 
 If performance concerns exist: Delegate to go-perf skill for query optimization, indexing strategies, and performance profiling.
@@ -205,9 +203,8 @@ If connection pool tuning is needed: Suggest adjusting MaxConns/MinConns based o
 If code implementation patterns are required: Delegate to go-code skill for Go-specific database interaction patterns.
 
 If architecture decisions are needed: Delegate to go-arch skill for repository pattern integration with clean architecture.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Implement user repository with CRUD operations</input>
 <output>
@@ -265,10 +262,8 @@ For additional database implementation examples, see:
 - `references/transactions.md` - Transaction handling
 - `references/crud-operations.md` - Complete CRUD patterns
 
-</examples>
+## Output Format
 
-
-<output_format>
 Provide database implementation guidance with the following structure:
 
 1. **Repository Pattern**: Private models with DB tags, public entities, clear separation
@@ -281,4 +276,4 @@ Provide database implementation guidance with the following structure:
 8. **Error Handling**: Map database errors (ErrNoRows, constraints) to domain errors
 
 Focus on production-ready database patterns that balance performance with maintainability.
-</output_format>
+

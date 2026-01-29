@@ -1,15 +1,23 @@
-name: ent:planner-heavy
+name: planner-heavy
 description: Complex architectural planning. Deep analysis for large-scale changes.
 extends: planner
 model: heavy
-color: "#228B22"
+color: '#228B22'
 skills:
-  - go-arch
-  - go-api
-  - go-code
-  - go-db
-  - api-design
+    - go-arch
+    - go-api
+    - go-code
+    - go-db
 dependencies:
-  - ent:decomposer
-  - ent:architect
-  - ent:planner
+    - planner
+    - decomposer
+    - architect
+prompts:
+    shared:
+        - _handoffs
+        - _judgment
+        - _tooling
+        - _principals
+        - _openspec
+        - _conventions
+    main: agents/planner-heavy

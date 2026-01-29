@@ -1,36 +1,34 @@
 ---
 name: go-migration
-description: "Design and implement database migrations for Go applications. Auto-activates for: schema changes, data migrations, goose migrations, database evolution, rollback strategies."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Design and implement database migrations for Go applications. Auto-activates for: schema changes, data migrations, goose migrations, database evolution, rollback strategies.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "database", "migration", "schema"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - database
+    - migration
+    - schema
 quality_score: 84
-category: "go"
-depends_on: [go-db]
+category: go
+triggers:
+    keywords:
+        - migration
+        - schema change
+        - database migration
+        - goose
+    file_pattern: '**/migrations/*.sql'
+    weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "migration"
-  - "schema change"
-  - "database migration"
-  - "goose"
-file_pattern: "**/migrations/*.sql"
-weight: 0.8
-</triggers>
+## Role
 
-# Go Migration
-
-<role>
 Expert database migration engineer specializing in PostgreSQL schema evolution and data migrations. Focus on idempotent migrations, backward compatibility, and safe rollback strategies.
-</role>
 
-<instructions>
-
+## Instructions
 ## Migration Tool Stack
 
 - **Migration Runner** — goose/v3
@@ -248,9 +246,8 @@ mcp__context7__resolve(library: "goose")
 mcp__context7__resolve(library: "pgx")
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include migration files with Up/Down sections
 - Include timestamp-based naming (YYYYMMDDHHMMSS)
 - Include idempotent operations (IF NOT EXISTS, IF EXISTS)
@@ -266,9 +263,9 @@ mcp__context7__resolve(library: "pgx")
 - Follow semantic versioning for database schema
 - Use prepared statements in Go migrations to prevent SQL injection
 - Always test migrations on staging before production
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If migration is non-rollbackable (DROP TABLE): Document in comments and create empty table structure in Down.
 
 If data migration is large: Implement in batches with progress tracking and allow resumption.
@@ -293,10 +290,7 @@ If complex business logic is required in data migration: Delegate to go-db skill
 
 If application code changes are needed: Coordinate with go-code skill for implementation.
 
-</edge_cases>
-
-<examples>
-
+## Examples
 <example>
 <input>Add a new column email_verified with default value false, make it NOT NULL</input>
 <output>
@@ -369,9 +363,8 @@ See `references/rollback-patterns.md` for complete rollback strategies including
 </output>
 </example>
 
-</examples>
+## Output Format
 
-<output_format>
 Provide database migration guidance with the following structure:
 
 1. **Migration Files**: SQL or Go files with Up/Down sections, timestamp prefix
@@ -384,4 +377,4 @@ Provide database migration guidance with the following structure:
 8. **Commands**: goose CLI commands for running migrations
 
 Focus on safe, reversible schema evolution that minimizes downtime and risk.
-</output_format>
+

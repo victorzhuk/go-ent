@@ -1,14 +1,25 @@
-name: ent:task-heavy
+name: task-heavy
 description: Complex task analysis. Deep reasoning for difficult implementations.
-extends: task
 model: heavy
-color: "#4B0082"
+color: '#4B0082'
 skills:
-  - go-arch
-  - go-code
-  - go-api
-  - go-db
-  - debug-core
+    - go-code
+    - debug-core
+    - arch-core
+    - go-arch
+    - go-api
+    - go-db
+toolPresets:
+    - readonly
 dependencies:
-  - ent:coder
-  - ent:architect
+    - coder
+    - architect
+prompts:
+    shared:
+        - _openspec
+        - _tooling
+        - _conventions
+        - _judgment
+        - _principals
+        - _handoffs
+    main: agents/task-heavy

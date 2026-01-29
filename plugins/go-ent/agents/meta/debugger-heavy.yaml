@@ -1,15 +1,27 @@
-name: ent:debugger-heavy
+name: debugger-heavy
 description: Complex debugging. Concurrency, performance, multi-component issues.
-extends: debugger
 model: heavy
-color: "#8B0000"
+color: '#8B0000'
 skills:
-  - go-code
-  - go-perf
-  - debug-core
-  - go-sec
-  - go-test
+    - go-perf
+    - go-sec
+    - go-test
+    - debug-core
+    - go-code
+toolPresets:
+    - editing
+disallowedToolPresets:
+    - serena-editing
 dependencies:
-  - ent:reviewer
-  - ent:acceptor
-  - ent:tester
+    - acceptor
+    - tester
+    - reviewer
+prompts:
+    shared:
+        - _openspec
+        - _tooling
+        - _conventions
+        - _handoffs
+        - _judgment
+        - _principals
+    main: agents/debugger-heavy

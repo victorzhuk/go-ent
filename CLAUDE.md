@@ -9,7 +9,7 @@ When working on go-ent itself:
 
 - Use `/ent:plan <description>` to create change proposals
 - Use `/ent:apply` to execute tasks from the registry
-- Agents (`/ent:architect`, `/ent:dev`, etc.) are available for specialized assistance
+- Agents (`/ent:architect`, `/ent:coder`, `/ent:tester`, etc.) are available for specialized assistance
 - Skills (`go-code`, `go-arch`, `go-api`, etc.) auto-activate for Go code work
 
 ### Key Workflow Commands
@@ -24,15 +24,24 @@ When working on go-ent itself:
 
 ### Available Agents
 
-| Agent            | Purpose                               | Model  |
-|------------------|---------------------------------------|--------|
-| `/ent:lead`      | Orchestration and delegation          | Opus   |
-| `/ent:architect` | System design and architecture        | Opus   |
-| `/ent:planner`   | Task breakdown and planning           | Sonnet |
-| `/ent:dev`       | Implementation and coding             | Sonnet |
-| `/ent:tester`    | Testing and TDD cycles                | Haiku  |
-| `/ent:debug`     | Bug investigation and troubleshooting | Sonnet |
-| `/ent:reviewer`  | Code review with confidence filtering | Opus   |
+| Agent                | Purpose                                     | Model  |
+|----------------------|---------------------------------------------|--------|
+| `/ent:architect`     | System design and architecture              | Opus   |
+| `/ent:planner`       | Task breakdown and planning                 | Sonnet |
+| `/ent:planner-fast`  | Quick task assessment and routing           | Haiku  |
+| `/ent:planner-heavy` | Deep architectural planning                 | Opus   |
+| `/ent:coder`         | Go implementation and feature development   | Sonnet |
+| `/ent:tester`        | Test writing and TDD cycles                 | Sonnet |
+| `/ent:debugger`      | Standard debugging and investigation        | Sonnet |
+| `/ent:debugger-fast` | Quick debugging for simple issues           | Haiku  |
+| `/ent:debugger-heavy`| Complex debugging (concurrency, performance)| Opus   |
+| `/ent:reviewer`      | Code review for bugs, quality, adherence    | Opus   |
+| `/ent:researcher`    | Codebase research and deep code analysis    | Sonnet |
+| `/ent:reproducer`    | Create minimal bug reproductions            | Sonnet |
+| `/ent:acceptor`      | Validate acceptance criteria and requirements| Sonnet |
+| `/ent:decomposer`    | Task breakdown and dependency analysis      | Sonnet |
+| `/ent:task-fast`     | Quick task complexity evaluation            | Haiku  |
+| `/ent:task-heavy`    | Complex task analysis with deep reasoning   | Opus   |
 
 ### Quick Start
 

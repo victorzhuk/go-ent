@@ -1,42 +1,43 @@
 ---
 name: go-ops
-description: "DevOps patterns with Docker, Kubernetes, Helm, CI/CD. Auto-activates for: deployment, containerization, orchestration, CI/CD pipelines, infrastructure."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'DevOps patterns with Docker, Kubernetes, Helm, CI/CD. Auto-activates for: deployment, containerization, orchestration, CI/CD pipelines, infrastructure.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "ops", "devops", "docker", "kubernetes", "ci-cd"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - ops
+    - devops
+    - docker
+    - kubernetes
+    - ci-cd
 quality_score: 87
-category: "go"
+category: go
+triggers:
+    keywords:
+        - deploy
+        - docker
+        - kubernetes
+        - ops
+        - deployment
+        - container
+        - k8s
+        - helm
+        - cicd
+        - pipeline
+        - infrastructure
+    file_pattern: Dockerfile|docker-compose.yml|Dockerfile.*|**/k8s/*.yaml|**/kubernetes/*.yaml|helm/**/Chart.yaml|.github/workflows/*.yml|.gitlab-ci.yml
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "deploy"
-    - "docker"
-    - "kubernetes"
-    - "ops"
-    - "deployment"
-    - "container"
-    - "k8s"
-    - "helm"
-    - "cicd"
-    - "pipeline"
-    - "infrastructure"
-  file_pattern: "Dockerfile|docker-compose.yml|Dockerfile.*|**/k8s/*.yaml|**/kubernetes/*.yaml|helm/**/Chart.yaml|.github/workflows/*.yml|.gitlab-ci.yml"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go DevOps
-
-<role>
 Expert Go DevOps specialist focused on containerization, orchestration, and CI/CD pipelines. Prioritize security, observability, and reliability with cloud-native patterns. Focus on production-ready deployments with proper monitoring, logging, and scaling.
-</role>
 
-<instructions>
-
+## Instructions
 ## Stack
 
 - Docker / Podman
@@ -142,9 +143,8 @@ docker:
 	docker build -t app:$(VERSION) .
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include multi-stage Docker builds for smaller images
 - Include distroless or minimal base images for production
 - Include non-root user in containers
@@ -161,9 +161,9 @@ docker:
 - Exclude hardcoded credentials or API keys
 - Bound to cloud-native patterns and best practices
 - Follow 12-factor app methodology
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If local development is needed: Suggest using Docker Compose or Minikube for local testing to mirror production environment.
 
 If cloud deployment is requested: Recommend cloud-native patterns (managed services, auto-scaling, load balancers) appropriate for the target cloud provider.
@@ -191,9 +191,8 @@ If cost optimization is a concern: Suggest rightsizing resources, using spot ins
 If disaster recovery is required: Recommend regular backups, multi-region replication, and documented runbooks for common failures.
 
 If security compliance is needed (SOC2, HIPAA): Suggest implementing audit logging, encryption at rest/transit, and regular security scanning.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Create a production-ready Dockerfile for a Go service</input>
 <output>
@@ -214,9 +213,9 @@ See `references/k8s-manifests.md` for complete Deployment and Service manifests 
 See `references/ci-cd-pipelines.md` for complete GitHub Actions pipeline with testing, security scanning, Docker image building, and Kubernetes deployment with verification.
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide production-ready DevOps solutions with clear configurations:
 
 1. **Docker**: Multi-stage builds, minimal images, security best practices
@@ -228,4 +227,4 @@ Provide production-ready DevOps solutions with clear configurations:
 7. **Deployment Strategies**: Rolling updates, blue-green, canary releases
 
 Focus on production readiness, security, observability, and reliability with cloud-native patterns.
-</output_format>
+

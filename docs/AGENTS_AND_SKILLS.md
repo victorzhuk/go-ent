@@ -1,6 +1,6 @@
-# Agents and Skills System
+# Agents and Skills System (v3)
 
-Comprehensive guide to go-ent's agent and skill architecture.
+Comprehensive guide to go-ent's v3 agent and skill architecture with dual-platform support for Claude Code and OpenCode.
 
 ---
 
@@ -11,7 +11,7 @@ Comprehensive guide to go-ent's agent and skill architecture.
 - [Available Agents](#available-agents)
 - [Skill System](#skill-system)
 - [Available Skills](#available-skills)
-- [Tool Presets](#tool-presets)
+- [Reference Skills](#reference-skills)
 - [Usage Patterns](#usage-patterns)
 
 ---
@@ -20,1169 +20,500 @@ Comprehensive guide to go-ent's agent and skill architecture.
 
 go-ent uses a **multi-agent system** where specialized agents collaborate to accomplish development tasks. Each agent has:
 
-- **Domain expertise** (skills)
-- **Tool access** (tool presets)
+- **Domain expertise** (skills preloaded at startup)
+- **Tool access** (allowed/disallowed tools)
 - **Delegation chains** (dependencies)
-- **Model assignment** (fast/main/heavy)
+- **Model assignment** (main/fast/heavy internally, sonnet/opus/haiku for Claude Code)
 
-### Design Principles
+### v3 Design Principles
 
-1. **Separation of Concerns**: Each agent has a specific role
-2. **Composability**: Agents delegate to other agents
-3. **Progressive Complexity**: Fast/main/heavy models for different task types
-4. **Skill-Based Expertise**: Agents activated based on required skills
+1. **Dual-Platform Support** - Works with both Claude Code and OpenCode
+2. **Split Format** - Metadata (YAML) separated from prompts (Markdown)
+3. **Template Generation** - Platform-specific output from unified source
+4. **Reference Skills** - Agents preload shared skills via `skills:` field
+5. **Markdown Sections** - Skills use `## Role`, `## Instructions` format
+6. **Explicit Configuration** - All tool access and skills declared upfront
 
 ---
 
 ## Agent Architecture
 
-### Split-File Format
+### Split Format (v3)
 
-Agents use a **split-file architecture** for better maintainability:
+Agents use a **split format** with metadata separated from prompts, allowing dual-platform support:
 
 ```
-plugins/go-ent/agents/
-├── meta/                    # Agent metadata (YAML)
-│   ├── architect.yaml
-│   ├── coder.yaml
-│   ├── planner.yaml
-│   └── ...
-├── prompts/                 # Agent prompts (Markdown)
-│   ├── shared/              # Reusable sections
-│   │   ├── _principals.md
-│   │   ├── _judgment.md
-│   │   └── _handoffs.md
-│   └── agents/              # Agent-specific prompts
-│       ├── architect.md
-│       ├── coder.md
-│       └── ...
-└── templates/               # Runtime frontmatter templates
-    ├── claude.yaml.tmpl
-    └── opencode.yaml.tmpl
+plugins/go-ent/
+└── agents/
+    ├── meta/                      # Agent metadata (YAML)
+    │   ├── architect.yaml         # System design
+    │   ├── coder.yaml             # Implementation
+    │   ├── planner.yaml           # Task planning
+    │   ├── debugger.yaml          # Bug investigation
+    │   ├── tester.yaml            # Test coverage
+    │   ├── reviewer.yaml          # Code review
+    │   └── ...                    # 16 total agents
+    ├── prompts/
+    │   ├── shared/                # Shared prompt sections
+    │   │   ├── _tooling.md        # Tool usage guidance
+    │   │   ├── _conventions.md    # Go coding standards
+    │   │   ├── _handoffs.md       # Agent handoff patterns
+    │   │   ├── _judgment.md       # Decision framework
+    │   │   ├── _principals.md     # Value hierarchy
+    │   │   └── _openspec.md       # OpenSpec workflow
+    │   └── agents/                # Agent-specific prompts
+    │       ├── coder.md           # Implementation prompt
+    │       ├── planner.md         # Planning prompt
+    │       └── ...
+    ├── presets/
+    │   └── tools.yaml             # Tool preset definitions
+    └── templates/
+        ├── claude.yaml.tmpl       # Claude Code generation
+        └── opencode.yaml.tmpl     # OpenCode generation
 ```
 
-### Agent Metadata (YAML)
+### Generated Output
 
-**File**: `meta/<agent>.yaml`
+Run `go-ent init --tool <platform>` to generate platform-specific files:
 
-```yaml
-name: ent:architect
-description: System architect. Designs components, layers, data flow.
-model: heavy              # fast, main, or heavy
-color: "#4169E1"          # UI color
-role: planning            # planning or execution
-complexity: heavy         # fast, standard, or heavy
-
-skills:                   # Skill IDs to load
-  - go-arch
-  - go-api
-  - api-design
-
-toolPresets:              # Tool access presets
-  - read-only
-  - serena-analysis
-
-dependencies:             # Agents this can delegate to
-  - ent:planner
-  - ent:coder
-```
-
-**Fields**:
-- `name`: Unique agent ID (format: `plugin:agent`)
-- `description`: Short description (shown in UI)
-- `model`: Model category (fast/main/heavy)
-- `color`: Hex color for UI
-- `role`: Agent role (planning/execution)
-- `complexity`: Complexity level
-- `skills`: Skills to activate
-- `toolPresets`: Tools the agent can use
-- `dependencies`: Agents that can be delegated to
-
-### Agent Prompts (Markdown)
-
-**File**: `prompts/agents/<agent>.md`
-
-Prompts are composed from:
-1. **Shared sections**: Reusable prompt fragments
-2. **Agent-specific**: Unique instructions
-
-**Example**:
+**Claude Code** (`.claude/agents/ent/*.md`):
 ```markdown
-# Architect Agent
-
-You are a system architect specializing in Go applications.
-
-{{> _principals }}      <!-- Shared: Core principles -->
-{{> _judgment }}        <!-- Shared: Decision framework -->
-
-## Your Responsibilities
-
-- Design system architecture
-- Define component boundaries
-- Plan data flow
-- Review technical decisions
-
-## Delegation
-
-{{> _handoffs }}        <!-- Shared: Handoff patterns -->
-
-When you need implementation, delegate to @ent:coder.
-When you need planning, delegate to @ent:planner.
-```
-
-### Template Generation
-
-At runtime, templates combine metadata and prompts for specific tools:
-
-**Claude Code** (`.claude/agents/ent:architect.yaml`):
-```yaml
-name: ent:architect
-description: System architect. Designs components, layers, data flow.
-model: claude-opus-4.5
-color: "#4169E1"
-instructions: |
-  # Architect Agent
-  You are a system architect...
-  [prompt content]
-```
-
-**OpenCode** (`.opencode/agents/ent:architect.yaml`):
-```yaml
-name: architect
-role: planning
-model: heavy
+---
+name: coder
+description: Go developer. Implements features, writes code.
+model: sonnet                      # Claude Code model name
 skills:
-  - go-arch
-  - go-api
-prompt: |
-  # Architect Agent
-  [prompt content]
+  - go-code
+  - go-db
+disallowedTools:
+  - mcp__plugin_serena_serena__replace_symbol_body
+color: "#32CD32"
+role: execution
+complexity: standard
+dependencies:
+  - tester
+  - reviewer
+---
+
+[Combined shared prompts + agent-specific prompt]
 ```
+
+**OpenCode** (`.opencode/agents/ent/*.md`):
+```markdown
+---
+name: coder
+description: Go developer. Implements features, writes code.
+model: main                        # OpenCode model name
+tools:
+    read: true                     # Lowercase object format
+    write: true
+    edit: true
+    bash: true
+skills:
+  - go-code
+  - go-db
+tags:
+  - role:execution                 # Tag format for role
+color: "#32CD32"
+dependencies:
+  - tester
+  - reviewer
+---
+
+[Combined shared prompts + agent-specific prompt]
+```
+
+### Metadata Structure
+
+**File**: `agents/meta/<name>.yaml`
+
+```yaml
+name: coder
+description: Go developer. Implements features, writes code.
+model: main                        # Internal: main/fast/heavy (platform-agnostic)
+color: '#32CD32'
+skills:
+  - go-code
+  - go-db
+toolPresets:
+  - editing                        # Expands to tools based on platform
+disallowedToolPresets:
+  - serena-editing                 # Expands to Serena MCP tools
+role: execution
+complexity: standard
+dependencies:
+  - tester
+  - reviewer
+  - debugger
+prompts:
+  shared:                          # Shared prompt sections (preloaded skills)
+    - _tooling
+    - _conventions
+    - _handoffs
+    - _judgment
+    - _principals
+    - _openspec
+  main: agents/coder               # Agent-specific prompt path
+```
+
+### Metadata Fields
+
+**Required:**
+- `name` - Agent identifier (lowercase, hyphens, no `ent:` prefix)
+- `description` - When to delegate to this agent
+- `model` - Internal model: `main` (Sonnet), `fast` (Haiku), `heavy` (Opus)
+- `prompts.main` - Path to agent-specific prompt (e.g., `agents/coder`)
+
+**Optional:**
+- `color` - Agent color in hex (e.g., `'#32CD32'`)
+- `role` - Agent role: `orchestration`, `planning`, `execution`, `validation`, `research`
+- `complexity` - Complexity level: `fast`, `standard`, `heavy`
+- `skills` - Domain skills to preload (array)
+- `toolPresets` - Tool groupings (e.g., `editing`, `readonly`, `planning`)
+- `disallowedToolPresets` - Denied tool groupings (e.g., `serena-editing`)
+- `tools` - Explicit tool list (array, overrides presets)
+- `disallowedTools` - Explicit denied tools (array)
+- `dependencies` - Other agents this depends on (array, no `ent:` prefix)
+- `prompts.shared` - Shared prompt sections (array, e.g., `_tooling`, `_conventions`)
+- `permissionMode` - Permission handling mode
+- `hooks` - Lifecycle hooks (PreToolUse, PostToolUse, Stop)
+
+**Optional (go-ent extensions):**
+- `color` - Hex color for UI
+- `role` - Role category (planning, execution, validation, etc.)
+- `complexity` - Complexity level (light, standard, heavy)
+- `dependencies` - Agents this can delegate to (array)
 
 ---
 
 ## Available Agents
 
-### Planning Agents
+### Planning Agents (3)
 
-#### `ent:architect`
-
-**Purpose**: System architecture and design
-
-**Model**: Heavy (Claude Opus)
-
-**Skills**: `go-arch`, `go-api`, `api-design`
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Design new system components
-- Define layer boundaries
-- Plan data flow
-- Review architectural decisions
-
-**Delegates To**: `planner`, `coder`
-
-**Example**:
-```
-/ent:architect Design authentication system with JWT
+**planner.md** - Standard task planning (sonnet)
+```yaml
+description: Task planner. Breaks features into actionable tasks.
+model: sonnet
+skills: [go-arch, go-code, ent-tools-planning, ent-conventions]
 ```
 
----
-
-#### `ent:planner`
-
-**Purpose**: Task breakdown and planning
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: None (general planning)
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Break features into tasks
-- Analyze task dependencies
-- Estimate complexity
-- Create implementation plan
-
-**Delegates To**: `coder`, `tester`
-
-**Example**:
-```
-/ent:planner Break down user authentication feature
+**planner-fast.md** - Quick planning (haiku)
+```yaml
+description: Quick task assessment and planning.
+model: haiku
+skills: [go-arch, ent-tools-readonly]
 ```
 
----
-
-#### `ent:planner-fast`
-
-**Purpose**: Quick feasibility assessment
-
-**Model**: Fast (Claude Haiku)
-
-**Skills**: None
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Quick feasibility check
-- Simple task triage
-- Rapid estimates
-
-**Delegates To**: `planner`, `coder`
-
-**Example**:
-```
-/ent:planner-fast Can we add rate limiting?
+**planner-heavy.md** - Deep architectural planning (opus)
+```yaml
+description: Complex architectural planning with deep analysis.
+model: opus
+skills: [go-arch, arch-core, api-design, ent-tools-planning]
 ```
 
----
+### Execution Agents (3)
 
-#### `ent:planner-heavy`
-
-**Purpose**: Complex architectural planning
-
-**Model**: Heavy (Claude Opus)
-
-**Skills**: `go-arch`, `api-design`
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Complex system design
-- Multi-component planning
-- Architecture refactoring
-
-**Delegates To**: `architect`, `coder`
-
-**Example**:
-```
-/ent:planner-heavy Plan microservices migration
+**coder.md** - Go implementation (sonnet)
+```yaml
+description: Go developer. Implements features, writes code.
+model: sonnet
+skills: [go-code, go-db, ent-tools-editing, ent-conventions]
+dependencies: [tester, reviewer, debugger]
 ```
 
----
-
-#### `ent:decomposer`
-
-**Purpose**: Task breakdown with dependency analysis
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: None
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Break down epics
-- Identify task dependencies
-- Create task DAG
-- Estimate parallelization
-
-**Delegates To**: `planner`
-
-**Example**:
-```
-/ent:decomposer Decompose payment system integration
+**tester.md** - Test coverage and TDD (sonnet)
+```yaml
+description: Test engineer. Writes tests, TDD cycles.
+model: sonnet
+skills: [go-test, go-code, ent-tools-editing]
+dependencies: [debugger]
 ```
 
----
-
-### Execution Agents
-
-#### `ent:coder`
-
-**Purpose**: Go implementation and coding
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: `go-code`, `go-db`
-
-**Tools**: Editing + Serena analysis (but not Serena editing)
-
-**Use Cases**:
-- Implement features
-- Write Go code
-- Refactor code
-- Add functionality
-
-**Delegates To**: `tester`, `reviewer`, `debugger`
-
-**Example**:
-```
-/ent:coder Implement User repository with CRUD operations
+**reproducer.md** - Bug reproduction (sonnet)
+```yaml
+description: Create minimal bug reproductions. Write failing tests first.
+model: sonnet
+skills: [go-test, debug-core, ent-tools-editing]
 ```
 
----
+### Debugging Agents (3)
 
-#### `ent:tester`
-
-**Purpose**: Test engineering and TDD
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: `go-test`
-
-**Tools**: Editing + Serena analysis + Bash
-
-**Use Cases**:
-- Write unit tests
-- Write integration tests
-- TDD red-green-refactor
-- Test coverage improvement
-
-**Delegates To**: `coder`, `debugger`
-
-**Example**:
-```
-/ent:tester Write tests for User service
+**debugger.md** - Standard debugging (sonnet)
+```yaml
+description: Standard debugging. Systematic issue investigation.
+model: sonnet
+skills: [go-code, debug-core, ent-tools-editing]
+dependencies: [tester, reviewer]
 ```
 
----
-
-### Analysis Agents
-
-#### `ent:debugger`
-
-**Purpose**: Standard debugging
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: `debug-core`
-
-**Tools**: Read-only + Serena analysis + Bash
-
-**Use Cases**:
-- Investigate bugs
-- Analyze stack traces
-- Debug failing tests
-- Root cause analysis
-
-**Delegates To**: `reproducer`, `coder`
-
-**Example**:
-```
-/ent:debugger Why is authentication failing?
+**debugger-fast.md** - Quick fixes (haiku)
+```yaml
+description: Quick debugging for simple issues.
+model: haiku
+skills: [debug-core, ent-tools-editing]
 ```
 
----
-
-#### `ent:debugger-fast`
-
-**Purpose**: Quick debugging for simple issues
-
-**Model**: Fast (Claude Haiku)
-
-**Skills**: None
-
-**Tools**: Read-only + Bash
-
-**Use Cases**:
-- Simple bug fixes
-- Obvious errors
-- Quick troubleshooting
-
-**Delegates To**: `debugger`, `coder`
-
----
-
-#### `ent:debugger-heavy`
-
-**Purpose**: Complex debugging
-
-**Model**: Heavy (Claude Opus)
-
-**Skills**: `debug-core`, `go-perf`
-
-**Tools**: Read-only + Serena analysis + Bash
-
-**Use Cases**:
-- Concurrency issues
-- Performance problems
-- Multi-component bugs
-- Race conditions
-
-**Delegates To**: `reproducer`, `debugger`
-
----
-
-#### `ent:reproducer`
-
-**Purpose**: Create minimal bug reproductions
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: `go-test`
-
-**Tools**: Editing + Bash
-
-**Use Cases**:
-- Create minimal repro
-- Write failing test
-- Isolate bug cause
-
-**Delegates To**: `debugger`, `tester`
-
----
-
-#### `ent:researcher`
-
-**Purpose**: Research and investigation
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: None
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Explore codebase
-- Research patterns
-- Understand architecture
-- Gather context
-
-**Delegates To**: `architect`, `planner`
-
----
-
-### Quality Agents
-
-#### `ent:reviewer`
-
-**Purpose**: Code review
-
-**Model**: Heavy (Claude Opus)
-
-**Skills**: `review-core`, `security-core`
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Review code quality
-- Check security
-- Validate patterns
-- Ensure standards
-
-**Delegates To**: `coder` (for fixes)
-
-**Example**:
-```
-/ent:reviewer Review authentication implementation
+**debugger-heavy.md** - Complex issues (opus)
+```yaml
+description: Complex debugging. Concurrency, performance, multi-component.
+model: opus
+skills: [go-code, go-perf, debug-core, ent-tools-editing]
 ```
 
----
+### Review & Research (3)
 
-#### `ent:acceptor`
-
-**Purpose**: Validate acceptance criteria
-
-**Model**: Main (Claude Sonnet)
-
-**Skills**: None
-
-**Tools**: Read-only + Bash
-
-**Use Cases**:
-- Verify acceptance criteria
-- Check spec compliance
-- Validate before archive
-
-**Delegates To**: `tester`, `reviewer`
-
----
-
-### Task Management Agents
-
-#### `ent:task-fast`
-
-**Purpose**: Quick task assessment
-
-**Model**: Fast (Claude Haiku)
-
-**Skills**: None
-
-**Tools**: Read-only
-
-**Use Cases**:
-- Quick complexity check
-- Fast triage
-- Simple routing
-
-**Delegates To**: `planner`, `coder`
-
----
-
-#### `ent:task-heavy`
-
-**Purpose**: Complex task analysis
-
-**Model**: Heavy (Claude Opus)
-
-**Skills**: `go-arch`
-
-**Tools**: Read-only + Serena analysis
-
-**Use Cases**:
-- Complex task analysis
-- Deep reasoning
-- Architecture-heavy tasks
-
-**Delegates To**: `architect`, `planner`
-
----
-
-## Agent Delegation Chains
-
-### Planning Workflow
-
-```
-User Request
-    ↓
-ent:planner-fast (triage)
-    ↓
-ent:planner (standard planning)
-    ↓
-ent:architect (if architectural)
-    ↓
-ent:coder (implementation)
+**reviewer.md** - Code review (opus)
+```yaml
+description: Code reviewer. Reviews for bugs, quality, adherence.
+model: opus
+skills: [go-review, review-core, go-code, ent-tools-readonly]
 ```
 
-### Implementation Workflow
-
-```
-ent:coder (write code)
-    ↓
-ent:tester (write tests)
-    ↓
-ent:reviewer (review code)
-    ↓
-ent:debugger (if issues found)
-    ↓
-ent:coder (fix issues)
+**researcher.md** - Codebase research (sonnet)
+```yaml
+description: Research agent. Deep code analysis and investigation.
+model: sonnet
+skills: [go-arch, ent-tools-serena-analysis]
 ```
 
-### Debugging Workflow
-
+**architect.md** - System design (opus)
+```yaml
+description: System architect. Designs components, layers, data flow.
+model: opus
+skills: [go-arch, arch-core, api-design, ent-tools-planning]
+dependencies: [planner, coder]
 ```
-ent:debugger-fast (simple check)
-    ↓
-ent:debugger (standard debugging) ──> ent:reproducer (minimal repro)
-    ↓                                          ↓
-ent:debugger-heavy (complex)              ent:tester (test)
-    ↓
-ent:coder (fix)
+
+### Task Management (3)
+
+**task-fast.md** - Quick task assessment (haiku)
+```yaml
+description: Quick task assessment and routing.
+model: haiku
+skills: [arch-core, ent-tools-readonly]
+```
+
+**task-heavy.md** - Complex task analysis (opus)
+```yaml
+description: Complex task analysis with deep reasoning.
+model: opus
+skills: [arch-core, go-arch, ent-tools-planning]
+```
+
+**decomposer.md** - Task breakdown (sonnet)
+```yaml
+description: Task breakdown and dependency analysis.
+model: sonnet
+skills: [go-arch, ent-tools-planning]
+```
+
+### Validation (1)
+
+**acceptor.md** - Acceptance criteria (sonnet)
+```yaml
+description: Validate acceptance criteria and requirements.
+model: sonnet
+skills: [go-test, ent-tools-readonly]
 ```
 
 ---
 
 ## Skill System
 
-### Skill Architecture
+### Skill Format (v3)
 
-Skills provide **domain-specific knowledge** that agents can activate.
+Skills use **Markdown sections** instead of XML tags:
 
-**Structure**:
-```
-plugins/go-ent/skills/
-├── core/                  # Cross-language skills
-│   ├── api-design/
-│   ├── arch-core/
-│   ├── debug-core/
-│   ├── review-core/
-│   └── security-core/
-├── go/                    # Go-specific skills
-│   ├── go-api/
-│   ├── go-arch/
-│   ├── go-code/
-│   └── ...
-└── plugins/               # Plugin development
-    └── go-ent/
-```
-
-### Skill Format (v2)
-
-**File**: `<category>/<skill-id>/SKILL.md`
+**File**: `skills/<category>/<name>/SKILL.md`
 
 ```markdown
 ---
-name: go-code
-description: "Modern Go implementation patterns..."
-version: "2.0.0"
-author: "go-ent"
-tags: ["go", "code", "implementation"]
+name: go-error
+description: "Error handling patterns"
+version: "1.0.0"
+triggers:
+  keywords:
+    - error handling
+  file_pattern: "*.go"
+  weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "go code"
-  - "golang"
-  - "implementation"
-file_pattern: "*.go"
-weight: 0.8
-</triggers>
+## Role
 
-<role>
-Expert Go developer focused on clean architecture...
-</role>
+Expert Go error handling engineer.
 
-<instructions>
-## Pattern 1
-...
+## Instructions
 
-## Pattern 2
-...
-</instructions>
+### Error Wrapping
+Always wrap errors with context using %w.
 
-<references>
-See references/ directory for complete examples
-</references>
+## Constraints
+
+- Include proper error wrapping
+- Exclude unwrapped errors
+
+## Examples
+
+\```go
+if err != nil {
+    return fmt.Errorf("query: %w", err)
+}
+\```
 ```
 
-### Progressive Loading
+### Skill Categories
 
-Skills load in **three stages** to optimize token usage:
+**Core Skills (5):**
+- `api-design` - REST/GraphQL API patterns
+- `arch-core` - Architecture principles
+- `debug-core` - Debugging approaches
+- `review-core` - Code review frameworks
+- `security-core` - Security best practices
 
-1. **Metadata** (150 tokens):
-   - ID, triggers, quality score
-   - Used for skill matching
-
-2. **Core** (500 tokens):
-   - `<role>` section
-   - `<instructions>` section
-   - Essential patterns
-
-3. **Extended** (1500 tokens):
-   - `<references>` section
-   - Advanced examples
-   - Complete documentation
-
-**Token Savings**: 70-90% reduction compared to loading all content upfront.
-
-### Quality Scoring
-
-Each skill has a **quality score** (0-100) based on:
-
-- **Completeness** (30%): Coverage of domain
-- **Clarity** (25%): Clear, well-structured content
-- **Accuracy** (25%): Correct, up-to-date information
-- **Examples** (20%): Practical, working examples
-
-**Minimum threshold**: 70 (configurable)
+**Go Skills (12):**
+- `go-api` - Go API implementation
+- `go-arch` - Go architecture
+- `go-code` - Go coding patterns
+- `go-config` - Configuration management
+- `go-db` - Database patterns
+- `go-error` - Error handling
+- `go-migration` - Database migrations
+- `go-ops` - Operational patterns
+- `go-perf` - Performance optimization
+- `go-review` - Go code review
+- `go-sec` - Go security
+- `go-test` - Testing and TDD
 
 ---
 
-## Available Skills
+## Reference Skills
 
-### Core Skills (Cross-Language)
+### What Are Reference Skills?
 
-#### `api-design`
+**Reference skills** are skills that agents preload via the `skills:` field instead of embedding content inline. They provide:
 
-**Category**: core
+1. **Single source of truth** - Update once, affects all agents
+2. **Composability** - Mix and match as needed
+3. **Reusability** - Shared across multiple agents
+4. **Maintainability** - Clear separation of concerns
 
-**Quality**: 95
+### Tool Skills (4)
 
-**Triggers**: API, endpoint, REST, GraphQL
+**ent-tools-readonly** - Read-only access
+```yaml
+skills:
+  - ent-tools-readonly  # Grants: Read, Glob, Grep
+```
 
-**Description**: Expert in REST and GraphQL API design, versioning, documentation.
+**ent-tools-editing** - Full editing access
+```yaml
+skills:
+  - ent-tools-editing  # Grants: Read, Write, Edit, Bash, Glob, Grep
+```
 
-**Key Topics**:
-- Resource modeling
-- HTTP method semantics
-- Status codes
-- Versioning strategies
-- API documentation
+**ent-tools-serena-analysis** - Semantic analysis
+```yaml
+skills:
+  - ent-tools-serena-analysis  # Grants: Serena read-only tools
+```
 
----
+**ent-tools-planning** - Planning toolset
+```yaml
+skills:
+  - ent-tools-planning  # Combined: read-only + task management + semantic
+```
 
-#### `arch-core`
+### Shared Knowledge Skills (6)
 
-**Category**: core
+**ent-tooling** - Tool usage guidance
+- Native tools (Read, Write, Edit)
+- Serena semantic analysis
+- Git commands
+- Go commands
+- Modern search (rg, fd)
 
-**Quality**: 92
-
-**Triggers**: architecture, design, layers
-
-**Description**: Clean Architecture, DDD, SOLID principles.
-
-**Key Topics**:
-- Layer separation
-- Dependency inversion
-- Domain-driven design
-- Bounded contexts
-- Hexagonal architecture
-
----
-
-#### `debug-core`
-
-**Category**: core
-
-**Quality**: 88
-
-**Triggers**: debug, troubleshoot, investigate
-
-**Description**: Systematic debugging, root cause analysis.
-
-**Key Topics**:
-- Reproduction steps
-- Stack trace analysis
-- Hypothesis testing
-- Logging strategies
-- Performance profiling
-
----
-
-#### `review-core`
-
-**Category**: core
-
-**Quality**: 90
-
-**Triggers**: review, quality, standards
-
-**Description**: Code review best practices, quality metrics.
-
-**Key Topics**:
-- Review checklist
-- Common issues
-- Constructive feedback
-- Security review
-- Performance review
-
----
-
-#### `security-core`
-
-**Category**: core
-
-**Quality**: 93
-
-**Triggers**: security, vulnerability, attack
-
-**Description**: Security best practices, OWASP Top 10, threat modeling.
-
-**Key Topics**:
-- Authentication/Authorization
-- Input validation
-- SQL injection prevention
-- XSS prevention
-- Secrets management
-
----
-
-### Go Skills
-
-#### `go-api`
-
-**Category**: go
-
-**Quality**: 95
-
-**Triggers**: API, handler, HTTP, REST
-
-**Description**: Production-ready Go REST and GraphQL APIs.
-
-**Key Topics**:
-- HTTP handler patterns
-- Middleware implementation
-- Request validation
-- Error responses
-- OpenAPI/Swagger
-
----
-
-#### `go-arch`
-
-**Category**: go
-
-**Quality**: 94
-
-**Triggers**: architecture, clean, layers
-
-**Description**: Go Clean Architecture with DDD.
-
-**Key Topics**:
-- Layer structure (Transport/UseCase/Domain/Infra)
-- Dependency injection
-- Repository pattern
-- Interface design
-- Package organization
-
----
-
-#### `go-code`
-
-**Category**: go
-
-**Quality**: 92
-
-**Triggers**: implement, code, golang
-
-**Description**: Modern Go patterns, error handling, concurrency.
-
-**Key Topics**:
+**ent-conventions** - Go code style
+- Naming conventions
 - Error handling
-- Concurrency patterns
-- Configuration management
-- Logging
-- Testing patterns
-
----
-
-#### `go-config`
-
-**Category**: go
-
-**Quality**: 88
-
-**Triggers**: config, environment, settings
-
-**Description**: Configuration management with env vars, validation.
-
-**Key Topics**:
-- env/v11 usage
-- Validation
-- Defaults
-- Type safety
-- Testability
-
----
-
-#### `go-db`
-
-**Category**: go
-
-**Quality**: 91
-
-**Triggers**: database, postgres, SQL
-
-**Description**: Database access with pgx, squirrel, migrations.
-
-**Key Topics**:
-- Repository pattern
-- Query building (squirrel)
-- Transaction management
-- Error mapping
-- Connection pooling
-
----
-
-#### `go-error`
-
-**Category**: go
-
-**Quality**: 87
-
-**Triggers**: error, handling, wrap
-
-**Description**: Go error handling patterns and best practices.
-
-**Key Topics**:
-- Error wrapping
-- Custom errors
-- Error checking
-- Sentinel errors
-- Error context
-
----
-
-#### `go-migration`
-
-**Category**: go
-
-**Quality**: 85
-
-**Triggers**: migration, schema, goose
-
-**Description**: Database migrations with goose.
-
-**Key Topics**:
-- Migration structure
-- Versioning
-- Rollback strategies
-- Testing migrations
-- Production safety
-
----
-
-#### `go-ops`
-
-**Category**: go
-
-**Quality**: 89
-
-**Triggers**: deployment, docker, production
-
-**Description**: Go application operations, Docker, health checks.
-
-**Key Topics**:
-- Graceful shutdown
-- Health checks
-- Metrics (Prometheus)
-- Docker images
-- Production readiness
-
----
-
-#### `go-perf`
-
-**Category**: go
-
-**Quality**: 86
-
-**Triggers**: performance, optimize, benchmark
-
-**Description**: Go performance optimization and profiling.
-
-**Key Topics**:
-- Profiling (CPU, memory)
-- Benchmarking
-- Memory optimization
-- Concurrency tuning
-- Hot path optimization
-
----
-
-#### `go-review`
-
-**Category**: go
-
-**Quality**: 88
-
-**Triggers**: review, quality, Go
-
-**Description**: Go-specific code review patterns.
-
-**Key Topics**:
-- Go idioms
-- Common mistakes
-- Performance issues
-- Security concerns
-- Style guide
-
----
-
-#### `go-sec`
-
-**Category**: go
-
-**Quality**: 90
-
-**Triggers**: security, Go, vulnerability
-
-**Description**: Go security best practices.
-
-**Key Topics**:
-- Input validation
-- SQL injection (with pgx)
-- Authentication
-- Secrets management
-- Dependency security
-
----
-
-#### `go-test`
-
-**Category**: go
-
-**Quality**: 91
-
-**Triggers**: test, TDD, testing
-
-**Description**: Go testing patterns, TDD, test organization.
-
-**Key Topics**:
-- Table-driven tests
-- Mocking strategies
-- Integration tests (testcontainers)
-- Test coverage
-- Benchmark tests
-
----
-
-### Plugin Skills
-
-#### `go-ent`
-
-**Category**: plugins
-
-**Quality**: 85
-
-**Triggers**: go-ent, plugin, agent
-
-**Description**: go-ent plugin development.
-
-**Key Topics**:
-- Agent creation
-- Skill authoring
-- Command development
-- MCP tools
-- Plugin structure
-
----
-
-## Tool Presets
-
-Tool presets define **what tools an agent can use**.
-
-### Available Presets
-
-#### `read-only`
-
-**Tools**:
-- `Read`, `Glob`, `Grep`
-- Basic code exploration
-
-**Use**: Planning, research, analysis
-
----
-
-#### `editing`
-
-**Tools**:
-- `Read`, `Write`, `Edit`
-- `Glob`, `Grep`
-- File manipulation
-
-**Use**: Implementation, coding
-
----
-
-#### `serena-analysis`
-
-**Tools**:
-- All Serena read tools
-  - `find_symbol`
-  - `find_referencing_symbols`
-  - `get_symbols_overview`
-  - `search_for_pattern`
-
-**Use**: Deep code analysis
-
----
-
-#### `serena-editing`
-
-**Tools**:
-- Serena write tools
-  - `replace_symbol_body`
-  - `insert_after_symbol`
-  - `rename_symbol`
-
-**Use**: Symbol-level editing
-
-**Note**: Most agents use standard `editing` instead.
+- Comments policy
+- Clean Architecture layers
+- File organization
+
+**ent-handoffs** - Agent delegation
+- When to delegate
+- Irreversible action checkpoints
+- Handoff vs. escalation
+- Agent responsibility matrix
+
+**ent-judgment** - Constitutional AI
+- Senior developer judgment
+- When to ask vs. decide
+- Non-negotiable boundaries
+- Decision frameworks
+
+**ent-principals** - Principal hierarchy
+- Conflict resolution (Convention > Intent > Practice > Safety > Simplicity)
+- When to ask vs. decide
+- Escalation criteria
+
+**ent-openspec** - OpenSpec workflow
+- File structure (proposal.md, tasks.md, designs/)
+- Workflow steps
+- Task completion tracking
+- Design documentation
 
 ---
 
 ## Usage Patterns
 
-### Direct Agent Invocation
-
-Call an agent directly:
+### Direct Invocation
 
 ```
-/ent:architect Design user authentication system
-/ent:coder Implement User repository
-/ent:tester Write tests for UserService
-/ent:reviewer Review auth implementation
+/ent:coder "Implement user authentication"
+/ent:planner "Break down payment system"
+/ent:debugger "Fix race condition in handler"
 ```
 
-### Workflow Commands with Agents
+### Automatic Delegation
 
-Agents are invoked automatically by workflows:
+Claude automatically delegates based on agent descriptions:
 
 ```
-# Planning workflow uses: planner → architect → decomposer
-/ent:plan Add user authentication
+User: "I need to implement a new API endpoint for user profiles"
 
-# Execution uses: coder → tester → reviewer
-/ent:task
-
-# Debugging uses: debugger → reproducer → coder
-/ent:bug Auth returns 500 error
+Claude: [Analyzes request] → Delegates to @ent:coder
 ```
-
-### Agent Selection Logic
-
-Agents are selected based on:
-
-1. **Explicit invocation** (`/ent:coder`)
-2. **Required skills** (task needs `go-api` → agents with that skill)
-3. **Complexity** (architectural → heavy model)
-4. **Delegation chain** (coder → tester → reviewer)
 
 ### Skill Activation
 
-Skills are activated when:
+Skills activate automatically based on:
+1. **Preloaded skills** - Agent's `skills:` field
+2. **Trigger keywords** - Skill's `triggers.keywords`
+3. **File patterns** - Skill's `triggers.file_pattern`
+4. **Manual invocation** - User requests specific skill
 
-1. **Agent specifies** (in `skills` list)
-2. **Context matches** (editing `*.go` files)
-3. **User requests** (mentions skill triggers)
+### Agent Chains
 
-**Example**:
+**Feature Implementation:**
 ```
-Task: "Implement REST API for users"
-
-Matched skills:
-- go-api (trigger: "REST API")
-- go-code (trigger: "implement")
-- api-design (trigger: "API")
-
-Selected agent: ent:coder
-  - Has: go-code skill ✓
-  - Delegates to: ent:architect (has api-design) ✓
+architect → planner → coder → tester → reviewer
 ```
 
----
-
-## Configuration
-
-### Agent Configuration
-
-**File**: `.go-ent/config.yaml`
-
-```yaml
-agents:
-  roles:
-    architect:
-      model: heavy
-      skills:
-        - go-arch
-        - api-design
-      temperature: 0.3
-
-    coder:
-      model: main
-      skills:
-        - go-code
-        - go-db
-      temperature: 0.7
+**Bug Fix:**
+```
+debugger → tester → reviewer
 ```
 
-### Skill Configuration
-
-```yaml
-skills:
-  enabled: true
-  progressive_load: true
-  min_quality: 70
-
-  directories:
-    - plugins/go-ent/skills
-    - custom/skills
+**Complex Architecture:**
+```
+architect → reviewer (heavy) → planner → decomposer → coder
 ```
 
 ---
 
 ## See Also
 
-- [OpenSpec Workflow](./OPENSPEC_WORKFLOW.md) - How agents use OpenSpec
-- [Skill Authoring](./SKILL-AUTHORING.md) - Creating new skills
-- [Development Guide](./DEVELOPMENT.md) - Adding new agents
-- [Configuration Reference](./CONFIGURATION.md) - Agent/skill config
-
----
-
-**Version:** v0.3.0
-**Last updated:** 2026-01-28
+- [SKILL-AUTHORING.md](./SKILL-AUTHORING.md) - Write v3 skills
+- [CLAUDE_CODE_COMPATIBILITY.md](./CLAUDE_CODE_COMPATIBILITY.md) - Alignment guide
+- [MIGRATION_V3.md](./MIGRATION_V3.md) - Migrate from v2
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - Development workflow

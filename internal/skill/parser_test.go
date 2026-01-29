@@ -13,45 +13,58 @@ func TestParser_detectVersion(t *testing.T) {
 	p := NewParser()
 
 	tests := []struct {
-		name     string
-		content  string
-		expected string
+		name        string
+		content     string
+		frontmatter string
+		expected    string
 	}{
 		{
-			name:     "v2 with role tag",
-			content:  "<role>test</role>",
-			expected: "v2",
+			name:        "v2 with role tag",
+			content:     "<role>test</role>",
+			frontmatter: "",
+			expected:    "v2",
 		},
 		{
-			name:     "v2 with instructions tag",
-			content:  "<instructions>test</instructions>",
-			expected: "v2",
+			name:        "v2 with instructions tag",
+			content:     "<instructions>test</instructions>",
+			frontmatter: "",
+			expected:    "v2",
 		},
 		{
-			name:     "v2 with both tags",
-			content:  "<role>test</role>\n<instructions>test</instructions>",
-			expected: "v2",
+			name:        "v2 with both tags",
+			content:     "<role>test</role>\n<instructions>test</instructions>",
+			frontmatter: "",
+			expected:    "v2",
 		},
 		{
-			name:     "v1 without tags",
-			content:  "Some text without tags",
-			expected: "v1",
+			name:        "v3 with markdown sections and triggers",
+			content:     "## Role\nExpert\n## Instructions\nDo this",
+			frontmatter: "triggers:\n  keywords:\n    - test",
+			expected:    "v3",
 		},
 		{
-			name:     "v1 with auto-activates",
-			content:  "Auto-activates for: testing",
-			expected: "v1",
+			name:        "v1 without tags",
+			content:     "Some text without tags",
+			frontmatter: "",
+			expected:    "v1",
 		},
 		{
-			name:     "empty content",
-			content:  "",
-			expected: "v1",
+			name:        "v1 with auto-activates",
+			content:     "Auto-activates for: testing",
+			frontmatter: "",
+			expected:    "v1",
+		},
+		{
+			name:        "empty content",
+			content:     "",
+			frontmatter: "",
+			expected:    "v1",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := p.detectVersion(tt.content)
+			result := p.detectVersion(tt.content, tt.frontmatter)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -5,7 +5,7 @@ description: Complete planning workflow with research and task breakdown
 
 # Flow: Planning
 
-{{include "domains/openspec.md"}}
+{{include "context/openspec.md"}}
 
 Complete planning workflow: clarify → research → design → decompose.
 

@@ -1,13 +1,25 @@
-name: ent:debugger
+name: debugger
 description: Standard debugging. Systematic issue investigation and resolution.
-extends: debugger
 model: main
-color: "#DC143C"
+color: '#DC143C'
 skills:
-  - go-code
-  - go-perf
-  - go-test
-  - debug-core
+    - go-test
+    - debug-core
+    - go-perf
+    - go-code
+toolPresets:
+    - editing
+disallowedToolPresets:
+    - serena-editing
 dependencies:
-  - ent:tester
-  - ent:reviewer
+    - tester
+    - reviewer
+prompts:
+    shared:
+        - _tooling
+        - _conventions
+        - _handoffs
+        - _judgment
+        - _principals
+        - _openspec
+    main: agents/debugger

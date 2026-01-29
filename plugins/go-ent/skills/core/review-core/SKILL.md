@@ -1,32 +1,31 @@
 ---
 name: review-core
-description: "Code review best practices and checklist. Auto-activates for: pull request reviews, code quality checks, style violations, best practices enforcement."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Code review best practices and checklist. Auto-activates for: pull request reviews, code quality checks, style violations, best practices enforcement.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["review", "code-quality", "best-practices", "pr-review"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - review
+    - code-quality
+    - best-practices
+    - pr-review
 quality_score: 83
-category: "core"
+category: core
+triggers:
+    keywords:
+        - code review
+        - pull request
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "code review"
-    - "pull request"
-  weight: 0.8
-</triggers>
+## Role
 
-# Code Review Core
-
-<role>
 Code reviewer focused on quality, patterns, and best practices. Prioritize constructive feedback, team standards, and security-focused reviews while maintaining a positive review culture.
-</role>
 
-<instructions>
-
+## Instructions
 ## Review Mindset
 
 - Be kind and constructive
@@ -117,9 +116,8 @@ This is wrong. Use mutex.
 6. Check tests before approval
 7. Approve or request changes with clear reasoning
 
-</instructions>
+## Constraints
 
-<constraints>
 - Provide constructive, actionable feedback with clear explanations
 - Focus on code quality and maintainability, not personal preferences
 - Consider team standards and project conventions
@@ -131,9 +129,8 @@ This is wrong. Use mutex.
 - Keep feedback concise and focused
 - Follow up to ensure understanding
 
-</constraints>
+## Edge Cases
 
-<edge_cases>
 If reviewing legacy code: Be pragmatic and focus on incremental improvements. Avoid suggesting complete rewrites unless absolutely necessary.
 
 If under time pressure (hotfix, release blocker): Focus on critical issues (P0-P1) and defer minor improvements to follow-up PR.
@@ -153,9 +150,8 @@ If performance concerns are unclear: Ask author to run benchmarks or provide mea
 If security review is needed: Ensure security team member reviews if available, or focus on common vulnerabilities (injection, auth, input validation).
 
 If documentation is missing for public APIs: Request documentation updates but may approve with comment to add docs in follow-up.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Review authentication handler implementation</input>
 <output>
@@ -202,9 +198,9 @@ For additional code review examples, see:
 - `references/architecture-review.md` - Payment service architecture review
 - `references/utility-review.md` - Simple utility function review
 - `references/testing-review.md` - Test coverage and quality review
-</examples>
 
-<output_format>
+## Output Format
+
 Provide constructive code review feedback:
 
 1. **Clear Structure**: Organize by priority (P0-P3) or category (security, design, style)
@@ -216,4 +212,4 @@ Provide constructive code review feedback:
 7. **Context**: Consider codebase standards, project requirements, and risk level
 
 Focus on improving code quality while maintaining a constructive, collaborative review culture.
-</output_format>
+

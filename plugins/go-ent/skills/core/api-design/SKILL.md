@@ -1,34 +1,34 @@
 ---
 name: api-design
-description: "API design principles and best practices. Auto-activates for: REST API design, GraphQL schemas, gRPC services, API contracts, versioning strategies."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'API design principles and best practices. Auto-activates for: REST API design, GraphQL schemas, gRPC services, API contracts, versioning strategies.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["api-design", "rest", "graphql", "openapi", "api-practices"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - api-design
+    - rest
+    - graphql
+    - openapi
+    - api-practices
 quality_score: 88
-category: "core"
+category: core
+triggers:
+    keywords:
+        - api design
+        - rest api
+        - graphql
+        - openapi
+    weight: 0.8
 ---
 
-# API Design
+## Role
 
-<triggers>
-keywords:
-  - "api design"
-  - "rest api"
-  - "graphql"
-  - "openapi"
-weight: 0.8
-</triggers>
-
-<role>
 Expert API designer focused on REST, GraphQL, and OpenAPI specifications. Prioritize spec-first approach, clear versioning strategies, proper HTTP semantics, and comprehensive documentation for production-grade APIs.
-</role>
 
-<instructions>
-
+## Instructions
 ## REST Principles
 
 ### Resource-Oriented
@@ -124,9 +124,8 @@ GET /users?sort=created_at:desc,name:asc
 - Include examples
 - Document error responses
 
-</instructions>
+## Constraints
 
-<constraints>
 - Design APIs spec-first using OpenAPI, GraphQL schemas, or Protobuf
 - Follow REST resource-oriented design with proper HTTP methods and status codes
 - Implement clear versioning strategy (URL, header, or query parameter)
@@ -136,9 +135,9 @@ GET /users?sort=created_at:desc,name:asc
 - Apply security best practices (HTTPS, authentication, rate limiting)
 - Design for performance with appropriate caching strategies
 - Maintain backward compatibility during version transitions
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If conflicting requirements arise between simplicity and completeness: Clarify priorities with stakeholders before proceeding.
 
 If performance requirements conflict with API completeness: Consider caching strategies, field selection, or pagination to balance needs.
@@ -158,9 +157,8 @@ If data relationships become complex: Consider GraphQL for flexible querying or 
 If documentation generation is required: Recommend OpenAPI/Swagger for REST, GraphiQL for GraphQL exploration.
 
 If rate limiting requirements vary: Implement tiered limits based on user roles or API keys.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Design REST endpoint for user management with CRUD operations</input>
 <output>
@@ -212,9 +210,9 @@ See `references/graphql-patterns.md` for complete GraphQL schema with Relay conn
 - `INTERNAL_ERROR` - Unexpected server error
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide API specifications and design guidance:
 
 1. **Spec-First**: OpenAPI (YAML/JSON), GraphQL schema, or Protobuf definitions
@@ -226,4 +224,4 @@ Provide API specifications and design guidance:
 7. **Migration Notes**: Guidance for version transitions or breaking changes
 
 Focus on clear, maintainable APIs that serve both client and backend needs effectively.
-</output_format>
+

@@ -43,12 +43,12 @@ All plugin command files (`plugins/go-ent/commands/*.md`) have updated their `al
 **Impact**: If you have custom commands or integrations referencing MCP tools by their full names, you'll need to update them.
 
 **Files affected:**
-- `plugins/go-ent/commands/apply.md`
-- `plugins/go-ent/commands/status.md`
-- `plugins/go-ent/commands/plan.md`
-- `plugins/go-ent/commands/loop.md`
-- `plugins/go-ent/commands/loop-cancel.md`
-- `plugins/go-ent/commands/registry.md`
+- `plugins/go-ent/commands/aliases/opsx-apply.md`
+- `plugins/go-ent/commands/aliases/opsx-archive.md`
+- `plugins/go-ent/commands/aliases/opsx-new.md`
+- `plugins/go-ent/commands/workflows/plan.md`
+- `plugins/go-ent/commands/workflows/task.md`
+- `plugins/go-ent/commands/workflows/bug.md`
 
 ### 2. Documentation Updates
 

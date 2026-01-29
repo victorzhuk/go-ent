@@ -231,6 +231,16 @@ func TestValidateAgent(t *testing.T) {
 			errMsg:  "unknown tool preset",
 		},
 		{
+			name: "valid new tool presets",
+			agent: agentMeta{
+				Name:        "ent:test",
+				Description: "Valid description with new presets",
+				Model:       "main",
+				ToolPresets: []string{"task-management", "planning-full", "execution-full"},
+			},
+			wantErr: false,
+		},
+		{
 			name: "invalid disallowed tool preset",
 			agent: agentMeta{
 				Name:                  "ent:test",

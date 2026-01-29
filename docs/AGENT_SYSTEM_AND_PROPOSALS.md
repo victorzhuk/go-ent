@@ -400,13 +400,14 @@ Use for complex architectural changes:
 | `plugins/go-ent/agents/meta/*.yaml` | Agent configs |
 | `plugins/go-ent/agents/meta/bases/*.yaml` | Base agent configs for inheritance |
 | `plugins/go-ent/agents/presets/tools.yaml` | Tool preset definitions |
-| `plugins/go-ent/agents/schema/agent.schema.json` | Agent validation schema |
+| `plugins/go-ent/schemas/agent.schema.json` | Agent validation schema |
 | `plugins/go-ent/agents/prompts/shared/_openspec.md` | Workflow guide |
 | `plugins/go-ent/agents/prompts/shared/_handoffs.md` | Delegation rules |
 | `plugins/go-ent/agents/prompts/shared/_judgment.md` | Decision framework |
 | `plugins/go-ent/agents/prompts/shared/_principals.md` | Priority hierarchy |
-| `plugins/go-ent/commands/plan.md` | Planning command |
-| `plugins/go-ent/commands/task.md` | Task execution command |
+| `plugins/go-ent/commands/workflows/plan.md` | Planning workflow |
+| `plugins/go-ent/commands/workflows/task.md` | Task execution workflow |
+| `plugins/go-ent/commands/workflows/bug.md` | Bug fixing workflow |
 | `openspec/config.yaml` | OpenSpec configuration |
 | `openspec/registry.yaml` | Task registry with status tracking |
 | `openspec/specs/` | Permanent specification library |

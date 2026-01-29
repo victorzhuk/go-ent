@@ -1,15 +1,21 @@
-name: ent:acceptor
+name: acceptor
 description: Validate acceptance criteria and requirements. Ensure spec compliance.
 model: heavy
-color: "#32CD32"
+color: '#32CD32'
 skills:
-  - go-test
-  - review-core
+    - review-core
+    - go-test
 toolPresets:
-  - read-only
-  - serena-analysis
-tools:
-  - Bash
+    - readonly
 dependencies:
-  - ent:coder
-  - ent:architect
+    - coder
+    - architect
+prompts:
+    shared:
+        - _conventions
+        - _handoffs
+        - _tooling
+        - _judgment
+        - _principals
+        - _openspec
+    main: agents/acceptor

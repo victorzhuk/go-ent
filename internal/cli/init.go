@@ -29,20 +29,81 @@ type toolPresets struct {
 	Presets map[string][]string `yaml:"presets"`
 }
 
+type promptsConfig struct {
+	Shared []string `yaml:"shared"`
+	Main   string   `yaml:"main"`
+}
+
 type agentMeta struct {
-	Name                  string   `yaml:"name"`
-	Description           string   `yaml:"description"`
-	Extends               string   `yaml:"extends"`
-	Model                 string   `yaml:"model"`
-	Color                 string   `yaml:"color"`
-	Role                  string   `yaml:"role"`
-	Complexity            string   `yaml:"complexity"`
-	Skills                []string `yaml:"skills"`
-	Tools                 []string `yaml:"tools"`
-	ToolPresets           []string `yaml:"toolPresets"`
-	DisallowedToolPresets []string `yaml:"disallowedToolPresets"`
-	DisallowedTools       []string `yaml:"disallowedTools"`
-	Dependencies          []string `yaml:"dependencies"`
+	Name                  string        `yaml:"name"`
+	Description           string        `yaml:"description"`
+	Extends               string        `yaml:"extends"`
+	Model                 string        `yaml:"model"`
+	Color                 string        `yaml:"color"`
+	Role                  string        `yaml:"role"`
+	Complexity            string        `yaml:"complexity"`
+	Skills                []string      `yaml:"skills"`
+	Tools                 []string      `yaml:"tools"`
+	ToolPresets           []string      `yaml:"toolPresets"`
+	DisallowedToolPresets []string      `yaml:"disallowedToolPresets"`
+	DisallowedTools       []string      `yaml:"disallowedTools"`
+	Dependencies          []string      `yaml:"dependencies"`
+	Prompts               promptsConfig `yaml:"prompts"`
+}
+
+// ModelClaude converts internal model name to Claude Code format
+func (m *agentMeta) ModelClaude() string {
+	switch m.Model {
+	case "main":
+		return "sonnet"
+	case "fast":
+		return "haiku"
+	case "heavy":
+		return "opus"
+	default:
+		return m.Model
+	}
+}
+
+// ModelOpenCode returns internal model name as-is for OpenCode
+func (m *agentMeta) ModelOpenCode() string {
+	return m.Model
+}
+
+// ToolsOpenCode converts tools list to OpenCode object format
+func (m *agentMeta) ToolsOpenCode() []string {
+	result := make([]string, 0, len(m.Tools))
+	for _, tool := range m.Tools {
+		// Convert to lowercase and format as YAML object entry
+		toolLower := strings.ToLower(tool)
+		result = append(result, fmt.Sprintf("%s: true", toolLower))
+	}
+	return result
+}
+
+// DisallowedToolsClaude returns disallowed tools with Serena prefix expanded
+func (m *agentMeta) DisallowedToolsClaude() []string {
+	result := make([]string, 0)
+
+	serenaDenylist := make(map[string]bool)
+	for _, preset := range m.DisallowedToolPresets {
+		if preset == "serena-editing" {
+			serenaDenylist["mcp__plugin_serena_serena__replace_symbol_body"] = true
+			serenaDenylist["mcp__plugin_serena_serena__insert_after_symbol"] = true
+			serenaDenylist["mcp__plugin_serena_serena__insert_before_symbol"] = true
+			serenaDenylist["mcp__plugin_serena_serena__replace_content"] = true
+			serenaDenylist["mcp__plugin_serena_serena__create_text_file"] = true
+		}
+	}
+
+	for tool := range serenaDenylist {
+		result = append(result, tool)
+	}
+
+	// Add any additional explicitly disallowed tools
+	result = append(result, m.DisallowedTools...)
+
+	return result
 }
 
 func loadAgents() (map[string]*agentMeta, error) {
@@ -229,8 +290,10 @@ func validateAgent(meta *agentMeta, filename string) error {
 		return fmt.Errorf("%s: name is required", filename)
 	}
 
-	if !strings.HasPrefix(meta.Name, "ent:") {
-		return fmt.Errorf("%s: name must start with 'ent:' (got: %s)", filename, meta.Name)
+	// Agent names in metadata are simple (e.g. "coder", "planner")
+	// The "ent:" prefix is added by the plugin system, not stored in metadata
+	if strings.Contains(meta.Name, ":") {
+		return fmt.Errorf("%s: name should not contain ':' in metadata (got: %s)", filename, meta.Name)
 	}
 
 	if meta.Description == "" {
@@ -268,7 +331,13 @@ func validateAgent(meta *agentMeta, filename string) error {
 		}
 	}
 
-	validPresets := map[string]bool{"read-only": true, "editing": true, "serena-analysis": true, "serena-editing": true}
+	validPresets := map[string]bool{
+		"readonly":        true,
+		"editing":         true,
+		"serena-analysis": true,
+		"serena-editing":  true,
+		"planning":        true,
+	}
 	for _, preset := range meta.ToolPresets {
 		if !validPresets[preset] {
 			return fmt.Errorf("%s: unknown tool preset: %s", filename, preset)
@@ -282,8 +351,10 @@ func validateAgent(meta *agentMeta, filename string) error {
 	}
 
 	for _, dep := range meta.Dependencies {
-		if !strings.HasPrefix(dep, "ent:") {
-			return fmt.Errorf("%s: dependency must start with 'ent:' (got: %s)", filename, dep)
+		// Dependencies in metadata are simple names (e.g. "coder", "planner")
+		// The "ent:" prefix is added by the plugin system, not stored in metadata
+		if strings.Contains(dep, ":") {
+			return fmt.Errorf("%s: dependency should not contain ':' in metadata (got: %s)", filename, dep)
 		}
 	}
 
@@ -310,7 +381,7 @@ func loadPrompts() (map[string]string, error) {
 		}
 
 		name := strings.TrimSuffix(entry.Name(), ".md")
-		prompts["ent:"+name] = string(data)
+		prompts[name] = string(data)
 	}
 
 	return prompts, nil
@@ -690,10 +761,11 @@ Examples:
 						return fmt.Errorf("prompt not found for agent: %s", name)
 					}
 
-					meta.Model = resolver.ResolveAgent(meta.Model)
-					_ = cfg
+					// Create a copy of meta to avoid modifying the original when processing multiple tools
+					metaCopy := *meta
+					metaCopy.Model = resolver.ResolveAgent(meta.Model)
 
-					content, err := renderAgent(meta, prompt, shared, tpl)
+					content, err := renderAgent(&metaCopy, prompt, shared, tpl)
 					if err != nil {
 						return fmt.Errorf("render agent %s: %w", name, err)
 					}
@@ -777,7 +849,7 @@ This command checks that all agent YAML files in plugins/go-ent/agents/meta/
 conform to the required schema, including:
   - Required fields (name, description, model)
   - Valid enum values (model, role, complexity)
-  - Proper naming conventions (ent: prefix)
+  - Proper naming conventions (no colon in name)
   - Valid tool preset references
   - Proper dependency references
 

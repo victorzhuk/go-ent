@@ -1,17 +1,23 @@
-name: ent:researcher
+name: researcher
 description: Research root causes, investigate code, analyze bugs. Deep code analysis.
 model: heavy
-color: "#9370DB"
+color: '#9370DB'
 skills:
-  - go-code
-  - debug-core
+    - go-code
+    - debug-core
 toolPresets:
-  - read-only
-  - serena-analysis
-tools:
-  - Bash
+    - readonly
 dependencies:
-  - ent:debugger-fast
-  - ent:debugger-heavy
-  - ent:architect
-  - ent:planner
+    - debugger-fast
+    - debugger-heavy
+    - architect
+    - planner
+prompts:
+    shared:
+        - _principals
+        - _handoffs
+        - _openspec
+        - _tooling
+        - _conventions
+        - _judgment
+    main: agents/researcher

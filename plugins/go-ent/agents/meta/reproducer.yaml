@@ -1,13 +1,21 @@
-name: ent:reproducer
+name: reproducer
 description: Create minimal bug reproductions. Write failing tests first.
 model: fast
-color: "#FF6347"
+color: '#FF6347'
 skills:
-  - go-test
-  - debug-core
+    - debug-core
+    - go-test
 toolPresets:
-  - editing
-  - serena-analysis
+    - editing
 dependencies:
-  - ent:researcher
-  - ent:debugger-fast
+    - researcher
+    - debugger-fast
+prompts:
+    shared:
+        - _handoffs
+        - _judgment
+        - _principals
+        - _openspec
+        - _tooling
+        - _conventions
+    main: agents/reproducer

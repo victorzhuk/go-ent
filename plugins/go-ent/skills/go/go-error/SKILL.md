@@ -1,37 +1,35 @@
 ---
 name: go-error
-description: "Implement Go error handling patterns (wrapping, custom errors, error types). Auto-activates for: error handling, error wrapping, custom errors, sentinel errors, error chains."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Implement Go error handling patterns (wrapping, custom errors, error types). Auto-activates for: error handling, error wrapping, custom errors, sentinel errors, error chains.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "error", "error-handling"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - error
+    - error-handling
 quality_score: 86
-category: "go"
+category: go
+triggers:
+    keywords:
+        - error handling
+        - error wrapping
+        - custom error
+        - error type
+        - sentinel error
+        - error chain
+    file_pattern: errors.go|**/errors/*.go|**/*error*.go
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "error handling"
-    - "error wrapping"
-    - "custom error"
-    - "error type"
-    - "sentinel error"
-    - "error chain"
-  file_pattern: "errors.go|**/errors/*.go|**/*error*.go"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go Error Handling
-
-<role>
 Expert Go error handling engineer specializing in error design patterns, wrapping strategies, custom error types, and production-grade error management. Focus on clear error contexts, proper error chains, and idiomatic Go error patterns.
-</role>
 
-<instructions>
-
+## Instructions
 ## Error Handling Stack
 
 - **Error Wrapping** — fmt.Errorf with %w for wrapping
@@ -280,9 +278,8 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 }
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include error wrapping with fmt.Errorf and %w verb
 - Include custom error types with Error() and optional Is()/Unwrap() methods
 - Include sentinel errors using errors.New()
@@ -295,9 +292,9 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 - Exclude using error messages for control flow (use error types)
 - Exclude returning error without context in outer layers
 - Exclude creating custom errors when sentinel errors suffice
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If error occurs at domain boundary: Wrap with context describing the operation that failed.
 
 If error is already wrapped: Use %w to preserve the error chain for Is()/As() inspection.
@@ -315,9 +312,8 @@ If error needs additional data: Use custom error type with fields, don't encode 
 If error occurs in goroutine: Return via channel or sync.ErrGroup with context.
 
 If error handling requires retry: Implement retry logic with backoff, don't rely on error message parsing.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Implement error wrapping across layers</input>
 <output>
@@ -378,9 +374,9 @@ For additional error handling examples, see:
 - `references/sentinel-errors.md` - Sentinel errors with errors.Is()
 - `references/error-chains.md` - Error chains with errors.As()
 - `references/layered-errors.md` - Cross-layer error propagation
-</examples>
 
-<output_format>
+## Output Format
+
 Provide error handling guidance with the following structure:
 
 1. **Error Patterns**: Wrapping, custom errors, sentinel errors, domain errors
@@ -393,4 +389,4 @@ Provide error handling guidance with the following structure:
 8. **Examples**: Complete, runnable code showing error patterns
 
 Focus on production-ready error handling with clear context and proper error chains.
-</output_format>
+

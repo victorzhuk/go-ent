@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/victorzhuk/go-ent/plugins/go-ent/schemas/agent.schema.json",
+  "title": "Claude Code Agent Schema",
+  "description": "Unified schema for go-ent agents aligned with Claude Code official format",
+  "type": "object",
+  "required": ["name", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique identifier using lowercase letters and hyphens"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "When Claude should delegate to this agent (clear criteria for automatic delegation)"
+    },
+    "model": {
+      "type": "string",
+      "enum": ["sonnet", "opus", "haiku", "inherit"],
+      "default": "inherit",
+      "description": "Model to use (inherit = use same as parent conversation)"
+    },
+    "tools": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Comma-separated list of allowed tools (e.g., 'Read, Grep, Glob, Bash')"
+        },
+        {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "description": "Array of allowed tool names"
+        }
+      ],
+      "description": "Tools the agent can use (allowlist). Inherits all tools if omitted."
+    },
+    "disallowedTools": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Comma-separated list of denied tools"
+        },
+        {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "description": "Array of denied tool names"
+        }
+      ],
+      "description": "Tools to deny (denylist). Removed from inherited or specified list."
+    },
+    "permissionMode": {
+      "type": "string",
+      "enum": ["default", "acceptEdits", "dontAsk", "bypassPermissions", "plan"],
+      "description": "Permission handling mode for this agent"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "uniqueItems": true,
+      "description": "Skills to preload into agent context at startup"
+    },
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "PreToolUse": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hookMatcher"
+          }
+        },
+        "PostToolUse": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hookMatcher"
+          }
+        },
+        "Stop": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hook"
+          }
+        }
+      },
+      "description": "Lifecycle hooks scoped to this agent"
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "description": "Hex color code for UI display (go-ent extension)"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["planning", "execution", "validation", "research", "review", "debug", "test"],
+      "description": "Agent's primary role category (go-ent extension)"
+    },
+    "complexity": {
+      "type": "string",
+      "enum": ["light", "standard", "heavy"],
+      "description": "Complexity level of tasks this agent handles (go-ent extension)"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "uniqueItems": true,
+      "description": "Other agents this agent may delegate to (go-ent extension)"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "hookMatcher": {
+      "type": "object",
+      "required": ["matcher", "hooks"],
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Tool name pattern (e.g., 'Bash', 'Edit|Write')"
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hook"
+          }
+        }
+      }
+    },
+    "hook": {
+      "type": "object",
+      "required": ["type", "command"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["command"],
+          "description": "Hook type (currently only 'command' is supported)"
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command to execute"
+        }
+      }
+    }
+  }
+}

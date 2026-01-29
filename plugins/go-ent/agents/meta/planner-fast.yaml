@@ -1,10 +1,19 @@
-name: ent:planner-fast
+name: planner-fast
 description: Quick feasibility check and triage. Fast initial assessment.
 extends: planner
 model: fast
-color: "#90EE90"
+color: '#90EE90'
 skills:
-  - arch-core
+    - arch-core
 dependencies:
-  - ent:planner
-  - ent:architect
+    - planner
+    - architect
+prompts:
+    shared:
+        - _tooling
+        - _handoffs
+        - _judgment
+        - _openspec
+        - _conventions
+        - _principals
+    main: agents/planner-fast

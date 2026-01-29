@@ -1,5 +1,14 @@
-name: ent:planner
+name: planner
 description: Task planner. Breaks features into actionable tasks.
 extends: planner
 model: main
-color: "#32CD32"
+color: '#32CD32'
+prompts:
+    shared:
+        - _tooling
+        - _conventions
+        - _handoffs
+        - _judgment
+        - _principals
+        - _openspec
+    main: agents/planner

@@ -269,37 +269,31 @@ When working with OpenSpec changes:
 
 ## Agent Format Compatibility: OpenCode vs Claude Code
 
-The split format applies to both platforms. Only the template generation differs.
+go-ent uses a **split format** with metadata (YAML) and prompts (Markdown) stored in `plugins/go-ent/agents/`. The `go-ent init` command generates platform-specific agent files from this unified source.
 
-### Format Comparison
+### Source Format (Unified)
 
-| Feature | OpenCode | Claude Code |
-|---------|----------|-------------|
-| **File location** | `.opencode/agent/` | `.claude/agents/` |
-| **Tools format** | Object: `tools: { read: true }` | String: `tools: Read, Grep` |
-| **Tool names** | lowercase: `read`, `write`, `edit` | PascalCase: `Read`, `Write`, `Edit` |
-| **Model reference** | Tier: `model: main/fast/heavy` | Alias: `model: sonnet/opus/haiku/inherit` |
-| **Mode** | `mode: primary/subagent/all` | Not used (all are subagents) |
-| **Permissions** | `permission: { bash: { ... } }` | `permissionMode: default/acceptEdits/bypassPermissions` |
-| **Skills** | Array: `skills: [go-code, go-db]` | String: `skills: go-code, go-db` |
-| **MCP tools** | `mcp__plugin_name: true` | Inherited from main thread |
-| **Denylist** | Not directly supported | `disallowedTools: Write, Edit` |
-| **Tags** | `tags: [role:execution]` | Not supported |
-| **Color** | `color: "#32CD32"` | `color: green` (via /agents UI) |
+**Location**: `plugins/go-ent/agents/`
+- **Metadata**: `agents/meta/<agent>.yaml` - Platform-agnostic configuration
+- **Prompts**: `agents/prompts/agents/<agent>.md` - Agent-specific prompts
+- **Shared**: `agents/prompts/shared/*.md` - Reusable prompt sections
+- **Templates**: `agents/templates/{claude,opencode}.yaml.tmpl` - Platform generators
+
+### Generated Output Comparison
 
 | Feature | OpenCode | Claude Code |
 |---------|----------|-------------|
-| **File location** | `.opencode/agent/` | `.claude/agents/` |
-| **Tools format** | Object: `tools: { read: true }` | String: `tools: Read, Grep` |
+| **File location** | `.opencode/agents/ent/` | `.claude/agents/ent/` |
+| **Tools format** | Object: `tools: { read: true }` | Array: `tools: [Read, Grep]` |
 | **Tool names** | lowercase: `read`, `write`, `edit` | PascalCase: `Read`, `Write`, `Edit` |
-| **Model reference** | Tier: `model: main/fast/heavy` | Alias: `model: sonnet/opus/haiku/inherit` |
+| **Model reference** | Tier: `model: main/fast/heavy` | Alias: `model: sonnet/opus/haiku` |
 | **Mode** | `mode: primary/subagent/all` | Not used (all are subagents) |
 | **Permissions** | `permission: { bash: { ... } }` | `permissionMode: default/acceptEdits/bypassPermissions` |
-| **Skills** | Array: `skills: [go-code, go-db]` | String: `skills: go-code, go-db` |
+| **Skills** | Array: `skills: [go-code, go-db]` | Array: `skills: [go-code, go-db]` |
 | **MCP tools** | `mcp__plugin_name: true` | Inherited from main thread |
-| **Denylist** | Not directly supported | `disallowedTools: Write, Edit` |
+| **Denylist** | Not directly supported | `disallowedTools: [Write, Edit]` |
 | **Tags** | `tags: [role:execution]` | Not supported |
-| **Color** | `color: "#32CD32"` | `color: green` (via /agents UI) |
+| **Color** | `color: "#32CD32"` | `color: "#32CD32"` |
 
 ---
 
@@ -383,7 +377,7 @@ for agent in agents/*.template.md; do
   # Generate OpenCode version
   sed -e 's/Read/read/g' -e 's/Write/write/g' \
       -e 's/model: sonnet/model: main/g' \
-      "$agent" > ".opencode/agent/${name}.md"
+      "$agent" > ".opencode/agents/${name}.md"
 
   # Generate Claude Code version
   sed -e 's/read: true/Read/g' \

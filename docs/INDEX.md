@@ -19,19 +19,20 @@ Start here if you're new to go-ent:
 
 Building plugins or extending go-ent:
 
-1. **[Plugin Development](./PLUGIN_DEVELOPMENT.md)** - Create custom plugins *(coming soon)*
-2. **[Skill Authoring](./SKILL-AUTHORING.md)** - Write v2 skill definitions
-3. **[MCP API Reference](./MCP_API.md)** - MCP tool API *(coming soon)*
-4. **[Agent System](./AGENTS_AND_SKILLS.md)** - Agent architecture *(coming soon)*
+1. **[Plugin Development](./PLUGIN_DEVELOPMENT.md)** - Create custom plugins
+2. **[Skill Authoring](./SKILL-AUTHORING.md)** - Write v3 skill definitions
+3. **[Agent System](./AGENTS_AND_SKILLS.md)** - v3 agent architecture
+4. **[Claude Code Compatibility](./CLAUDE_CODE_COMPATIBILITY.md)** - Alignment guide
+5. **[Migration Guide v3](./MIGRATION_V3.md)** - Migrate from v2 to v3
 
 ### Contributors
 
 Contributing to go-ent itself:
 
-1. **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute *(coming soon)*
-2. **[Development Guide](./DEVELOPMENT.md)** - Self-hosted development
-3. **[Architecture](./ARCHITECTURE.md)** - System design *(coming soon)*
-4. **[Changelog](../CHANGELOG.md)** - Version history *(coming soon)*
+1. **[Development Guide](./DEVELOPMENT.md)** - Self-hosted development
+2. **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute
+3. **[Architecture](./ARCHITECTURE.md)** - System design
+4. **[Changelog](../CHANGELOG.md)** - Version history
 
 ---
 
@@ -39,22 +40,22 @@ Contributing to go-ent itself:
 
 ### Architecture & Design
 
-- **[Architecture](./ARCHITECTURE.md)** *(coming soon)* - System overview, components, data flow
+- **[Architecture](./ARCHITECTURE.md)** - System overview, components, data flow
 - **[Architecture Review](./ARCHITECTURE_REVIEW.md)** - Design analysis and recommendations
 - **[Flow Diagrams](./FLOW.md)** - Visual workflow representations
 
 ### OpenSpec System
 
 - **[OpenSpec Workflow](./OPENSPEC_WORKFLOW.md)** - Spec-driven development process
-- **[Project Structure](./PROJECT_STRUCTURE.md)** - OpenSpec folder organization
-- **[Agent System](./AGENTS_AND_SKILLS.md)** *(coming soon)* - Multi-agent orchestration
+- **[Agent System](./AGENTS_AND_SKILLS.md)** - Multi-agent orchestration v3
 
-### Skills & Templates
+### Skills & Agents
 
-- **[Skill Authoring](./SKILL-AUTHORING.md)** - Complete skill v2 format guide
-- **[Skill Template System](./SKILL_TEMPLATE_SYSTEM.md)** - Template architecture
-- **[Skill Validation](./SKILL_VALIDATION.md)** - Quality scoring and validation
-- **[Skill Lint CI/CD](./SKILL_LINT_CI.md)** - Automated validation in pipelines
+- **[Skill Authoring](./SKILL-AUTHORING.md)** - Complete skill v3 format guide
+- **[Agents and Skills](./AGENTS_AND_SKILLS.md)** - Agent and skill architecture
+- **[Claude Code Compatibility](./CLAUDE_CODE_COMPATIBILITY.md)** - Alignment guide
+- **[Skill Quality Scoring](./skill-quality-scoring.md)** - Quality metrics
+- **[Skill Lint CI/CD](./SKILL_LINT_CI.md)** - Automated validation
 
 ---
 
@@ -64,12 +65,7 @@ Contributing to go-ent itself:
 
 - **[Development Guide](./DEVELOPMENT.md)** - Self-hosted development workflow
 - **[CLI Examples](./CLI_EXAMPLES.md)** - Command usage patterns
-- **[Testing](./TESTING.md)** - Testing strategies *(coming soon)*
-
-### Tools & Utilities
-
-- **[Tool Development](./TOOLS.md)** - Creating MCP tools *(coming soon)*
-- **[Troubleshooting](./TROUBLESHOOTING.md)** *(coming soon)* - Common issues and solutions
+- **[Migration Guide v3](./MIGRATION_V3.md)** - Migrate from v2 to v3
 
 ---
 

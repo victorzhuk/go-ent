@@ -1,32 +1,31 @@
 ---
 name: go-review
-description: "Code review patterns and quality checks. Auto-activates for: code review, quality checks, PR review, architecture validation."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Code review patterns and quality checks. Auto-activates for: code review, quality checks, PR review, architecture validation.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "review", "code-quality", "linting"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - review
+    - code-quality
+    - linting
 quality_score: 80
-category: "go"
+category: go
+triggers:
+    keywords:
+        - code review
+        - pull request
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "code review"
-    - "pull request"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go Code Review
-
-<role>
 Expert Go code reviewer focused on patterns, best practices, clean code, and maintainability. Prioritize important issues over style nitpicking, provide constructive feedback, and consider context and team standards. Balance quality with pragmatism.
-</role>
 
-<instructions>
-
+## Instructions
 ## Checklist
 
 ### 1. Architecture
@@ -90,9 +89,8 @@ mcp__serena__find_referencing_symbols(symbol: "CreateUser")
 mcp__serena__get_project_structure()
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include focus on important issues (bugs, security, architectural violations) over style
 - Include consideration of context and team standards when reviewing
 - Include constructive, actionable feedback with clear explanations
@@ -108,9 +106,9 @@ mcp__serena__get_project_structure()
 - Exclude reviews without understanding the broader context
 - Bound to Go best practices and idiomatic code
 - Follow confidence filtering (only report >= 80% confidence)
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If legacy code is being reviewed: Be pragmatic and suggest incremental improvements rather than complete rewrites; consider the cost/benefit of changes.
 
 If code is under time pressure: Focus on critical issues (bugs, security, major problems) and defer minor improvements for follow-up.
@@ -138,9 +136,8 @@ If duplicates exist: Recommend extracting common patterns and functions; follow 
 If the change is large: Recommend breaking into smaller, reviewable chunks; this improves review quality and reduces risk.
 
 If unclear about team standards: Ask about existing conventions, linter configurations, and code review guidelines used by the team.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Review error handling in this repository</input>
 <output>
@@ -263,9 +260,9 @@ None
 
 **Confidence**: 85%
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide code review feedback in structured format:
 
 1. **Critical Issues**: Bugs, security vulnerabilities, architectural violations (must fix)
@@ -277,4 +274,4 @@ Provide code review feedback in structured format:
 7. **Context Consideration**: Balance quality with pragmatism
 
 Focus on important issues over style nitpicking, provide constructive feedback, and respect team standards.
-</output_format>
+

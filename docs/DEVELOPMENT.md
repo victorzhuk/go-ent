@@ -91,13 +91,22 @@ Restart Claude Code to load the plugin and connect to the MCP server.
 After restart, verify:
 
 **Agents Available:**
-- `/go-ent:lead` - Orchestration and delegation
-- `/go-ent:architect` - System design and architecture
-- `/go-ent:planner` - Task breakdown and planning
-- `/go-ent:dev` - Implementation and coding
-- `/go-ent:tester` - Testing and TDD cycles
-- `/go-ent:debug` - Bug investigation
-- `/go-ent:reviewer` - Code review with confidence filtering
+- `/ent:architect` - System design and architecture (opus)
+- `/ent:planner` - Task breakdown and planning (sonnet)
+- `/ent:planner-fast` - Quick task assessment (haiku)
+- `/ent:planner-heavy` - Deep architectural planning (opus)
+- `/ent:coder` - Implementation and coding (sonnet)
+- `/ent:tester` - Testing and TDD cycles (sonnet)
+- `/ent:debugger` - Bug investigation (sonnet)
+- `/ent:debugger-fast` - Quick debugging (haiku)
+- `/ent:debugger-heavy` - Complex debugging (opus)
+- `/ent:reviewer` - Code review (opus)
+- `/ent:researcher` - Codebase research (sonnet)
+- `/ent:reproducer` - Bug reproduction (sonnet)
+- `/ent:acceptor` - Acceptance criteria validation (sonnet)
+- `/ent:decomposer` - Task breakdown (sonnet)
+- `/ent:task-fast` - Quick task routing (haiku)
+- `/ent:task-heavy` - Complex task analysis (opus)
 
 **Commands Available:**
 - `/go-ent:plan` - Full planning workflow (clarify → research → decompose)
@@ -197,72 +206,125 @@ Then restart Claude Code to reload the MCP connection.
 
 ### Adding a New Agent
 
-1. Create `plugins/go-ent/agents/go-ent:newagent.md`:
+**v3 Split Format** - Metadata (YAML) + Prompts (Markdown) for dual-platform support
+
+1. Create metadata file `plugins/go-ent/agents/meta/newagent.yaml`:
+
+```yaml
+name: newagent
+description: "Brief description of when to use this agent"
+model: main                        # main/fast/heavy (internal names)
+color: '#32CD32'
+role: execution
+complexity: standard
+skills:
+  - go-code
+toolPresets:
+  - editing                        # Use presets instead of explicit tools
+disallowedToolPresets:
+  - serena-editing                 # Deny Serena editing tools
+dependencies:
+  - tester
+  - reviewer
+prompts:
+  shared:                          # Shared prompt sections
+    - _tooling
+    - _conventions
+    - _handoffs
+  main: agents/newagent            # Agent-specific prompt
+```
+
+2. Create prompt file `plugins/go-ent/agents/prompts/agents/newagent.md`:
 
 ```markdown
----
-name: go-ent:newagent
-description: "Brief description of what this agent does"
-tools: Read, Write, Grep, Glob
-model: sonnet
-color: blue
-skills: go-code
----
-
-# Agent Instructions
-
 You are a specialized agent for...
 
 ## Responsibilities
+
 - Responsibility 1
 - Responsibility 2
 
 ## Workflow
+
 1. Step 1
 2. Step 2
 
+## Constraints
+
+- Constraint 1
+- Constraint 2
+
 ## Examples
-...
+
+### Example 1
+User: "Do something"
+You: [approach]
 ```
 
-2. Test by invoking `/go-ent:newagent`
+2. Test by invoking `/ent:newagent`
 
-3. If agent works well, consider updating the delegation matrix in `go-ent:lead.md`
+3. If agent works well, document in `docs/AGENTS_AND_SKILLS.md`
+
+**See Also**: [AGENTS_AND_SKILLS.md](./AGENTS_AND_SKILLS.md) for complete v3 agent format
 
 ### Adding a New Skill
 
-**Legacy (v1) Format** - Still supported for backward compatibility:
+**v3 Format** - Markdown sections with YAML frontmatter (recommended)
 
-1. Create `plugins/go-ent/skills/go-skillname/SKILL.md`:
+1. Create `plugins/go-ent/skills/{category}/skillname/SKILL.md`:
 
 ```markdown
 ---
-name: go-skillname
-description: "Skill description and auto-activation triggers..."
+name: skillname
+description: "Skill description"
+version: "1.0.0"
+triggers:
+  keywords:
+    - trigger1
+    - trigger2
+    - trigger3
+  file_pattern: "*.go"
+  weight: 0.8
 ---
 
-# Skill Name
+## Role
 
-## When This Activates
+Expert persona definition.
 
-This skill auto-activates when:
-- Trigger condition 1
-- Trigger condition 2
-
-## Knowledge Base
+## Instructions
 
 ### Pattern 1
-...
 
-### Pattern 2
-...
+Code examples and explanations.
+
+## Constraints
+
+- Include patterns
+- Exclude anti-patterns
+
+## Edge Cases
+
+If X: Y format scenarios.
+
+## Examples
+
+### Example 1
+
+**Input**: User request
+**Output**: Expected response
+
+## Output Format
+
+Guidelines for output.
 ```
 
-2. Test by working on code that should trigger it
+2. Validate: `make skill-validate strict=true`
 
-3. Verify skill content appears in agent context when active
+3. Test by working on code that should trigger it
 
-**New skills should use v2 format** - see [Skill Authoring Guide](./SKILL-AUTHORING.md) for complete details.
+**See Also**: [SKILL-AUTHORING.md](./SKILL-AUTHORING.md) for complete v3 skill format
+
+**Backward Compatibility**: v2 skills (XML tags) still work but v3 is recommended for new skills.
 
 ---
 
@@ -289,13 +351,23 @@ For complete details on skill structure, validation, quality scoring, and best p
 
 ### Adding a New Agent
 
-For agent development, see [Agent System documentation](./AGENTS_AND_SKILLS.md#agent-architecture).
+For complete agent development guide, see [AGENTS_AND_SKILLS.md](./AGENTS_AND_SKILLS.md).
 
-**Quick Start**:
+**Quick Start (v3 Split Format)**:
 1. Create metadata: `plugins/go-ent/agents/meta/<agent>.yaml`
 2. Create prompt: `plugins/go-ent/agents/prompts/agents/<agent>.md`
-3. Configure skills, tools, and dependencies
-4. Test with Claude Code
+3. Use platform-agnostic model names (`main`/`fast`/`heavy`)
+4. Configure `toolPresets` instead of explicit tools
+5. List shared prompts in `prompts.shared` array
+6. Rebuild: `make build`
+7. Test: `go-ent init --tool claude && invoke /ent:<agent>`
+
+**v3 Split Format Features**:
+- Metadata (YAML) separated from prompts (Markdown)
+- Platform-agnostic tool presets (`editing`, `readonly`, `planning`)
+- Shared prompt sections reused across agents
+- Dual-platform generation (Claude Code + OpenCode)
+- Template-based rendering for each platform
 
 ### Adding a New Command
 

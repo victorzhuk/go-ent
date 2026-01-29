@@ -1,34 +1,33 @@
 ---
 name: go-test
-description: "Testing patterns with testify, testcontainers, table-driven tests. Auto-activates for: writing tests, TDD, coverage, integration tests, mocks."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Testing patterns with testify, testcontainers, table-driven tests. Auto-activates for: writing tests, TDD, coverage, integration tests, mocks.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "testing", "tdd", "testify", "testcontainers"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - testing
+    - tdd
+    - testify
+    - testcontainers
 quality_score: 91
-category: "go"
-depends_on: ["go-code"]
+category: go
+triggers:
+    keywords:
+        - test
+        - testing
+    file_pattern: '**/*_test.go'
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "test"
-    - "testing"
-  file_pattern: "**/*_test.go"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go Testing
-
-<role>
 Expert Go testing specialist focused on TDD, test patterns, and comprehensive coverage. Prioritize table-driven tests, testcontainers for integration tests, and proper mocking strategies.
-</role>
 
-<instructions>
-
+## Instructions
 ## Commands
 
 ```bash
@@ -124,9 +123,8 @@ mcp__context7__resolve(library: "testify")
 mcp__context7__resolve(library: "testcontainers-go")
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include table-driven tests with t.Run() and t.Parallel()
 - Include testify/assert and testify/require for assertions
 - Include proper test setup/teardown with testcontainers for integration tests
@@ -140,9 +138,9 @@ mcp__context7__resolve(library: "testcontainers-go")
 - Bound to layer-specific testing: domain (pure unit), usecase (mock repos), repository (testcontainers), transport (httptest)
 - Follow TDD principles when adding new features
 - Use descriptive test names that explain what is being tested
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If test requirements are unclear: Ask about the specific layer being tested, what behavior to verify, and what test type (unit/integration) is appropriate.
 
 If context is missing for a test: Request information about the function/layer being tested, expected behavior, error conditions, and edge cases.
@@ -158,9 +156,8 @@ If API testing is needed: Delegate to go-api skill for understanding HTTP/REST/g
 If performance concerns exist: Delegate to go-perf skill for benchmark writing and performance testing strategies.
 
 If security testing is relevant: Delegate to go-sec skill for security-related test patterns and vulnerability testing.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Write table-driven tests for entity.NewUser() validation</input>
 <output>
@@ -239,9 +236,9 @@ See `references/testcontainers-setup.md` for complete testcontainers setup with 
 See `references/usecase-mocking.md` for complete UseCase testing with gomock, setup functions, and type-safe mocks.
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide comprehensive test coverage with the following structure:
 
 1. **Test Structure**: Table-driven tests with t.Run(), t.Parallel(), descriptive test names
@@ -253,4 +250,4 @@ Provide comprehensive test coverage with the following structure:
 7. **Examples**: Complete, runnable test files demonstrating patterns
 
 Focus on testing behavior over implementation details, with clear test names that explain what is being tested.
-</output_format>
+

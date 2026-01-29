@@ -1,8 +1,20 @@
-name: ent:task-fast
+name: task-fast
 description: Quick task assessment and routing. Fast complexity evaluation.
-extends: task
 model: fast
-color: "#87CEEB"
+color: '#87CEEB'
+skills:
+    - arch-core
+toolPresets:
+    - readonly
 dependencies:
-  - ent:coder
-  - ent:task-heavy
+    - coder
+    - task-heavy
+prompts:
+    shared:
+        - _conventions
+        - _openspec
+        - _tooling
+        - _handoffs
+        - _judgment
+        - _principals
+    main: agents/task-fast

@@ -1,34 +1,32 @@
 ---
 name: go-code
-description: "Modern Go implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Modern Go implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "code", "implementation"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - code
+    - implementation
 quality_score: 94
-category: "go"
+category: go
+triggers:
+    keywords:
+        - go code
+        - golang
+        - implementation
+    file_pattern: '*.go'
+    weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "go code"
-  - "golang"
-  - "implementation"
-file_pattern: "*.go"
-weight: 0.8
-</triggers>
+## Role
 
-# Go Code Patterns
-
-<role>
 Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
-</role>
 
-<instructions>
-
+## Instructions
 ## Bootstrap Pattern
 
 See `references/bootstrap-pattern.md` for complete main() with testable run(), graceful shutdown, and signal handling.
@@ -177,9 +175,8 @@ func Process(ctx context.Context, data Data) error {
 }
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include clean, idiomatic Go code following standard conventions
 - Include proper error wrapping with context using `%w` verb
 - Include context propagation as first parameter throughout layers
@@ -193,9 +190,9 @@ func Process(ctx context.Context, data Data) error {
 - Bound to clean layered architecture: Transport → UseCase → Domain ← Repository
 - Follow DI pattern with explicit dependency graphs
 - Keep domain layer pure with no external dependencies
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If input is unclear or ambiguous: Ask clarifying questions to understand the specific requirement before proceeding with implementation.
 
 If context is missing for a feature: Request additional information about architecture decisions, existing patterns, or integration points.
@@ -207,9 +204,8 @@ If architecture questions emerge: Delegate to go-arch skill for system design, l
 If testing requirements are needed: Delegate to go-test skill for test coverage, table-driven tests, and mocking strategies.
 
 If security considerations are relevant: Delegate to go-sec skill for authentication, authorization, and input validation patterns.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Refactor main() to use bootstrap pattern with graceful shutdown</input>
 <output>
@@ -335,9 +331,9 @@ func (r *repository) Save(ctx context.Context, user *User) error {
 }
 ```
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide production-ready Go code following established patterns:
 
 1. **Code Structure**: Clean, idiomatic Go with proper package organization
@@ -349,4 +345,4 @@ Provide production-ready Go code following established patterns:
 7. **Explanations**: Clear, concise justifications for pattern choices
 
 Focus on practical implementation with minimal abstractions unless complexity demands it.
-</output_format>
+

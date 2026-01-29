@@ -16,9 +16,9 @@ OpenSpec-specific rules for change management and task tracking.
 - Spec validation commands
 - Proposal and design templates
 
-**Used by flows**:
-- `flows/plan.md` - Creating OpenSpec changes
-- `flows/task.md` - Executing OpenSpec tasks
+**Used by workflows**:
+- `workflows/plan.md` - Creating OpenSpec changes
+- `workflows/task.md` - Executing OpenSpec tasks
 
 ### generic.md
 Generic development patterns that apply across projects.
@@ -35,8 +35,8 @@ Generic development patterns that apply across projects.
 - Common Go patterns (repository, service, factory)
 - Security and observability patterns
 
-**Used by flows**:
-- `flows/bug.md` - Debugging workflow
+**Used by workflows**:
+- `workflows/bug.md` - Debugging workflow
 
 ## Adding New Domains
 

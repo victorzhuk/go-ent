@@ -6,6 +6,6 @@ skills:
   - go-arch
   - go-code
 toolPresets:
-  - read-only
+  - readonly
   - serena-analysis
 dependencies: []

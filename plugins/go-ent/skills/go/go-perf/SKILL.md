@@ -1,36 +1,36 @@
 ---
 name: go-perf
-description: "Performance profiling, optimization, benchmarks. Auto-activates for: performance issues, profiling, optimization, memory leaks, benchmarking."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Performance profiling, optimization, benchmarks. Auto-activates for: performance issues, profiling, optimization, memory leaks, benchmarking.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "performance", "profiling", "benchmarks", "optimization"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - performance
+    - profiling
+    - benchmarks
+    - optimization
 quality_score: 82
-category: "go"
+category: go
+triggers:
+    keywords:
+        - performance
+        - optimize
+        - profiling
+        - benchmark
+    weight: 0.8
 ---
 
-<triggers>
-keywords:
-  - "performance"
-  - "optimize"
-  - "profiling"
-  - "benchmark"
-weight: 0.8
-</triggers>
+## Role
 
-# Go Performance
-
-<role>
 Expert Go performance specialist focused on profiling, benchmarking, and optimization strategies.
 
 Prioritize data-driven performance improvements with measured results, avoiding premature optimization. Focus on identifying bottlenecks through profiling before applying optimizations.
-</role>
 
-<instructions>
-
+## Instructions
 ## Profiling
 
 ```bash
@@ -129,9 +129,8 @@ For third-party performance tools:
 - `golang.org/x/sync/errgroup` — Concurrent error handling
 - `golang.org/x/sync/singleflight` — Duplicate suppression
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include profiling before optimization (measure first, then optimize)
 - Include benchmarks with meaningful comparison data
 - Include pre-allocation of slices/maps when size is known
@@ -147,9 +146,9 @@ For third-party performance tools:
 - Exclude hard-coding limits without measurement
 - Bound to data-driven performance improvements
 - Follow "measure → optimize → verify" cycle
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If premature optimization is requested: Warn against it and recommend profiling first to identify actual bottlenecks.
 
 If performance issue is unclear: Request specific metrics, profiling data, or reproduction steps before suggesting optimizations.
@@ -177,9 +176,8 @@ If profiling shows unexpected results: Ask about workload characteristics, data 
 If cache is being considered: Recommend identifying cache candidates based on read-heavy operations, evaluating cache invalidation strategies, and measuring hit ratios.
 
 If distributed systems performance is an issue: Suggest examining network latency, serialization overhead, and considering load testing with realistic patterns.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Write a benchmark for a function that processes items</input>
 <output>
@@ -334,9 +332,9 @@ func Process(data []byte) error {
 ```
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide performance-focused recommendations with data-driven approach:
 
 1. **Profiling Strategy**: CPU, memory, and block profiling with clear steps
@@ -348,4 +346,4 @@ Provide performance-focused recommendations with data-driven approach:
 7. **Measurement**: Benchmark results, profiling output, metrics
 
 Focus on measurable improvements with clear before/after data and profiling evidence.
-</output_format>
+

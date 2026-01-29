@@ -5,7 +5,7 @@ color: "#87CEEB"
 skills:
   - arch-core
 toolPresets:
-  - read-only
+  - readonly
   - serena-analysis
 dependencies:
   - ent:coder

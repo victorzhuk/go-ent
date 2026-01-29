@@ -1,39 +1,80 @@
-# Skill Authoring Guide (v2 Format)
+# Skill Authoring Guide (v3 Format)
 
-This guide explains how to create high-quality skills using the v2 format for go-ent's plugin system.
+Complete guide for creating high-quality skills using the v3 format (Markdown sections + YAML frontmatter) for go-ent's plugin system.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Complete Skill Template](#complete-skill-template)
+- [Frontmatter Fields](#frontmatter-fields)
+- [Markdown Sections](#markdown-sections)
+- [Validation Rules](#validation-rules)
+- [Quality Scoring](#quality-scoring)
+- [Good vs Bad Examples](#good-vs-bad-examples)
+- [Migration from v2](#migration-from-v2)
+- [Best Practices](#best-practices)
+- [Quick Reference](#quick-reference)
+
+---
 
 ## Overview
 
-The v2 skill format provides structured, validated, and high-quality skill definitions with automatic quality scoring. Skills in v2 format include:
+The v3 skill format aligns with Claude Code official patterns and uses:
 
-- **Required XML sections**: `<role>`, `<instructions>`, `<constraints>`, `<edge_cases>`, `<examples>`, `<output_format>`
-- **Enhanced frontmatter**: `version`, `author`, `tags` fields
-- **Validation**: Automatic checking for required sections and content
-- **Quality scoring**: 0-100 scale with detailed breakdown
-- **MCP tools**: `skill_validate` and `skill_quality` for inspection
+- **YAML frontmatter** - Metadata including triggers
+- **Markdown sections** - `## Role`, `## Instructions`, etc. (no XML tags)
+- **Trigger definitions** - In frontmatter, not in body
+- **Automatic validation** - Schema validation and quality scoring
+- **Backward compatibility** - v2 skills (XML tags) still work
+
+### v3 vs v2 Format
+
+| Feature | v2 Format | v3 Format |
+|---------|-----------|-----------|
+| Metadata | YAML frontmatter | YAML frontmatter |
+| Triggers | XML `<triggers>` in body | YAML `triggers:` in frontmatter |
+| Role | `<role>` XML tag | `## Role` Markdown heading |
+| Instructions | `<instructions>` XML tag | `## Instructions` Markdown heading |
+| Constraints | `<constraints>` XML tag | `## Constraints` Markdown heading |
+| Edge Cases | `<edge_cases>` XML tag | `## Edge Cases` Markdown heading |
+| Examples | `<examples>` XML tag | `## Examples` Markdown heading |
+| Output Format | `<output_format>` XML tag | `## Output Format` Markdown heading |
+
+---
 
 ## Complete Skill Template
 
-Here's a complete template for a v2 skill:
+Here's a complete template for a v3 skill:
 
 ```markdown
 ---
 name: your-skill-name
-description: "Skill description. Auto-activates for: trigger1, trigger2, trigger3"
-version: "2.0.0"
-author: "your-name"
-tags: ["category", "keyword", "topic"]
+description: "Skill description for activation decisions"
+version: "1.0.0"
+disable-model-invocation: false
+user-invocable: true
+allowed-tools:
+  - Read
+  - Grep
+  - Edit
+triggers:
+  keywords:
+    - trigger1
+    - trigger2
+    - trigger3
+  file_pattern: "*.go"
+  weight: 0.8
 ---
 
-# Skill Title
+## Role
 
-<role>
 Expert persona definition with domain expertise and behavioral guidelines.
-</role>
 
-<instructions>
+## Instructions
 
-## Pattern 1
+### Pattern 1
 
 Code or content example with explanation.
 
@@ -41,7 +82,7 @@ Code or content example with explanation.
 - Reason 1
 - Reason 2
 
-## Pattern 2
+### Pattern 2
 
 Another example with clear explanation.
 
@@ -49,45 +90,47 @@ Another example with clear explanation.
 - Rule 1
 - Rule 2
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include specific patterns or approaches
 - Include required output format elements
 - Exclude anti-patterns or discouraged practices
 - Exclude certain implementation details
-- Bound to specific architectural principles
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If input is unclear: Ask clarifying questions before proceeding.
 
-If context is missing: Request additional information about architecture, patterns, or integration.
+If context is missing: Request additional information about architecture.
 
-If performance concerns arise: Delegate to performance skill for profiling and optimization.
+If performance concerns arise: Delegate to performance skill.
 
-If architecture questions emerge: Delegate to architecture skill for system design guidance.
+If architecture questions emerge: Delegate to architecture skill.
 
-If testing requirements are needed: Delegate to testing skill for test coverage strategies.
-</edge_cases>
+If testing requirements are needed: Delegate to testing skill.
 
-<examples>
-<example>
-<input>Example user request or input</input>
-<output>
-Expected output or response
-</output>
-</example>
+## Examples
 
-<example>
-<input>Another example request</input>
-<output>
-Another expected response
-</output>
-</example>
-</examples>
+### Example 1: Feature Implementation
 
-<output_format>
+**Input**: Example user request
+
+**Output**:
+```go
+// Expected code example
+```
+
+### Example 2: Refactoring
+
+**Input**: Another example request
+
+**Output**:
+```go
+// Another code example
+```
+
+## Output Format
+
 Provide output following these guidelines:
 
 1. **Format requirement 1**: Specific format instruction
@@ -95,56 +138,88 @@ Provide output following these guidelines:
 3. **Quality criteria**: What makes output high-quality
 
 Focus on practical, actionable guidance with minimal abstractions.
-</output_format>
 ```
+
+---
 
 ## Frontmatter Fields
 
-| Field      | Required | Description                               | Example                          |
-|------------|----------|-------------------------------------------|----------------------------------|
-| `name`     | Yes      | Skill identifier (lowercase, hyphens)      | `go-code`                        |
-| `description` | Yes   | What skill does + auto-activation triggers  | `"Modern Go patterns. Auto-activates for: writing code, implementing features"` |
-| `version`  | No       | Semantic version (recommended for v2)      | `"2.0.0"`                        |
-| `author`   | No       | Attribution                               | `"go-ent"`                       |
-| `tags`     | No       | Categorization array (YAML list)          | `["go", "code", "implementation"]` |
+### Required Fields
 
-### Triggers
+| Field | Description | Example |
+|-------|-------------|---------|
+| `name` | Skill identifier (lowercase, hyphens) | `go-code` |
+| `description` | Brief summary for invocation decisions | `"Modern Go patterns for implementation"` |
 
-Auto-activation triggers are extracted from the `description` field:
+### Optional Fields (Claude Code)
 
-- Format: `"description text. Auto-activates for: trigger1, trigger2, trigger3"`
-- Alternative: `"description text. Activates when: trigger1, trigger2"`
-- Minimum: 1 trigger required
-- Recommended: 3+ triggers for better activation
+| Field | Description | Example |
+|-------|-------------|---------|
+| `version` | Semantic version | `"1.0.0"` |
+| `disable-model-invocation` | Prevent automatic invocation | `false` |
+| `user-invocable` | Allow manual invocation | `true` |
+| `allowed-tools` | Tools skill can use | `["Read", "Grep"]` |
+| `triggers` | Activation triggers (see below) | See Triggers section |
 
-## XML Sections
+### Triggers (v3 Format)
 
-### `<role>` - Expert Persona Definition
+Triggers moved from body to frontmatter:
+
+```yaml
+triggers:
+  keywords:
+    - error handling
+    - error wrapping
+    - fmt.Errorf
+  file_pattern: "*.go"
+  weight: 0.8
+```
+
+**Fields**:
+- `keywords` - Array of trigger phrases
+- `file_pattern` - Glob pattern (e.g., "*.go", "*.ts")
+- `weight` - Activation weight 0.0-1.0 (default: 0.5)
+
+**Best practices**:
+- 3+ keywords recommended
+- Use specific, relevant phrases
+- Match user terminology
+- Weight 0.8+ for high priority
+
+---
+
+## Markdown Sections
+
+### `## Role` - Expert Persona Definition
 
 Define the AI's expertise and behavioral guidelines:
 
-```xml
-<role>
-Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
-</role>
+```markdown
+## Role
+
+Expert Go developer focused on clean architecture, patterns, and idioms.
+Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality,
+maintainability, and performance.
 ```
 
 **Purpose**: Sets the persona and expertise level
 **Content**: Expert identity, principles to follow, quality expectations
 **Best practices**:
 - 1-2 sentences defining expertise
-- Include behavioral guidelines (what to prioritize)
+- Include behavioral guidelines
 - Mention key principles or standards
-- Keep it concise and focused
+- Keep concise and focused
 
-### `<instructions>` - Core Knowledge and Patterns
+---
+
+### `## Instructions` - Core Knowledge and Patterns
 
 Provide detailed, actionable guidance:
 
-```xml
-<instructions>
+```markdown
+## Instructions
 
-## Pattern Name
+### Pattern Name
 
 ```go
 func example() {
@@ -156,15 +231,13 @@ func example() {
 - Reason 1
 - Reason 2
 
-## Another Pattern
+### Another Pattern
 
 Explanation with code blocks and rules.
 
 **Rules**:
 - Rule 1
 - Rule 2
-
-</instructions>
 ```
 
 **Purpose**: Core knowledge and patterns
@@ -175,70 +248,82 @@ Explanation with code blocks and rules.
 - Include "Why this pattern" sections
 - Use bullet lists for rules
 - Group related patterns together
+- Use subsections (###) for organization
 
-### `<constraints>` - Boundaries and Requirements
+---
+
+### `## Constraints` - Boundaries and Requirements
 
 Define what to include and exclude:
 
-```xml
-<constraints>
+```markdown
+## Constraints
+
 - Include clean, idiomatic Go code following standard conventions
 - Include proper error wrapping with context using `%w` verb
 - Include context propagation as first parameter throughout layers
 - Exclude magic numbers (use named constants instead)
 - Exclude global mutable state (pass dependencies explicitly)
 - Exclude panic in production code (use error handling instead)
-- Bound to clean layered architecture: Transport → UseCase → Domain ← Repository
-</constraints>
 ```
 
 **Purpose**: Set clear boundaries and requirements
-**Content**: Include rules, exclude rules, architectural boundaries
+**Content**: Include rules, exclude rules
 **Format**: Bullet list starting with "Include" or "Exclude"
 **Best practices**:
 - Start each line with "Include" or "Exclude"
 - Cover both positive and negative constraints
-- Mention architectural boundaries
 - Be specific about what's allowed/disallowed
+- Use code formatting for technical terms
 
-### `<edge_cases>` - Edge Case Handling
+---
+
+### `## Edge Cases` - Edge Case Handling
 
 Document 5+ scenarios with handling instructions:
 
-```xml
-<edge_cases>
-If input is unclear or ambiguous: Ask clarifying questions to understand the specific requirement before proceeding with implementation.
+```markdown
+## Edge Cases
 
-If context is missing for a feature: Request additional information about architecture decisions, existing patterns, or integration points.
+If input is unclear or ambiguous: Ask clarifying questions to understand
+the specific requirement before proceeding with implementation.
 
-If performance concerns arise: Delegate to go-perf skill for profiling, optimization strategies, and benchmarking guidance.
+If context is missing for a feature: Request additional information about
+architecture decisions, existing patterns, or integration points.
 
-If architecture questions emerge: Delegate to go-arch skill for system design, layer boundaries, and structural decisions.
+If performance concerns arise: Delegate to go-perf skill for profiling,
+optimization strategies, and benchmarking guidance.
 
-If testing requirements are needed: Delegate to go-test skill for test coverage, table-driven tests, and mocking strategies.
+If architecture questions emerge: Delegate to go-arch skill for system
+design, layer boundaries, and structural decisions.
 
-If security considerations are relevant: Delegate to go-sec skill for authentication, authorization, and input validation patterns.
-</edge_cases>
+If testing requirements are needed: Delegate to go-test skill for test
+coverage, table-driven tests, and mocking strategies.
 ```
 
 **Purpose**: Handle edge cases and delegations
 **Content**: 5+ scenarios with "If X: Y" format
-**Format**: Each scenario on separate line
+**Format**: Each scenario on separate paragraph
 **Best practices**:
 - Use "If X: Y" format consistently
 - Include delegation scenarios
 - Cover common edge cases
 - Be specific about handling actions
 
-### `<examples>` - Input/Output Pairs
+---
 
-Provide 2-3 concrete examples:
+### `## Examples` - Input/Output Pairs
 
-```xml
-<examples>
-<example>
-<input>Refactor main() to use bootstrap pattern with graceful shutdown</input>
-<output>
+Provide 2-3 concrete examples using subsections:
+
+```markdown
+## Examples
+
+### Example 1: Bootstrap Pattern
+
+**Input**: Refactor main() to use bootstrap pattern with graceful shutdown
+
+**Output**:
 ```go
 func main() {
     if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
@@ -247,68 +332,46 @@ func main() {
     }
 }
 ```
-</example>
 
-<example>
-<input>Fix error handling in this function - it's not wrapping errors properly</input>
-<output>
+### Example 2: Error Handling
+
+**Input**: Fix error handling in this function
+
+**Output**:
 ```go
 // Before
-func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*User, error) {
     return nil, err
 }
 
 // After
-func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-    if err != nil {
-        return fmt.Errorf("query user %s: %w", id, err)
-    }
-}
-```
-</example>
-
-<example>
-<input>Implement repository pattern with proper error handling and domain mapping</input>
-<output>
-```go
-package userrepo
-
-import (
-    "context"
-    "fmt"
-)
-
-type repository struct {
-    db *sqlx.DB
-}
-
-func New(db *sqlx.DB) *repository {
-    return &repository{db: db}
-}
-
 func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*User, error) {
-    // Implementation
+    if err != nil {
+        return nil, fmt.Errorf("query user %s: %w", id, err)
+    }
+    return &user, nil
 }
 ```
-</example>
-</examples>
 ```
 
 **Purpose**: Demonstrate skill application
-**Content**: 2-3 examples with `<input>` and `<output>` tags
-**Format**: Realistic user requests and responses
+**Content**: 2-3 examples with clear input/output
+**Format**: Use subsections (###) with **Input**/**Output** labels
 **Best practices**:
 - Use realistic user requests
 - Include complete, runnable code
 - Show before/after comparisons when helpful
 - Cover different use cases
 
-### `<output_format>` - Expected Output Structure
+---
+
+### `## Output Format` - Expected Output Structure
 
 Define expected output format:
 
-```xml
-<output_format>
+```markdown
+## Output Format
+
 Provide production-ready Go code following established patterns:
 
 1. **Code Structure**: Clean, idiomatic Go with proper package organization
@@ -317,355 +380,38 @@ Provide production-ready Go code following established patterns:
 4. **Context**: Always first parameter, propagated through all layers
 5. **Interfaces**: Minimal interfaces at consumer side, return structs
 
-Focus on practical implementation with minimal abstractions unless complexity demands it.
-</output_format>
+Focus on practical implementation with minimal abstractions unless
+complexity demands it.
 ```
 
 **Purpose**: Guide output structure and format
 **Content**: Format requirements, structure expectations, emphasis
-**Format**: Clear, actionable guidelines
+**Format**: Numbered list with bold headings
 **Best practices**:
 - Number key requirements
-- Use emphasis for important points
+- Use bold for categories
 - Focus on practical guidance
 - Mention quality criteria
 
+---
+
 ## Validation Rules
 
-Skills are validated using 9 rules. All rules run in both non-strict and strict modes.
+Skills are validated using format-aware rules. v3 skills are validated for Markdown sections instead of XML tags.
 
-### Rule 1: validateFrontmatter
+### Key Validation Checks
 
-Checks required frontmatter fields.
+1. **Frontmatter validation** - Required: `name`, `description`
+2. **Version format** - If present, must be semantic (1.0.0)
+3. **Markdown sections** - Checks for `## Role`, `## Instructions`, etc.
+4. **Trigger format** - Validates `triggers:` in frontmatter
+5. **Content quality** - Section length, example count, edge cases
 
-**What it checks**:
-- `name` field is present (error if missing)
-- `description` field is present (error if missing)
-- `version` field for v2 skills (warning in non-strict, error in strict)
-
-**Examples**:
-
-Good:
-```yaml
----
-name: go-code
-description: "Modern Go patterns. Auto-activates for: writing code, implementing features"
-version: "2.0.0"
-author: "go-ent"
-tags: ["go", "code"]
----
-```
-
-Bad (missing version):
-```yaml
----
-name: my-skill
-description: "Does something"
----
-```
-
-Bad (missing name):
-```yaml
----
-description: "Does something"
----
-```
-
-**How to fix**: Add missing fields to frontmatter. For v2 skills, include `version`, `author`, and `tags`.
-
----
-
-### Rule 2: validateVersion
-
-Checks semantic version format.
-
-**What it checks**:
-- Version field matches `v1.0.0` or `1.0.0` format (semver)
-- Only runs if `version` field is present
-
-**Examples**:
-
-Good:
-```yaml
-version: "2.0.0"
-version: "1.2.3"
-version: "v3.4.5"
-```
-
-Bad:
-```yaml
-version: "2.0"
-version: "latest"
-version: "v2"
-```
-
-**How to fix**: Use semantic versioning: `MAJOR.MINOR.PATCH`
-
----
-
-### Rule 3: validateXMLTags
-
-Checks for balanced XML tags.
-
-**What it checks**:
-- All XML tags have matching open/close tags
-- No duplicate top-level tags
-- Only checks v2 skills
-
-**Examples**:
-
-Good:
-```xml
-<role>...</role>
-<instructions>...</instructions>
-```
-
-Bad (unbalanced):
-```xml
-<role>...
-<!-- Missing </role> -->
-```
-
-Bad (duplicate):
-```xml
-<role>...</role>
-<role>...</role>
-```
-
-**How to fix**: Ensure every `<tag>` has a matching `</tag>` and no duplicates.
-
----
-
-### Rule 4: validateRoleSection
-
-Checks `<role>` section presence and content.
-
-**What it checks**:
-- `<role>` section exists (warning in non-strict, error in strict for v2)
-- `<role>` tag is closed with `</role>`
-- Role section is not empty
-- Role section has at least 2 lines of content (warning)
-
-**Examples**:
-
-Good:
-```xml
-<role>
-Expert Go developer focused on clean architecture, patterns, and idioms.
-Prioritize SOLID, DRY, KISS, YAGNI principles.
-</role>
-```
-
-Bad (missing):
-```xml
-<!-- No <role> section -->
-```
-
-Bad (empty):
-```xml
-<role>
-
-</role>
-```
-
-Bad (too short):
-```xml
-<role>
-Expert.
-</role>
-```
-
-**How to fix**: Add `<role>` section with 2+ lines defining expertise and behavioral guidelines.
-
----
-
-### Rule 5: validateInstructionsSection
-
-Checks `<instructions>` section presence.
-
-**What it checks**:
-- `<instructions>` section exists (warning in non-strict, error in strict for v2)
-- `<instructions>` tag is closed with `</instructions>`
-
-**Examples**:
-
-Good:
-```xml
-<instructions>
-## Pattern 1
-Code example...
-</instructions>
-```
-
-Bad (missing):
-```xml
-<!-- No <instructions> section -->
-```
-
-Bad (unclosed):
-```xml
-<instructions>
-## Pattern 1
-Code example...
-<!-- Missing </instructions> -->
-```
-
-**How to fix**: Add `<instructions>` section with patterns, examples, and rules.
-
----
-
-### Rule 6: validateExamples
-
-Checks `<examples>` section structure.
-
-**What it checks**:
-- `<examples>` tag is closed
-- `<examples>` contains at least one `<example>` tag (warning)
-- Each `<example>` has `<input>` and `<output>` tags (error)
-
-**Examples**:
-
-Good:
-```xml
-<examples>
-<example>
-<input>User request</input>
-<output>Response</output>
-</example>
-</examples>
-```
-
-Bad (no input/output):
-```xml
-<examples>
-<example>
-Just text without tags
-</example>
-</examples>
-```
-
-Bad (no examples):
-```xml
-<examples>
-<!-- No <example> tags -->
-</examples>
-```
-
-**How to fix**: Ensure each `<example>` has `<input>` and `<output>` tags with proper nesting.
-
----
-
-### Rule 7: validateConstraints
-
-Checks `<constraints>` section format.
-
-**What it checks**:
-- `<constraints>` tag is closed
-- Constraints items use list format (start with `- `) (warning)
-- Constraints section is not empty (warning)
-
-**Examples**:
-
-Good:
-```xml
-<constraints>
-- Include clean code patterns
-- Exclude anti-patterns
-- Bound to specific principles
-</constraints>
-```
-
-Bad (no list format):
-```xml
-<constraints>
-Include clean code patterns.
-Exclude anti-patterns.
-</constraints>
-```
-
-Bad (empty):
-```xml
-<constraints>
-
-</constraints>
-```
-
-**How to fix**: Use bullet list format starting with `- ` for each constraint.
-
----
-
-### Rule 8: validateEdgeCases
-
-Checks `<edge_cases>` section scenarios.
-
-**What it checks**:
-- `<edge_cases>` tag is closed
-- At least 2 scenarios using 'if', 'when', or 'should' keywords (warning)
-
-**Examples**:
-
-Good:
-```xml
-<edge_cases>
-If input is unclear: Ask clarifying questions.
-If context is missing: Request additional information.
-When performance is a concern: Delegate to performance skill.
-Should security arise: Delegate to security skill.
-```
-</edge_cases>
-```
-
-Bad (no scenarios):
-```xml
-<edge_cases>
-No scenarios defined.
-</edge_cases>
-```
-
-**How to fix**: Add scenarios using "If X: Y" or "When X: Y" format.
-
----
-
-### Rule 9: validateOutputFormat
-
-Checks `<output_format>` section for v2 skills.
-
-**What it checks**:
-- `<output_format>` section exists (warning in non-strict, error in strict for v2)
-- `<output_format>` tag is closed
-- Output format section is not empty (warning)
-
-**Examples**:
-
-Good:
-```xml
-<output_format>
-Provide production-ready code following these guidelines:
-
-1. **Structure**: Clean, idiomatic code
-2. **Naming**: Short, natural variable names
-3. **Errors**: Wrapped with context
-
-Focus on practical implementation.
-</output_format>
-```
-
-Bad (empty):
-```xml
-<output_format>
-
-</output_format>
-```
-
-**How to fix**: Add `<output_format>` section with specific output guidelines.
-
----
-
-## Strict vs Non-Strict Mode
+### Strict vs Non-Strict Mode
 
 **Non-strict mode** (default):
 - Allows warnings for some missing sections
-- Valid if no errors (warnings are ignored)
+- Valid if no errors (warnings ignored)
 - Good for initial drafts
 
 **Strict mode**:
@@ -677,107 +423,68 @@ Bad (empty):
 Enable strict mode:
 ```bash
 make skill-validate strict=true
-# or
+# or via MCP
 Use skill_validate with skill_id="go-code", strict=true
 ```
 
-## Quality Scoring Rubric
+---
+
+## Quality Scoring
 
 Quality scores range from 0-100 and are computed automatically:
 
-### Frontmatter (20 points)
+### Scoring Breakdown
 
-| Component   | Points | Criteria                                  |
-|------------|--------|-------------------------------------------|
-| `name`     | 5      | Non-empty skill name                        |
-| `description` | 5   | Non-empty description                       |
-| `version`  | 5      | Version field present                        |
-| `tags`     | 5      | Tags array has at least one element         |
+| Category | Points | Criteria |
+|----------|--------|----------|
+| **Frontmatter** | 20 | name, description, version, triggers |
+| **Structure** | 30 | Role, Instructions, Examples sections |
+| **Content** | 30 | Example count (2+), Edge cases (5+) |
+| **Triggers** | 20 | Keyword count (3+ for full points) |
+| **Total** | 100 | Maximum possible score |
 
-**Max: 20 points**
+### Quality Thresholds
 
-### Structure (30 points)
-
-| Section       | Points | Criteria                            |
-|---------------|--------|-------------------------------------|
-| `<role>`      | 10     | Role section present                  |
-| `<instructions>` | 10  | Instructions section present          |
-| `<examples>`  | 10     | Examples section present              |
-
-**Max: 30 points**
-
-### Content (30 points)
-
-| Component      | Points | Criteria                                   |
-|----------------|--------|--------------------------------------------|
-| Examples count | 15     | 2+ examples (10 points for 1 example)      |
-| `<edge_cases>` | 15    | Edge cases section present                  |
-
-**Max: 30 points**
-
-### Triggers (20 points)
-
-| Trigger Count | Points | Calculation                        |
-|---------------|--------|-----------------------------------|
-| 0             | 0      | No triggers                        |
-| 1             | 6.67   | 1 × 6.67                          |
-| 2             | 13.33  | 2 × 6.67                          |
-| 3+            | 20     | Full points                        |
-
-**Max: 20 points**
-
-### Total Score
-
-**Max: 100 points**
-
-### Thresholds
-
-| Score Range    | Quality Level           | Action                           |
-|---------------|------------------------|----------------------------------|
-| ≥ 90          | Excellent              | Template quality, ready for reference |
-| 80 - 89       | Good                  | Acceptable for production         |
-| < 80          | Needs improvement      | Add sections, examples, triggers |
+| Score Range | Quality Level | Action |
+|-------------|--------------|--------|
+| ≥ 90 | Excellent | Template quality, ready for reference |
+| 80 - 89 | Good | Acceptable for production |
+| < 80 | Needs improvement | Add sections, examples, triggers |
 
 **Target**: ≥ 80 for production skills, ≥ 90 for template/reference skills.
 
-## Good vs Bad Patterns
+---
 
-### Good Pattern Example
+## Good vs Bad Examples
+
+### Good Example (v3 Format)
 
 ```markdown
 ---
-name: go-code
-description: "Modern Go implementation patterns. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration"
-version: "2.0.0"
-author: "go-ent"
-tags: ["go", "code", "implementation"]
+name: go-error
+description: "Error handling patterns for Go"
+version: "1.0.0"
+user-invocable: true
+triggers:
+  keywords:
+    - error handling
+    - error wrapping
+    - fmt.Errorf
+    - error context
+  file_pattern: "*.go"
+  weight: 0.8
 ---
 
-# Go Code Patterns
+## Role
 
-<role>
-Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
-</role>
+Expert Go error handling engineer specializing in error design patterns,
+wrapping strategies, and production-grade error management.
 
-<instructions>
+## Instructions
 
-## Bootstrap Pattern
+### Error Wrapping Pattern
 
-```go
-func main() {
-    if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
-        slog.Error("fatal", "error", err)
-        os.Exit(1)
-    }
-}
-```
-
-**Why this pattern**:
-- Testable (injectable dependencies)
-- Graceful shutdown (30s timeout)
-- Proper signal handling
-
-## Error Handling
+Always wrap errors with context using `%w`:
 
 ```go
 if err != nil {
@@ -785,99 +492,130 @@ if err != nil {
 }
 ```
 
-**Rules**:
-- Always wrap with context
-- Lowercase, no trailing punctuation
-- Use `%w` for wrapping
+**Why this pattern**:
+- Preserves error chain for errors.Is/As
+- Adds operation context
+- Enables error tracing
 
-</instructions>
+### Lowercase Messages
 
-<constraints>
-- Include clean, idiomatic Go code following standard conventions
-- Include proper error wrapping with context using `%w` verb
-- Exclude magic numbers (use named constants instead)
-- Exclude global mutable state (pass dependencies explicitly)
-- Bound to clean layered architecture: Transport → UseCase → Domain ← Repository
-</constraints>
+Error messages should be lowercase without trailing punctuation:
 
-<edge_cases>
-If input is unclear: Ask clarifying questions before proceeding.
-
-If context is missing: Request additional information about architecture decisions.
-
-If performance concerns arise: Delegate to go-perf skill for profiling.
-
-If architecture questions emerge: Delegate to go-arch skill for system design.
-
-If testing requirements are needed: Delegate to go-test skill for test coverage.
-</edge_cases>
-
-<examples>
-<example>
-<input>Refactor main() to use bootstrap pattern with graceful shutdown</input>
-<output>
 ```go
-func main() {
-    if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
-        slog.Error("fatal", "error", err)
-        os.Exit(1)
-    }
-}
+// Good
+return fmt.Errorf("query user: %w", err)
 
-func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writer) error {
-    cfg, err := config.LoadFromEnv(getenv)
-    if err != nil {
-        return fmt.Errorf("config: %w", err)
+// Bad
+return fmt.Errorf("Query user: %w", err)  // uppercase
+return fmt.Errorf("query user.: %w", err) // trailing period
+```
+
+## Constraints
+
+- Include proper error wrapping with %w
+- Include lowercase error messages
+- Include operation context in errors
+- Exclude unwrapped errors
+- Exclude uppercase error messages
+
+## Edge Cases
+
+If error is already wrapped: Don't double-wrap, check if it's already wrapped.
+
+If error is domain error: Return typed error directly without wrapping.
+
+If multiple errors occur: Use multierror package or return first critical error.
+
+If error needs translation: Map internal errors to domain errors at boundary.
+
+If logging is needed: Log at origin, not during propagation.
+
+## Examples
+
+### Example 1: Repository Error
+
+**Input**: Add error handling to database query
+
+**Output**:
+```go
+func (r *Repository) GetUser(id string) (*User, error) {
+    var u User
+    if err := r.db.QueryRow(query, id).Scan(&u.ID, &u.Name); err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, ErrUserNotFound
+        }
+        return nil, fmt.Errorf("query user %s: %w", id, err)
     }
-    // ... rest of implementation
+    return &u, nil
 }
 ```
-</example>
 
-<example>
-<input>Fix error handling in this function</input>
-<output>
+### Example 2: Multi-Layer Wrapping
+
+**Input**: Fix error propagation through layers
+
+**Output**:
 ```go
-// Before
-func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*User, error) {
-    return nil, err
+// Repository layer
+func (r *repo) FindByID(ctx context.Context, id string) (*User, error) {
+    // ... db query ...
+    if err != nil {
+        return nil, fmt.Errorf("query user %s: %w", id, err)
+    }
+    return user, nil
 }
 
-// After
-func (r *repository) FindByID(ctx context.Context, id uuid.UUID) (*User, error) {
+// UseCase layer
+func (uc *useCase) GetUser(ctx context.Context, id string) (*User, error) {
+    user, err := uc.repo.FindByID(ctx, id)
     if err != nil {
-        return fmt.Errorf("query user %s: %w", id, err)
+        return nil, fmt.Errorf("get user: %w", err)
     }
+    return user, nil
+}
+
+// Transport layer
+func (h *handler) GetUser(w http.ResponseWriter, r *http.Request) {
+    user, err := h.uc.GetUser(r.Context(), id)
+    if err != nil {
+        if errors.Is(err, ErrUserNotFound) {
+            http.Error(w, "user not found", http.StatusNotFound)
+            return
+        }
+        http.Error(w, "internal error", http.StatusInternalServerError)
+        return
+    }
+    json.NewEncoder(w).Encode(user)
 }
 ```
-</example>
-</examples>
 
-<output_format>
-Provide production-ready Go code following established patterns:
+## Output Format
 
-1. **Code Structure**: Clean, idiomatic Go with proper package organization
-2. **Naming**: Short, natural variable names (cfg, repo, ctx, req, resp)
-3. **Error Handling**: Wrapped errors with lowercase context using `%w`
-4. **Context**: Always first parameter, propagated through all layers
+Provide error handling following these guidelines:
 
-Focus on practical implementation with minimal abstractions.
-</output_format>
+1. **Wrapping**: Use `%w` for all error propagation
+2. **Context**: Add operation context to every wrapped error
+3. **Messages**: Lowercase, no trailing punctuation
+4. **Domain Errors**: Return typed errors at boundaries
+5. **Checking**: Use errors.Is/As for type checking
+
+Focus on production-grade error handling with full traceability.
 ```
 
 **Why this is good**:
-- Complete frontmatter with all fields
-- Clear, concise role definition
-- Rich instructions with multiple patterns
+- Complete frontmatter with triggers in YAML
+- Clear role definition
+- Rich instructions with code examples
 - Specific constraints (include/exclude)
 - 5 edge case scenarios
-- 2 realistic examples with input/output
+- 2 realistic examples with clear input/output
 - Clear output format guidelines
+- Uses Markdown sections (no XML)
 - **Score**: ~95/100 (excellent)
 
 ---
 
-### Bad Pattern Example
+### Bad Example (Needs Improvement)
 
 ```markdown
 ---
@@ -885,346 +623,132 @@ name: my-skill
 description: "Does some stuff"
 ---
 
-# My Skill
-
 This skill helps with things.
-
-## Some Instructions
 
 Write good code.
 
-## Edge Cases
-
 If something is wrong, try to fix it.
-
-## Examples
 
 Example 1: Do this
 Example 2: Do that
 ```
 
 **Why this is bad**:
-- Missing `version`, `author`, `tags` fields
-- No XML tags (v1 format, but v2 expected)
+- No `version` field
 - Vague description ("does some stuff")
-- No triggers in description
+- No triggers
+- No Markdown sections
 - Role section missing
 - Instructions are too generic
 - No constraints section
-- Edge cases section doesn't use "If X: Y" format
-- Examples lack `<input>`/`<output>` tags
+- Edge cases don't use "If X: Y" format
+- Examples lack structure (no ## Examples section)
 - No output format section
-- **Score**: ~35/100 (needs major improvement)
+- **Score**: ~25/100 (needs major improvement)
 
 **How to fix**:
-1. Add frontmatter fields (`version`, `author`, `tags`)
-2. Add triggers to description
-3. Wrap sections in XML tags
-4. Add `<role>` section with expertise definition
-5. Expand `<instructions>` with specific patterns
-6. Add `<constraints>` with include/exclude rules
-7. Format edge cases as "If X: Y"
-8. Add `<examples>` with proper tags
-9. Add `<output_format>` section
+1. Add `version`, `triggers` to frontmatter
+2. Add specific description
+3. Add `## Role` section with expertise definition
+4. Add `## Instructions` with specific patterns
+5. Add `## Constraints` with include/exclude rules
+6. Add `## Edge Cases` with "If X: Y" format (5+ scenarios)
+7. Add `## Examples` section with subsections
+8. Add `## Output Format` section
+9. Use code blocks for examples
+10. Add 3+ trigger keywords
 
 ---
 
-## Migration Guide
+## Migration from v2
 
-### Step-by-Step Process
+### Automated Migration
 
-#### Step 1: Use go-code as Template
-
-Copy the go-code skill as a starting point:
+Use the migration script:
 
 ```bash
-mkdir -p plugins/go-ent/skills/your-category/your-skill
-cp plugins/go-ent/skills/go/go-code/SKILL.md plugins/go-ent/skills/your-category/your-skill/SKILL.md
+go run scripts/migrate-skills.go
 ```
 
-#### Step 2: Update Frontmatter
+The script:
+1. Detects v2 skills (XML tags)
+2. Extracts `<triggers>` from body
+3. Moves triggers to frontmatter
+4. Converts XML tags to Markdown sections
+5. Validates migrated skills
 
-Edit the frontmatter with your skill's information:
+### Manual Migration Steps
 
-```yaml
+If migrating manually:
+
+1. **Extract triggers** - Move from `<triggers>` in body to `triggers:` in frontmatter
+2. **Convert tags to headings**:
+   - `<role>` → `## Role`
+   - `<instructions>` → `## Instructions`
+   - `<constraints>` → `## Constraints`
+   - `<edge_cases>` → `## Edge Cases`
+   - `<examples>` → `## Examples`
+   - `<output_format>` → `## Output Format`
+3. **Update examples** - Use subsections (###) with **Input**/**Output** labels
+4. **Validate** - Run `make skill-validate strict=true`
+
+### Example Migration
+
+**Before (v2)**:
+```markdown
 ---
-name: your-skill-name
-description: "Skill description. Auto-activates for: trigger1, trigger2, trigger3"
+name: go-error
+description: "Error handling. Auto-activates for: error handling, wrapping"
 version: "2.0.0"
-author: "your-name"
-tags: ["category", "keyword", "topic"]
 ---
-```
 
-**Important**:
-- `name`: lowercase with hyphens, max 64 characters
-- `description`: what skill does + auto-activation triggers
-- `version`: semantic version (e.g., `2.0.0`)
-- `author`: attribution (e.g., "go-ent" or your name)
-- `tags`: array of category keywords
+<triggers>
+  keywords:
+    - "error handling"
+  weight: 0.8
+</triggers>
 
-#### Step 3: Update `<role>` Section
-
-Define the expert persona:
-
-```xml
 <role>
-Expert [domain] focused on [specialty]. Prioritize [principles] with [quality goals].
+Expert Go error handling engineer.
 </role>
-```
 
-**Tips**:
-- Keep it concise (1-2 sentences)
-- Include domain expertise
-- Mention principles to follow
-- Define quality expectations
-
-#### Step 4: Update `<instructions>` Section
-
-Add your skill's core patterns and guidance:
-
-```xml
 <instructions>
-
-## Pattern 1
-
-Code or content example with explanation.
-
-**Why this pattern**:
-- Reason 1
-- Reason 2
-
-## Pattern 2
-
-Another example with clear explanation.
-
-**Rules**:
-- Rule 1
-- Rule 2
-
+## Pattern
+Code here
 </instructions>
 ```
 
-**Tips**:
-- Use code blocks with language tags
-- Include "Why this pattern" sections
-- Group related patterns
-- Use bullet lists for rules
+**After (v3)**:
+```markdown
+---
+name: go-error
+description: "Error handling patterns for Go"
+version: "2.0.0"
+triggers:
+  keywords:
+    - error handling
+    - error wrapping
+  weight: 0.8
+---
 
-#### Step 5: Update `<constraints>` Section
+## Role
 
-Define boundaries and requirements:
+Expert Go error handling engineer.
 
-```xml
-<constraints>
-- Include specific patterns or approaches
-- Include required output format elements
-- Exclude anti-patterns or discouraged practices
-- Exclude certain implementation details
-- Bound to specific architectural principles
-</constraints>
+## Instructions
+
+### Pattern
+
+Code here
 ```
 
-**Tips**:
-- Start each line with "Include" or "Exclude"
-- Cover both positive and negative constraints
-- Mention architectural boundaries
-- Be specific about what's allowed/disallowed
+---
 
-#### Step 6: Update `<edge_cases>` Section
+## Best Practices
 
-Add 5+ edge case scenarios:
+### 1. Use Specific, Actionable Instructions
 
-```xml
-<edge_cases>
-If input is unclear: Ask clarifying questions before proceeding.
-
-If context is missing: Request additional information about architecture.
-
-If performance concerns arise: Delegate to performance skill.
-
-If architecture questions emerge: Delegate to architecture skill.
-
-If testing requirements are needed: Delegate to testing skill.
-</edge_cases>
-```
-
-**Tips**:
-- Use "If X: Y" format consistently
-- Include delegation scenarios
-- Cover common edge cases
-- Be specific about handling actions
-- Target 5+ scenarios
-
-#### Step 7: Update `<examples>` Section
-
-Add 2-3 concrete examples:
-
-```xml
-<examples>
-<example>
-<input>Example user request</input>
-<output>
-```go
-// Code example
-```
-</output>
-</example>
-
-<example>
-<input>Another example request</input>
-<output>
-```go
-// Another code example
-```
-</output>
-</example>
-</examples>
-```
-
-**Tips**:
-- Use realistic user requests
-- Include complete, runnable code
-- Show before/after comparisons when helpful
-- Cover different use cases
-- Target 2-3 examples
-
-#### Step 8: Update `<output_format>` Section
-
-Define expected output format:
-
-```xml
-<output_format>
-Provide output following these guidelines:
-
-1. **Format requirement 1**: Specific instruction
-2. **Format requirement 2**: Another instruction
-3. **Quality criteria**: What makes output high-quality
-
-Focus on practical, actionable guidance.
-</output_format>
-```
-
-**Tips**:
-- Number key requirements
-- Use emphasis for important points
-- Focus on practical guidance
-- Mention quality criteria
-
-#### Step 9: Validate with Strict Mode
-
-Run validation in strict mode:
-
-```bash
-make skill-validate strict=true
-```
-
-Or use MCP tool:
-```
-Use skill_validate with skill_id="your-skill", strict=true
-```
-
-**Fix any validation errors** before proceeding.
-
-#### Step 10: Check Quality Score
-
-Generate quality report:
-
-```bash
-make skill-quality
-```
-
-Or use MCP tool:
-```
-Use skill_quality with skill_id="your-skill", threshold=80
-```
-
-**Quality targets**:
-- ≥ 90: Template quality (recommended for reference skills)
-- ≥ 80: Good quality (acceptable for production)
-- < 80: Needs improvement
-
-**If score < 80**:
-- Add missing frontmatter fields (version, author, tags)
-- Ensure all XML sections are present
-- Add more examples (target 2-3)
-- Add more edge cases (target 5+)
-- Add more triggers in description (target 3+)
-
-#### Step 11: Test with Real Work
-
-Test the skill with actual work:
-
-1. Trigger the skill with a relevant task
-2. Verify skill content appears in context
-3. Check output quality and relevance
-4. Adjust if needed based on results
-
-### Migration Checklist
-
-- [ ] Copied go-code as template
-- [ ] Updated frontmatter (name, description, version, author, tags)
-- [ ] Updated `<role>` section with expert persona
-- [ ] Updated `<instructions>` section with patterns
-- [ ] Updated `<constraints>` section with include/exclude rules
-- [ ] Updated `<edge_cases>` section with 5+ scenarios
-- [ ] Updated `<examples>` section with 2-3 input/output pairs
-- [ ] Updated `<output_format>` section with guidelines
-- [ ] Validated with strict mode (`make skill-validate strict=true`)
-- [ ] Quality score ≥ 80 (≥ 90 for templates)
-- [ ] Tested with real work
-- [ ] Skill triggers correctly
-- [ ] Output quality meets expectations
-
-### Backward Compatibility Notes
-
-**v1 format** (no XML tags) still works:
-- Detected by absence of `<role>` and `<instructions>` tags
-- Loaded as legacy format
-- No validation or quality scoring
-- Can still be used, but won't benefit from v2 features
-
-**v2 format**:
-- Detected by presence of `<role>` or `<instructions>` tags
-- Fully validated and scored
-- Enhanced metadata (version, author, tags)
-- Required for new skills
-
-**Migration path**:
-- Existing v1 skills can continue to work
-- Migrate to v2 to get validation and quality scoring
-- No breaking changes for existing skills
-
-## Best Practices from Research
-
-Based on research from `docs/research/SKILL.md`, here are proven practices for high-performance skills:
-
-### 1. Use XML Tags for Structure
-
-XML tags improve performance by **15-20%** when properly implemented.
-
-**Best practices**:
-- Use meaningful tag names that match content
-- Nest tags for hierarchical content
-- Reference tags explicitly in instructions
-- Maintain consistent naming throughout
-
-**Example**:
-```xml
-<role>...</role>
-<instructions>
-<examples>...</examples>
-</instructions>
-```
-
-### 2. Provide Specific, Actionable Instructions
-
-Ambiguity is the root cause of most skill failures.
-
-**Best practices**:
-- State everything explicitly; assume nothing
-- Replace subjective terms with concrete specifications
-- Test your skill by asking: "Could two people interpret this differently?"
+Ambiguity causes failures. Be explicit.
 
 **Bad**:
 ```
@@ -1238,118 +762,80 @@ Include proper error wrapping with context using %w.
 Use short variable names (cfg, repo, ctx) in small scopes.
 ```
 
-### 3. Include Rich Examples with Input/Output
+### 2. Provide Rich Examples
 
-Examples are most valuable when you need consistent formatting or domain-specific output patterns.
-
-**Best practices**:
-- Provide 3-5 diverse, relevant examples
-- Include edge cases in your examples
-- Show boundary conditions and unexpected inputs
-- Use the `<example>` tag with `<input>` and `<output>` subtags
-
-**Example**:
-```xml
-<examples>
-<example>
-<input>Refactor main() to use bootstrap pattern</input>
-<output>
-```go
-func main() {
-    if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
-        slog.Error("fatal", "error", err)
-        os.Exit(1)
-    }
-}
-```
-</output>
-</example>
-</examples>
-```
-
-### 4. Document Clear Constraints and Edge Cases
-
-Explicit constraints prevent the skill from taking incorrect actions.
+Examples demonstrate patterns effectively.
 
 **Best practices**:
-- Use bullet lists starting with "Include" or "Exclude"
-- Cover both positive and negative constraints
-- Mention architectural boundaries
-- Document 5+ edge case scenarios
+- 2-3 diverse examples
+- Include edge cases
+- Show complete, runnable code
+- Use realistic scenarios
+
+### 3. Document Clear Constraints
+
+Explicit constraints prevent incorrect actions.
 
 **Example**:
-```xml
-<constraints>
+```markdown
+## Constraints
+
 - Include clean, idiomatic Go code
+- Include proper error wrapping with %w
 - Exclude magic numbers (use named constants)
 - Exclude global mutable state
-</constraints>
-
-<edge_cases>
-If input is unclear: Ask clarifying questions.
-If context is missing: Request additional information.
-If performance concerns arise: Delegate to performance skill.
-</edge_cases>
 ```
 
-### 5. Use Concise, Well-Structured Prompts
+### 4. Use 3+ Trigger Keywords
 
-Over-prompting causes attention dilution—16K tokens with RAG outperformed 128K monolithic prompts.
+More triggers = better activation.
+
+**Example**:
+```yaml
+triggers:
+  keywords:
+    - error handling
+    - error wrapping
+    - fmt.Errorf
+    - error context
+  weight: 0.8
+```
+
+### 5. Keep Instructions Concise
+
+Every token consumes attention budget.
 
 **Best practices**:
-- Every token consumes attention budget
-- Challenge each instruction: "Does Claude really need this?"
-- Remove until model misbehaves, not add until it behaves
+- Challenge each instruction: "Is this needed?"
+- Remove until model misbehaves
 - Focus on communication, not cleverness
 
-### 6. Enable Appropriate Reasoning for Task Complexity
+---
 
-For Claude 4.x with internal reasoning, explicit chain-of-thought provides minimal benefit (2.9-3.1%) while adding 20-80% time cost.
+## Quick Reference
 
-**Best practices**:
-- Use structured CoT for complex multi-step tasks where visibility into reasoning matters
-- Don't over-engineer simpler skills
-- Consider if reasoning visibility is needed
-
-**When to use CoT**:
-- Complex multi-step tasks
-- Tasks where intermediate steps matter
-- When debugging or troubleshooting
-- When you need to see the reasoning process
-
-### 7. Optimize Context Window Strategy
-
-Position matters in the context window. Put longform data at top, instructions at end. This improves response quality by up to 30%.
-
-**Best practices**:
-- For skills with long content, use a "scratchpad" technique
-- Have Claude extract relevant quotes into a thinking section
-- Keep system prompts concise to leave room for conversation history
-
-**Formula**: `System_Tokens + History_Tokens + User_Input_Tokens ≤ Model_Window`
-
-## Quick Reference Template
-
-Here's a minimal v2 template you can copy-paste:
+### Minimal v3 Template
 
 ```markdown
 ---
-name: your-skill-name
-description: "Skill description. Auto-activates for: trigger1, trigger2, trigger3"
-version: "2.0.0"
-author: "your-name"
-tags: ["category", "keyword"]
+name: skill-name
+description: "Brief description"
+version: "1.0.0"
+triggers:
+  keywords:
+    - trigger1
+    - trigger2
+    - trigger3
+  weight: 0.8
 ---
 
-# Skill Title
+## Role
 
-<role>
 Expert [domain] focused on [specialty]. Prioritize [principles].
-</role>
 
-<instructions>
+## Instructions
 
-## Pattern 1
+### Pattern 1
 
 Code or content example.
 
@@ -1357,371 +843,50 @@ Code or content example.
 - Reason 1
 - Reason 2
 
-## Pattern 2
+## Constraints
 
-Another example.
-
-</instructions>
-
-<constraints>
 - Include specific patterns
 - Exclude anti-patterns
-- Bound to principles
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If input is unclear: Ask clarifying questions.
 
 If context is missing: Request additional information.
 
 If [situation]: [action].
 
-If [situation]: [action].
+## Examples
 
-If [situation]: [action].
-</edge_cases>
+### Example 1
 
-<examples>
-<example>
-<input>User request</input>
-<output>Expected response</output>
-</example>
+**Input**: User request
 
-<example>
-<input>Another request</input>
-<output>Another response</output>
-</example>
-</examples>
+**Output**:
+```go
+// Code example
+```
 
-<output_format>
+### Example 2
+
+**Input**: Another request
+
+**Output**:
+```go
+// Another example
+```
+
+## Output Format
+
 Provide output following these guidelines:
 
 1. **Requirement 1**: Specific instruction
 2. **Requirement 2**: Another instruction
 
 Focus on practical guidance.
-</output_format>
 ```
 
-## Skill Template System
-
-The template system provides a fast, structured way to create new skills from pre-built templates. Templates handle structure, examples, and best practices so you can focus on skill content.
-
-### Available Templates
-
-Built-in templates are available in the `plugins/go-ent/templates/skills/` directory:
-
-| Template       | Category     | Description                          |
-|----------------|--------------|-------------------------------------|
-| `go-basic`     | go           | Basic Go development patterns         |
-| `go-complete`  | go           | Comprehensive Go with all sections  |
-| `typescript-basic` | typescript | TypeScript-specific patterns          |
-| `database`     | database     | SQL/migration patterns               |
-| `testing`      | testing      | TDD and testing patterns            |
-| `api-design`   | api          | REST/GraphQL API design patterns     |
-| `core-basic`   | core         | Domain/architecture patterns         |
-| `debugging-basic` | debugging | Troubleshooting patterns             |
-| `security`     | security     | Security and authentication patterns  |
-| `review`       | review       | Code review patterns                 |
-| `arch`         | arch         | Architecture patterns                |
-
-### Creating Skills with Templates
-
-Use the `go-ent skill new` command to create a new skill from a template.
-
-#### Interactive Mode
-
-Default mode prompts for template selection and details:
-
-```bash
-# Create a skill with auto-detected category
-ent skill new go-payment
-
-# Create a skill with manual template selection
-ent skill new my-skill
-```
-
-Interactive prompts:
-1. **Template selection**: Choose from available templates
-2. **Skill name**: Confirm or change the skill name
-3. **Description**: Brief description of what the skill does
-4. **Category**: Auto-detected from name or choose manually
-
-#### Non-Interactive Mode
-
-Use flags to create skills without prompts:
-
-```bash
-# Create with template and description
-ent skill new go-api \
-  --template go-complete \
-  --description "REST API skill with best practices"
-
-# Create with all options
-ent skill new go-payment \
-  --template go-complete \
-  --description "Payment processing patterns" \
-  --category go \
-  --author "Your Name" \
-  --tags "payment,api,backend"
-```
-
-#### Auto-Detection
-
-The command automatically detects category from skill name prefix:
-
-| Prefix Pattern      | Detected Category |
-|--------------------|------------------|
-| `go-*`             | go               |
-| `typescript-*`      | typescript        |
-| `javascript-*`      | javascript        |
-| `test-*`            | testing          |
-| `api-*`             | api              |
-| `security-*`        | security         |
-| `review-*`          | review           |
-| `arch-*`            | arch             |
-| `debug-*`           | debugging        |
-| `core-*`            | core             |
-
-Example: `go-payment` auto-detects `go` category.
-
-### Listing Templates
-
-List all available templates with `go-ent skill list-templates`:
-
-```bash
-# List all templates
-ent skill list-templates
-
-# Filter by category
-ent skill list-templates --category go
-
-# Show only built-in templates
-ent skill list-templates --built-in
-
-# Show only custom templates
-ent skill list-templates --custom
-```
-
-Output example:
-```
-NAME            CATEGORY    SOURCE      DESCRIPTION
-----            --------    ------      -----------
-go-basic        go          built-in    Basic Go development patterns
-go-complete     go          built-in    Comprehensive Go with all sections
-testing         testing     built-in    TDD and testing patterns
-```
-
-### Showing Template Details
-
-View detailed information about a template with `go-ent skill show-template`:
-
-```bash
-# Show details for a built-in template
-ent skill show-template go-complete
-
-# Show details for a custom template
-ent skill show-template my-custom-template
-```
-
-Output includes:
-- Template metadata (name, category, version, author)
-- Configuration prompts with defaults
-- Template preview (first 20 lines)
-
-### Adding Custom Templates
-
-Add your own templates to the registry with `go-ent skill add-template`:
-
-#### Template Structure
-
-Custom templates must include:
-- `template.md`: Skill template in v2 format with placeholders
-- `config.yaml`: Template metadata and prompt configuration
-
-#### Example Template Directory
-
-```
-my-custom-template/
-├── template.md
-└── config.yaml
-```
-
-**template.md example:**
-```markdown
----
-name: ${SKILL_NAME}
-description: "${DESCRIPTION}"
-version: "${VERSION}"
-author: "${AUTHOR}"
-tags: [${TAGS}]
----
-
-# ${SKILL_NAME}
-
-<role>
-Expert [domain] focused on [specialty]. Prioritize [principles].
-</role>
-
-<instructions>
-## Pattern 1
-
-Code or content example.
-
-**Why this pattern**:
-- Reason 1
-- Reason 2
-</instructions>
-
-<constraints>
-- Include specific patterns
-- Exclude anti-patterns
-</constraints>
-
-<edge_cases>
-If input is unclear: Ask clarifying questions.
-If context is missing: Request additional information.
-</edge_cases>
-
-<examples>
-<example>
-<input>User request</input>
-<output>Expected response</output>
-</example>
-</examples>
-
-<output_format>
-Provide output following these guidelines:
-
-1. **Requirement 1**: Specific instruction
-2. **Requirement 2**: Another instruction
-</output_format>
-```
-
-**config.yaml example:**
-```yaml
-name: my-template
-category: custom
-description: Custom skill template for specific domain
-author: your-name
-version: 1.0.0
-prompts:
-  - key: SKILL_NAME
-    prompt: Skill name (e.g., my-custom-skill)
-    default: my-skill
-    required: true
-  - key: DESCRIPTION
-    prompt: Brief description of what this skill does
-    default: Custom skill
-    required: true
-  - key: VERSION
-    prompt: Skill version
-    default: 1.0.0
-    required: true
-  - key: AUTHOR
-    prompt: Author name or organization
-    default: go-ent
-    required: true
-  - key: TAGS
-    prompt: Comma-separated tags (e.g., custom, domain)
-    default: custom
-    required: true
-```
-
-#### Adding a Template
-
-```bash
-# Add template to user templates directory (default)
-ent skill add-template /path/to/my-template
-
-# Add template to built-in directory
-ent skill add-template /path/to/my-template \
-  --built-in /path/to/go-ent/plugins/go-ent/templates/skills/
-```
-
-The command validates:
-- Template directory exists
-- Required files present (template.md, config.yaml)
-- config.yaml is valid YAML
-- template.md passes skill validation
-
-### Placeholders
-
-Templates use `${PLACEHOLDER}` syntax for dynamic content:
-
-| Placeholder      | Description              | Example Value          |
-|-----------------|--------------------------|------------------------|
-| `${SKILL_NAME}` | Name of the skill        | `go-payment`           |
-| `${DESCRIPTION}` | Skill description        | `Payment patterns`      |
-| `${VERSION}`     | Skill version            | `1.0.0`               |
-| `${AUTHOR}`      | Author name             | `Your Name`            |
-| `${TAGS}`        | Comma-separated tags    | `go,payment,api`       |
-
-Placeholders are replaced during skill generation based on user input or defaults.
-
-### Template Locations
-
-Templates are loaded from two locations:
-
-1. **Built-in templates**: `plugins/go-ent/templates/skills/`
-2. **Custom templates**: `~/.go-ent/templates/skills/`
-
-Override built-in directory with environment variable:
-```bash
-export GO_ENT_TEMPLATE_DIR=/custom/path/to/templates
-```
-
-Override output skills directory:
-```bash
-export GO_ENT_SKILLS_DIR=/custom/path/to/skills
-```
-
-### Workflow Example
-
-Complete workflow for creating a new skill:
-
-```bash
-# 1. List available templates
-ent skill list-templates
-
-# 2. Show template details
-ent skill show-template go-complete
-
-# 3. Create new skill interactively
-ent skill new go-payment
-
-# 4. Validate generated skill
-ent skill validate go-payment
-
-# 5. Check quality score
-ent skill quality go-payment
-
-# 6. Test the skill with real work
-# (Use the skill in your development workflow)
-```
-
-### Validation Rules for Templates
-
-When using `go-ent skill add-template`, templates must pass:
-
-1. **Structure validation**:
-   - `template.md` must exist
-   - `config.yaml` must exist
-   - YAML must be valid
-
-2. **Skill validation** (template.md):
-   - Must pass v2 skill validation
-   - Required XML sections present
-   - Valid frontmatter
-
-3. **Config validation** (config.yaml):
-   - Valid YAML format
-   - Required fields present (name, category, description)
-   - Prompts have valid structure
-
-## Validation and Quality Commands
-
-### Validate Skills
+### Validation Commands
 
 ```bash
 # Validate all skills (non-strict)
@@ -1732,56 +897,27 @@ make skill-validate strict=true
 
 # Validate specific skill via MCP
 Use skill_validate with skill_id="go-code", strict=true
-```
 
-### Quality Report
-
-```bash
-# Generate quality report for all skills
+# Generate quality report
 make skill-quality
 
-# Generate quality report with custom threshold
-Use skill_quality with threshold=90
-
-# Check specific skill
-Use skill_quality with skill_id="go-code"
+# Check specific skill quality
+Use skill_quality with skill_id="go-code", threshold=80
 ```
 
-### Quality Report Example
-
-```
-Skill Quality Report
-==================
-
-go-code: Score 95/100 ✓
-  Frontmatter: 20/20
-  Structure: 30/30
-  Content: 30/30
-  Triggers: 15/20
-
-go-arch: Score 88/100 ✓
-  Frontmatter: 20/20
-  Structure: 30/30
-  Content: 25/30 (edge_cases missing 1 case)
-  Triggers: 13/20
-
-my-new-skill: Score 65/100 ✗
-  Frontmatter: 15/20 (version missing)
-  Structure: 20/30 (examples missing)
-  Content: 15/30 (edge_cases missing)
-  Triggers: 15/20
-
-Summary: 2/3 skills meet quality threshold (≥80)
-```
+---
 
 ## Resources
 
-- **Development Guide**: `docs/DEVELOPMENT.md`
-- **Research Guide**: `docs/research/SKILL.md`
+- **[AGENTS_AND_SKILLS.md](./AGENTS_AND_SKILLS.md)** - v3 agent and skill architecture
+- **[MIGRATION_V3.md](./MIGRATION_V3.md)** - Migration from v2 to v3
+- **[CLAUDE_CODE_COMPATIBILITY.md](./CLAUDE_CODE_COMPATIBILITY.md)** - Claude Code alignment
 - **Example Skills**: `plugins/go-ent/skills/*/SKILL.md`
-- **Template Skill**: `plugins/go-ent/skills/go/go-code/SKILL.md`
+- **Reference Skills**: `plugins/go-ent/skills/ent/*/SKILL.md`
 - **Validation Code**: `internal/skill/validator.go`, `internal/skill/rules.go`
 - **Scoring Code**: `internal/skill/scorer.go`
+
+---
 
 ## Troubleshooting
 
@@ -1790,10 +926,9 @@ Summary: 2/3 skills meet quality threshold (≥80)
 **Problem**: Validation errors in strict mode
 
 **Solutions**:
-- Check all 9 validation rules above
-- Ensure all XML sections are present
-- Verify tags are balanced and properly nested
-- Check frontmatter has required fields
+- Check for Markdown sections (not XML tags)
+- Ensure triggers in frontmatter (not body)
+- Verify frontmatter has required fields
 - Use `make skill-validate` to see specific errors
 
 ### Low Quality Score
@@ -1801,36 +936,36 @@ Summary: 2/3 skills meet quality threshold (≥80)
 **Problem**: Quality score < 80
 
 **Solutions**:
-- Add missing frontmatter fields (version, author, tags)
-- Ensure all XML sections are present
+- Add missing frontmatter fields (version, triggers)
+- Ensure all Markdown sections are present
 - Add more examples (target 2-3)
 - Add more edge cases (target 5+)
-- Add more triggers in description (target 3+)
-- Check `make skill-quality` for detailed breakdown
+- Add more triggers (target 3+)
+- Check `make skill-quality` for breakdown
 
 ### Skill Doesn't Activate
 
-**Problem**: Skill doesn't auto-activate for expected tasks
+**Problem**: Skill doesn't auto-activate
 
 **Solutions**:
-- Check description includes "Auto-activates for:" or "Activates when:"
-- Ensure triggers are specific and relevant
-- Add more triggers (3+ recommended)
-- Verify trigger language matches user queries
-- Test skill with specific trigger words
+- Check `triggers.keywords` in frontmatter
+- Ensure keywords match user terminology
+- Add more keywords (3+ recommended)
+- Increase weight (0.8+ for priority)
+- Test with specific trigger words
 
 ### Examples Don't Help
 
 **Problem**: Examples don't guide output effectively
 
 **Solutions**:
-- Use realistic user requests as inputs
-- Include complete, runnable code in outputs
-- Show before/after comparisons for refactoring
-- Cover different use cases and scenarios
-- Ensure examples demonstrate key patterns
+- Use realistic user requests
+- Include complete, runnable code
+- Show before/after for refactoring
+- Cover different use cases
+- Use clear subsections with Input/Output labels
 
 ---
 
-**Version**: 2.0.0
-**Last Updated**: 2025-01-18
+**Version**: 3.0.0
+**Last Updated**: 2026-01-28

@@ -1,37 +1,35 @@
 ---
 name: go-config
-description: "Handle configuration in Go applications (env, files, flags). Auto-activates for: config setup, environment variables, feature flags, secrets handling, configuration validation."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Handle configuration in Go applications (env, files, flags). Auto-activates for: config setup, environment variables, feature flags, secrets handling, configuration validation.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "config", "environment"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - config
+    - environment
 quality_score: 85
-category: "go"
+category: go
+triggers:
+    keywords:
+        - config
+        - configuration
+        - environment
+        - env var
+        - feature flag
+        - secret
+    file_pattern: config.go|**/config/*.go|**/*config*.go
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "config"
-    - "configuration"
-    - "environment"
-    - "env var"
-    - "feature flag"
-    - "secret"
-  file_pattern: "config.go|**/config/*.go|**/*config*.go"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go Configuration
-
-<role>
 Expert configuration management engineer specializing in Go applications. Focus on environment variables, config files, validation, secrets management, and feature flags with production-grade patterns.
-</role>
 
-<instructions>
-
+## Instructions
 ## Configuration Stack
 
 - **Environment Variables** — github.com/caarlos0/env/v11
@@ -294,9 +292,8 @@ func maskDSN(dsn string) string {
 }
 ```
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include environment variable parsing with caarlos0/env/v11
 - Include validation with custom Validate() method or validator/v10
 - Include configuration file loading (YAML/JSON)
@@ -311,9 +308,9 @@ func maskDSN(dsn string) string {
 - Exclude mixing config loading with business logic
 - Include injectable getenv for testing
 - Always validate config after loading
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If config validation fails: Fail fast with clear error messages indicating which field is invalid and why.
 
 If required environment variable is missing: Return descriptive error with the variable name and suggest setting it.
@@ -336,9 +333,7 @@ If feature flags need remote management: Integrate with flag provider (LaunchDar
 
 If secrets require encryption: Delegate to go-sec skill for vault integration and encryption patterns.
 
-</edge_cases>
-
-<examples>
+## Examples
 <example>
 <input>Implement environment variable configuration</input>
 <output>
@@ -353,9 +348,9 @@ For additional configuration examples, see:
 - `references/secrets-handling.md` - Secrets with redaction
 - `references/config-merging.md` - File + environment merging
 - `references/config-watching.md` - Hot reload implementation
-</examples>
 
-<output_format>
+## Output Format
+
 Provide configuration guidance with the following structure:
 
 1. **Config Structure**: Nested structs with env tags and prefixes
@@ -368,4 +363,4 @@ Provide configuration guidance with the following structure:
 8. **Examples**: Complete, runnable code with proper error handling
 
 Focus on production-ready configuration patterns with testability and security.
-</output_format>
+

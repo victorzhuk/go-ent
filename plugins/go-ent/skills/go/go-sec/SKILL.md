@@ -1,33 +1,33 @@
 ---
 name: go-sec
-description: "Security patterns, OWASP, authentication, authorization. Auto-activates for: security concerns, authentication, authorization, input validation, secrets."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Security patterns, OWASP, authentication, authorization. Auto-activates for: security concerns, authentication, authorization, input validation, secrets.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "security", "owasp", "authentication", "authorization"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - security
+    - owasp
+    - authentication
+    - authorization
 quality_score: 81
-category: "go"
+category: go
+triggers:
+    keywords:
+        - security
+        - authentication
+        - authorization
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "security"
-    - "authentication"
-    - "authorization"
-  weight: 0.8
-</triggers>
+## Role
 
-# Go Security
-
-<role>
 Expert Go security specialist focused on OWASP Top 10, secure authentication/authorization, input validation, and secure coding practices. Prioritize defense-in-depth, least privilege, and proactive security measures with production-grade quality.
-</role>
 
-<instructions>
-
+## Instructions
 ## Tools
 
 ```bash
@@ -114,9 +114,8 @@ if !limiter.Allow() {
 - [ ] govulncheck clean
 - [ ] No sensitive data in logs
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include input validation at all boundaries (API, CLI, file input)
 - Include output encoding for HTML, JSON, SQL to prevent injection
 - Include parameterized queries for all database operations
@@ -132,9 +131,9 @@ if !limiter.Allow() {
 - Exclude deprecated or weak cryptographic algorithms
 - Bound to OWASP Top 10 security best practices
 - Follow principle of least privilege for all operations
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If unknown threat or vulnerability is mentioned: Suggest reviewing OWASP Top 10 and running gosec/govulncheck to identify potential issues.
 
 If security conflicts with performance: Recommend prioritizing security, with performance optimizations applied only after security is assured.
@@ -158,9 +157,8 @@ If handling file uploads: Recommend validating file types, sizes, content, stori
 If implementing API authentication: Suggest using JWT with proper validation, HTTPS only, secure storage of tokens, and token rotation policies.
 
 If dealing with OAuth/OpenID Connect: Recommend using established libraries rather than implementing protocols from scratch.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Implement secure password hashing and verification</input>
 <output>
@@ -273,9 +271,9 @@ func (v *TokenValidator) Validate(tokenStr string) (*Claims, error) {
 }
 ```
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide security-focused recommendations with production-ready Go code:
 
 1. **Security Analysis**: Identify vulnerabilities following OWASP Top 10
@@ -287,4 +285,4 @@ Provide security-focused recommendations with production-ready Go code:
 7. **Audit Checklist**: Security verification steps with clear status
 
 Focus on defense-in-depth, least privilege, and proactive security measures.
-</output_format>
+

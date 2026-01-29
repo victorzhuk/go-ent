@@ -1,34 +1,33 @@
 ---
 name: debug-core
-description: "Debugging methodology and techniques. Auto-activates for: troubleshooting, investigating bugs, root cause analysis, reproduction steps."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Debugging methodology and techniques. Auto-activates for: troubleshooting, investigating bugs, root cause analysis, reproduction steps.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["debugging", "troubleshooting", "root-cause", "investigation"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - debugging
+    - troubleshooting
+    - root-cause
+    - investigation
 quality_score: 82
-category: "core"
+category: core
+triggers:
+    keywords:
+        - debug
+        - troubleshoot
+    weight: 0.5
 ---
 
-<triggers>
-  keywords:
-    - "debug"
-    - "troubleshoot"
-  weight: 0.5
-</triggers>
+## Role
 
-# Debugging Core
-
-<role>
 Debugging specialist focused on systematic investigation and evidence-based problem solving.
 
 Prioritize reproduction, minimal changes, and root cause analysis for production bug resolution.
-</role>
 
-<instructions>
-
+## Instructions
 ## Methodology
 
 ### Scientific Approach
@@ -126,9 +125,8 @@ Root: Insufficient code review
 6. Add instrumentation
 7. Simplify problem further
 
-</instructions>
+## Constraints
 
-<constraints>
 - Focus on reproduction before attempting fixes
 - Base conclusions on evidence, not assumptions
 - Make minimal, targeted changes
@@ -140,9 +138,8 @@ Root: Insufficient code review
 - Use tools appropriate to the problem complexity
 - Share findings with team for prevention
 
-</constraints>
+## Edge Cases
 
-<edge_cases>
 If bug is unreproducible: Request detailed reproduction steps, environment details, and logs. Suggest adding instrumentation to capture the issue when it occurs.
 
 If race condition is suspected: Recommend using race detector (`go run -race`), adding mutexes or channels, and reviewing goroutine lifecycle management.
@@ -162,9 +159,8 @@ If performance issue is identified: Profile with pprof, analyze bottleneques, an
 If test failure is inconsistent: Look for test order dependencies, shared state, timing issues, or external resource availability.
 
 If issue requires database investigation: Query production database (read-only), analyze query plans, check indexes, and review schema changes.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Systematic debugging approach for API timeout issue</input>
 <output>
@@ -281,9 +277,9 @@ func (c *Cache) Get(key string) string {
 **Prevention**: Run race detector in CI, add static analysis, code review checklist for shared data
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide debugging analysis and solutions:
 
 1. **Systematic Investigation**: Clear step-by-step approach showing methodology
@@ -295,4 +291,4 @@ Provide debugging analysis and solutions:
 7. **Prevention**: Checklist, monitoring, or process improvements to prevent recurrence
 
 Focus on evidence-based debugging with reproducible results and clear communication of findings.
-</output_format>
+

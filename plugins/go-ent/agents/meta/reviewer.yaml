@@ -1,15 +1,22 @@
-name: ent:reviewer
+name: reviewer
 description: Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions.
 model: heavy
-color: "#4169E1"
+color: '#4169E1'
 skills:
-  - go-review
-  - security-core
-  - go-sec
+    - go-review
+    - security-core
+    - go-sec
 toolPresets:
-  - read-only
-  - serena-analysis
+    - readonly
+    - serena-analysis
 tools:
-  - Bash
-dependencies:
-  []
+    - Bash
+prompts:
+    shared:
+        - _tooling
+        - _conventions
+        - _openspec
+        - _handoffs
+        - _judgment
+        - _principals
+    main: agents/reviewer

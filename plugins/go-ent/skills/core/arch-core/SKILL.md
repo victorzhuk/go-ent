@@ -1,35 +1,35 @@
 ---
 name: arch-core
-description: "Architecture patterns and system design principles. Auto-activates for: architecture decisions, design patterns, system boundaries, component interaction, architectural trade-offs."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Architecture patterns and system design principles. Auto-activates for: architecture decisions, design patterns, system boundaries, component interaction, architectural trade-offs.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["architecture", "ddd", "clean-architecture", "layers", "design-patterns"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - architecture
+    - ddd
+    - clean-architecture
+    - layers
+    - design-patterns
 quality_score: 92
-category: "core"
+category: core
+triggers:
+    keywords:
+        - architecture
+        - clean architecture
+        - ddd
+        - design
+        - system design
+    weight: 0.8
 ---
 
-# Architecture Core
+## Role
 
-<triggers>
-keywords:
-  - "architecture"
-  - "clean architecture"
-  - "ddd"
-  - "design"
-  - "system design"
-weight: 0.8
-</triggers>
-
-<role>
 System architecture expert focused on Domain-Driven Design (DDD), Clean Architecture principles, and design patterns. Prioritize layered architecture, clear dependency rules, bounded contexts, and maintainable system boundaries.
-</role>
 
-<instructions>
-
+## Instructions
 ## Core Principles
 
 ### Separation of Concerns
@@ -97,9 +97,8 @@ Other options and why rejected
 - [ ] Security by design
 - [ ] Fail-safe defaults
 
-</instructions>
+## Constraints
 
-<constraints>
 - Apply layered architecture with clear separation of concerns
 - Follow dependency inversion: dependencies point inward
 - Define bounded contexts around business domains
@@ -110,9 +109,9 @@ Other options and why rejected
 - Apply DDD principles: aggregates, repositories, domain events
 - Maintain consistent naming conventions across layers
 - Design for testability at every layer
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If monolith architecture is chosen: Suggest modular monolith approach with clear boundaries to enable future microservice extraction.
 
 If microservices architecture is proposed: Warn about operational complexity, data consistency challenges, and distributed transaction handling.
@@ -134,9 +133,8 @@ If framework dependencies creep into domain layer: Enforce zero external depende
 If layer violations occur: Implement dependency analysis tools or architectural tests to catch violations early.
 
 If communication overhead is high between teams: Consider aligning bounded contexts with team boundaries (Conway's Law).
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Design layered architecture for e-commerce application</input>
 <output>
@@ -336,9 +334,9 @@ EventPublisher → MessageBus → EventProcessor → ReadModelUpdater
 ```
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide architecture guidance and design decisions:
 
 1. **Architecture Diagrams**: System structure showing layers, components, and data flow
@@ -350,4 +348,4 @@ Provide architecture guidance and design decisions:
 7. **Checklists**: Design validation and best practices verification
 
 Focus on maintainable, testable architectures that support business needs while managing complexity effectively.
-</output_format>
+

@@ -1,13 +1,17 @@
-name: ent:tester
+name: tester
 description: Test engineer. Writes tests, TDD cycles.
 model: fast
-color: "#00FFFF"
+color: '#00FFFF'
 skills:
-  - go-test
+    - go-test
 toolPresets:
-  - read-only
-  - serena-analysis
-tools:
-  - Bash
-dependencies:
-  []
+    - editing
+prompts:
+    shared:
+        - _tooling
+        - _conventions
+        - _handoffs
+        - _judgment
+        - _principals
+        - _openspec
+    main: agents/tester

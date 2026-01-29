@@ -1,36 +1,34 @@
 ---
 name: go-arch
-description: "Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization, dependency injection, bounded contexts."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization, dependency injection, bounded contexts.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "architecture", "ddd", "clean-architecture"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - go
+    - architecture
+    - ddd
+    - clean-architecture
 quality_score: 93
-category: "go"
-depends_on: ["go-code"]
+category: go
+triggers:
+    keywords:
+        - architecture
+        - go design
+        - clean architecture
+        - dependency injection
+    file_pattern: '*.go'
+    weight: 0.8
 ---
 
-# Go Architecture
+## Role
 
-<triggers>
-keywords:
-  - "architecture"
-  - "go design"
-  - "clean architecture"
-  - "dependency injection"
-file_pattern: "*.go"
-weight: 0.8
-</triggers>
-
-<role>
 Expert Go architect specializing in clean architecture, domain-driven design, and microservices patterns. Focus on layer boundaries, dependency injection, transaction management, and system scalability.
-</role>
 
-<instructions>
-
+## Instructions
 ## Layer Structure
 
 ```
@@ -139,9 +137,8 @@ func (a *app) Shutdown(ctx context.Context) error {
 
 **Pattern**: 30s timeout with fresh context (parent is already cancelled).
 
-</instructions>
+## Constraints
 
-<constraints>
 - Include clean architecture with clear layer boundaries
 - Include domain-first design with zero external dependencies in domain layer
 - Include dependency injection pattern with explicit container
@@ -156,9 +153,9 @@ func (a *app) Shutdown(ctx context.Context) error {
 - Bound to Transport → UseCase → Domain ← Repository flow
 - Follow domain-driven design principles for complex domains
 - Use interfaces at consumer side, return structs
-</constraints>
 
-<edge_cases>
+## Edge Cases
+
 If architecture requirements are unclear or ambiguous: Ask clarifying questions about system boundaries, scalability needs, and domain complexity before proposing structure.
 
 If domain complexity is unclear: Determine if bounded contexts are needed or if simple CRUD with clean architecture suffices.
@@ -174,9 +171,8 @@ If database patterns are needed: Delegate to go-db skill for repository implemen
 If security architecture is relevant: Delegate to go-sec skill for authentication, authorization, and security layer design.
 
 If testing strategy is needed: Delegate to go-test skill for test architecture and layer-specific testing approaches.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Design the layer structure for a user management service</input>
 <output>
@@ -278,9 +274,9 @@ api-gateway/          # Single entry point, auth, routing
 **Use when**: Multiple teams, independent deployment, or clear domain boundaries exist.
 </output>
 </example>
-</examples>
 
-<output_format>
+## Output Format
+
 Provide architectural guidance with the following structure:
 
 1. **Layer Structure**: Clear directory layout with package responsibilities
@@ -292,4 +288,4 @@ Provide architectural guidance with the following structure:
 7. **Rationale**: Justification for architectural choices (scalability, maintainability, testability)
 
 Focus on practical, production-ready architecture patterns that balance complexity with maintainability.
-</output_format>
+

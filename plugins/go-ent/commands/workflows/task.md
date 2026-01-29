@@ -1,30 +1,24 @@
 ---
-name: ent:task
-description: Execute OpenSpec tasks with TDD and validation (project)
+name: ent:task-flow
+description: Execute tasks with TDD and validation
 ---
 
-# Task Execution
+# Flow: Task Execution
 
-Execute tasks from OpenSpec registry with test-driven development and validation.
+{{include "context/openspec.md"}}
 
-## Input
-
-`$ARGUMENTS`: task-id or empty for auto-selection
-
-Examples:
-- `/ent:task` - Auto-select next unblocked task
-- `/ent:task add-user-auth-2.1` - Execute specific task
+Execute tasks from tracking system with test-driven development and validation.
 
 ## Agent Chain
 
-| Agent            | Purpose                                | Tier     |
-|------------------|----------------------------------------|----------|
-| @ent/task-fast   | Quick assessment, complexity routing   | fast     |
-| @ent/task-heavy  | Complex task analysis, clarification   | heavy    |
-| @ent/coder       | Code implementation                    | standard |
-| @ent/reviewer    | Code review (optional)                 | standard |
-| @ent/tester      | Test creation and validation           | fast     |
-| @ent/acceptor    | Acceptance validation                  | fast     |
+| Agent            | Phase                              | Tier     |
+|------------------|------------------------------------|----------|
+| @ent/task-fast   | Quick assessment, routing          | fast     |
+| @ent/task-heavy  | Complex task analysis              | heavy    |
+| @ent/coder       | Code implementation                | standard |
+| @ent/reviewer    | Code review (optional)             | standard |
+| @ent/tester      | Test creation and validation       | fast     |
+| @ent/acceptor    | Acceptance validation              | fast     |
 
 **Escalation**: task-fast → (task-heavy if complex) → coder → reviewer → tester → acceptor
 
@@ -39,9 +33,9 @@ Examples:
 **Goal**: Quick task assessment and routing
 
 **Steps**:
-1. Load task from registry or select next unblocked
+1. Load task from tracking system
 2. Assess complexity (see escalation triggers)
-3. Load change context (proposal, design, tasks.md)
+3. Load change context (proposal, design, requirements)
 4. **Decision**: Proceed to @ent/coder or escalate to @ent/task-heavy
 
 **Escalation to @ent/task-heavy if**:
@@ -75,14 +69,14 @@ Examples:
 1. Write failing tests first (RED)
 2. Implement minimal solution (GREEN)
 3. Refactor and clean up
-4. Run validation (per active skills)
+4. Run validation
 
 **For implementation tasks**:
-1. Use Serena for code context
+1. Use code navigation tools for context
 2. Follow project conventions
 3. Implement requirements
 4. Write tests alongside code
-5. Run build and test validation (per active skills)
+5. Run build and test validation
 
 ### Phase 4: Review (Conditional)
 
@@ -117,7 +111,7 @@ Examples:
 **Goal**: Final validation against spec
 
 **Steps**:
-1. Load spec scenarios from `openspec/changes/{id}/specs/`
+1. Load spec scenarios
 2. Verify all acceptance criteria met
 3. Check non-regression
 4. Sign off or reject
@@ -125,22 +119,14 @@ Examples:
 **Outcome**:
 - **ACCEPTED** → Mark task complete
 - **NEEDS_WORK** → Return to @ent/coder
-- **REJECTED** → Escalate to @ent/architect
+- **REJECTED** → Escalate to architect
 
 ### Phase 7: Complete
 
-Update registry and tasks.md:
-```
-registry_update:
-  task_id: "{change-id}/{task-num}"
-  status: "completed"
-  notes: "Tests: ✓ Build: ✓ Lint: ✓"
-```
-
-Update tasks.md:
-```markdown
-- [x] **2.1** Task description ✓ {date}
-```
+Update tracking system:
+- Mark task as completed
+- Add completion notes
+- Update progress
 
 ---
 
@@ -177,12 +163,3 @@ Progress: {percent}% ({completed}/{total} tasks)
 Next: {next-task-id} (priority: {level})
 ═══════════════════════════════════════════
 ```
-
----
-
-## Integration with Registry
-
-- Respects task dependencies
-- Updates `blocked_by` for dependent tasks
-- Tracks progress across changes
-- Reports completion to registry

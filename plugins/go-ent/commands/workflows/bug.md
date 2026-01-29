@@ -1,42 +1,37 @@
 ---
-name: ent:bug
+name: ent:bug-flow
 description: Debug and fix bugs with reproduction and root cause analysis
 ---
 
-# Bug Fixing Workflow
+# Flow: Bug Fixing
+
+{{include "context/generic.md"}}
 
 Systematic debugging: reproduce → analyze → fix → validate.
 
-## Input
-
-`$ARGUMENTS`: bug description, issue ID, or error message
-
-Examples:
-- `/ent:bug "nil pointer in user service"`
-- `/ent:bug #123` - Fix tracked issue
-- `/ent:bug "panic in HTTP handler"`
-
 ## Agent Chain
 
-| Agent                 | Purpose                                 | Tier     |
-|-----------------------|-----------------------------------------|----------|
-| @ent/reproducer       | Create minimal failing test             | fast     |
-| @ent/researcher       | Code analysis, root cause investigation | fast     |
-| @ent/debugger-fast    | Simple bugs, single component           | fast     |
-| @ent/debugger         | Standard debugging, multiple components | standard |
-| @ent/debugger-heavy   | Complex bugs (concurrency, performance) | heavy    |
-| @ent/coder            | Implement fix                           | fast     |
-| @ent/reviewer         | Code review                             | standard |
-| @ent/tester           | Validate fix                            | fast     |
-| @ent/acceptor         | Verify no regression                    | fast     |
+| Agent               | Phase                          | Tier     |
+|---------------------|--------------------------------|----------|
+| @ent/reproducer     | Create minimal failing test    | fast     |
+| @ent/researcher     | Code analysis, investigation   | fast     |
+| @ent/debugger-fast  | Simple bugs, single component  | fast     |
+| @ent/debugger       | Standard debugging             | standard |
+| @ent/debugger-heavy | Complex bugs                   | heavy    |
+| @ent/coder          | Implement fix                  | fast     |
+| @ent/reviewer       | Code review                    | standard |
+| @ent/tester         | Validate fix                   | fast     |
+| @ent/acceptor       | Verify no regression           | fast     |
 
-**Escalation**: debugger-fast → debugger → debugger-heavy (when multi-component, concurrency, performance, or architecture changes needed)
+**Escalation**: reproducer → researcher → debugger-fast/debugger/debugger-heavy → coder → reviewer → tester → acceptor
 
 ---
 
 ## Workflow
 
-### 1. Reproduce Bug
+### Phase 1: Reproduce Bug
+
+**Agent**: @ent/reproducer
 
 **Goal**: Create minimal, reliable reproduction
 
@@ -46,9 +41,11 @@ Examples:
 3. Verify test fails consistently
 4. Ensure test has clear assertion (expected vs actual)
 
-**Output**: Failing test in relevant `_test.go` file
+**Output**: Failing test in relevant test file
 
-### 2. Root Cause Analysis
+### Phase 2: Root Cause Analysis
+
+**Agent**: @ent/researcher
 
 **Goal**: Understand the underlying issue
 
@@ -67,14 +64,16 @@ Examples:
 | Panic | Unhandled error, type assertion |
 | Wrong result | Logic error, incorrect algorithm |
 
-**Use Serena**:
-- `find_symbol` - locate functions/types
-- `find_referencing_symbols` - understand call chain
-- `search_for_pattern` - find similar patterns
+**Use code navigation tools**:
+- Find symbols - locate functions/types
+- Find references - understand call chain
+- Search patterns - find similar code
 
-### 3. Implement Fix
+### Phase 3: Determine Fix Strategy
 
-**Goal**: Apply minimal fix addressing root cause
+**Agent**: @ent/debugger-fast / @ent/debugger / @ent/debugger-heavy
+
+**Goal**: Design and implement the fix
 
 **For simple bugs** (fast agent):
 - Single file changes
@@ -91,9 +90,23 @@ Examples:
 1. Apply minimal fix addressing root cause (not symptoms)
 2. Add defensive checks if needed
 3. Update related code if necessary
-4. Run: `go build && go test -race`
+4. Run validation
 
-### 4. Validate Fix
+### Phase 4: Implement Fix
+
+**Agent**: @ent/coder
+
+**Goal**: Apply the designed fix
+
+**Steps**:
+1. Implement minimal fix addressing root cause
+2. Add defensive checks if needed
+3. Update related code if necessary
+4. Run: build and test
+
+### Phase 5: Validate Fix
+
+**Agent**: @ent/tester
 
 **Goal**: Ensure fix works and no regressions
 
@@ -101,7 +114,7 @@ Examples:
 - [ ] Previously failing test now passes
 - [ ] No regression in existing tests
 - [ ] Edge cases covered
-- [ ] Race detector passes (`-race` flag)
+- [ ] Race detector passes
 - [ ] Build succeeds
 - [ ] Linter passes
 
@@ -112,22 +125,28 @@ Examples:
 - Code is clear and maintainable
 - Tests cover the fix
 
-### 5. Complete
+### Phase 6: Acceptance
 
-Update registry:
-```
-registry_update:
-  task_id: "{change-id}/bug-{num}"
-  status: "completed"
-  notes: "Root cause: {cause}. Fix: {description}."
-```
+**Agent**: @ent/acceptor
 
-Update tasks.md:
-```markdown
-- [x] **bug-1** {description} ✓ {date}
-  - Root cause: {explanation}
-  - Fix: {solution}
-```
+**Goal**: Final validation
+
+**Steps**:
+1. Verify all tests pass
+2. Check for regressions
+3. Verify fix matches expected behavior
+4. Sign off
+
+**Outcome**:
+- **ACCEPTED** → Mark bug complete
+- **NEEDS_WORK** → Return to @ent/coder
+
+### Phase 7: Complete
+
+Update tracking system:
+- Mark bug as completed
+- Add root cause analysis
+- Document fix details
 
 ---
 
@@ -190,21 +209,6 @@ Bug fixed and validated.
 
 ---
 
-## Debugging Tools
-
-**Built-in**:
-- `go test -v` - Verbose output
-- `go test -race` - Race detector
-- `go test -cover` - Coverage analysis
-- `GODEBUG=gctrace=1` - GC tracing
-
-**External**:
-- `dlv` (delve) - Go debugger
-- `pprof` - Profiling
-- `strace` - System call tracing
-
----
-
 ## Best Practices
 
 1. **Always write failing test first**
@@ -227,16 +231,6 @@ Bug fixed and validated.
    - Check for regressions
    - Use race detector
    - Test edge cases
-
----
-
-## Integration with Registry
-
-If bug tracked in registry:
-1. Mark as `in_progress` at start
-2. Update with root cause analysis
-3. Mark `completed` with fix details
-4. Record in task notes
 
 ---
 

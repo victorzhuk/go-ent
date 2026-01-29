@@ -1,18 +1,26 @@
-name: ent:coder
+name: coder
 description: Go developer. Implements features, writes code.
 model: main
-color: "#32CD32"
+color: '#32CD32'
+skills:
+    - go-code
+    - go-db
+toolPresets:
+    - editing
+disallowedToolPresets:
+    - serena-editing
 role: execution
 complexity: standard
-skills:
-  - go-code
-  - go-db
-toolPresets:
-  - editing
-  - serena-analysis
-disallowedToolPresets:
-  - serena-editing
 dependencies:
-  - ent:tester
-  - ent:reviewer
-  - ent:debugger
+    - tester
+    - reviewer
+    - debugger
+prompts:
+    shared:
+        - _conventions
+        - _judgment
+        - _principals
+        - _openspec
+        - _tooling
+        - _handoffs
+    main: agents/coder

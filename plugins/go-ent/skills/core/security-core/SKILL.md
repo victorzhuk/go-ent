@@ -1,33 +1,33 @@
 ---
 name: security-core
-description: "Security fundamentals and OWASP principles. Auto-activates for: authentication, authorization, input validation, SQL injection, XSS, CSRF, security headers."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
+description: 'Security fundamentals and OWASP principles. Auto-activates for: authentication, authorization, input validation, SQL injection, XSS, CSRF, security headers.'
+version: 2.0.0
+author: go-ent
+license: MIT
 compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["security", "owasp", "auth", "authorization", "input-validation"]
+    claude_code: '>=1.0'
+    opencode: '>=0.1'
+tags:
+    - security
+    - owasp
+    - auth
+    - authorization
+    - input-validation
 quality_score: 87
-category: "core"
+category: core
+triggers:
+    keywords:
+        - security
+        - authentication
+        - authorization
+    weight: 0.8
 ---
 
-<triggers>
-  keywords:
-    - "security"
-    - "authentication"
-    - "authorization"
-  weight: 0.8
-</triggers>
+## Role
 
-# Security Core
-
-<role>
 Security specialist focused on OWASP principles, authentication patterns, and input validation. Prioritize defense in depth, least privilege, and secure-by-default approaches.
-</role>
 
-<instructions>
-
+## Instructions
 ## OWASP Top 10 (2021)
 
 1. **Access Control**: Least privilege, RBAC, validate permissions
@@ -74,9 +74,8 @@ Strict-Transport-Security: max-age=31536000
 
 **STRIDE**: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege
 
-</instructions>
+## Constraints
 
-<constraints>
 - Apply defense in depth across all layers
 - Implement least privilege principle by default
 - Validate all input at application boundaries
@@ -88,9 +87,8 @@ Strict-Transport-Security: max-age=31536000
 - Log security events without exposing sensitive data
 - Regularly update dependencies and scan for vulnerabilities
 
-</constraints>
+## Edge Cases
 
-<edge_cases>
 If authentication requirements are complex: Simplify by using proven frameworks (OAuth2, OpenID Connect) rather than custom implementations.
 
 If performance conflicts with security: Prioritize security. Consider caching, connection pooling, or hardware acceleration to address performance.
@@ -110,9 +108,8 @@ If compliance requirements exist (PCI-DSS, HIPAA, GDPR): Map security controls t
 If dealing with highly sensitive data: Implement additional controls (MFA, hardware security modules, air-gapped systems).
 
 If security adds significant UX friction: Balance security with usability through risk-based authentication and progressive implementation.
-</edge_cases>
 
-<examples>
+## Examples
 <example>
 <input>Implement secure password authentication</input>
 <output>
@@ -166,9 +163,9 @@ For additional security implementation examples, see:
 - `references/authentication.md` - Secure authentication with password hashing
 - `references/sql-injection.md` - Parameterized query patterns
 - `references/input-validation.md` - Input validation and XSS prevention
-</examples>
 
-<output_format>
+## Output Format
+
 Provide security guidance and implementations:
 
 1. **Vulnerability Prevention**: Code examples showing secure patterns
@@ -180,4 +177,4 @@ Provide security guidance and implementations:
 7. **Remediation Steps**: Clear fixes for identified vulnerabilities
 
 Focus on practical, implementable security controls that align with industry best practices and standards.
-</output_format>
+

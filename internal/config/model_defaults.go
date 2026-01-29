@@ -7,14 +7,14 @@ func DefaultModelConfig() *ModelConfig {
 		Version: "1.0",
 		Runtimes: map[string]ModelMapping{
 			string(ModelRuntimeClaude): {
-				Fast:  "claude-haiku-4-5-20250429",
+				Fast:  "claude-haiku-4-5-20251001",
 				Main:  "claude-sonnet-4-5-20250929",
-				Heavy: "claude-opus-4-5-20250514",
+				Heavy: "claude-opus-4-5-20251101",
 			},
 			string(ModelRuntimeOpenCode): {
-				Fast:  "zai-coding-plan/glm-4.7",
+				Fast:  "zai-coding-plan/glm-4.5-air",
 				Main:  "zai-coding-plan/glm-4.7",
-				Heavy: "kimi-for-coding/kimi-k2-thinking",
+				Heavy: "kimi-for-coding/k2p5",
 			},
 		},
 		Aliases: map[string]string{
