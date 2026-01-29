@@ -1,0 +1,97 @@
+# Claude Code Agent/Skill Specification
+# Scraped from: https://code.claude.com/docs/en/sub-agents
+
+agent:
+  description: Agent frontmatter specification for Claude Code
+  fields:
+    name:
+      type: string
+      required: true
+      description: Agent identifier (lowercase, hyphens allowed)
+
+    description:
+      type: string
+      required: true
+      description: Brief description of agent purpose
+
+    model:
+      type: string
+      required: false
+      values: [sonnet, opus, haiku, inherit]
+      default: inherit
+      description: Claude model to use
+
+    skills:
+      type: array
+      required: false
+      itemType: string
+      description: List of skill names to load
+
+    tools:
+      type: array
+      required: false
+      itemType: string
+      description: Allowed tools (alternative to disallowedTools)
+
+    disallowedTools:
+      type: array
+      required: false
+      itemType: string
+      description: Tools to disable (alternative to tools)
+
+    permissionMode:
+      type: string
+      required: false
+      values: [default, acceptEdits, dontAsk, bypassPermissions, plan]
+      default: default
+      description: Permission handling mode
+
+    hooks:
+      type: object
+      required: false
+      description: Lifecycle hooks configuration
+
+    color:
+      type: string
+      required: false
+      description: Agent color in hex format (#RRGGBB)
+
+skill:
+  description: Skill specification for Claude Code
+  fields:
+    name:
+      type: string
+      required: true
+      description: Skill identifier
+
+    description:
+      type: string
+      required: true
+      description: Brief description of skill purpose
+
+    disable-model-invocation:
+      type: boolean
+      required: false
+      description: Execute without model invocation
+
+    user-invocable:
+      type: boolean
+      required: false
+      description: Can be invoked via slash command
+
+    allowed-tools:
+      type: array
+      required: false
+      itemType: string
+      description: Tools available to this skill
+
+    context:
+      type: string
+      required: false
+      values: [fork]
+      description: Execution context
+
+    agent:
+      type: string
+      required: false
+      description: Agent to use for skill execution

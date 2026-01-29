@@ -1,0 +1,76 @@
+# OpenCode Agent Specification
+# Based on OpenCode agent format
+
+agent:
+  description: Agent frontmatter specification for OpenCode
+  fields:
+    name:
+      type: string
+      required: false
+      description: Agent identifier (optional, defaults to filename)
+
+    description:
+      type: string
+      required: true
+      description: Brief description of agent purpose
+
+    mode:
+      type: string
+      required: false
+      values: [primary, subagent, all]
+      default: all
+      description: Agent visibility mode
+
+    model:
+      type: string
+      required: false
+      description: Model in provider/model-id format (e.g., anthropic/claude-sonnet-4-20250514)
+
+    temperature:
+      type: float
+      required: false
+      description: Model temperature (0.0-1.0)
+
+    maxSteps:
+      type: integer
+      required: false
+      description: Maximum number of agent steps
+
+    tools:
+      type: object
+      required: false
+      description: Tool permissions as boolean map (read, write, edit, bash, etc.)
+
+    permission:
+      type: object
+      required: false
+      description: Permission configuration
+
+    skills:
+      type: array
+      required: false
+      itemType: string
+      description: List of skill names to load
+
+    hidden:
+      type: boolean
+      required: false
+      description: Hide agent from UI
+
+skill:
+  description: Skill specification for OpenCode
+  fields:
+    name:
+      type: string
+      required: true
+      description: Skill identifier
+
+    description:
+      type: string
+      required: true
+      description: Brief description of skill purpose
+
+    tools:
+      type: object
+      required: false
+      description: Tool permissions for this skill

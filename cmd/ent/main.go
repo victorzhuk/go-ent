@@ -1,115 +1,232 @@
 package main
 
 import (
-	"context"
-	"embed"
 	"fmt"
-	"io"
-	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"path/filepath"
+	"strings"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
-	rootpkg "github.com/victorzhuk/go-ent"
-	"github.com/victorzhuk/go-ent/internal/cli"
-	internalserver "github.com/victorzhuk/go-ent/internal/mcp/server"
-	"github.com/victorzhuk/go-ent/internal/version"
+	"github.com/spf13/cobra"
+	"github.com/victorzhuk/go-ent/internal/genconfig"
+	"github.com/victorzhuk/go-ent/internal/generator"
+	"github.com/victorzhuk/go-ent/internal/genspec"
+)
+
+var (
+	toolsFlag []string
+	forceFlag bool
 )
 
 func main() {
-	// Detect CLI mode vs MCP mode
-	// CLI mode: has arguments (except help flags) or is a TTY
-	// MCP mode: stdin is a pipe (not a TTY)
-	if len(os.Args) > 1 {
-		// Handle version flag for backward compatibility
-		switch os.Args[1] {
-		case "version", "--version", "-v":
-			v := version.Get()
-			fmt.Printf("ent %s\n", version.String())
-			fmt.Printf("  go: %s\n", v.GoVersion)
-			os.Exit(0)
-		}
-
-		var fs embed.FS = rootpkg.PluginFS
-		cli.SetPluginFS(fs)
-
-		// Run in CLI mode
-		if err := cli.Execute(); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		return
+	rootCmd := &cobra.Command{
+		Use:   "ent",
+		Short: "Go-Ent generator tool for multi-tool agent output",
 	}
 
-	// Run in MCP server mode (no arguments, expects stdio communication)
-	if err := run(context.Background(), os.Getenv, os.Stdout, os.Stderr); err != nil {
-		slog.Error("startup failed", "error", err)
+	rootCmd.AddCommand(initCmd())
+	rootCmd.AddCommand(generateCmd())
+	rootCmd.AddCommand(validateCmd())
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writer) error {
-	logger := setupLogger(getenv("LOG_LEVEL"), getenv("LOG_FORMAT"), stdout)
-	slog.SetDefault(logger)
-
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
-	defer cancel()
-
-	s := internalserver.New()
-	transport := &mcp.StdioTransport{}
-
-	errCh := make(chan error, 1)
-	go func() {
-		errCh <- s.Run(ctx, transport)
-	}()
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return fmt.Errorf("mcp server: %w", err)
-		}
-		return nil
-	case <-ctx.Done():
-		logger.Info("shutdown signal received")
+func initCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Initialize project with selected tools",
+		RunE:  runInit,
 	}
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer shutdownCancel()
+	cmd.Flags().StringSliceVar(&toolsFlag, "tools", []string{"claude"}, "Tools to generate for (claude,opencode,openspec)")
+	cmd.Flags().BoolVar(&forceFlag, "force", false, "Overwrite existing config")
 
-	logger.Info("shutting down gracefully", "timeout", "30s")
+	return cmd
+}
 
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return fmt.Errorf("shutdown: %w", err)
-		}
-		return nil
-	case <-shutdownCtx.Done():
-		return fmt.Errorf("shutdown timeout exceeded")
+func generateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generate agent output for configured tools",
+		RunE:  runGenerate,
+	}
+
+	cmd.Flags().StringSliceVar(&toolsFlag, "tools", nil, "Override tools from config")
+
+	return cmd
+}
+
+func validateCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "validate",
+		Short: "Validate generated files against tool specs",
+		RunE:  runValidate,
 	}
 }
 
-func setupLogger(level, format string, w io.Writer) *slog.Logger {
-	var lvl slog.Level
-	switch level {
-	case "debug":
-		lvl = slog.LevelDebug
-	case "warn":
-		lvl = slog.LevelWarn
-	case "error":
-		lvl = slog.LevelError
-	default:
-		lvl = slog.LevelInfo
+func runInit(cmd *cobra.Command, args []string) error {
+	configPath := "ent.yaml"
+
+	// Check if config exists
+	if !forceFlag {
+		if _, err := os.Stat(configPath); err == nil {
+			return fmt.Errorf("ent.yaml already exists, use --force to overwrite")
+		}
 	}
 
-	opts := &slog.HandlerOptions{Level: lvl}
-	var handler slog.Handler
-	if format == "json" {
-		handler = slog.NewJSONHandler(w, opts)
-	} else {
-		handler = slog.NewTextHandler(w, opts)
+	// Create default config
+	cfg := genconfig.Default()
+	cfg.Tools = toolsFlag
+
+	// Create tool directories
+	for _, tool := range toolsFlag {
+		var dir string
+		switch tool {
+		case "claude":
+			dir = ".claude/agents"
+		case "opencode":
+			dir = ".opencode/agents"
+		case "openspec":
+			dir = "openspec"
+		default:
+			return fmt.Errorf("unknown tool: %s", tool)
+		}
+
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("create %s directory: %w", dir, err)
+		}
+		fmt.Printf("Created %s/\n", dir)
 	}
-	return slog.New(handler)
+
+	// Save config
+	if err := cfg.Save(configPath); err != nil {
+		return fmt.Errorf("save config: %w", err)
+	}
+
+	fmt.Printf("Created %s\n", configPath)
+	fmt.Println("\nNext steps:")
+	fmt.Println("  1. Customize src/agents/*.yaml for your project")
+	fmt.Println("  2. Run 'ent generate' to build agent files")
+	fmt.Println("  3. Restart your code tool to load agents")
+
+	return nil
+}
+
+func runGenerate(cmd *cobra.Command, args []string) error {
+	// Load config
+	cfg, err := genconfig.Load("ent.yaml")
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	// Override tools if specified
+	tools := cfg.Tools
+	if len(toolsFlag) > 0 {
+		tools = toolsFlag
+	}
+
+	// Build targets
+	var targets []generator.Target
+	for _, tool := range tools {
+		switch tool {
+		case "claude":
+			targets = append(targets, generator.NewClaudeTarget(".claude/agents"))
+		case "opencode":
+			targets = append(targets, generator.NewOpenCodeTarget(".opencode/agents"))
+		case "openspec":
+			// OpenSpec is a workflow tool, not an agent generation target - skip
+			continue
+		default:
+			return fmt.Errorf("unknown tool: %s", tool)
+		}
+	}
+
+	// Run generator
+	gen := generator.New("src", targets...)
+	if err := gen.GenerateAll(); err != nil {
+		return fmt.Errorf("generate: %w", err)
+	}
+
+	fmt.Println("\nGeneration complete!")
+	return nil
+}
+
+func runValidate(cmd *cobra.Command, args []string) error {
+	// Load config
+	cfg, err := genconfig.Load("ent.yaml")
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	// Validate each tool's output
+	hasErrors := false
+	for _, tool := range cfg.Tools {
+		var dir string
+		switch tool {
+		case "claude":
+			dir = ".claude/agents"
+		case "opencode":
+			dir = ".opencode/agents"
+		case "openspec":
+			// OpenSpec has no agents to validate - skip
+			continue
+		default:
+			fmt.Printf("Skipping unknown tool: %s\n", tool)
+			continue
+		}
+
+		if err := validateTool(tool, dir); err != nil {
+			return err
+		}
+
+		// Check results
+		validator, err := genspec.NewValidator(tool)
+		if err != nil {
+			return fmt.Errorf("create validator for %s: %w", tool, err)
+		}
+
+		results, err := validator.ValidateDirectory(dir)
+		if err != nil {
+			return fmt.Errorf("validate %s: %w", tool, err)
+		}
+
+		// Print results
+		fmt.Printf("\n%s (%s/)\n", tool, dir)
+		fmt.Println(strings.Repeat("=", 50))
+
+		for _, result := range results {
+			filename := filepath.Base(result.File)
+			if result.IsValid() {
+				fmt.Printf("✓ %s\n", filename)
+			} else {
+				hasErrors = true
+				fmt.Printf("✗ %s\n", filename)
+				for _, err := range result.Errors {
+					if err.Field == "" {
+						fmt.Printf("    %s\n", err.Message)
+					} else {
+						fmt.Printf("    %s: %s\n", err.Field, err.Message)
+					}
+				}
+			}
+		}
+	}
+
+	if hasErrors {
+		fmt.Println("\nValidation failed - see errors above")
+		return fmt.Errorf("validation failed")
+	}
+
+	fmt.Println("\n✓ All files valid!")
+	return nil
+}
+
+func validateTool(tool, dir string) error {
+	// Check directory exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return fmt.Errorf("%s directory not found: %s (run 'ent generate' first)", tool, dir)
+	}
+	return nil
 }

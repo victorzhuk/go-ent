@@ -1,0 +1,38 @@
+name: planner
+description: Task planner. Breaks features into actionable tasks.
+model:
+  claude: sonnet
+  opencode: anthropic/claude-sonnet-4-20250514
+skills:
+  - go-arch
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+      - TaskCreate
+      - TaskUpdate
+      - TaskList
+      - TaskGet
+    disallowed:
+      - Write
+      - Edit
+      - mcp__plugin_serena_serena__replace_symbol_body
+      - mcp__plugin_serena_serena__insert_after_symbol
+      - mcp__plugin_serena_serena__insert_before_symbol
+      - mcp__plugin_serena_serena__replace_content
+      - mcp__plugin_serena_serena__create_text_file
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - principals
+  main: planner
+color: "#FFD700"

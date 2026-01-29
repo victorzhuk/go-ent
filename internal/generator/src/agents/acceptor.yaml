@@ -1,0 +1,33 @@
+name: acceptor
+description: Validate acceptance criteria and requirements. Ensure spec compliance.
+model:
+  claude: opus
+  opencode: anthropic/claude-opus-4-20250514
+skills:
+  - go-test
+tools:
+  claude:
+    allowed:
+      - Read
+      - Bash
+      - Glob
+      - Grep
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    bash: true
+    glob: true
+    grep: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: acceptor
+color: "#32CD32"

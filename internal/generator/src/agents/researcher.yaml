@@ -1,0 +1,33 @@
+name: researcher
+description: Research root causes, investigate code, analyze bugs. Deep code analysis.
+model:
+  claude: opus
+  opencode: anthropic/claude-opus-4-20250514
+skills:
+  - go-code
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    bash: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: researcher
+color: "#9370DB"

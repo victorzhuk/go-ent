@@ -1,0 +1,39 @@
+name: debugger-heavy
+description: Complex debugging. Concurrency, performance, multi-component issues.
+model:
+  claude: opus
+  opencode: anthropic/claude-opus-4-20250514
+skills:
+  - go-test
+  - go-code
+tools:
+  claude:
+    allowed:
+      - Read
+      - Write
+      - Edit
+      - Bash
+      - Glob
+      - Grep
+    disallowed:
+      - mcp__plugin_serena_serena__replace_symbol_body
+      - mcp__plugin_serena_serena__insert_after_symbol
+      - mcp__plugin_serena_serena__insert_before_symbol
+      - mcp__plugin_serena_serena__replace_content
+      - mcp__plugin_serena_serena__create_text_file
+  opencode:
+    read: true
+    write: true
+    edit: true
+    bash: true
+    glob: true
+    grep: true
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: debugger-heavy
+color: "#8B0000"

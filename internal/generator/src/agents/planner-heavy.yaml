@@ -1,0 +1,38 @@
+name: planner-heavy
+description: Complex architectural planning. Deep analysis for large-scale changes.
+model:
+  claude: opus
+  opencode: anthropic/claude-opus-4-20250514
+skills:
+  - go-arch
+  - go-api
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+      - TaskCreate
+      - TaskUpdate
+      - TaskList
+      - TaskGet
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    bash: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: planner-heavy
+color: "#B8860B"

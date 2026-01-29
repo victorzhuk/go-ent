@@ -1,0 +1,28 @@
+name: planner-fast
+description: Quick feasibility check and triage. Fast initial assessment.
+model:
+  claude: haiku
+  opencode: anthropic/claude-3-5-haiku-20241022
+skills:
+  - go-arch
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - tooling
+  main: planner-fast
+color: "#FFE4B5"

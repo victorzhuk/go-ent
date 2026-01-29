@@ -1,0 +1,28 @@
+name: task-fast
+description: Quick task complexity evaluation. Fast assessment and routing.
+model:
+  claude: haiku
+  opencode: anthropic/claude-3-5-haiku-20241022
+skills:
+  - go-code
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - tooling
+  main: task-fast
+color: "#87CEEB"

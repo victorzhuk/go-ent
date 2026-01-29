@@ -1,4 +1,4 @@
-.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates release-dry-run snapshot release-check
+.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates release-dry-run snapshot release-check generate init validate
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -11,6 +11,15 @@ help:
 build: ## Build binary to bin/ent
 	@go build $(LDFLAGS) -o bin/ent ./cmd/ent
 	@echo "Build complete: bin/ent"
+
+init: build ## Initialize project with ent init
+	@./bin/ent init --tools=claude,opencode
+
+generate: build ## Generate agent output for configured tools
+	@./bin/ent generate
+
+validate: build ## Validate generated files against tool specs
+	@./bin/ent validate
 
 test: ## Run all tests with race detection and coverage
 	@go test -race -cover ./...

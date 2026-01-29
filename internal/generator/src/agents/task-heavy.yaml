@@ -1,0 +1,34 @@
+name: task-heavy
+description: Complex task analysis with deep reasoning. Difficult implementations.
+model:
+  claude: opus
+  opencode: anthropic/claude-opus-4-20250514
+skills:
+  - go-arch
+  - go-code
+tools:
+  claude:
+    allowed:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    disallowed:
+      - Write
+      - Edit
+  opencode:
+    read: true
+    glob: true
+    grep: true
+    bash: true
+    write: false
+    edit: false
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: task-heavy
+color: "#4682B4"

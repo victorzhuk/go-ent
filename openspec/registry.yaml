@@ -1,7 +1,64 @@
 version: '1.0'
-synced_at: '2026-01-27T12:00:00+03:00'
+synced_at: '2026-01-29T12:00:00+03:00'
 
 changes:
+  simplify-skill-format:
+    id: simplify-skill-format
+    title: 'Simplify Skill Format to v4 Minimal'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/simplify-skill-format/tasks.md
+    total: 14
+    completed: 0
+    in_progress: 0
+    blocked: 0
+
+  consolidate-mcp-tools:
+    id: consolidate-mcp-tools
+    title: 'Consolidate MCP Tools to Core Set'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/consolidate-mcp-tools/tasks.md
+    total: 17
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - simplify-skill-format
+
+  streamline-registry:
+    id: streamline-registry
+    title: 'Streamline Registry to Single Source of Truth'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/streamline-registry/tasks.md
+    total: 18
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - consolidate-mcp-tools
+
+  generate-agent-configs:
+    id: generate-agent-configs
+    title: 'Generate Agent Configs Command'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/generate-agent-configs/tasks.md
+    total: 24
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - streamline-registry
+
+  cleanup-deprecated-features:
+    id: cleanup-deprecated-features
+    title: 'Cleanup Deprecated Features and Unused Code'
+    status: ready
+    tasks_file: /home/zhuk/Projects/own/go-ent/openspec/changes/cleanup-deprecated-features/tasks.md
+    total: 22
+    completed: 0
+    in_progress: 0
+    blocked: 0
+    depends_on:
+      - generate-agent-configs
   simplify-01-delete-unused:
     id: simplify-01-delete-unused
     title: 'Delete Unused Packages (Simplification Phase 1)'

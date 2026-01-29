@@ -1,0 +1,38 @@
+name: tester
+description: Test engineer. Writes tests, TDD cycles.
+model:
+  claude: haiku
+  opencode: anthropic/claude-3-5-haiku-20241022
+skills:
+  - go-test
+tools:
+  claude:
+    allowed:
+      - Read
+      - Write
+      - Edit
+      - Bash
+      - Glob
+      - Grep
+    disallowed:
+      - mcp__plugin_serena_serena__replace_symbol_body
+      - mcp__plugin_serena_serena__insert_after_symbol
+      - mcp__plugin_serena_serena__insert_before_symbol
+      - mcp__plugin_serena_serena__replace_content
+      - mcp__plugin_serena_serena__create_text_file
+  opencode:
+    read: true
+    write: true
+    edit: true
+    bash: true
+    glob: true
+    grep: true
+prompts:
+  shared:
+    - conventions
+    - judgment
+    - tooling
+    - principals
+    - openspec
+  main: tester
+color: "#00FFFF"
