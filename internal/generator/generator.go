@@ -42,11 +42,14 @@ func (g *Generator) GenerateAll() error {
 
 // GenerateAgent generates a single agent for all targets
 func (g *Generator) GenerateAgent(name string) error {
-	// Load source
-	agent, prompts, err := LoadAgentSource(g.SrcDir, name)
+	// Load from meta format
+	metaAgent, prompts, err := LoadAgentMetaSource(g.SrcDir, name)
 	if err != nil {
 		return fmt.Errorf("load source: %w", err)
 	}
+
+	// Convert to old format for generation
+	agent := ConvertMetaToSource(metaAgent)
 
 	// Resolve model aliases
 	if g.Config != nil {

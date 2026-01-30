@@ -27,8 +27,8 @@ Examples:
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	// List agents from embedded sources
-	agents, err := generator.ListAgents("agents")
+	// List agents from meta format
+	agents, err := generator.ListAgents("agents/meta")
 	if err != nil {
 		return fmt.Errorf("list agents: %w", err)
 	}
@@ -38,15 +38,18 @@ func runList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Available agents (%d):\n\n", len(agents))
+	fmt.Printf("Available agents (%d):\\n\\n", len(agents))
 
 	for _, name := range agents {
-		// Load agent to get description
-		agent, _, err := generator.LoadAgentSource("agents", name)
+		// Load agent from meta format
+		metaAgent, _, err := generator.LoadAgentMetaSource("agents/meta", name)
 		if err != nil {
-			fmt.Printf("  • %s (error loading: %v)\n", name, err)
+			fmt.Printf("  • %s (error loading: %v)\\n", name, err)
 			continue
 		}
+
+		// Convert to display format
+		agent := generator.ConvertMetaToSource(metaAgent)
 
 		// Format output
 		nameDisplay := filepath.Base(name)
@@ -64,7 +67,7 @@ func runList(cmd *cobra.Command, args []string) error {
 			desc = desc[:57] + "..."
 		}
 
-		fmt.Printf("  %-20s %-35s %s\n", nameDisplay, modelInfo, desc)
+		fmt.Printf("  %-20s %-35s %s\\n", nameDisplay, modelInfo, desc)
 	}
 
 	fmt.Println()

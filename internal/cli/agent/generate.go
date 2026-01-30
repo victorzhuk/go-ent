@@ -54,9 +54,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	for _, tool := range tools {
 		switch tool {
 		case "claude":
-			targets = append(targets, generator.NewClaudeTarget(".claude/agents"))
+			targets = append(targets, generator.NewClaudeTarget(".claude/agents/ent"))
 		case "opencode":
-			targets = append(targets, generator.NewOpenCodeTarget(".opencode/agents"))
+			targets = append(targets, generator.NewOpenCodeTarget(".opencode/agents/ent"))
 		case "openspec":
 			// OpenSpec is a workflow tool, not an agent generation target - skip
 			continue
@@ -69,9 +69,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no valid tools configured")
 	}
 
-	// Run generator
-	// Note: srcDir is now ignored - generator uses embedded pkg.FS
-	gen := generator.New("agents", cfg, targets...)
+	// Run generator using meta format
+	// Meta format is in agents/meta/ subdirectory
+	gen := generator.New("agents/meta", cfg, targets...)
 
 	if nameFlag != "" {
 		// Generate specific agent

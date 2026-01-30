@@ -1,11 +1,17 @@
 name: tester
-description: Test engineer. Writes tests, TDD cycles.
-model: fast
+description: Test engineer. Writes tests, TDD cycles, creates reproductions.
+model: main
 color: '#00FFFF'
+role: execution
+complexity: standard
 skills:
     - go-test
+    - debug-core
 toolPresets:
     - editing
+disallowedToolPresets:
+    - serena-editing
+dependencies: []
 prompts:
     shared:
         - _tooling

@@ -9,9 +9,10 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
+
 	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/pkg"
-	"gopkg.in/yaml.v3"
 )
 
 type toolPresets struct {
@@ -819,8 +820,8 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.tool, "tool", "", "Target tool(s) (required, comma-separated: claude,opencode)")
-	_ = cmd.MarkFlagRequired("tool")
+	cmd.Flags().StringVar(&flags.tool, "tools", "", "Target tool(s) (required, comma-separated: claude,opencode)")
+	_ = cmd.MarkFlagRequired("tools")
 
 	cmd.Flags().StringVar(&flags.prefix, "prefix", "ent", "Prefix for configuration directories")
 	cmd.Flags().BoolVar(&flags.force, "force", false, "Overwrite existing files")

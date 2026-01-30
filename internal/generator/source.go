@@ -31,10 +31,11 @@ func listDir(path string) ([]fs.DirEntry, error) {
 	return pkg.FS.ReadDir(path)
 }
 
-// LoadAgentSource loads an agent from src/agents/{name}.yaml and src/agents/{name}.prompt.md
+// LoadAgentSource loads an agent from srcDir/{name}.yaml
+// srcDir should be the agents directory (e.g., "agents" or "agents/meta")
 func LoadAgentSource(srcDir, name string) (*AgentSource, *PromptContent, error) {
 	// Load agent metadata
-	metaPath := filepath.Join(srcDir, "agents", name+".yaml")
+	metaPath := filepath.Join(srcDir, name+".yaml")
 	data, err := readFile(metaPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("read agent meta %s: %w", metaPath, err)
@@ -54,6 +55,121 @@ func LoadAgentSource(srcDir, name string) (*AgentSource, *PromptContent, error) 
 	return &agent, prompts, nil
 }
 
+// LoadAgentMetaSource loads an agent from the meta format (srcDir should be agents/meta)
+func LoadAgentMetaSource(srcDir, name string) (*AgentMetaSource, *PromptContent, error) {
+	// Load agent metadata
+	metaPath := filepath.Join(srcDir, name+".yaml")
+	data, err := readFile(metaPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("read agent meta %s: %w", metaPath, err)
+	}
+
+	var agent AgentMetaSource
+	if err := yaml.Unmarshal(data, &agent); err != nil {
+		return nil, nil, fmt.Errorf("unmarshal agent meta: %w", err)
+	}
+
+	// Load prompts (srcDir is "agents/meta", so we need to go up to "agents" for prompts)
+	// Extract base dir by removing last component
+	baseDir := filepath.Dir(srcDir)
+	prompts, err := LoadPrompts(baseDir, agent.Prompts)
+	if err != nil {
+		return nil, nil, fmt.Errorf("load prompts: %w", err)
+	}
+
+	return &agent, prompts, nil
+}
+
+// ConvertMetaToSource converts meta format to old AgentSource format for generation
+func ConvertMetaToSource(meta *AgentMetaSource) *AgentSource {
+	// Map model names: main->sonnet, fast->haiku, heavy->opus
+	modelMap := map[string]string{
+		"main":  "sonnet",
+		"fast":  "haiku",
+		"heavy": "opus",
+	}
+
+	claudeModel := modelMap[meta.Model]
+	if claudeModel == "" {
+		claudeModel = "sonnet" // default
+	}
+
+	// For old format, both Claude and OpenCode use same model string
+	agent := &AgentSource{
+		Name:        meta.Name,
+		Description: meta.Description,
+		Model: ModelConfig{
+			Claude:   claudeModel,
+			OpenCode: meta.Model, // OpenCode uses main/fast/heavy directly
+		},
+		Skills:  meta.Skills,
+		Prompts: meta.Prompts,
+		Color:   meta.Color,
+	}
+
+	// Convert tool presets to tool configurations
+	// This is a simplified conversion - full implementation would map presets to actual tools
+	agent.Tools = convertToolPresetsToConfig(meta.ToolPresets, meta.DisallowedToolPresets)
+
+	return agent
+}
+
+// convertToolPresetsToConfig converts tool presets to tool configuration
+func convertToolPresetsToConfig(presets, disallowedPresets []string) ToolsConfig {
+	cfg := ToolsConfig{
+		Claude: ClaudeTools{
+			Allowed:    []string{},
+			Disallowed: []string{},
+		},
+		OpenCode: make(OpenCodeTools),
+	}
+
+	// Map presets to tool lists
+	// This is simplified - a full implementation would have complete mappings
+	hasEditing := contains(presets, "editing")
+	hasReadonly := contains(presets, "readonly")
+	hasSerenaEditing := contains(disallowedPresets, "serena-editing")
+
+	if hasEditing {
+		cfg.Claude.Allowed = []string{"Read", "Write", "Edit", "Bash", "Glob", "Grep"}
+		cfg.OpenCode["read"] = true
+		cfg.OpenCode["write"] = true
+		cfg.OpenCode["edit"] = true
+		cfg.OpenCode["bash"] = true
+		cfg.OpenCode["glob"] = true
+		cfg.OpenCode["grep"] = true
+	}
+
+	if hasReadonly {
+		cfg.Claude.Allowed = []string{"Read", "Bash", "Glob", "Grep"}
+		cfg.OpenCode["read"] = true
+		cfg.OpenCode["bash"] = true
+		cfg.OpenCode["glob"] = true
+		cfg.OpenCode["grep"] = true
+	}
+
+	if hasSerenaEditing {
+		cfg.Claude.Disallowed = []string{
+			"mcp__plugin_serena_serena__replace_symbol_body",
+			"mcp__plugin_serena_serena__insert_after_symbol",
+			"mcp__plugin_serena_serena__insert_before_symbol",
+			"mcp__plugin_serena_serena__replace_content",
+			"mcp__plugin_serena_serena__create_text_file",
+		}
+	}
+
+	return cfg
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
 // LoadPrompts loads all referenced prompt files
 func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 	pc := &PromptContent{
@@ -61,8 +177,14 @@ func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 	}
 
 	// Load shared prompts
+	// Shared prompts may have underscore prefix in meta format
 	for _, name := range cfg.Shared {
-		path := filepath.Join(srcDir, "prompts", name+".md")
+		// Add underscore prefix if not present (for meta format compatibility)
+		promptName := name
+		if name[0] != '_' {
+			promptName = "_" + name
+		}
+		path := filepath.Join(srcDir, "prompts", "shared", promptName+".md")
 		content, err := readFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read shared prompt %s: %w", name, err)
@@ -71,7 +193,15 @@ func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 	}
 
 	// Load main agent prompt
-	mainPath := filepath.Join(srcDir, "agents", cfg.Main+".prompt.md")
+	// cfg.Main can be:
+	//   - just a name like "coder" (old format) -> prompts/agents/coder.md
+	//   - a path like "agents/coder" (meta format) -> prompts/agents/coder.md
+	mainPath := cfg.Main
+	if !strings.Contains(mainPath, "/") {
+		// Old format: add "agents/" prefix
+		mainPath = filepath.Join("agents", mainPath)
+	}
+	mainPath = filepath.Join(srcDir, "prompts", mainPath+".md")
 	content, err := readFile(mainPath)
 	if err != nil {
 		return nil, fmt.Errorf("read main prompt %s: %w", cfg.Main, err)
@@ -81,9 +211,10 @@ func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 	return pc, nil
 }
 
-// ListAgents returns all agent names in src/agents/
+// ListAgents returns all agent names in srcDir
+// srcDir should be the agents directory (e.g., "agents" or "agents/meta")
 func ListAgents(srcDir string) ([]string, error) {
-	agentsDir := filepath.Join(srcDir, "agents")
+	agentsDir := srcDir
 	entries, err := listDir(agentsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read agents dir: %w", err)
