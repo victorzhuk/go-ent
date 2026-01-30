@@ -1,27 +1,11 @@
 ---
 name: go-arch
-description: 'Clean Architecture, DDD, microservices patterns for Go. Auto-activates for: architecture decisions, system design, layer organization, dependency injection, bounded contexts.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - go
-    - architecture
-    - ddd
-    - clean-architecture
-quality_score: 93
-category: go
+description: Clean Architecture, DDD, microservices patterns for Go
 triggers:
-    keywords:
-        - architecture
-        - go design
-        - clean architecture
-        - dependency injection
-    file_pattern: '*.go'
-    weight: 0.8
+  - architecture
+  - go design
+  - clean architecture
+  - dependency injection
 ---
 
 ## Role
@@ -29,132 +13,24 @@ triggers:
 Expert Go architect specializing in clean architecture, domain-driven design, and microservices patterns. Focus on layer boundaries, dependency injection, transaction management, and system scalability.
 
 ## Instructions
-## Layer Structure
 
-```
-internal/
-├── domain/           # ZERO external deps, NO tags
-│   ├── entity/
-│   ├── contract/     # Interfaces (repos, services)
-│   └── event/
-├── usecase/          # Business orchestration
-├── repository/       # Data access
-│   └── {store}/pgx/
-├── transport/        # HTTP/gRPC handlers
-│   └── http/
-└── app/              # Bootstrap, DI
-    ├── app.go
-    ├── di.go
-    └── uc.go
-```
 
-## Dependency Rule
 
-```
-Transport → UseCase → Domain ← Repository ← Infrastructure
-```
+### Response Format
 
-**Key principle**: Dependencies point inward. Domain has zero external dependencies.
+Provide architectural guidance with the following structure:
 
-## DI Container
+1. **Layer Structure**: Clear directory layout with package responsibilities
+2. **Dependency Flow**: Diagram showing inward dependency rule (Transport → UseCase → Domain ← Repository)
+3. **DI Container**: Code showing explicit dependency injection wiring
+4. **Patterns**: Transaction management, outbox, CQRS where applicable
+5. **Boundaries**: Clear separation between layers and bounded contexts
+6. **Examples**: Concise code demonstrating architecture patterns (detailed examples in references/)
+7. **Rationale**: Justification for architectural choices (scalability, maintainability, testability)
 
-```go
-type container struct {
-    infra *infraDeps
-    repos *repoDeps
-    ucs   *usecaseDeps
-}
+Focus on practical, production-ready architecture patterns that balance complexity with maintainability.
 
-func newContainer(cfg *config.Config, log *slog.Logger) (*container, error) {
-    c := &container{}
-    if err := c.buildInfra(cfg); err != nil {
-        return nil, fmt.Errorf("infra: %w", err)
-    }
-    c.buildRepos()
-    c.buildUseCases(log)
-    return c, nil
-}
-```
-
-## Transaction Pattern
-
-```go
-type TxManager interface {
-    WithTx(ctx context.Context, fn func(ctx context.Context) error) error
-}
-
-func (m *txManager) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
-    tx, err := m.pool.Begin(ctx)
-    if err != nil {
-        return fmt.Errorf("begin: %w", err)
-    }
-
-    if err := fn(injectTx(ctx, tx)); err != nil {
-        tx.Rollback(ctx)
-        return err
-    }
-    return tx.Commit(ctx)
-}
-```
-
-## Outbox Pattern
-
-```go
-func (uc *createOrderUC) Execute(ctx context.Context, req CreateOrderReq) error {
-    return uc.tx.WithTx(ctx, func(ctx context.Context) error {
-        if err := uc.orderRepo.Save(ctx, order); err != nil {
-            return fmt.Errorf("save order: %w", err)
-        }
-        return uc.outbox.Save(ctx, &Outbox{
-            Topic:   "orders.created",
-            Payload: mustMarshal(OrderCreated{ID: order.ID}),
-        })
-    })
-}
-```
-
-**Why outbox**: Ensures atomicity between DB write and event publish using local transactions.
-
-## Architecture Decision Matrix
-
-| Scenario | Pattern |
-|----------|---------|
-| Simple CRUD | Clean Architecture |
-| Complex domain | DDD bounded contexts |
-| Cross-service events | Event-driven, outbox |
-| High load | CQRS, read replicas |
-
-## Graceful Shutdown
-
-```go
-func (a *app) Shutdown(ctx context.Context) error {
-    a.httpSrv.Shutdown(ctx)
-    a.workers.Stop()
-    a.container.close()
-    return nil
-}
-```
-
-**Pattern**: 30s timeout with fresh context (parent is already cancelled).
-
-## Constraints
-
-- Include clean architecture with clear layer boundaries
-- Include domain-first design with zero external dependencies in domain layer
-- Include dependency injection pattern with explicit container
-- Include transaction management for write operations
-- Include outbox pattern for event-driven systems
-- Include graceful shutdown with 30s timeout on fresh context
-- Exclude cross-layer dependencies (inward dependency rule only)
-- Exclude business logic in transport layer
-- Exclude direct infrastructure access from usecases
-- Exclude global mutable state or singletons
-- Exclude tight coupling between bounded contexts
-- Bound to Transport → UseCase → Domain ← Repository flow
-- Follow domain-driven design principles for complex domains
-- Use interfaces at consumer side, return structs
-
-## Edge Cases
+### Edge Cases
 
 If architecture requirements are unclear or ambiguous: Ask clarifying questions about system boundaries, scalability needs, and domain complexity before proposing structure.
 
@@ -173,9 +49,12 @@ If security architecture is relevant: Delegate to go-sec skill for authenticatio
 If testing strategy is needed: Delegate to go-test skill for test architecture and layer-specific testing approaches.
 
 ## Examples
-<example>
-<input>Design the layer structure for a user management service</input>
-<output>
+
+### Example 1
+
+**Input**: Design the layer structure for a user management service
+
+**Output**:
 ```
 internal/
 ├── domain/      # entity (no tags), contract (interfaces), event
@@ -186,12 +65,12 @@ internal/
 ```
 
 **Pattern**: Domain zero deps, repo implements contract, transport calls usecases.
-</output>
-</example>
 
-<example>
-<input>Implement transaction management with outbox pattern for order creation</input>
-<output>
+### Example 2
+
+**Input**: Implement transaction management with outbox pattern for order creation
+
+**Output**:
 ```go
 type createOrderUC struct {
     orderRepo contract.OrderRepo
@@ -214,12 +93,12 @@ func (uc *createOrderUC) Execute(ctx context.Context, req CreateOrderReq) error 
 ```
 
 **Pattern**: Atomic transaction ensures order + outbox written together. Consumer reads outbox and publishes.
-</output>
-</example>
 
-<example>
-<input>Design DI container for multiple bounded contexts</input>
-<output>
+### Example 3
+
+**Input**: Design DI container for multiple bounded contexts
+
+**Output**:
 ```go
 type container struct {
     infra  *infraDeps        // db, redis, mq
@@ -237,12 +116,12 @@ func newContainer(cfg *config.Config, log *slog.Logger) (*container, error) {
 ```
 
 **Pattern**: Infra → repos → usecases, explicit dependency graph per bounded context.
-</output>
-</example>
 
-<example>
-<input>Design CQRS pattern for order system with read/write separation</input>
-<output>
+### Example 4
+
+**Input**: Design CQRS pattern for order system with read/write separation
+
+**Output**:
 For detailed implementation, see: `references/cqrs-pattern.md`
 
 **Pattern**: 
@@ -251,12 +130,12 @@ For detailed implementation, see: `references/cqrs-pattern.md`
 - Projection: OrderProjector subscribes to events and updates read model
 
 **Use when**: High read/write ratio, need independent scaling, or require full audit trail.
-</output>
-</example>
 
-<example>
-<input>Design microservice architecture with bounded contexts and async communication</input>
-<output>
+### Example 5
+
+**Input**: Design microservice architecture with bounded contexts and async communication
+
+**Output**:
 For detailed implementation, see: `references/microservice-architecture.md`
 
 **Pattern**:
@@ -272,20 +151,9 @@ api-gateway/          # Single entry point, auth, routing
 **Communication**: Async events via message queue (order-created → notification)
 
 **Use when**: Multiple teams, independent deployment, or clear domain boundaries exist.
-</output>
-</example>
 
-## Output Format
 
-Provide architectural guidance with the following structure:
 
-1. **Layer Structure**: Clear directory layout with package responsibilities
-2. **Dependency Flow**: Diagram showing inward dependency rule (Transport → UseCase → Domain ← Repository)
-3. **DI Container**: Code showing explicit dependency injection wiring
-4. **Patterns**: Transaction management, outbox, CQRS where applicable
-5. **Boundaries**: Clear separation between layers and bounded contexts
-6. **Examples**: Concise code demonstrating architecture patterns (detailed examples in references/)
-7. **Rationale**: Justification for architectural choices (scalability, maintainability, testability)
+## References
 
-Focus on practical, production-ready architecture patterns that balance complexity with maintainability.
-
+- [Constraints](references/constraints.md)

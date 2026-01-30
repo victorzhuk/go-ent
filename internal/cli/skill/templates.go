@@ -78,7 +78,7 @@ func listTemplates(category string, showBuiltIn, showCustom bool) error {
 
 	if customDir != "" {
 		if _, err := os.Stat(customDir); os.IsNotExist(err) {
-			if err := os.MkdirAll(customDir, 0755); err != nil { //nolint:gosec
+			if err := os.MkdirAll(customDir, 0o755); err != nil { //nolint:gosec
 				return fmt.Errorf("create custom templates directory: %w", err)
 			}
 		}
@@ -383,7 +383,7 @@ func addTemplate(srcPath, destDir string) error {
 	}
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(destDir, 0755); err != nil { //nolint:gosec
+		if err := os.MkdirAll(destDir, 0o755); err != nil { //nolint:gosec
 			return fmt.Errorf("create destination directory: %w", err)
 		}
 	}
@@ -451,7 +451,7 @@ func copyDirectory(src, dst string) error {
 		return fmt.Errorf("read source directory: %w", err)
 	}
 
-	if err := os.MkdirAll(dst, 0755); err != nil { //nolint:gosec
+	if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:gosec
 		return fmt.Errorf("create destination directory: %w", err)
 	}
 
@@ -480,7 +480,7 @@ func copyFile(src, dst string) error {
 		return fmt.Errorf("read file: %w", err)
 	}
 
-	if err := os.WriteFile(dst, data, 0644); err != nil { //nolint:gosec
+	if err := os.WriteFile(dst, data, 0o644); err != nil { //nolint:gosec
 		return fmt.Errorf("write file: %w", err)
 	}
 

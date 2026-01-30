@@ -56,7 +56,7 @@ func TestStore_LoadConfig(t *testing.T) {
 		store := NewStore(tmpDir)
 
 		cfgDir := filepath.Join(tmpDir, ".go-ent")
-		require.NoError(t, os.MkdirAll(cfgDir, 0750))
+		require.NoError(t, os.MkdirAll(cfgDir, 0o750))
 
 		yamlContent := `version: "1.0"
 
@@ -80,7 +80,7 @@ models:
   opus: claude-opus-4-5-20251101
 `
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
-		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0600))
+		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0o600))
 
 		cfg, err := store.LoadConfig()
 		require.NoError(t, err)

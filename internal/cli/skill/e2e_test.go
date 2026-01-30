@@ -131,7 +131,7 @@ func TestE2E_5_4_1_CompleteWorkflow(t *testing.T) {
 	t.Run("validation errors in generated skill", func(t *testing.T) {
 		invalidTemplateDir := t.TempDir()
 		templatePath := filepath.Join(invalidTemplateDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(templatePath, 0755))
+		require.NoError(t, os.Mkdir(templatePath, 0o755))
 
 		configContent := `name: invalid
 category: test
@@ -140,7 +140,7 @@ version: 1.0.0
 prompts: []
 `
 		configPath := filepath.Join(templatePath, "config.yaml")
-		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 		mdContent := `---
 name: test
@@ -151,10 +151,10 @@ version: [invalid yaml syntax
 Invalid skill with parsing error
 `
 		mdPath := filepath.Join(templatePath, "template.md")
-		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 		customTemplateDir := filepath.Join(invalidTemplateDir, "templates")
-		require.NoError(t, os.Mkdir(customTemplateDir, 0755))
+		require.NoError(t, os.Mkdir(customTemplateDir, 0o755))
 		require.NoError(t, copyDir(templatePath, filepath.Join(customTemplateDir, "invalid-tpl")))
 
 		args := []string{
@@ -188,7 +188,7 @@ func TestE2E_5_4_2_CustomTemplate(t *testing.T) {
 
 	customTemplateDir := t.TempDir()
 	customTemplatePath := filepath.Join(customTemplateDir, "custom-payment")
-	require.NoError(t, os.Mkdir(customTemplatePath, 0755))
+	require.NoError(t, os.Mkdir(customTemplatePath, 0o755))
 
 	configContent := `name: payment-basic
 category: go
@@ -206,7 +206,7 @@ prompts:
     required: true
 `
 	configPath := filepath.Join(customTemplatePath, "config.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 	mdContent := `---
 name: ${SKILL_NAME}
@@ -256,10 +256,10 @@ JSON response with status
 </explicit_triggers>
 `
 	mdPath := filepath.Join(customTemplatePath, "template.md")
-	require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+	require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 	destTemplateDir := filepath.Join(templateDir, "payment-basic")
-	require.NoError(t, os.MkdirAll(filepath.Dir(destTemplateDir), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(destTemplateDir), 0o755))
 	require.NoError(t, copyDir(customTemplatePath, destTemplateDir))
 
 	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
@@ -424,11 +424,11 @@ func TestE2E_5_4_4_ErrorHandling(t *testing.T) {
 	t.Run("invalid config", func(t *testing.T) {
 		invalidDir := t.TempDir()
 		invalidPath := filepath.Join(invalidDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(invalidPath, 0755))
+		require.NoError(t, os.Mkdir(invalidPath, 0o755))
 
 		mdContent := `# Test template`
 		mdPath := filepath.Join(invalidPath, "template.md")
-		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 		os.Setenv("GO_ENT_TEMPLATE_DIR", invalidDir)
 		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
@@ -452,7 +452,7 @@ func TestE2E_5_4_4_ErrorHandling(t *testing.T) {
 	t.Run("validation failure", func(t *testing.T) {
 		invalidTemplateDir := t.TempDir()
 		invalidPath := filepath.Join(invalidTemplateDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(invalidPath, 0755))
+		require.NoError(t, os.Mkdir(invalidPath, 0o755))
 
 		configContent := `name: invalid
 category: test
@@ -461,7 +461,7 @@ version: 1.0.0
 prompts: []
 `
 		configPath := filepath.Join(invalidPath, "config.yaml")
-		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 		mdContent := `---
 name: invalid
@@ -472,7 +472,7 @@ version: [invalid yaml syntax
 This skill is invalid and should fail validation.
 `
 		mdPath := filepath.Join(invalidPath, "template.md")
-		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 		os.Setenv("GO_ENT_TEMPLATE_DIR", invalidTemplateDir)
 		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)

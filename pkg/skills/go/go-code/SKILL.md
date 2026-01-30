@@ -1,25 +1,10 @@
 ---
 name: go-code
-description: 'Modern Go implementation patterns, error handling, concurrency. Auto-activates for: writing Go code, implementing features, refactoring, error handling, configuration.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - go
-    - code
-    - implementation
-quality_score: 94
-category: go
+description: Modern Go implementation patterns, error handling, concurrency
 triggers:
-    keywords:
-        - go code
-        - golang
-        - implementation
-    file_pattern: '*.go'
-    weight: 0.8
+  - go code
+  - golang
+  - implementation
 ---
 
 ## Role
@@ -27,171 +12,24 @@ triggers:
 Expert Go developer focused on clean architecture, patterns, and idioms. Prioritize SOLID, DRY, KISS, YAGNI principles with production-grade quality, maintainability, and performance.
 
 ## Instructions
-## Bootstrap Pattern
 
-See `references/bootstrap-pattern.md` for complete main() with testable run(), graceful shutdown, and signal handling.
 
-## Error Handling
 
-```go
-// Wrap with context, lowercase
-if err != nil {
-    return fmt.Errorf("query user %s: %w", id, err)
-}
+### Response Format
 
-// Domain errors
-var (
-    ErrNotFound = errors.New("not found")
-    ErrConflict = errors.New("conflict")
-)
+Provide production-ready Go code following established patterns:
 
-// Check wrapped
-if errors.Is(err, ErrNotFound) { ... }
-```
+1. **Code Structure**: Clean, idiomatic Go with proper package organization
+2. **Naming**: Short, natural variable names (cfg, repo, ctx, req, resp)
+3. **Error Handling**: Wrapped errors with lowercase context using `%w`
+4. **Context**: Always first parameter, propagated through all layers
+5. **Interfaces**: Minimal interfaces at consumer side, return structs
+6. **Examples**: Complete, runnable code blocks with language tags
+7. **Explanations**: Clear, concise justifications for pattern choices
 
-**Rules**:
-- Always wrap with context
-- Lowercase, no trailing punctuation
-- Use `%w` for wrapping
-- Domain errors as package-level vars
+Focus on practical implementation with minimal abstractions unless complexity demands it.
 
-## Concurrency
-
-```go
-g, ctx := errgroup.WithContext(ctx)
-g.SetLimit(10)
-
-for _, id := range ids {
-    g.Go(func() error {
-        return s.process(ctx, id)
-    })
-}
-return g.Wait()
-```
-
-**Patterns**:
-- `errgroup` for parallel work with error handling
-- `sync.WaitGroup` for fire-and-forget
-- Channels for communication
-- `context` for cancellation
-- `sync.Once` for lazy initialization
-
-## Repository Pattern
-
-See `references/repository-pattern.md` for complete repository implementation with squirrel, error mapping, and private models.
-
-## Configuration
-
-```go
-type Config struct {
-    App AppConfig `envPrefix:"APP_"`
-    DB  DBConfig  `envPrefix:"DB_"`
-}
-
-type DBConfig struct {
-    DSN         string        `env:"DSN,required"`
-    MaxConns    int           `env:"MAX_CONNS" envDefault:"25"`
-    MaxIdleTime time.Duration `env:"MAX_IDLE_TIME" envDefault:"5m"`
-}
-
-func LoadFromEnv(getenv func(string) string) (*Config, error) {
-    var cfg Config
-    if err := env.ParseWithOptions(&cfg, env.Options{Environment: getenv}); err != nil {
-        return nil, err
-    }
-    return &cfg, nil
-}
-```
-
-**Pattern**: Injectable `getenv` for testing
-
-## Naming Conventions
-
-```go
-// Good: Short, clear
-cfg, repo, srv, pool, ctx, req, resp, err, tx, log
-
-// Bad: Verbose
-applicationConfiguration, userRepositoryInstance
-```
-
-**Guidelines**:
-- Short variable names in small scopes
-- Descriptive names for public APIs
-- Receivers: single letter or short abbreviation (`s`, `r`, `uc`)
-- Avoid single letters except: `i` (index), `t` (test), `w` (writer), `r` (reader)
-
-## Common Patterns
-
-### Functional Options
-```go
-type Option func(*Server)
-
-func WithPort(port int) Option {
-    return func(s *Server) { s.port = port }
-}
-
-func New(opts ...Option) *Server {
-    s := &Server{port: 8080}
-    for _, opt := range opts {
-        opt(s)
-    }
-    return s
-}
-```
-
-### Table-Driven Tests
-```go
-tests := []struct {
-    name string
-    input string
-    want  int
-}{
-    {"valid", "123", 123},
-    {"empty", "", 0},
-}
-for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-        t.Parallel()
-        got := parse(tt.input)
-        assert.Equal(t, tt.want, got)
-    })
-}
-```
-
-### Context Propagation
-```go
-// Always first parameter
-func Process(ctx context.Context, data Data) error {
-    // Check cancellation
-    select {
-    case <-ctx.Done():
-        return ctx.Err()
-    default:
-    }
-
-    // Pass to downstream calls
-    return s.repo.Save(ctx, data)
-}
-```
-
-## Constraints
-
-- Include clean, idiomatic Go code following standard conventions
-- Include proper error wrapping with context using `%w` verb
-- Include context propagation as first parameter throughout layers
-- Include domain entities with zero external dependencies
-- Include dependency injection pattern (accept interfaces, return structs)
-- Exclude magic numbers (use named constants instead)
-- Exclude global mutable state (pass dependencies explicitly)
-- Exclude panic in production code (use error handling instead)
-- Exclude over-engineering and premature abstractions (YAGNI)
-- Exclude AI-style verbose naming and unnecessary comments
-- Bound to clean layered architecture: Transport → UseCase → Domain ← Repository
-- Follow DI pattern with explicit dependency graphs
-- Keep domain layer pure with no external dependencies
-
-## Edge Cases
+### Edge Cases
 
 If input is unclear or ambiguous: Ask clarifying questions to understand the specific requirement before proceeding with implementation.
 
@@ -206,6 +44,7 @@ If testing requirements are needed: Delegate to go-test skill for test coverage,
 If security considerations are relevant: Delegate to go-sec skill for authentication, authorization, and input validation patterns.
 
 ## Examples
+
 <example>
 <input>Refactor main() to use bootstrap pattern with graceful shutdown</input>
 <output>
@@ -332,17 +171,6 @@ func (r *repository) Save(ctx context.Context, user *User) error {
 ```
 </example>
 
-## Output Format
+## References
 
-Provide production-ready Go code following established patterns:
-
-1. **Code Structure**: Clean, idiomatic Go with proper package organization
-2. **Naming**: Short, natural variable names (cfg, repo, ctx, req, resp)
-3. **Error Handling**: Wrapped errors with lowercase context using `%w`
-4. **Context**: Always first parameter, propagated through all layers
-5. **Interfaces**: Minimal interfaces at consumer side, return structs
-6. **Examples**: Complete, runnable code blocks with language tags
-7. **Explanations**: Clear, concise justifications for pattern choices
-
-Focus on practical implementation with minimal abstractions unless complexity demands it.
-
+- [Constraints](references/constraints.md)

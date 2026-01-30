@@ -74,7 +74,6 @@ func LoadTemplates(ctx context.Context, dir string) ([]*Template, error) {
 		templates = append(templates, tpl)
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("scan templates directory: %w", err)
 	}

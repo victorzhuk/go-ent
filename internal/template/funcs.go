@@ -1,11 +1,10 @@
 package template
 
 import (
+	"embed"
 	"fmt"
 	"strings"
 	"text/template"
-
-	"embed"
 )
 
 // TemplateEngine wraps Go's text/template with custom functions.

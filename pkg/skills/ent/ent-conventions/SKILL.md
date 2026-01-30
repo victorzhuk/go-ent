@@ -1,10 +1,8 @@
 ---
 name: ent-conventions
-description: "Go code style and Clean Architecture patterns: naming, errors, layers, testing. Preloaded by implementation agents."
-version: "1.0.0"
-author: "go-ent"
-disable-model-invocation: true
-user-invocable: false
+description: Go code style and Clean Architecture patterns: naming, errors, layers, testing. Preloaded by implementation agents.
+triggers:
+  - ent-conventions
 ---
 
 ## Role
@@ -122,17 +120,6 @@ func New() *PublicType {}
 func privateFunc() {}
 ```
 
-## Constraints
-
-- Include short, natural variable names (`cfg` not `applicationConfig`)
-- Include lowercase error messages with context (`%w` wrapping)
-- Include ZERO WHAT comments (rename if needed)
-- Exclude AI-style verbose naming
-- Exclude unnecessary comments
-- Exclude magic numbers (use named constants)
-- Bound to Clean Architecture layer rules
-- Follow dependency injection pattern
-
 ## Examples
 
 ### Good Style
@@ -187,3 +174,7 @@ return fmt.Errorf("Failed to query user: %w", err)
 ```
 
 See full conventions in `plugins/go-ent/agents/prompts/shared/_conventions.md`
+
+## References
+
+- [Constraints](references/constraints.md)

@@ -318,7 +318,7 @@ func TestGenerateSkill(t *testing.T) {
 		templateFile := templatePath + "/template.md"
 		configFile := templatePath + "/config.yaml"
 
-		if err := os.MkdirAll(templatePath, 0755); err != nil {
+		if err := os.MkdirAll(templatePath, 0o755); err != nil {
 			t.Fatalf("create template dir: %v", err)
 		}
 
@@ -366,7 +366,7 @@ Provide clean, well-structured test code with examples.
 </output_format>
 `
 
-		if err := os.WriteFile(templateFile, []byte(templateContent), 0644); err != nil {
+		if err := os.WriteFile(templateFile, []byte(templateContent), 0o644); err != nil {
 			t.Fatalf("write template file: %v", err)
 		}
 
@@ -381,7 +381,7 @@ prompts:
     required: true
 `
 
-		if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configFile, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("write config file: %v", err)
 		}
 
@@ -431,7 +431,7 @@ prompts:
 		templateName := "test-template"
 		templatePath := templateDir + "/" + templateName
 
-		if err := os.MkdirAll(templatePath, 0755); err != nil {
+		if err := os.MkdirAll(templatePath, 0o755); err != nil {
 			t.Fatalf("create template dir: %v", err)
 		}
 
@@ -471,7 +471,7 @@ Provide clear, well-documented code examples.
 </output_format>
 `
 
-		if err := os.WriteFile(templatePath+"/template.md", []byte(templateContent), 0644); err != nil {
+		if err := os.WriteFile(templatePath+"/template.md", []byte(templateContent), 0o644); err != nil {
 			t.Fatalf("write template file: %v", err)
 		}
 
@@ -483,7 +483,7 @@ version: 1.0.0
 prompts: []
 `
 
-		if err := os.WriteFile(templatePath+"/config.yaml", []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(templatePath+"/config.yaml", []byte(configContent), 0o644); err != nil {
 			t.Fatalf("write config file: %v", err)
 		}
 

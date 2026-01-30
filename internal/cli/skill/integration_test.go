@@ -32,7 +32,7 @@ func runCommand(args ...string) (string, string, error) {
 func setupTestTemplates(t *testing.T) string {
 	tmpDir := t.TempDir()
 	templateDir := filepath.Join(tmpDir, "templates")
-	require.NoError(t, os.Mkdir(templateDir, 0755))
+	require.NoError(t, os.Mkdir(templateDir, 0o755))
 
 	testTemplates := []struct {
 		name        string
@@ -57,7 +57,7 @@ func setupTestTemplates(t *testing.T) string {
 func setupTestSkills(t *testing.T) string {
 	tmpDir := t.TempDir()
 	skillsDir := filepath.Join(tmpDir, "skills")
-	require.NoError(t, os.MkdirAll(skillsDir, 0755))
+	require.NoError(t, os.MkdirAll(skillsDir, 0o755))
 	return skillsDir
 }
 
@@ -83,7 +83,6 @@ func TestIntegration_NewCommand_5_2_1_ValidNameAndTemplate(t *testing.T) {
 	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
 
 	stdout, stderr, err := runCommand(args...)
-
 	if err != nil {
 		t.Logf("stdout: %s", stdout)
 		t.Logf("stderr: %s", stderr)
@@ -156,7 +155,6 @@ func TestIntegration_NewCommand_5_2_3_NonInteractive(t *testing.T) {
 		defer os.Unsetenv("GO_ENT_SKILLS_DIR")
 
 		stdout, stderr, err := runCommand(args...)
-
 		if err != nil {
 			t.Logf("stdout: %s", stdout)
 			t.Logf("stderr: %s", stderr)
@@ -254,13 +252,13 @@ func TestIntegration_AddTemplate_5_2_6_Invalid(t *testing.T) {
 		templateDir := setupTestTemplates(t)
 		srcDir := t.TempDir()
 		templatePath := filepath.Join(srcDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(templatePath, 0755))
+		require.NoError(t, os.Mkdir(templatePath, 0o755))
 
 		mdContent := `# Template
 <role>Test role</role>
 `
 		mdPath := filepath.Join(templatePath, "template.md")
-		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 		args := []string{
 			"skill", "add-template",
@@ -281,7 +279,7 @@ func TestIntegration_AddTemplate_5_2_6_Invalid(t *testing.T) {
 		templateDir := setupTestTemplates(t)
 		srcDir := t.TempDir()
 		templatePath := filepath.Join(srcDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(templatePath, 0755))
+		require.NoError(t, os.Mkdir(templatePath, 0o755))
 
 		configContent := `name: test
 category: test
@@ -289,7 +287,7 @@ description: test
 version: 1.0.0
 `
 		configPath := filepath.Join(templatePath, "config.yaml")
-		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 		args := []string{
 			"skill", "add-template",
@@ -310,17 +308,17 @@ version: 1.0.0
 		templateDir := setupTestTemplates(t)
 		srcDir := t.TempDir()
 		templatePath := filepath.Join(srcDir, "invalid-tpl")
-		require.NoError(t, os.Mkdir(templatePath, 0755))
+		require.NoError(t, os.Mkdir(templatePath, 0o755))
 
 		configContent := "invalid: yaml: content:"
 		configPath := filepath.Join(templatePath, "config.yaml")
-		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 		mdContent := `# Template
 <role>Test role</role>
 `
 		mdPath := filepath.Join(templatePath, "template.md")
-		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
 		args := []string{
 			"skill", "add-template",
@@ -491,7 +489,7 @@ func createTestTemplate(t *testing.T, dir, name, category, description, version 
 	t.Helper()
 
 	templateDir := filepath.Join(dir, name)
-	require.NoError(t, os.Mkdir(templateDir, 0755))
+	require.NoError(t, os.Mkdir(templateDir, 0o755))
 
 	configContent := fmt.Sprintf(`name: %s
 category: %s
@@ -522,7 +520,7 @@ prompts:
 `, name, category, description, version)
 
 	configPath := filepath.Join(templateDir, "config.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
 	mdContent := `---
 name: ${SKILL_NAME}
@@ -569,5 +567,5 @@ Test output format
 `
 
 	mdPath := filepath.Join(templateDir, "template.md")
-	require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0644))
+	require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 }

@@ -610,7 +610,7 @@ Some text here.
 			tmpDir := t.TempDir()
 			tasksPath := filepath.Join(tmpDir, "tasks.md")
 
-			err := os.WriteFile(tasksPath, []byte(tt.tasksContent), 0600)
+			err := os.WriteFile(tasksPath, []byte(tt.tasksContent), 0o600)
 			require.NoError(t, err)
 
 			bolt := setupBoltStore(t)
@@ -682,7 +682,7 @@ func TestStateStore_ParseTasksWithDependencies_ContentTrimming(t *testing.T) {
 - [ ] Task with multiple <!-- depends: 1, 2 --> dependencies
 `
 
-	err := os.WriteFile(tasksPath, []byte(content), 0600)
+	err := os.WriteFile(tasksPath, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	bolt := setupBoltStore(t)

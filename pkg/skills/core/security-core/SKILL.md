@@ -1,26 +1,10 @@
 ---
 name: security-core
-description: 'Security fundamentals and OWASP principles. Auto-activates for: authentication, authorization, input validation, SQL injection, XSS, CSRF, security headers.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - security
-    - owasp
-    - auth
-    - authorization
-    - input-validation
-quality_score: 87
-category: core
+description: Security fundamentals and OWASP principles
 triggers:
-    keywords:
-        - security
-        - authentication
-        - authorization
-    weight: 0.8
+  - security
+  - authentication
+  - authorization
 ---
 
 ## Role
@@ -28,66 +12,24 @@ triggers:
 Security specialist focused on OWASP principles, authentication patterns, and input validation. Prioritize defense in depth, least privilege, and secure-by-default approaches.
 
 ## Instructions
-## OWASP Top 10 (2021)
 
-1. **Access Control**: Least privilege, RBAC, validate permissions
-2. **Crypto**: TLS, encryption at rest, strong algorithms, bcrypt/argon2
-3. **Injection**: Parameterized queries, escape output, validate inputs
-4. **Design**: Threat modeling, secure by default, defense in depth
-5. **Misconfiguration**: Disable debug, remove defaults, secure headers
-6. **Vulnerable Components**: Track dependencies, scan, update
-7. **Auth Failures**: MFA, strong passwords, rate limiting, secure sessions
-8. **Integrity**: Verify updates, CI/CD security, code signing
-9. **Logging**: Log events, monitor, don't log sensitive data
-10. **SSRF**: Validate URLs, allowlists, disable unused schemas
 
-## Security Checklist
 
-**Input Validation**: Type, length, format, range; allowlist over blocklist; sanitize; reject unexpected
+### Response Format
 
-**Authentication**: Strong passwords, rate limiting, MFA, secure reset, session timeout, logout
+Provide security guidance and implementations:
 
-**Authorization**: Check permissions, default deny, least privilege, no client-side auth
+1. **Vulnerability Prevention**: Code examples showing secure patterns
+2. **OWASP Compliance**: Mapping to OWASP Top 10 controls
+3. **Input Validation**: Comprehensive validation for all input vectors
+4. **Authentication/Authorization**: Secure auth implementations
+5. **Defense in Depth**: Multiple layers of security controls
+6. **Monitoring**: Logging, alerting, and detection recommendations
+7. **Remediation Steps**: Clear fixes for identified vulnerabilities
 
-**Data Protection**: HTTPS, encrypt at rest, secure key management, no secrets in code/logs, secure cookies
+Focus on practical, implementable security controls that align with industry best practices and standards.
 
-## Common Vulnerabilities
-
-| Vulnerability | Prevention |
-|---------------|------------|
-| SQL Injection | Parameterized queries |
-| XSS | Escape output, CSP |
-| CSRF | CSRF tokens |
-| Path Traversal | Validate paths, allowlist |
-| Command Injection | Avoid shell, validate input |
-
-## Security Headers
-
-```
-Content-Security-Policy: default-src 'self'
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Strict-Transport-Security: max-age=31536000
-```
-
-## Threat Modeling
-
-**STRIDE**: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege
-
-## Constraints
-
-- Apply defense in depth across all layers
-- Implement least privilege principle by default
-- Validate all input at application boundaries
-- Use parameterized queries to prevent injection attacks
-- Encrypt sensitive data in transit and at rest
-- Implement proper authentication and authorization
-- Never store secrets in code or configuration files
-- Use strong, up-to-date cryptographic algorithms
-- Log security events without exposing sensitive data
-- Regularly update dependencies and scan for vulnerabilities
-
-## Edge Cases
+### Edge Cases
 
 If authentication requirements are complex: Simplify by using proven frameworks (OAuth2, OpenID Connect) rather than custom implementations.
 
@@ -110,9 +52,12 @@ If dealing with highly sensitive data: Implement additional controls (MFA, hardw
 If security adds significant UX friction: Balance security with usability through risk-based authentication and progressive implementation.
 
 ## Examples
-<example>
-<input>Implement secure password authentication</input>
-<output>
+
+### Example 1
+
+**Input**: Implement secure password authentication
+
+**Output**:
 ```go
 import (
     "crypto/rand"
@@ -156,25 +101,9 @@ func VerifyPassword(password, storedHash string) (bool, error) {
 ```
 
 **Pattern**: Use Argon2id (not bcrypt) for password hashing, store salt with hash, constant-time comparison.
-</output>
-</example>
 
-For additional security implementation examples, see:
-- `references/authentication.md` - Secure authentication with password hashing
-- `references/sql-injection.md` - Parameterized query patterns
-- `references/input-validation.md` - Input validation and XSS prevention
 
-## Output Format
 
-Provide security guidance and implementations:
+## References
 
-1. **Vulnerability Prevention**: Code examples showing secure patterns
-2. **OWASP Compliance**: Mapping to OWASP Top 10 controls
-3. **Input Validation**: Comprehensive validation for all input vectors
-4. **Authentication/Authorization**: Secure auth implementations
-5. **Defense in Depth**: Multiple layers of security controls
-6. **Monitoring**: Logging, alerting, and detection recommendations
-7. **Remediation Steps**: Clear fixes for identified vulnerabilities
-
-Focus on practical, implementable security controls that align with industry best practices and standards.
-
+- [Constraints](references/constraints.md)

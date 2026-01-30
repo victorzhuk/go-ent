@@ -9,9 +9,7 @@ import (
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
-var (
-	verbose bool
-)
+var verbose bool
 
 // NewRootCmd creates the root command for the go-ent CLI.
 func NewRootCmd() *cobra.Command {

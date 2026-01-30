@@ -8,10 +8,8 @@ import (
 	"strings"
 )
 
-var (
-	// ErrMissingEnvVar indicates a required environment variable is not set.
-	ErrMissingEnvVar = errors.New("missing environment variable")
-)
+// ErrMissingEnvVar indicates a required environment variable is not set.
+var ErrMissingEnvVar = errors.New("missing environment variable")
 
 var (
 	// Pattern for ${VAR_NAME}

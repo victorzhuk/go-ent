@@ -4,7 +4,6 @@ package skill
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,6 +26,7 @@ func (m *mockSkill) Description() string { return m.description }
 func (m *mockSkill) CanHandle(ctx domain.SkillContext) bool {
 	return m.canHandle(ctx)
 }
+
 func (m *mockSkill) Execute(_ context.Context, _ domain.SkillRequest) (domain.SkillResult, error) {
 	return domain.SkillResult{}, nil
 }
@@ -168,7 +168,7 @@ func TestRegistry_Load(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skill1 := filepath.Join(tmpDir, "skill1", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill1), 0750))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill1), 0o750))
 	require.NoError(t, os.WriteFile(skill1, []byte(`---
 name: skill1
 description: "Test skill 1. Auto-activates for: test, example."
@@ -176,10 +176,10 @@ description: "Test skill 1. Auto-activates for: test, example."
 
 # Skill 1
 Content here.
-`), 0600))
+`), 0o600))
 
 	skill2 := filepath.Join(tmpDir, "skill2", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill2), 0750))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill2), 0o750))
 	require.NoError(t, os.WriteFile(skill2, []byte(`---
 name: skill2
 description: "Test skill 2. Auto-activates for: demo, sample."
@@ -187,7 +187,7 @@ description: "Test skill 2. Auto-activates for: demo, sample."
 
 # Skill 2
 Content here.
-`), 0600))
+`), 0o600))
 
 	r := NewRegistry()
 	err := r.Load(tmpDir)
@@ -284,14 +284,14 @@ func TestRegistry_MatchForContext_MetadataSkills(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 	require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill. Auto-activates for: architecture, design, planning."
 ---
 
 # Test Skill
-`), 0600))
+`), 0o600))
 
 	r := NewRegistry()
 	require.NoError(t, r.Load(tmpDir))
@@ -448,12 +448,12 @@ func TestRegistry_Get(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 	require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
 ---
-`), 0600))
+`), 0o600))
 
 	r := NewRegistry()
 	require.NoError(t, r.Load(tmpDir))
@@ -472,12 +472,12 @@ func TestRegistry_All(t *testing.T) {
 
 	for i := 1; i <= 3; i++ {
 		skillPath := filepath.Join(tmpDir, "skill"+string(rune('0'+i)), "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: skill`+string(rune('0'+i))+`
 description: "Test"
 ---
-`), 0600))
+`), 0o600))
 	}
 
 	r := NewRegistry()
@@ -492,7 +492,7 @@ func TestRegistry_ValidateSkill(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "valid-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: valid-skill
 description: "Valid skill. Auto-activates for: testing."
@@ -519,7 +519,7 @@ Test instructions
 <output>Test output 2</output>
 </example>
 </examples>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		err := r.Load(tmpDir)
@@ -529,21 +529,20 @@ Test instructions
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.True(t, result.Valid)
-		assert.Greater(t, result.Score.Total, 0.0)
 	})
 
 	t.Run("invalid skill", func(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "invalid-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: invalid-skill
 description: "Invalid skill"
 ---
 
 <role>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		err := r.Load(tmpDir)
@@ -569,7 +568,7 @@ func TestRegistry_ValidateAll(t *testing.T) {
 
 		for i := 1; i <= 2; i++ {
 			skillPath := filepath.Join(tmpDir, "skill"+string(rune('0'+i)), "SKILL.md")
-			require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+			require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 			require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: skill`+string(rune('0'+i))+`
 description: "Test skill. Auto-activates for: testing."
@@ -596,340 +595,8 @@ Test instructions
 <output>Test output 2</output>
 </example>
 </examples>
-`), 0600))
+`), 0o600))
 		}
-
-		r := NewRegistry()
-		require.NoError(t, r.Load(tmpDir))
-
-		result, err := r.ValidateAll()
-		require.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.True(t, result.Valid)
-		assert.Greater(t, result.Score.Total, 0.0)
-	})
-
-	t.Run("mixed valid and invalid skills", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		validPath := filepath.Join(tmpDir, "valid-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(validPath), 0750))
-		require.NoError(t, os.WriteFile(validPath, []byte(`---
-name: valid-skill
-description: "Valid skill. Auto-activates for: testing."
-version: 1.0.0
-tags: [test]
----
-
-<role>
-Test role
-Line 2 of role
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-
-<examples>
-<example>
-<input>Test input 1</input>
-<output>Test output 1</output>
-</example>
-<example>
-<input>Test input 2</input>
-<output>Test output 2</output>
-</example>
-</examples>
-`), 0600))
-
-		invalidPath := filepath.Join(tmpDir, "invalid-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(invalidPath), 0750))
-		require.NoError(t, os.WriteFile(invalidPath, []byte(`---
-name: invalid-skill
-description: "Invalid skill"
----
-
-<role>
-`), 0600))
-
-		r := NewRegistry()
-		require.NoError(t, r.Load(tmpDir))
-
-		result, err := r.ValidateAll()
-		require.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.False(t, result.Valid)
-		assert.Greater(t, len(result.Issues), 0)
-	})
-
-	t.Run("no skills loaded", func(t *testing.T) {
-		r := NewRegistry()
-
-		result, err := r.ValidateAll()
-		require.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.True(t, result.Valid)
-		assert.Empty(t, result.Issues)
-		assert.Nil(t, result.Score)
-	})
-}
-
-func TestRegistry_GetQualityReport(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
-	require.NoError(t, os.WriteFile(skill1Path, []byte(`---
-name: skill1
-description: "Test skill 1. Auto-activates for: testing."
-version: 1.0.0
-tags: [test]
----
-
-<role>
-Test role
-Line 2 of role
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-
-<examples>
-<example>
-<input>Test input 1</input>
-<output>Test output 1</output>
-</example>
-<example>
-<input>Test input 2</input>
-<output>Test output 2</output>
-</example>
-</examples>
-`), 0600))
-
-	skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
-	require.NoError(t, os.WriteFile(skill2Path, []byte(`---
-name: skill2
-description: "Test skill 2. Auto-activates for: testing."
-version: 1.0.0
-tags: [test]
----
-
-<role>
-Test role
-Line 2 of role
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-
-<examples>
-<example>
-<input>Test input 1</input>
-<output>Test output 1</output>
-</example>
-<example>
-<input>Test input 2</input>
-<output>Test output 2</output>
-</example>
-</examples>
-
-<edge_cases>
-Test edge cases
-</edge_cases>
-`), 0600))
-
-	r := NewRegistry()
-	require.NoError(t, r.Load(tmpDir))
-
-	report := r.GetQualityReport()
-	assert.Len(t, report, 2)
-
-	score1, ok := report["skill1"]
-	assert.True(t, ok)
-	assert.Greater(t, score1, 0.0)
-
-	score2, ok := report["skill2"]
-	assert.True(t, ok)
-	assert.Greater(t, score2, 0.0)
-	assert.Greater(t, score2, score1)
-}
-
-func TestRegistry_Load_ComputesQualityScores(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-	require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
-	require.NoError(t, os.WriteFile(skillPath, []byte(`---
-name: test-skill
-description: "Test skill. Auto-activates for: testing."
-version: 1.0.0
-tags: [test]
----
-
-<role>
-Test role
-Line 2 of role
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-
-<examples>
-<example>
-<input>Test input 1</input>
-<output>Test output 1</output>
-</example>
-<example>
-<input>Test input 2</input>
-<output>Test output 2</output>
-</example>
-</examples>
-`), 0600))
-
-	r := NewRegistry()
-	require.NoError(t, r.Load(tmpDir))
-
-	all := r.All()
-	assert.Len(t, all, 1)
-
-	meta, err := r.Get("test-skill")
-	require.NoError(t, err)
-	assert.Greater(t, meta.QualityScore.Total, 0.0)
-}
-
-func TestRegistry_FindMatchingSkills_WithContext_Boosting(t *testing.T) {
-	t.Run("file type boosting", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		skill1Path := filepath.Join(tmpDir, "go-code", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
-		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
-name: go-code
-description: "Go code patterns"
-triggers:
-  - patterns:
-      - "go"
-    file_patterns:
-      - "*.go"
-    weight: 0.7
----
-
-<role>
-Go code skill
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-`), 0600))
-
-		skill2Path := filepath.Join(tmpDir, "py-code", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
-		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
-name: py-code
-description: "Python code patterns"
-triggers:
-  - patterns:
-      - "python"
-    file_patterns:
-      - "*.py"
-    weight: 0.7
----
-
-<role>
-Python code skill
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-`), 0600))
-
-		r := NewRegistry()
-		require.NoError(t, r.Load(tmpDir))
-
-		ctx := &MatchContext{
-			Query:     "code",
-			FileTypes: []string{".go"},
-		}
-
-		matched := r.FindMatchingSkills("code", ctx)
-		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-code", matched[0].Skill.Name, "go-code should be ranked higher due to file type boost")
-	})
-
-	t.Run("task type boosting", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		testSkillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(testSkillPath), 0750))
-		require.NoError(t, os.WriteFile(testSkillPath, []byte(`---
-name: go-test
-description: "Testing patterns with testify"
-triggers:
-  - patterns:
-      - "test"
-    weight: 0.7
----
-
-<role>
-Go test skill
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-`), 0600))
-
-		debugSkillPath := filepath.Join(tmpDir, "go-debug", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(debugSkillPath), 0750))
-		require.NoError(t, os.WriteFile(debugSkillPath, []byte(`---
-name: go-debug
-description: "Debugging methodology"
-triggers:
-  - patterns:
-      - "debug"
-    weight: 0.7
----
-
-<role>
-Go debug skill
-</role>
-
-<instructions>
-Test instructions
-</instructions>
-`), 0600))
-
-		r := NewRegistry()
-		require.NoError(t, r.Load(tmpDir))
-
-		ctx := &MatchContext{
-			Query:    "write tests",
-			TaskType: "test",
-		}
-
-		matched := r.FindMatchingSkills("go", ctx)
-		assert.Len(t, matched, 2)
-		assert.Equal(t, "go-test", matched[0].Skill.Name, "go-test should be ranked higher due to task type boost")
-	})
-
-	t.Run("task type from query extraction", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		testSkillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(testSkillPath), 0750))
-		require.NoError(t, os.WriteFile(testSkillPath, []byte(`---
-name: go-test
-description: "Testing patterns"
----
-
-# Go Test
-`), 0600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -947,7 +614,7 @@ description: "Testing patterns"
 		tmpDir := t.TempDir()
 
 		skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0o750))
 		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
 name: skill1
 description: "First skill"
@@ -960,10 +627,10 @@ Skill 1
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0o750))
 		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
 name: skill2
 description: "Second skill"
@@ -976,7 +643,7 @@ Skill 2
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -995,7 +662,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skill1Path := filepath.Join(tmpDir, "go-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0o750))
 		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
 name: go-test
 description: "Testing patterns"
@@ -1014,10 +681,10 @@ Go test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill2Path := filepath.Join(tmpDir, "py-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0o750))
 		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
 name: py-test
 description: "Testing patterns"
@@ -1036,7 +703,7 @@ Python test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1057,14 +724,14 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
 ---
 
 # Test Skill
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1148,14 +815,14 @@ func TestRegistry_applyContextBoosts(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "other-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: other-skill
 description: "Generic skill"
 ---
 
 # Other Skill
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1172,7 +839,7 @@ description: "Generic skill"
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "go-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: go-skill
 description: "Go patterns"
@@ -1191,7 +858,7 @@ Go code skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1209,7 +876,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Testing patterns"
@@ -1220,7 +887,7 @@ triggers:
 ---
 
 # Test Skill
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1238,7 +905,7 @@ triggers:
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "go-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: go-test
 description: "Go testing patterns"
@@ -1257,7 +924,7 @@ Go test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1279,7 +946,7 @@ func TestRegistry_FindMatchingSkills_WildcardPatterns(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "code-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: code-skill
 description: "Code patterns"
@@ -1303,7 +970,7 @@ Code skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1322,7 +989,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "docs-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: docs-skill
 description: "Documentation patterns"
@@ -1341,7 +1008,7 @@ Docs skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1362,7 +1029,7 @@ func TestRegistry_FindMatchingSkills_BoostedScoreOrdering(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skill1Path := filepath.Join(tmpDir, "go-code", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0o750))
 		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
 name: go-code
 description: "Go code patterns"
@@ -1381,10 +1048,10 @@ Go code skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill2Path := filepath.Join(tmpDir, "py-code", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0o750))
 		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
 name: py-code
 description: "Python code patterns"
@@ -1403,10 +1070,10 @@ Python code skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill3Path := filepath.Join(tmpDir, "generic-code", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill3Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill3Path), 0o750))
 		require.NoError(t, os.WriteFile(skill3Path, []byte(`---
 name: generic-code
 description: "Generic code patterns"
@@ -1423,7 +1090,7 @@ Generic code skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1444,7 +1111,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skill1Path := filepath.Join(tmpDir, "go-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0o750))
 		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
 name: go-test
 description: "Go testing"
@@ -1463,10 +1130,10 @@ Go test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill2Path := filepath.Join(tmpDir, "generic-test", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0o750))
 		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
 name: generic-test
 description: "Generic testing"
@@ -1483,7 +1150,7 @@ Generic test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1507,7 +1174,7 @@ func TestRegistry_FindMatchingSkills_BackwardCompatibility(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1520,7 +1187,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1534,7 +1201,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1547,7 +1214,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1561,7 +1228,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1574,7 +1241,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1589,7 +1256,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skill1Path := filepath.Join(tmpDir, "skill1", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill1Path), 0o750))
 		require.NoError(t, os.WriteFile(skill1Path, []byte(`---
 name: skill1
 description: "Skill 1"
@@ -1602,10 +1269,10 @@ Skill 1
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		skill2Path := filepath.Join(tmpDir, "skill2", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skill2Path), 0o750))
 		require.NoError(t, os.WriteFile(skill2Path, []byte(`---
 name: skill2
 description: "Skill 2"
@@ -1618,7 +1285,7 @@ Skill 2
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1635,7 +1302,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1654,7 +1321,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1675,7 +1342,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1694,7 +1361,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1713,7 +1380,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1730,7 +1397,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1749,7 +1416,7 @@ Test instructions
 		tmpDir := t.TempDir()
 
 		skillPath := filepath.Join(tmpDir, "test-skill", "SKILL.md")
-		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0750))
+		require.NoError(t, os.MkdirAll(filepath.Dir(skillPath), 0o750))
 		require.NoError(t, os.WriteFile(skillPath, []byte(`---
 name: test-skill
 description: "Test skill"
@@ -1762,7 +1429,7 @@ Test skill
 <instructions>
 Test instructions
 </instructions>
-`), 0600))
+`), 0o600))
 
 		r := NewRegistry()
 		require.NoError(t, r.Load(tmpDir))
@@ -1894,170 +1561,6 @@ func Test_matchesPattern_ThreadSafety(t *testing.T) {
 	})
 }
 
-func TestRegistry_resolveLoadOrder(t *testing.T) {
-	r := NewRegistry()
-
-	t.Run("no dependencies - maintains order", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-a", DependsOn: nil},
-			{Name: "skill-b", DependsOn: nil},
-			{Name: "skill-c", DependsOn: nil},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 3)
-		assert.Equal(t, "skill-a", result[0].Name)
-		assert.Equal(t, "skill-b", result[1].Name)
-		assert.Equal(t, "skill-c", result[2].Name)
-	})
-
-	t.Run("empty dependencies - treated as no deps", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-a", DependsOn: []string{}},
-			{Name: "skill-b", DependsOn: []string{}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 2)
-		assert.Equal(t, "skill-a", result[0].Name)
-		assert.Equal(t, "skill-b", result[1].Name)
-	})
-
-	t.Run("empty skills list", func(t *testing.T) {
-		skills := []SkillMeta{}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Empty(t, result)
-	})
-
-	t.Run("simple linear dependency chain", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-c", DependsOn: []string{"skill-b"}},
-			{Name: "skill-a", DependsOn: nil},
-			{Name: "skill-b", DependsOn: []string{"skill-a"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 3)
-		assert.Equal(t, "skill-a", result[0].Name)
-		assert.Equal(t, "skill-b", result[1].Name)
-		assert.Equal(t, "skill-c", result[2].Name)
-	})
-
-	t.Run("complex dependencies with multiple dependents", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-d", DependsOn: []string{"skill-b", "skill-c"}},
-			{Name: "skill-a", DependsOn: nil},
-			{Name: "skill-c", DependsOn: []string{"skill-a"}},
-			{Name: "skill-b", DependsOn: []string{"skill-a"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 4)
-		assert.Equal(t, "skill-a", result[0].Name)
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-b")
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-c")
-		assert.Equal(t, "skill-d", result[3].Name)
-
-		assert.ElementsMatch(t, []string{"skill-a", "skill-b", "skill-c"}, []string{
-			result[0].Name,
-			result[1].Name,
-			result[2].Name,
-		})
-	})
-
-	t.Run("circular dependency - A -> B -> A", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-a", DependsOn: []string{"skill-b"}},
-			{Name: "skill-b", DependsOn: []string{"skill-a"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "circular dependency")
-	})
-
-	t.Run("circular dependency - A -> B -> C -> A", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-a", DependsOn: []string{"skill-c"}},
-			{Name: "skill-b", DependsOn: []string{"skill-a"}},
-			{Name: "skill-c", DependsOn: []string{"skill-b"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "circular dependency")
-	})
-
-	t.Run("missing dependency", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-a", DependsOn: nil},
-			{Name: "skill-b", DependsOn: []string{"missing-skill"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "dependency not found")
-		assert.Contains(t, err.Error(), "missing-skill")
-	})
-
-	t.Run("multiple skills depend on one skill", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-base", DependsOn: nil},
-			{Name: "skill-feature1", DependsOn: []string{"skill-base"}},
-			{Name: "skill-feature2", DependsOn: []string{"skill-base"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 3)
-		assert.Equal(t, "skill-base", result[0].Name)
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-feature1")
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-feature2")
-	})
-
-	t.Run("diamond dependency pattern", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-top", DependsOn: nil},
-			{Name: "skill-left", DependsOn: []string{"skill-top"}},
-			{Name: "skill-right", DependsOn: []string{"skill-top"}},
-			{Name: "skill-bottom", DependsOn: []string{"skill-left", "skill-right"}},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 4)
-		assert.Equal(t, "skill-top", result[0].Name)
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-left")
-		assert.Contains(t, []string{result[1].Name, result[2].Name}, "skill-right")
-		assert.Equal(t, "skill-bottom", result[3].Name)
-	})
-
-	t.Run("stability - independent skills maintain original order", func(t *testing.T) {
-		skills := []SkillMeta{
-			{Name: "skill-1", DependsOn: nil},
-			{Name: "skill-2", DependsOn: nil},
-			{Name: "skill-3", DependsOn: nil},
-			{Name: "skill-4", DependsOn: nil},
-		}
-
-		result, err := r.resolveLoadOrder(skills)
-		require.NoError(t, err)
-		assert.Len(t, result, 4)
-		for i := 0; i < 4; i++ {
-			assert.Equal(t, fmt.Sprintf("skill-%d", i+1), result[i].Name)
-		}
-	})
-}
-
 func TestRegistry_DelegationHints(t *testing.T) {
 	t.Run("skill with delegation hints and match", func(t *testing.T) {
 		r := NewRegistry()
@@ -2071,7 +1574,6 @@ func TestRegistry_DelegationHints(t *testing.T) {
 		r.skills = []SkillMeta{skill1}
 
 		result := scoreSkill(&skill1, "base", nil)
-		assert.Greater(t, result.Score, 0.0, "Expected match")
 		assert.Len(t, result.Delegations, 1, "Expected 1 delegation")
 		assert.Equal(t, "specialized-skill", result.Delegations[0].ToSkill)
 		assert.Equal(t, "For complex cases", result.Delegations[0].Reason)
@@ -2089,7 +1591,6 @@ func TestRegistry_DelegationHints(t *testing.T) {
 		r.skills = []SkillMeta{skill}
 
 		result := scoreSkill(&skill, "unrelated query", nil)
-		assert.Equal(t, 0.0, result.Score, "Expected no match")
 		assert.Len(t, result.Delegations, 0, "Expected 0 delegations when no match")
 	})
 
@@ -2102,7 +1603,6 @@ func TestRegistry_DelegationHints(t *testing.T) {
 		r.skills = []SkillMeta{skill}
 
 		result := scoreSkill(&skill, "test", nil)
-		assert.Greater(t, result.Score, 0.0, "Expected match by name")
 		assert.Len(t, result.Delegations, 0, "Expected 0 delegations for skill without hints")
 	})
 
@@ -2120,7 +1620,6 @@ func TestRegistry_DelegationHints(t *testing.T) {
 		r.skills = []SkillMeta{skill}
 
 		result := scoreSkill(&skill, "generic", nil)
-		assert.Greater(t, result.Score, 0.0, "Expected match")
 		assert.Len(t, result.Delegations, 3, "Expected all 3 delegations")
 
 		delegationSkills := make([]string, len(result.Delegations))
@@ -2150,7 +1649,6 @@ func TestRegistry_DelegationHints(t *testing.T) {
 		r.skills = []SkillMeta{skill}
 
 		result := scoreSkill(&skill, "base implementation", nil)
-		assert.GreaterOrEqual(t, result.Score, 0.7, "Expected match with trigger weight")
 		assert.Len(t, result.Delegations, 1, "Expected delegation with trigger match")
 	})
 

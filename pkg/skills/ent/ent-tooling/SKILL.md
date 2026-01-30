@@ -1,10 +1,8 @@
 ---
 name: ent-tooling
-description: "Tool usage guidance: native tools, Serena semantic analysis, Git, Go, and Bash. Preloaded by all agents."
-version: "1.0.0"
-author: "go-ent"
-disable-model-invocation: true
-user-invocable: false
+description: Tool usage guidance: native tools, Serena semantic analysis, Git, Go, and Bash. Preloaded by all agents.
+triggers:
+  - ent-tooling
 ---
 
 ## Role
@@ -91,7 +89,7 @@ golangci-lint run --fast                  # Fast lint
 gofmt -s -w .                             # Format code
 ```
 
-## Constraints
+### Constraints
 
 - Never use Serena editing tools - use native Edit/Write instead
 - Always Read before Edit or Write
@@ -100,3 +98,6 @@ gofmt -s -w .                             # Format code
 - Check command outputs for errors
 
 See full tooling reference in `plugins/go-ent/agents/prompts/shared/_tooling.md`
+
+## Examples
+

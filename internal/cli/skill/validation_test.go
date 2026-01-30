@@ -59,7 +59,7 @@ Provide clear, actionable guidance.
 </output_format>
 `
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(validSkill), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(validSkill), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.NoError(t, err)
@@ -99,7 +99,7 @@ version: "1.0.0"
 <output_format>Test</output_format>
 `
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(invalidYAML), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(invalidYAML), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.Error(t, err)
@@ -112,7 +112,7 @@ func TestValidateGeneratedSkill_EmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	skillPath := filepath.Join(tmpDir, "SKILL.md")
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(""), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(""), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.Error(t, err)
@@ -138,7 +138,7 @@ func TestValidateGeneratedSkill_MissingFrontmatter(t *testing.T) {
 <output_format>Test</output_format>
 `
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(noFrontmatter), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(noFrontmatter), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.Error(t, err)
@@ -166,7 +166,7 @@ version: "1.0.0"
 <output_format>Test</output_format>
 `
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(missingName), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(missingName), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.Error(t, err)
@@ -265,7 +265,7 @@ Provide production-ready Go code with:
 </output_format>
 `
 
-	require.NoError(t, os.WriteFile(skillPath, []byte(completeSkill), 0644))
+	require.NoError(t, os.WriteFile(skillPath, []byte(completeSkill), 0o644))
 
 	err := ValidateGeneratedSkill(skillPath)
 	assert.NoError(t, err)

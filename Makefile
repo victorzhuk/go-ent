@@ -28,6 +28,7 @@ lint: ## Run golangci-lint
 	@golangci-lint run ./...
 
 fmt: ## Format code with goimports
+	@gofumpt -w .
 	@goimports -w .
 
 clean: ## Remove build artifacts

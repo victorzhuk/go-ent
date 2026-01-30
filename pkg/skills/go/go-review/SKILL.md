@@ -1,24 +1,9 @@
 ---
 name: go-review
-description: 'Code review patterns and quality checks. Auto-activates for: code review, quality checks, PR review, architecture validation.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - go
-    - review
-    - code-quality
-    - linting
-quality_score: 80
-category: go
+description: Code review patterns and quality checks
 triggers:
-    keywords:
-        - code review
-        - pull request
-    weight: 0.8
+  - code review
+  - pull request
 ---
 
 ## Role
@@ -26,88 +11,10 @@ triggers:
 Expert Go code reviewer focused on patterns, best practices, clean code, and maintainability. Prioritize important issues over style nitpicking, provide constructive feedback, and consider context and team standards. Balance quality with pragmatism.
 
 ## Instructions
-## Checklist
 
-### 1. Architecture
-```
-Transport → UseCase → Domain ← Repository ← Infrastructure
-```
-- Domain has ZERO external deps, NO struct tags
-- Interfaces defined at consumer side
 
-### 2. Naming
-```go
-// ❌ REJECT
-applicationConfiguration := config.Load()
 
-// ✅ ACCEPT
-cfg := config.Load()
-```
-
-### 3. Comments
-```go
-// ❌ REJECT - explains what
-// Create a new user
-user := NewUser(name)
-
-// ✅ ACCEPT - explains why (rare)
-// Required by legacy API
-resp.Header.Set("X-Legacy-Token", token)
-```
-
-### 4. Error Handling
-```go
-// ❌ REJECT
-return fmt.Errorf("Failed to query user: %w", err)
-return err
-
-// ✅ ACCEPT
-return fmt.Errorf("query user %s: %w", id, err)
-```
-
-## Review Commands
-
-```bash
-# Architecture violations
-grep -r "import.*transport" internal/domain/
-
-# AI-style names
-grep -rn "applicationConfig\|userRepository" internal/
-
-# Comment violations
-grep -rn "// Create\|// Get\|// Set" internal/ | grep -v "_test.go"
-
-# Error handling
-grep -rn 'return err$' internal/
-```
-
-## Serena
-
-```
-mcp__serena__find_symbol(name: "UserRepository")
-mcp__serena__find_referencing_symbols(symbol: "CreateUser")
-mcp__serena__get_project_structure()
-```
-
-## Constraints
-
-- Include focus on important issues (bugs, security, architectural violations) over style
-- Include consideration of context and team standards when reviewing
-- Include constructive, actionable feedback with clear explanations
-- Include references to Go idioms and best practices from official docs
-- Include check for proper error wrapping with context
-- Include validation of dependency direction (layers inward only)
-- Include review for unnecessary abstractions and over-engineering
-- Exclude style nitpicking (formatting, spacing, minor naming preferences)
-- Exclude subjective opinions without clear justification
-- Exclude rejecting valid patterns due to personal preference
-- Exclude suggesting complete rewrites for minor issues
-- Exclude ignoring critical bugs for "convenience"
-- Exclude reviews without understanding the broader context
-- Bound to Go best practices and idiomatic code
-- Follow confidence filtering (only report >= 80% confidence)
-
-## Edge Cases
+### Edge Cases
 
 If legacy code is being reviewed: Be pragmatic and suggest incremental improvements rather than complete rewrites; consider the cost/benefit of changes.
 
@@ -138,140 +45,11 @@ If the change is large: Recommend breaking into smaller, reviewable chunks; this
 If unclear about team standards: Ask about existing conventions, linter configurations, and code review guidelines used by the team.
 
 ## Examples
+
 <example>
 <input>Review error handling in this repository</input>
 <output>
-## Code Review
 
-### 🚨 Critical (Must Fix)
+## References
 
-- [repository.go:45] Missing error wrapping
-  ```go
-  // Before
-  if err != nil {
-      return err
-  }
-
-  // After
-  if err != nil {
-      return fmt.Errorf("query user %s: %w", id, err)
-  }
-  ```
-  Wrap with context for better debugging.
-
-### ⚠️ Warnings
-
-- [repository.go:78] Not checking for specific errors
-  ```go
-  if err := r.pool.QueryRow(ctx, query, args...).Scan(&m.ID, &m.Email); err != nil {
-      return nil, err
-  }
-  ```
-  Should check for `pgx.ErrNoRows` and map to domain error.
-
-### ✅ Well Done
-
-- Good use of pgx for database operations
-- Proper context propagation throughout
-
----
-
-**Confidence**: 95%
-</example>
-
-<example>
-<input>Review this handler for architecture violations</input>
-<output>
-## Code Review
-
-### 🚨 Critical (Must Fix)
-
-- [handler.go:32] Domain logic in transport layer
-  ```go
-  func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-      // This business logic should be in UseCase
-      if len(req.Email) < 5 {
-          http.Error(w, "invalid email", http.StatusBadRequest)
-          return
-      }
-  }
-  ```
-  Move validation and business rules to UseCase layer. Transport should only handle request/response mapping.
-
-### ⚠️ Warnings
-
-- [handler.go:45] Direct database access in handler
-  ```go
-  user, err := h.db.GetUser(ctx, req.ID)
-  ```
-  Handler should call UseCase, not repository directly. Follow: Transport → UseCase → Domain ← Repository.
-
-### ✅ Well Done
-
-- Clean error responses with appropriate HTTP status codes
-- Proper context usage throughout
-
----
-
-**Confidence**: 90%
-</example>
-
-<example>
-<input>Review naming and comments in this file</input>
-<output>
-## Code Review
-
-### 🚨 Critical (Must Fix)
-
-None
-
-### ⚠️ Warnings
-
-- [service.go:23] AI-style verbose naming
-  ```go
-  // Before
-  applicationConfigurationService := config.Load()
-
-  // After
-  cfg := config.Load()
-  ```
-  Use short, natural names in small scopes.
-
-- [service.go:56] Comment explains what code does
-  ```go
-  // Create a new order
-  order := NewOrder(req)
-  ```
-  The function name `NewOrder` already makes this obvious. Remove comment or rename to explain why.
-
-- [service.go:89] Another what-comment
-  ```go
-  // Get user by ID
-  user, err := s.repo.FindByID(ctx, id)
-  ```
-  Delete comment; the variable names and function name are self-explanatory.
-
-### ✅ Well Done
-
-- Clean separation of concerns
-- Good use of interfaces at consumer side
-
----
-
-**Confidence**: 85%
-</example>
-
-## Output Format
-
-Provide code review feedback in structured format:
-
-1. **Critical Issues**: Bugs, security vulnerabilities, architectural violations (must fix)
-2. **Warnings**: Quality issues, anti-patterns, improvements (should fix)
-3. **Positive Feedback**: Well-done patterns, good practices (keep doing)
-4. **Examples**: Before/after code snippets with clear explanations
-5. **Confidence Level**: 95-100% for bugs/security, 85-94% for quality issues
-6. **Actionable Feedback**: Specific suggestions with code examples
-7. **Context Consideration**: Balance quality with pragmatism
-
-Focus on important issues over style nitpicking, provide constructive feedback, and respect team standards.
-
+- [Constraints](references/constraints.md)

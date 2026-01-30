@@ -16,7 +16,6 @@ type SkillValidateInput struct {
 
 type SkillValidateOutput struct {
 	Valid  bool                    `json:"valid"`
-	Score  float64                 `json:"score"`
 	Issues []skill.ValidationIssue `json:"issues"`
 }
 
@@ -52,16 +51,10 @@ func skillValidateHandler(skillRegistry *skill.Registry) func(ctx context.Contex
 			if err != nil {
 				return nil, nil, fmt.Errorf("validate skill %s: %w", input.Name, err)
 			}
-		} else {
-			result, err = skillRegistry.ValidateAll()
-			if err != nil {
-				return nil, nil, fmt.Errorf("validate all skills: %w", err)
-			}
 		}
 
 		output := SkillValidateOutput{
 			Valid:  result.Valid,
-			Score:  result.Score.Total,
 			Issues: result.Issues,
 		}
 
@@ -89,7 +82,6 @@ func formatValidationOutput(skillName string, output SkillValidateOutput) string
 		status = "✗ INVALID"
 	}
 	sb.WriteString(fmt.Sprintf("**Status**: %s\n\n", status))
-	sb.WriteString(fmt.Sprintf("**Quality Score**: %.1f/100\n\n", output.Score))
 
 	if len(output.Issues) == 0 {
 		sb.WriteString("No issues found.\n")

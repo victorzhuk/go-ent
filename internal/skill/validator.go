@@ -45,7 +45,6 @@ func (v ValidationIssue) String() string {
 type ValidationResult struct {
 	Valid  bool
 	Issues []ValidationIssue
-	Score  *QualityScore
 }
 
 // ErrorCount returns the number of errors.
@@ -82,35 +81,21 @@ type ValidationContext struct {
 // ValidationRule is a function that validates content and returns issues.
 type ValidationRule func(ctx *ValidationContext) []ValidationIssue
 
-// ValidationRuleWithContext is a function that validates content with registry access.
-type ValidationRuleWithContext func(ctx *ValidationContext, registry *Registry) []ValidationIssue
-
 // Validator validates skill files using a set of rules.
 type Validator struct {
-	rules            []ValidationRule
-	rulesWithContext []ValidationRuleWithContext
+	rules []ValidationRule
 }
 
 // NewValidator creates a new validator with default rules.
 func NewValidator() *Validator {
 	return &Validator{
 		rules: []ValidationRule{
-			validateFrontmatter,
-			validateNameFormat,
-			validateVersion,
-			validateXMLTags,
-			validateRoleSection,
-			validateInstructionsSection,
-			validateExamples,
-			validateConstraints,
-			validateEdgeCases,
-			validateOutputFormat,
-			checkTriggerExplicit,
-			checkExampleDiversity,
-			checkInstructionConcise,
-		},
-		rulesWithContext: []ValidationRuleWithContext{
-			checkRedundancy,
+			validateFrontmatterV4,
+			validateNameFormatV4,
+			validateRoleSectionV4,
+			validateInstructionsSectionV4,
+			validateExamplesSectionV4,
+			validateReferencesV4,
 		},
 	}
 }
@@ -133,7 +118,6 @@ func (v *Validator) Validate(meta *SkillMeta, content string) *ValidationResult 
 	result := &ValidationResult{
 		Issues: issues,
 		Valid:  true,
-		Score:  meta.QualityScore,
 	}
 
 	if ctx.Strict {
@@ -163,42 +147,7 @@ func (v *Validator) ValidateStrict(meta *SkillMeta, content string) *ValidationR
 	return &ValidationResult{
 		Issues: issues,
 		Valid:  len(issues) == 0,
-		Score:  meta.QualityScore,
 	}
-}
-
-// ValidateWithContext validates a skill with registry access for cross-skill checks.
-func (v *Validator) ValidateWithContext(meta *SkillMeta, content string, registry *Registry) *ValidationResult {
-	ctx := &ValidationContext{
-		FilePath: meta.FilePath,
-		Content:  content,
-		Lines:    strings.Split(content, "\n"),
-		Meta:     meta,
-		Strict:   false,
-	}
-
-	var issues []ValidationIssue
-	for _, rule := range v.rules {
-		issues = append(issues, rule(ctx)...)
-	}
-
-	for _, rule := range v.rulesWithContext {
-		issues = append(issues, rule(ctx, registry)...)
-	}
-
-	result := &ValidationResult{
-		Issues: issues,
-		Valid:  true,
-		Score:  meta.QualityScore,
-	}
-
-	if ctx.Strict {
-		result.Valid = len(issues) == 0
-	} else {
-		result.Valid = result.ErrorCount() == 0
-	}
-
-	return result
 }
 
 // findLineNumber finds the line number of a pattern in content.
@@ -231,4 +180,9 @@ func hasErrors(issues []ValidationIssue) bool {
 		}
 	}
 	return false
+}
+
+// ValidateWithContext validates a skill with additional context (e.g., registry for redundancy detection).
+func (v *Validator) ValidateWithContext(meta *SkillMeta, content string, registry *Registry) *ValidationResult {
+	return v.Validate(meta, content)
 }

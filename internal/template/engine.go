@@ -41,7 +41,7 @@ func (e *Engine) Process(templatePath string, vars TemplateVars, outputPath stri
 		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0o750); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 

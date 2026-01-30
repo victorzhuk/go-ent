@@ -1,24 +1,9 @@
 ---
 name: review-core
-description: 'Code review best practices and checklist. Auto-activates for: pull request reviews, code quality checks, style violations, best practices enforcement.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - review
-    - code-quality
-    - best-practices
-    - pr-review
-quality_score: 83
-category: core
+description: Code review best practices and checklist
 triggers:
-    keywords:
-        - code review
-        - pull request
-    weight: 0.8
+  - code review
+  - pull request
 ---
 
 ## Role
@@ -26,110 +11,24 @@ triggers:
 Code reviewer focused on quality, patterns, and best practices. Prioritize constructive feedback, team standards, and security-focused reviews while maintaining a positive review culture.
 
 ## Instructions
-## Review Mindset
 
-- Be kind and constructive
-- Explain the "why", not just "what's wrong"
-- Suggest alternatives
-- Focus on code, not author
-- Recognize good work
 
-## Essential Checklist
 
-### Functionality
-- Does what PR claims
-- Edge cases handled
-- Errors handled properly
-- No obvious bugs
+### Response Format
 
-### Design
-- Follows project architecture
-- Appropriate abstraction
-- DRY and SOLID principles
-- Not over-engineered
+Provide constructive code review feedback:
 
-### Readability
-- Self-documenting (clear names)
-- Comments for "why", not "what"
-- Consistent style
-- Functions small and focused
-- No magic numbers
+1. **Clear Structure**: Organize by priority (P0-P3) or category (security, design, style)
+2. **Specific Issues**: Point to exact code with line numbers or snippets
+3. **Actionable Feedback**: Provide specific fixes or improvements with code examples
+4. **Explanation**: Explain "why" changes are needed, not just "what's wrong"
+5. **Positive Feedback**: Acknowledge good code and improvements
+6. **Summary**: Clear action required (approve, request changes, block)
+7. **Context**: Consider codebase standards, project requirements, and risk level
 
-### Tests
-- Tests present and passing
-- Edge cases covered
-- Deterministic (no flaky tests)
-- Fast execution
+Focus on improving code quality while maintaining a constructive, collaborative review culture.
 
-### Performance
-- No obvious bottlenecks
-- Efficient algorithms
-- Proper resource management
-- Caching where appropriate
-
-### Security
-- Input validation
-- No SQL injection, XSS
-- Secrets not in code
-- Auth/authz correct
-
-## Review Priorities
-
-| Priority | Focus | Action |
-|----------|-------|--------|
-| P0 | Bugs, security issues | Block merge |
-| P1 | Design flaws, maintainability | Request changes |
-| P2 | Style, minor improvements | Suggest, don't block |
-| P3 | Nitpicks, preferences | Comment, approve anyway |
-
-## Common Issues
-
-| Issue | Detection | Fix |
-|-------|-----------|-----|
-| N+1 queries | Multiple DB calls in loop | Use batch loading |
-| Race conditions | Shared state without sync | Add mutex/channels |
-| Memory leaks | Goroutines never stop | Add context cancellation |
-| Error swallowing | Empty catch blocks | Log or propagate |
-| Tight coupling | Hard dependencies | Use interfaces |
-
-## Giving Feedback
-
-**Good feedback**:
-```
-This could lead to a race condition when multiple requests
-modify the cache concurrently. Consider using sync.RWMutex
-to protect the map access.
-```
-
-**Bad feedback**:
-```
-This is wrong. Use mutex.
-```
-
-## Reviewing Changes
-
-1. Read PR description thoroughly
-2. Understand the problem being solved
-3. Review design/approach first
-4. Then dive into implementation
-5. Test locally if unclear
-6. Check tests before approval
-7. Approve or request changes with clear reasoning
-
-## Constraints
-
-- Provide constructive, actionable feedback with clear explanations
-- Focus on code quality and maintainability, not personal preferences
-- Consider team standards and project conventions
-- Prioritize security and correctness over style
-- Suggest improvements rather than just pointing out problems
-- Balance thoroughness with review speed based on PR complexity
-- Recognize and acknowledge good code and improvements
-- Be explicit about blocking vs non-blocking feedback
-- Keep feedback concise and focused
-- Follow up to ensure understanding
-
-## Edge Cases
+### Edge Cases
 
 If reviewing legacy code: Be pragmatic and focus on incremental improvements. Avoid suggesting complete rewrites unless absolutely necessary.
 
@@ -152,9 +51,12 @@ If security review is needed: Ensure security team member reviews if available, 
 If documentation is missing for public APIs: Request documentation updates but may approve with comment to add docs in follow-up.
 
 ## Examples
-<example>
-<input>Review authentication handler implementation</input>
-<output>
+
+### Example 1
+
+**Input**: Review authentication handler implementation
+
+**Output**:
 **Confidence: HIGH** (Security vulnerability found)
 
 **Issues:**
@@ -190,26 +92,9 @@ If documentation is missing for public APIs: Request documentation updates but m
 - Add MFA support for production
 - Implement session timeout mechanism
 - Log authentication failures for monitoring
-</output>
-</example>
 
-For additional code review examples, see:
-- `references/security-review.md` - Security-focused authentication endpoint review
-- `references/architecture-review.md` - Payment service architecture review
-- `references/utility-review.md` - Simple utility function review
-- `references/testing-review.md` - Test coverage and quality review
 
-## Output Format
 
-Provide constructive code review feedback:
+## References
 
-1. **Clear Structure**: Organize by priority (P0-P3) or category (security, design, style)
-2. **Specific Issues**: Point to exact code with line numbers or snippets
-3. **Actionable Feedback**: Provide specific fixes or improvements with code examples
-4. **Explanation**: Explain "why" changes are needed, not just "what's wrong"
-5. **Positive Feedback**: Acknowledge good code and improvements
-6. **Summary**: Clear action required (approve, request changes, block)
-7. **Context**: Consider codebase standards, project requirements, and risk level
-
-Focus on improving code quality while maintaining a constructive, collaborative review culture.
-
+- [Constraints](references/constraints.md)

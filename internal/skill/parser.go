@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -16,6 +17,7 @@ type SkillMeta struct {
 	Triggers         []string
 	ExplicitTriggers []Trigger
 	FilePath         string
+	Category         string
 	Version          string
 	Author           string
 	Tags             []string
@@ -23,25 +25,10 @@ type SkillMeta struct {
 	StructureVersion string
 	DependsOn        []string
 	DelegatesTo      map[string]string
-	QualityScore     *QualityScore
-	LoadLevel        LoadLevel
-	Core             *CoreContent
-	Full             *FullContent
-}
-
-// CoreContent holds the Level 2 content for a skill.
-type CoreContent struct {
-	Role         string
-	Instructions string
-	Constraints  string
-	Examples     string
-}
-
-// FullContent holds Level 3 content for a skill (complete file body).
-type FullContent struct {
-	Body       string
-	References []string
-	Scripts    []string
+	Role             string
+	Instructions     string
+	Examples         string
+	References       []string
 }
 
 // Trigger represents an explicit trigger for skill activation.
@@ -78,39 +65,19 @@ type skillMetaV3 struct {
 	DelegatesTo  map[string]string `yaml:"delegates_to"`
 }
 
+// skillMetaV4 represents v4 frontmatter structure for unmarshaling.
+// v4 uses minimal frontmatter with flat trigger array.
+type skillMetaV4 struct {
+	Name        string   `yaml:"name"`
+	Description string   `yaml:"description"`
+	Triggers    []string `yaml:"triggers"`
+}
+
 // v3Triggers represents v3 trigger structure in frontmatter.
 type v3Triggers struct {
 	Keywords    []string `yaml:"keywords,omitempty"`
 	FilePattern string   `yaml:"file_pattern,omitempty"`
 	Weight      float64  `yaml:"weight,omitempty"`
-}
-
-// LoadLevel represents how much of a skill's content has been loaded.
-type LoadLevel int
-
-const (
-	// LoadMetadata loads only frontmatter + triggers (~100 tokens)
-	LoadMetadata LoadLevel = iota
-
-	// LoadCore loads metadata + role + instructions + constraints + examples (<5k tokens)
-	LoadCore
-
-	// LoadExtended loads everything including references/, scripts/, detailed docs
-	LoadExtended
-)
-
-// String returns the string representation of LoadLevel.
-func (l LoadLevel) String() string {
-	switch l {
-	case LoadMetadata:
-		return "metadata"
-	case LoadCore:
-		return "core"
-	case LoadExtended:
-		return "extended"
-	default:
-		return "unknown"
-	}
 }
 
 // Parser handles parsing of SKILL.md files.
@@ -122,13 +89,26 @@ func NewParser() *Parser {
 }
 
 // detectVersion checks skill format version based on content markers.
-// v3: Markdown sections (## Role, ## Instructions) + triggers in frontmatter
+// v4: Flat triggers array + Markdown sections (## Role, ## Instructions, ## Examples)
+// v3: Object triggers + Markdown sections
 // v2: XML tags (<role>, <instructions>) + description-based triggers
 // v1: Basic frontmatter only
 func (p *Parser) detectVersion(content, frontmatter string) string {
 	// Check for XML tags (v2)
 	if strings.Contains(content, "<role>") || strings.Contains(content, "<instructions>") {
 		return "v2"
+	}
+
+	// Check for v4 markers: flat triggers array + required Markdown sections
+	hasFlatTriggers := strings.Contains(frontmatter, "triggers:") &&
+		!strings.Contains(frontmatter, "keywords:") &&
+		!strings.Contains(frontmatter, "file_pattern:")
+	hasV4Sections := strings.Contains(content, "## Role") &&
+		strings.Contains(content, "## Instructions") &&
+		strings.Contains(content, "## Examples")
+
+	if hasFlatTriggers && hasV4Sections {
+		return "v4"
 	}
 
 	// Check for v3 markers: triggers in frontmatter AND Markdown sections
@@ -190,9 +170,50 @@ func (p *Parser) parseFrontmatterV3(frontmatter string) (*skillMetaV3, error) {
 	return &meta, nil
 }
 
-// ParseSkillFile parses a SKILL.md file and extracts metadata (Level 1).
-// Level 1 includes: frontmatter (name, description, triggers, etc.)
-// For full content loading, use UpgradeToLevel.
+// parseFrontmatterV4 parses v4 frontmatter using yaml.Unmarshal.
+// v4 uses minimal frontmatter with only name, description, and flat triggers array.
+func (p *Parser) parseFrontmatterV4(frontmatter string) (*skillMetaV4, error) {
+	var meta skillMetaV4
+	if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
+		return nil, fmt.Errorf("parse yaml: %w", err)
+	}
+
+	if meta.Name == "" {
+		return nil, fmt.Errorf("missing name in frontmatter")
+	}
+
+	if meta.Description == "" {
+		return nil, fmt.Errorf("missing description in frontmatter")
+	}
+
+	return &meta, nil
+}
+
+// detectCategory extracts category from skill file path.
+// Expected path format: .../skills/{category}/{name}/SKILL.md
+func (p *Parser) detectCategory(path string) string {
+	// Normalize path separators
+	path = strings.ReplaceAll(path, "\\", "/")
+
+	// Look for "skills/" in path
+	skillsIdx := strings.LastIndex(path, "/skills/")
+	if skillsIdx == -1 {
+		return ""
+	}
+
+	// Extract path after "skills/"
+	afterSkills := path[skillsIdx+len("/skills/"):]
+
+	// Split by "/" and get first component (category)
+	parts := strings.Split(afterSkills, "/")
+	if len(parts) >= 1 && parts[0] != "" {
+		return parts[0]
+	}
+
+	return ""
+}
+
+// ParseSkillFile parses a SKILL.md file and extracts metadata.
 func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 	f, err := os.Open(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
@@ -224,7 +245,6 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 		var triggers []string
 
 		if v3Meta.Triggers != nil {
-			// Convert v3 triggers to internal format
 			trigger := Trigger{
 				Keywords:     v3Meta.Triggers.Keywords,
 				FilePatterns: []string{},
@@ -239,7 +259,6 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			explicitTriggers = []Trigger{trigger}
 			triggers = p.triggersToStrings(explicitTriggers)
 		} else {
-			// Fallback to description-based extraction
 			descriptionTriggers := p.extractTriggers(v3Meta.Description)
 			triggers = descriptionTriggers
 			explicitTriggers = p.stringsToTriggers(descriptionTriggers, 0.5)
@@ -258,7 +277,6 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			StructureVersion: "v3",
 			DependsOn:        v3Meta.DependsOn,
 			DelegatesTo:      v3Meta.DelegatesTo,
-			LoadLevel:        LoadMetadata,
 		}
 	} else if version == "v2" {
 		v2Meta, err := p.parseFrontmatterV2(frontmatter)
@@ -270,11 +288,9 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 		var triggers []string
 
 		if len(v2Meta.Triggers) > 0 {
-			// Use explicit triggers from frontmatter
 			explicitTriggers = v2Meta.Triggers
 			triggers = p.triggersToStrings(explicitTriggers)
 		} else {
-			// Fallback to description-based extraction with weight 0.5
 			descriptionTriggers := p.extractTriggers(v2Meta.Description)
 			triggers = descriptionTriggers
 			explicitTriggers = p.stringsToTriggers(descriptionTriggers, 0.5)
@@ -293,7 +309,27 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			StructureVersion: "v2",
 			DependsOn:        v2Meta.DependsOn,
 			DelegatesTo:      v2Meta.DelegatesTo,
-			LoadLevel:        LoadMetadata,
+		}
+	} else if version == "v4" {
+		v4Meta, err := p.parseFrontmatterV4(frontmatter)
+		if err != nil {
+			return nil, fmt.Errorf("parse v4: %w", err)
+		}
+
+		contentStr := string(content)
+
+		result = &SkillMeta{
+			Name:             v4Meta.Name,
+			Description:      v4Meta.Description,
+			Triggers:         v4Meta.Triggers,
+			ExplicitTriggers: p.stringsToTriggers(v4Meta.Triggers, 0.7),
+			FilePath:         path,
+			Category:         p.detectCategory(path),
+			StructureVersion: "v4",
+			Role:             p.extractMarkdownSection(contentStr, "Role"),
+			Instructions:     p.extractMarkdownSection(contentStr, "Instructions"),
+			Examples:         p.extractMarkdownSection(contentStr, "Examples"),
+			References:       p.extractReferencesSection(contentStr),
 		}
 	} else {
 		var meta struct {
@@ -323,72 +359,10 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 			StructureVersion: "v1",
 			DependsOn:        nil,
 			DelegatesTo:      nil,
-			LoadLevel:        LoadMetadata,
 		}
 	}
 
 	return result, nil
-}
-
-// UpgradeToLevel upgrades a skill's content to the specified load level.
-// If the skill is already at or above the target level, returns nil.
-func (p *Parser) UpgradeToLevel(meta *SkillMeta, targetLevel LoadLevel) error {
-	if meta.LoadLevel >= targetLevel {
-		return nil
-	}
-
-	switch targetLevel {
-	case LoadCore:
-		content, err := os.ReadFile(meta.FilePath) // #nosec G304 -- controlled config/template file path
-		if err != nil {
-			return fmt.Errorf("read: %w", err)
-		}
-
-		contentStr := string(content)
-		var core *CoreContent
-
-		// v3 format uses Markdown sections
-		if meta.StructureVersion == "v3" {
-			core = &CoreContent{
-				Role:         p.extractMarkdownSection(contentStr, "Role"),
-				Instructions: p.extractMarkdownSection(contentStr, "Instructions"),
-				Constraints:  p.extractMarkdownSection(contentStr, "Constraints"),
-				Examples:     p.extractMarkdownSection(contentStr, "Examples"),
-			}
-		} else {
-			// v2 and v1 use XML tags
-			core = &CoreContent{
-				Role:         p.extractXMLTag(contentStr, "role"),
-				Instructions: p.extractXMLTag(contentStr, "instructions"),
-				Constraints:  p.extractXMLTag(contentStr, "constraints"),
-				Examples:     p.extractXMLTag(contentStr, "examples"),
-			}
-		}
-
-		meta.Core = core
-		meta.LoadLevel = LoadCore
-		return nil
-	case LoadExtended:
-		if meta.Core == nil {
-			if err := p.UpgradeToLevel(meta, LoadCore); err != nil {
-				return err
-			}
-		}
-
-		content, err := os.ReadFile(meta.FilePath) // #nosec G304 -- controlled config/template file path
-		if err != nil {
-			return fmt.Errorf("read: %w", err)
-		}
-
-		full := &FullContent{
-			Body: string(content),
-		}
-		meta.Full = full
-		meta.LoadLevel = LoadExtended
-		return nil
-	default:
-		return nil
-	}
 }
 
 // extractFrontmatter extracts YAML frontmatter between --- delimiters.
@@ -446,7 +420,7 @@ func (p *Parser) extractXMLTag(content, tagName string) string {
 }
 
 // extractMarkdownSection extracts content under a Markdown heading (e.g., "## Role").
-// Returns content from the heading until the next heading of equal or higher level.
+// Returns content from heading until next heading of equal or higher level.
 func (p *Parser) extractMarkdownSection(content, sectionName string) string {
 	// Look for ## SectionName
 	heading := "## " + sectionName
@@ -478,6 +452,55 @@ func (p *Parser) extractMarkdownSection(content, sectionName string) string {
 	}
 
 	return strings.TrimSpace(sectionContent)
+}
+
+// extractReferencesSection extracts reference file paths from ## References section.
+// Returns list of paths like ["references/constraints.md", "references/edge-cases.md"].
+func (p *Parser) extractReferencesSection(content string) []string {
+	heading := "## References"
+	startIdx := strings.Index(content, heading)
+	if startIdx == -1 {
+		return nil
+	}
+
+	// Find start of content (after heading line)
+	contentStart := startIdx + len(heading)
+	newlineIdx := strings.Index(content[contentStart:], "\n")
+	if newlineIdx == -1 {
+		return nil
+	}
+	contentStart += newlineIdx + 1
+
+	// Find end (next ## heading or end of content)
+	remainingContent := content[contentStart:]
+	nextHeadingIdx := strings.Index(remainingContent, "\n## ")
+
+	var sectionContent string
+	if nextHeadingIdx == -1 {
+		sectionContent = remainingContent
+	} else {
+		sectionContent = remainingContent[:nextHeadingIdx]
+	}
+
+	// Extract markdown link references: [text](path)
+	var refs []string
+	lines := strings.Split(sectionContent, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || !strings.HasPrefix(line, "- [") {
+			continue
+		}
+
+		// Extract path from [text](path)
+		openParen := strings.LastIndex(line, "(")
+		closeParen := strings.LastIndex(line, ")")
+		if openParen != -1 && closeParen != -1 && openParen < closeParen {
+			path := line[openParen+1 : closeParen]
+			refs = append(refs, path)
+		}
+	}
+
+	return refs
 }
 
 // extractTriggers extracts keywords from "Auto-activates for:" in description.
@@ -551,4 +574,59 @@ func (p *Parser) stringsToTriggers(strings []string, weight float64) []Trigger {
 		triggers = append(triggers, p.stringToTrigger(s, weight))
 	}
 	return triggers
+}
+
+// loadReferences checks if references/ directory exists and returns list of valid reference files.
+// Validates structure: max depth 1, no frontmatter in .md files.
+func (p *Parser) loadReferences(skillDir string) ([]string, error) {
+	refsDir := filepath.Join(skillDir, "references")
+	if _, err := os.Stat(refsDir); os.IsNotExist(err) {
+		return nil, nil
+	}
+
+	var refs []string
+
+	err := filepath.Walk(refsDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if path == refsDir {
+			return nil
+		}
+
+		relPath, err := filepath.Rel(refsDir, path)
+		if err != nil {
+			return err
+		}
+
+		depth := strings.Count(relPath, string(filepath.Separator))
+
+		if info.IsDir() {
+			if depth > 1 {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if filepath.Ext(path) == ".md" {
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("read reference %s: %w", path, err)
+			}
+
+			if strings.Contains(string(content), "---") {
+				return fmt.Errorf("reference file has frontmatter: %s", path)
+			}
+
+			refs = append(refs, relPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walk references: %w", err)
+	}
+
+	return refs, nil
 }

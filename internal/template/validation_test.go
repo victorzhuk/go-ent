@@ -38,7 +38,7 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 
 	parser := skill.NewParser()
 	tempFile := filepath.Join(t.TempDir(), "generated-skill.md")
-	err = os.WriteFile(tempFile, []byte(generatedContent), 0644)
+	err = os.WriteFile(tempFile, []byte(generatedContent), 0o644)
 	require.NoError(t, err, "should write generated skill to temp file")
 
 	meta, err := parser.ParseSkillFile(tempFile)
@@ -51,16 +51,9 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 	assert.Equal(t, []string{"go", "payment", "backend", "security"}, meta.Tags)
 	assert.Equal(t, "v2", meta.StructureVersion)
 
-	scorer := skill.NewQualityScorer()
-	qualityScore := scorer.Score(meta, generatedContent)
-	meta.QualityScore = qualityScore
-
-	assert.GreaterOrEqual(t, qualityScore, 90.0, "quality score should be >= 90")
-
 	validator := skill.NewValidator()
 	result := validator.ValidateStrict(meta, generatedContent)
 
-	t.Logf("Quality Score: %.2f", qualityScore)
 	t.Logf("Valid: %t", result.Valid)
 	t.Logf("Total Issues: %d", len(result.Issues))
 	t.Logf("Errors: %d", result.ErrorCount())
@@ -144,7 +137,7 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 
 	parser := skill.NewParser()
 	tempFile := filepath.Join(t.TempDir(), "generated-skill.md")
-	err = os.WriteFile(tempFile, []byte(generatedContent), 0644)
+	err = os.WriteFile(tempFile, []byte(generatedContent), 0o644)
 	require.NoError(t, err, "should write generated skill to temp file")
 
 	meta, err := parser.ParseSkillFile(tempFile)
@@ -157,16 +150,9 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 	assert.Equal(t, []string{"go", "api", "backend", "web"}, meta.Tags)
 	assert.Equal(t, "v2", meta.StructureVersion)
 
-	scorer := skill.NewQualityScorer()
-	qualityScore := scorer.Score(meta, generatedContent)
-	meta.QualityScore = qualityScore
-
-	assert.GreaterOrEqual(t, qualityScore, 90.0, "quality score should be >= 90")
-
 	validator := skill.NewValidator()
 	result := validator.ValidateStrict(meta, generatedContent)
 
-	t.Logf("Quality Score: %.2f", qualityScore)
 	t.Logf("Valid: %t", result.Valid)
 	t.Logf("Total Issues: %d", len(result.Issues))
 	t.Logf("Errors: %d", result.ErrorCount())

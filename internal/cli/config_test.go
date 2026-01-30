@@ -107,20 +107,20 @@ func TestConfigWithRealFiles(t *testing.T) {
 		info, err := os.Stat(cfgDir)
 		require.NoError(t, err)
 		assert.True(t, info.IsDir())
-		assert.Equal(t, os.FileMode(0750), info.Mode().Perm())
+		assert.Equal(t, os.FileMode(0o750), info.Mode().Perm())
 
 		// Verify file permissions
 		cfgPath := filepath.Join(cfgDir, "config.yaml")
 		info, err = os.Stat(cfgPath)
 		require.NoError(t, err)
 		assert.False(t, info.IsDir())
-		assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 	})
 
 	t.Run("config in nested directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		nestedDir := filepath.Join(tmpDir, "project", "subdir")
-		require.NoError(t, os.MkdirAll(nestedDir, 0750))
+		require.NoError(t, os.MkdirAll(nestedDir, 0o750))
 
 		cmd := cli.NewRootCmd()
 		cmd.SetArgs([]string{"config", "init", nestedDir})
@@ -226,8 +226,8 @@ func TestConfigEdgeCases(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		readonlyDir := filepath.Join(tmpDir, "readonly")
-		require.NoError(t, os.MkdirAll(readonlyDir, 0555)) // #nosec G301 -- intentionally readonly for test
-		defer func() { _ = os.Chmod(readonlyDir, 0750) }() // #nosec G302 -- cleanup after readonly test
+		require.NoError(t, os.MkdirAll(readonlyDir, 0o555)) // #nosec G301 -- intentionally readonly for test
+		defer func() { _ = os.Chmod(readonlyDir, 0o750) }() // #nosec G302 -- cleanup after readonly test
 
 		cmd := cli.NewRootCmd()
 		cmd.SetArgs([]string{"config", "init", readonlyDir})
@@ -250,7 +250,7 @@ func TestConfigEdgeCases(t *testing.T) {
 		realDir := filepath.Join(tmpDir, "real")
 		linkDir := filepath.Join(tmpDir, "link")
 
-		require.NoError(t, os.MkdirAll(realDir, 0750))
+		require.NoError(t, os.MkdirAll(realDir, 0o750))
 		require.NoError(t, os.Symlink(realDir, linkDir))
 
 		cmd := cli.NewRootCmd()

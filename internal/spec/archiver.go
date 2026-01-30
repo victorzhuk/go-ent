@@ -60,7 +60,7 @@ func (a *Archiver) Archive(changeID string, skipSpecs bool, dryRun bool) (*Archi
 	// Move change to archive
 	if !dryRun {
 		// Ensure archive directory exists
-		if err := os.MkdirAll(filepath.Dir(archivePath), 0750); err != nil {
+		if err := os.MkdirAll(filepath.Dir(archivePath), 0o750); err != nil {
 			return nil, fmt.Errorf("create archive dir: %w", err)
 		}
 
@@ -139,10 +139,10 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 
 		// Write updated spec
 		if !dryRun {
-			if err := os.MkdirAll(filepath.Dir(baseSpecPath), 0750); err != nil {
+			if err := os.MkdirAll(filepath.Dir(baseSpecPath), 0o750); err != nil {
 				return fmt.Errorf("create spec dir: %w", err)
 			}
-			if err := os.WriteFile(baseSpecPath, []byte(merged), 0600); err != nil {
+			if err := os.WriteFile(baseSpecPath, []byte(merged), 0o600); err != nil {
 				return fmt.Errorf("write spec: %w", err)
 			}
 		}
@@ -150,7 +150,6 @@ func (a *Archiver) mergeDeltas(changePath string, dryRun bool) ([]string, error)
 		updatedSpecs = append(updatedSpecs, capabilityDir)
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

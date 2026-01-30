@@ -56,16 +56,16 @@ func (s *Store) Exists() (bool, error) {
 func (s *Store) Init(project Project) error {
 	specPath := s.SpecPath()
 
-	if err := os.MkdirAll(filepath.Join(specPath, "specs"), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Join(specPath, "specs"), 0o750); err != nil {
 		return fmt.Errorf("create specs dir: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Join(specPath, "changes"), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Join(specPath, "changes"), 0o750); err != nil {
 		return fmt.Errorf("create changes dir: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Join(specPath, "tasks"), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Join(specPath, "tasks"), 0o750); err != nil {
 		return fmt.Errorf("create tasks dir: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Join(specPath, "changes", "archive"), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Join(specPath, "changes", "archive"), 0o750); err != nil {
 		return fmt.Errorf("create archive dir: %w", err)
 	}
 
@@ -75,7 +75,7 @@ func (s *Store) Init(project Project) error {
 		return fmt.Errorf("marshal project: %w", err)
 	}
 
-	if err := os.WriteFile(projectPath, data, 0600); err != nil {
+	if err := os.WriteFile(projectPath, data, 0o600); err != nil {
 		return fmt.Errorf("write project.yaml: %w", err)
 	}
 
@@ -231,10 +231,10 @@ func (s *Store) ReadFile(path string) (string, error) {
 
 func (s *Store) WriteFile(path, content string) error {
 	fullPath := filepath.Join(s.SpecPath(), path)
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(fullPath), 0o750); err != nil {
 		return fmt.Errorf("create dir: %w", err)
 	}
-	if err := os.WriteFile(fullPath, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
@@ -285,7 +285,7 @@ func (s *Store) SaveRegistry(reg *Registry) error {
 		return fmt.Errorf("marshal registry: %w", err)
 	}
 
-	if err := os.WriteFile(s.RegistryPath(), data, 0600); err != nil {
+	if err := os.WriteFile(s.RegistryPath(), data, 0o600); err != nil {
 		return fmt.Errorf("write registry.yaml: %w", err)
 	}
 
@@ -298,7 +298,7 @@ func (s *Store) LoadConfig() (*config.Config, error) {
 
 func (s *Store) SaveConfig(cfg *config.Config) error {
 	cfgPath := s.ConfigPath()
-	if err := os.MkdirAll(filepath.Dir(cfgPath), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0o750); err != nil {
 		return fmt.Errorf("create config dir: %w", err)
 	}
 
@@ -307,7 +307,7 @@ func (s *Store) SaveConfig(cfg *config.Config) error {
 		return fmt.Errorf("marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(cfgPath, data, 0600); err != nil {
+	if err := os.WriteFile(cfgPath, data, 0o600); err != nil {
 		return fmt.Errorf("write config.yaml: %w", err)
 	}
 
@@ -335,7 +335,7 @@ func saveYAML[T any](path string, obj *T) error {
 		return fmt.Errorf("marshal: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 

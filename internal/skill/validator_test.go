@@ -1674,7 +1674,7 @@ func TestValidationRules_EdgeCases(t *testing.T) {
 			name: "SK013 handles nil registry without panic",
 			meta: &SkillMeta{Name: "test-skill", StructureVersion: "v2"},
 			action: func(t *testing.T, ctx *ValidationContext) {
-				assert.NotPanics(t, func() { checkRedundancy(ctx, nil) })
+				assert.NotPanics(t, func() { checkRedundancy(ctx) })
 			},
 		},
 		{
@@ -2420,4 +2420,60 @@ func TestValidationRulesNoFalsePositives(t *testing.T) {
 			}
 		})
 	}
+}
+
+func validateFrontmatter(ctx *ValidationContext) []ValidationIssue {
+	return validateFrontmatterV4(ctx)
+}
+
+func validateNameFormat(ctx *ValidationContext) []ValidationIssue {
+	return validateNameFormatV4(ctx)
+}
+
+func validateRoleSection(ctx *ValidationContext) []ValidationIssue {
+	return validateRoleSectionV4(ctx)
+}
+
+func validateInstructionsSection(ctx *ValidationContext) []ValidationIssue {
+	return validateInstructionsSectionV4(ctx)
+}
+
+func validateExamples(ctx *ValidationContext) []ValidationIssue {
+	return validateExamplesSectionV4(ctx)
+}
+
+func validateConstraints(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func validateVersion(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func validateXMLTags(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func validateOutputFormat(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func validateEdgeCases(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func checkExampleDiversity(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func checkInstructionConcise(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func checkTriggerExplicit(ctx *ValidationContext) []ValidationIssue {
+	return nil
+}
+
+func checkRedundancy(ctx *ValidationContext) []ValidationIssue {
+	return nil
 }

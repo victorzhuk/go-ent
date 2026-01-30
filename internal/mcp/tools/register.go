@@ -20,7 +20,6 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry) {
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)
 	registerSkillValidate(s, skillRegistry)
-	registerSkillQuality(s, skillRegistry)
 
 	// State tools
 	registerStateSync(s)

@@ -12,8 +12,10 @@ import (
 	"github.com/victorzhuk/go-ent/internal/domain"
 )
 
-var patternCache = make(map[string]*regexp.Regexp)
-var cacheMutex sync.RWMutex
+var (
+	patternCache = make(map[string]*regexp.Regexp)
+	cacheMutex   sync.RWMutex
+)
 
 // MatchContext provides additional context for skill matching.
 type MatchContext struct {
@@ -210,7 +212,6 @@ type Registry struct {
 	runtimeSkills map[string]domain.Skill
 	parser        *Parser
 	validator     *Validator
-	scorer        *QualityScorer
 }
 
 // NewRegistry creates a new skill registry.
@@ -220,7 +221,6 @@ func NewRegistry() *Registry {
 		runtimeSkills: make(map[string]domain.Skill),
 		parser:        NewParser(),
 		validator:     NewValidator(),
-		scorer:        NewQualityScorer(),
 	}
 }
 
@@ -283,87 +283,7 @@ func (r *Registry) GetSkill(name string) (domain.Skill, error) {
 	return skill, nil
 }
 
-// resolveLoadOrder performs topological sort on skills based on dependencies.
-// Returns skills sorted such that dependencies appear before dependents.
-func (r *Registry) resolveLoadOrder(skills []SkillMeta) ([]SkillMeta, error) {
-	if len(skills) == 0 {
-		return skills, nil
-	}
-
-	skillMap := make(map[string]SkillMeta, len(skills))
-	for _, skill := range skills {
-		skillMap[skill.Name] = skill
-	}
-
-	graph := make(map[string][]string, len(skills))
-	inDegree := make(map[string]int, len(skills))
-
-	for _, skill := range skills {
-		name := skill.Name
-		graph[name] = []string{}
-		inDegree[name] = 0
-	}
-
-	for _, skill := range skills {
-		name := skill.Name
-		deps := skill.DependsOn
-
-		if len(deps) == 0 {
-			continue
-		}
-
-		for _, dep := range deps {
-			if _, exists := skillMap[dep]; !exists {
-				return nil, fmt.Errorf("dependency not found: skill '%s' required by '%s'", dep, name)
-			}
-			graph[dep] = append(graph[dep], name)
-			inDegree[name]++
-		}
-	}
-
-	queue := make([]string, 0, len(skills))
-	for name, degree := range inDegree {
-		if degree == 0 {
-			queue = append(queue, name)
-		}
-	}
-
-	sort.Strings(queue)
-
-	var result []SkillMeta
-	for len(queue) > 0 {
-		name := queue[0]
-		queue = queue[1:]
-
-		skill := skillMap[name]
-		result = append(result, skill)
-
-		for _, dependent := range graph[name] {
-			inDegree[dependent]--
-			if inDegree[dependent] == 0 {
-				queue = append(queue, dependent)
-				sort.Strings(queue)
-			}
-		}
-	}
-
-	if len(result) != len(skills) {
-		var remaining []string
-		for name := range inDegree {
-			if inDegree[name] > 0 {
-				remaining = append(remaining, name)
-			}
-		}
-		return nil, fmt.Errorf("circular dependency detected among skills: %v", remaining)
-	}
-
-	return result, nil
-}
-
-// Load scans a directory for SKILL.md files and loads their metadata (Level 1).
-// Level 1 includes: frontmatter (name, description, triggers, etc.)
-// Full file content is read only for quality scoring, not stored.
-// Use UpgradeToLevel to load Level 2 (core) or Level 3 (extended) on demand.
+// Load scans a directory for SKILL.md files and loads their metadata.
 func (r *Registry) Load(skillsPath string) error {
 	var collected []SkillMeta
 
@@ -388,21 +308,15 @@ func (r *Registry) Load(skillsPath string) error {
 			return fmt.Errorf("read %s: %w", path, err)
 		}
 
-		meta.QualityScore = r.scorer.Score(meta, string(content))
+		_ = content
 		collected = append(collected, *meta)
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
 
-	sorted, err := r.resolveLoadOrder(collected)
-	if err != nil {
-		return fmt.Errorf("resolve load order: %w", err)
-	}
-
-	r.skills = sorted
+	r.skills = collected
 	return nil
 }
 
@@ -735,60 +649,8 @@ func (r *Registry) ValidateSkill(name string) (*ValidationResult, error) {
 		return nil, fmt.Errorf("read skill file: %w", err)
 	}
 
-	result := r.validator.ValidateWithContext(meta, string(content), r)
+	result := r.validator.Validate(meta, string(content))
 	return result, nil
-}
-
-// ValidateAll validates all loaded skills and returns aggregate result.
-func (r *Registry) ValidateAll() (*ValidationResult, error) {
-	if len(r.skills) == 0 {
-		return &ValidationResult{
-			Valid:  true,
-			Issues: []ValidationIssue{},
-			Score:  nil,
-		}, nil
-	}
-
-	var allIssues []ValidationIssue
-	totalScore := 0.0
-
-	for _, skill := range r.skills {
-		result, err := r.ValidateSkill(skill.Name)
-		if err != nil {
-			return nil, fmt.Errorf("validate skill %s: %w", skill.Name, err)
-		}
-
-		allIssues = append(allIssues, result.Issues...)
-		if result.Score != nil {
-			totalScore += result.Score.Total
-		}
-	}
-
-	avgScore := totalScore / float64(len(r.skills))
-	valid := true
-	for _, issue := range allIssues {
-		if issue.Severity == SeverityError {
-			valid = false
-			break
-		}
-	}
-
-	return &ValidationResult{
-		Valid:  valid,
-		Issues: allIssues,
-		Score:  &QualityScore{Total: avgScore},
-	}, nil
-}
-
-// GetQualityReport returns a map of skill names to quality scores.
-func (r *Registry) GetQualityReport() map[string]float64 {
-	report := make(map[string]float64, len(r.skills))
-	for _, skill := range r.skills {
-		if skill.QualityScore != nil {
-			report[skill.Name] = skill.QualityScore.Total
-		}
-	}
-	return report
 }
 
 // UpgradeSkill upgrades a skill's content to the specified load level.
@@ -808,33 +670,3 @@ func (r *Registry) GetQualityReport() map[string]float64 {
 //     }
 //
 //  2. On execution (Level 3/LoadExtended): Load full content for detailed work
-//     if err := registry.UpgradeSkill(skill.Name, LoadExtended); err != nil {
-//     return err
-//     }
-//     // Now skill.Full.Body has complete content
-func (r *Registry) UpgradeSkill(name string, targetLevel LoadLevel) error {
-	skill, err := r.Get(name)
-	if err != nil {
-		return err
-	}
-
-	if err := r.parser.UpgradeToLevel(skill, targetLevel); err != nil {
-		return fmt.Errorf("upgrade %s: %w", name, err)
-	}
-
-	for i := range r.skills {
-		if r.skills[i].Name == name {
-			r.skills[i] = *skill
-			break
-		}
-	}
-
-	return nil
-}
-
-// PrepareForExecution upgrades a skill to Level 3 for execution.
-// This loads full body content including references and scripts.
-// Use this when a skill has been matched and is about to be executed.
-func (r *Registry) PrepareForExecution(name string) error {
-	return r.UpgradeSkill(name, LoadExtended)
-}

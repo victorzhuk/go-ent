@@ -51,7 +51,7 @@ Test output
 </output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -110,7 +110,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(invalidNameSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(invalidNameSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -166,7 +166,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(missingDescSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(missingDescSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -223,7 +223,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(emptyRoleSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(emptyRoleSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -277,7 +277,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0o644))
 
 		err := ValidateGeneratedSkill(skillPath)
 
@@ -316,7 +316,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(invalidSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -369,7 +369,7 @@ structure_version: "v2"
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(invalidVersionSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(invalidVersionSkill), 0o644))
 
 		parser := skillpkg.NewParser()
 		validator := skillpkg.NewValidator()
@@ -421,7 +421,7 @@ version: invalid
 <output_format>Test</output_format>
 `
 
-		require.NoError(t, os.WriteFile(skillPath, []byte(completelyInvalidSkill), 0644))
+		require.NoError(t, os.WriteFile(skillPath, []byte(completelyInvalidSkill), 0o644))
 
 		err := ValidateGeneratedSkill(skillPath)
 

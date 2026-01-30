@@ -28,7 +28,7 @@ skills:
 Test content`
 
 	validPath := filepath.Join(tmpDir, "valid.md")
-	if err := os.WriteFile(validPath, []byte(validAgent), 0644); err != nil {
+	if err := os.WriteFile(validPath, []byte(validAgent), 0o644); err != nil {
 		t.Fatalf("write valid file: %v", err)
 	}
 
@@ -57,7 +57,7 @@ model: invalid-model
 Test content`
 
 	invalidPath := filepath.Join(tmpDir, "invalid.md")
-	if err := os.WriteFile(invalidPath, []byte(invalidAgent), 0644); err != nil {
+	if err := os.WriteFile(invalidPath, []byte(invalidAgent), 0o644); err != nil {
 		t.Fatalf("write invalid file: %v", err)
 	}
 
@@ -96,7 +96,7 @@ model: sonnet
 Test content`
 
 	missingPath := filepath.Join(tmpDir, "missing.md")
-	if err := os.WriteFile(missingPath, []byte(missingAgent), 0644); err != nil {
+	if err := os.WriteFile(missingPath, []byte(missingAgent), 0o644); err != nil {
 		t.Fatalf("write missing file: %v", err)
 	}
 
@@ -136,7 +136,7 @@ unknownField: value
 Test content`
 
 	unknownPath := filepath.Join(tmpDir, "unknown.md")
-	if err := os.WriteFile(unknownPath, []byte(unknownAgent), 0644); err != nil {
+	if err := os.WriteFile(unknownPath, []byte(unknownAgent), 0o644); err != nil {
 		t.Fatalf("write unknown file: %v", err)
 	}
 

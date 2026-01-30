@@ -1,27 +1,11 @@
 ---
 name: go-perf
-description: 'Performance profiling, optimization, benchmarks. Auto-activates for: performance issues, profiling, optimization, memory leaks, benchmarking.'
-version: 2.0.0
-author: go-ent
-license: MIT
-compatibility:
-    claude_code: '>=1.0'
-    opencode: '>=0.1'
-tags:
-    - go
-    - performance
-    - profiling
-    - benchmarks
-    - optimization
-quality_score: 82
-category: go
+description: Performance profiling, optimization, benchmarks
 triggers:
-    keywords:
-        - performance
-        - optimize
-        - profiling
-        - benchmark
-    weight: 0.8
+  - performance
+  - optimize
+  - profiling
+  - benchmark
 ---
 
 ## Role
@@ -31,123 +15,24 @@ Expert Go performance specialist focused on profiling, benchmarking, and optimiz
 Prioritize data-driven performance improvements with measured results, avoiding premature optimization. Focus on identifying bottlenecks through profiling before applying optimizations.
 
 ## Instructions
-## Profiling
 
-```bash
-go test -cpuprofile=cpu.out -bench=. ./...
-go tool pprof -http=:8080 cpu.out
 
-go test -memprofile=mem.out -bench=. ./...
-go tool pprof -http=:8080 mem.out
 
-# Live
-import _ "net/http/pprof"
-go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+### Response Format
 
-# Benchmarks
-go test -bench=. -benchmem -count=5 ./...
-```
+Provide performance-focused recommendations with data-driven approach:
 
-## Memory Optimization
+1. **Profiling Strategy**: CPU, memory, and block profiling with clear steps
+2. **Benchmarking**: Test cases with realistic data and comparison metrics
+3. **Optimization**: Specific changes with before/after performance data
+4. **Concurrency**: Worker pools, errgroup, singleflight patterns
+5. **Memory**: Pre-allocation, sync.Pool, efficient data structures
+6. **Database**: Connection pooling, batching, query optimization
+7. **Measurement**: Benchmark results, profiling output, metrics
 
-```go
-// Pre-allocate slices
-results := make([]Result, 0, len(items))
+Focus on measurable improvements with clear before/after data and profiling evidence.
 
-// String building
-var b strings.Builder
-b.Grow(estimatedSize)
-
-// Sync.Pool for hot paths
-var bufPool = sync.Pool{
-    New: func() any { return new(bytes.Buffer) },
-}
-```
-
-## Concurrency
-
-```go
-g, ctx := errgroup.WithContext(ctx)
-g.SetLimit(runtime.GOMAXPROCS(0))
-
-for _, item := range items {
-    g.Go(func() error {
-        return process(ctx, item)
-    })
-}
-return g.Wait()
-```
-
-## Singleflight (Cache Stampede)
-
-```go
-var g singleflight.Group
-
-func getUser(ctx context.Context, id string) (*User, error) {
-    v, err, _ := g.Do(id, func() (any, error) {
-        return repo.FindByID(ctx, id)
-    })
-    return v.(*User), err
-}
-```
-
-## Database
-
-```go
-// Connection pool
-pool.Config().MaxConns = 25
-pool.Config().MinConns = 5
-
-// Batch inserts
-batch := &pgx.Batch{}
-for _, item := range items {
-    batch.Queue("INSERT INTO items (id, name) VALUES ($1, $2)", item.ID, item.Name)
-}
-br := pool.SendBatch(ctx, batch)
-```
-
-## Rate Limiting
-
-```go
-limiter := rate.NewLimiter(rate.Limit(1000), 100)
-if err := limiter.Wait(ctx); err != nil {
-    return err
-}
-```
-
-## Context7
-
-For up-to-date documentation on Go profiling and performance libraries, use:
-
-```
-mcp__context7__resolve(library: "runtime/pprof")
-mcp__context7__resolve(library: "net/http/pprof")
-```
-
-For third-party performance tools:
-- `golang.org/x/time/rate` — Rate limiting
-- `golang.org/x/sync/errgroup` — Concurrent error handling
-- `golang.org/x/sync/singleflight` — Duplicate suppression
-
-## Constraints
-
-- Include profiling before optimization (measure first, then optimize)
-- Include benchmarks with meaningful comparison data
-- Include pre-allocation of slices/maps when size is known
-- Include connection pooling for databases, HTTP clients, etc.
-- Include batch operations for bulk inserts/updates
-- Include concurrent processing with errgroup or worker pools
-- Include rate limiting for external service calls
-- Include memory reuse with sync.Pool for hot paths
-- Exclude premature optimization without profiling data
-- Exclude micro-optimizations with negligible impact
-- Exclude sacrificing readability for minor performance gains
-- Exclude ignoring error handling for performance
-- Exclude hard-coding limits without measurement
-- Bound to data-driven performance improvements
-- Follow "measure → optimize → verify" cycle
-
-## Edge Cases
+### Edge Cases
 
 If premature optimization is requested: Warn against it and recommend profiling first to identify actual bottlenecks.
 
@@ -178,9 +63,12 @@ If cache is being considered: Recommend identifying cache candidates based on re
 If distributed systems performance is an issue: Suggest examining network latency, serialization overhead, and considering load testing with realistic patterns.
 
 ## Examples
-<example>
-<input>Write a benchmark for a function that processes items</input>
-<output>
+
+### Example 1
+
+**Input**: Write a benchmark for a function that processes items
+
+**Output**:
 ```go
 func BenchmarkProcessItems(b *testing.B) {
     items := generateTestItems(1000)
@@ -217,12 +105,12 @@ func BenchmarkProcessItemsWithAllocs(b *testing.B) {
     }
 }
 ```
-</output>
-</example>
 
-<example>
-<input>Optimize memory usage in a function that builds strings</input>
-<output>
+### Example 2
+
+**Input**: Optimize memory usage in a function that builds strings
+
+**Output**:
 ```go
 // Before - inefficient concatenation
 func BuildString(items []string) string {
@@ -265,12 +153,12 @@ func BuildStringSlice(items []string) string {
     return string(result)
 }
 ```
-</output>
-</example>
 
-<example>
-<input>Profile a running application and identify bottlenecks</input>
-<output>
+### Example 3
+
+**Input**: Profile a running application and identify bottlenecks
+
+**Output**:
 ```bash
 # 1. Enable pprof in your application
 import _ "net/http/pprof"
@@ -330,20 +218,9 @@ func Process(data []byte) error {
     return nil
 }
 ```
-</output>
-</example>
 
-## Output Format
 
-Provide performance-focused recommendations with data-driven approach:
 
-1. **Profiling Strategy**: CPU, memory, and block profiling with clear steps
-2. **Benchmarking**: Test cases with realistic data and comparison metrics
-3. **Optimization**: Specific changes with before/after performance data
-4. **Concurrency**: Worker pools, errgroup, singleflight patterns
-5. **Memory**: Pre-allocation, sync.Pool, efficient data structures
-6. **Database**: Connection pooling, batching, query optimization
-7. **Measurement**: Benchmark results, profiling output, metrics
+## References
 
-Focus on measurable improvements with clear before/after data and profiling evidence.
-
+- [Constraints](references/constraints.md)
