@@ -19,6 +19,7 @@ func newSpecCmd() *cobra.Command {
 	cmd.AddCommand(newSpecInitCmd())
 	cmd.AddCommand(newSpecListCmd())
 	cmd.AddCommand(newSpecShowCmd())
+	cmd.AddCommand(newSpecArchiveCmd())
 
 	return cmd
 }
@@ -249,4 +250,84 @@ func printSpecDetailed(items []spec.ListItem) error {
 	}
 
 	return nil
+}
+
+func newSpecArchiveCmd() *cobra.Command {
+	var (
+		skipSpecs bool
+		dryRun    bool
+	)
+
+	cmd := &cobra.Command{
+		Use:   "archive <change-id>",
+		Short: "Archive a completed change",
+		Long:  "Archive a change to the archive directory and optionally merge delta specs into main specs",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			changeID := args[0]
+
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("get current directory: %w", err)
+			}
+
+			store := spec.NewStore(cwd)
+
+			exists, err := store.Exists()
+			if err != nil {
+				return fmt.Errorf("check openspec folder: %w", err)
+			}
+
+			if !exists {
+				return fmt.Errorf("no openspec folder found. Run 'go-ent spec init' first")
+			}
+
+			archiver := spec.NewArchiver(store)
+
+			validation, err := archiver.ValidateBeforeArchive(changeID, true)
+			if err != nil {
+				return fmt.Errorf("validate change: %w", err)
+			}
+
+			if !validation.Valid {
+				fmt.Printf("❌ Change validation failed:\n")
+				for _, issue := range validation.Issues {
+					fmt.Printf("  - %s\n", issue.Message)
+				}
+				return fmt.Errorf("change is not ready to archive")
+			}
+
+			result, err := archiver.Archive(changeID, skipSpecs, dryRun)
+			if err != nil {
+				return fmt.Errorf("archive change: %w", err)
+			}
+
+			if dryRun {
+				fmt.Printf("✅ Dry run complete - change would be archived to: %s\n", result.ArchivePath)
+			} else {
+				fmt.Printf("✅ Archived change %s to: %s\n", result.ChangeID, result.ArchivePath)
+			}
+
+			if len(result.UpdatedSpecs) > 0 {
+				fmt.Println("\nUpdated specs:")
+				for _, s := range result.UpdatedSpecs {
+					fmt.Printf("  - %s\n", s)
+				}
+			}
+
+			if len(result.Errors) > 0 {
+				fmt.Println("\nWarnings:")
+				for _, e := range result.Errors {
+					fmt.Printf("  - %s\n", e)
+				}
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVar(&skipSpecs, "skip-specs", false, "Skip merging delta specs into main specs")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be archived without making changes")
+
+	return cmd
 }
