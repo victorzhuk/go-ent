@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Dead code: Remove `internal/marketplace/` package (unused, zero production references)
+- Dead code: Remove `pkg/skills/plugins/` subtree (unused duplicate)
+- Cleanup: Remove MCP tool test artifacts (exports/, *.json, *.csv, *.prom)
+- Cleanup: Remove unused testdata/fallback directory
+
 ### Added
 - Complete documentation refactoring with INDEX.md navigation hub
 - CLI_REFERENCE.md with complete command documentation
 - CONFIGURATION.md with all configuration options
 - OPENSPEC_WORKFLOW.md aligned with Fission-AI/OpenSpec standards
+- ARCHITECTURE.md explaining project structure and three-directory pattern
 
 ---
 

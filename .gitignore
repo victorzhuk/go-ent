@@ -42,3 +42,9 @@ Thumbs.db
 
 # OpenSpec BoltDB cache (auto-generated)
 openspec/registry.db
+
+# MCP tool test artifacts
+internal/mcp/tools/exports/
+internal/mcp/tools/*.json
+internal/mcp/tools/*.csv
+internal/mcp/tools/*.prom

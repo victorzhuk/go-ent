@@ -1,562 +1,1034 @@
-# go-ent Architecture
+# Architecture Documentation
 
-System architecture for go-ent v0.3.0 (Architecture v2.0).
+Comprehensive guide to go-ent's project structure, design patterns, and architectural decisions.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [System Components](#system-components)
-- [Data Flow](#data-flow)
-- [Layer Responsibilities](#layer-responsibilities)
-- [Design Decisions](#design-decisions)
-- [Technology Stack](#technology-stack)
+1. [Three-Directory Pattern](#three-directory-pattern)
+2. [Schema Locations](#schema-locations)
+3. [Template Terminology](#template-terminology)
+4. [Skill System Organization](#skill-system-organization)
+5. [Contribution Guidelines](#contribution-guidelines)
+6. [Migration Guide](#migration-guide)
 
 ---
 
-## Overview
+## Three-Directory Pattern
 
-go-ent is an **enterprise Go development toolkit** that provides:
+go-ent uses a three-directory pattern to separate source code from generated artifacts. This pattern ensures clean separation of concerns and prevents accidental edits to generated files.
 
-- **MCP Server**: Spec and workflow management via Model Context Protocol
-- **Plugin System**: Claude Code integration with agents, skills, and commands
-- **OpenSpec Workflow**: Spec-driven development with change tracking
-- **Self-Hosted**: Uses itself for development (dogfooding)
-
-### Architecture Diagram
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Claude Code Plugin                         │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐          │
-│  │ 17 Agents    │ │ 16 Commands  │ │ 15 Skills    │          │
-│  └──────────────┘ └──────────────┘ └──────────────┘          │
-└─────────────────────────┬────────────────────────────────────┘
-                          │ MCP Protocol (stdio)
-                          ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    MCP Server (ent binary)                    │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ Tools: spec_*, registry_*, workflow_*, etc.            │  │
-│  └────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ Domain: Spec management, Registry, Workflow state      │  │
-│  └────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ CLI: Standalone commands (init, config, skill, etc.)   │  │
-│  └────────────────────────────────────────────────────────┘  │
-└─────────────────────────┬────────────────────────────────────┘
-                          │ File I/O + BoltDB
-                          ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    Project Structure                          │
-│  openspec/                                                    │
-│  ├── config.yaml         # OpenSpec configuration            │
-│  ├── specs/              # Source of truth (deployed state)  │
-│  ├── changes/            # Active change proposals           │
-│  │   ├── <change-id>/                                        │
-│  │   │   ├── proposal.md                                     │
-│  │   │   ├── specs/     # Delta specs                        │
-│  │   │   └── tasks.md                                        │
-│  │   └── archive/       # Completed changes                  │
-│  └── .go-ent/                                                 │
-│      ├── config.yaml    # Project configuration              │
-│      └── state.db       # BoltDB (registry, workflow state)  │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## System Components
-
-### 1. MCP Server (`cmd/ent`)
-
-**Purpose**: Provide tools for spec and workflow management.
-
-**Key Files**:
-- `cmd/ent/main.go` - Entry point with MCP server and CLI fallback
-- `internal/mcp/server/` - MCP server setup
-- `internal/mcp/tools/` - Tool handlers
-
-**MCP Tools** (30+ tools):
-- **Spec management**: `spec_init`, `spec_create`, `spec_list`, `spec_show`, `spec_update`, `spec_delete`, `spec_validate`, `spec_archive`
-- **Registry**: `registry_list`, `registry_update`, `registry_next`
-- **Workflow**: `workflow_state`, `workflow_start`, `workflow_complete`
-
-**Protocol**: Uses stdin/stdout for communication with Claude Code.
-
----
-
-### 2. Claude Code Plugin (`plugins/go-ent`)
-
-**Purpose**: Integrate go-ent with Claude Code.
-
-**Structure**:
-```
-plugins/go-ent/
-├── .claude-plugin/
-│   ├── plugin.json           # MCP configuration
-│   └── marketplace.json      # Marketplace metadata
-├── agents/
-│   ├── meta/                 # Agent definitions (YAML)
-│   └── prompts/              # Agent prompts (Markdown)
-├── commands/                 # Slash commands
-└── skills/                   # Skill definitions
-```
-
-**Components**:
-- **17 Agents**: Specialized roles (architect, coder, planner, etc.)
-- **16 Commands**: Workflow shortcuts (`/ent:plan`, `/ent:task`, etc.)
-- **15 Skills**: Domain knowledge (go-code, go-api, go-arch, etc.)
-
----
-
-### 3. Domain Layer (`internal/domain`)
-
-**Purpose**: Core business logic and types.
-
-**Key Packages**:
-- `internal/domain/agent.go` - Agent types and resolution
-- `internal/domain/skill.go` - Skill types and validation
-- `internal/spec/` - Spec management domain
-- `internal/config/` - Configuration management
-
-**Domain Types**:
-```go
-type Agent struct {
-    ID          string
-    Name        string
-    Model       string
-    Skills      []string
-    Temperature float64
-}
-
-type Skill struct {
-    ID           string
-    Name         string
-    Category     string
-    QualityScore int
-    Triggers     []string
-}
-
-type Spec struct {
-    Type    string // "spec" or "change"
-    ID      string
-    Content string
-}
-```
-
----
-
-### 4. OpenSpec Structure
-
-**Purpose**: Organize specifications and changes.
-
-#### Specs (Source of Truth)
-
-```
-openspec/specs/
-├── api/
-│   ├── handlers.md
-│   └── middleware.md
-├── domain/
-│   ├── models.md
-│   └── services.md
-└── infrastructure/
-    ├── database.md
-    └── cache.md
-```
-
-**Characteristics**:
-- Reflect **current production state**
-- Updated only when changes are deployed
-- Versioned with codebase
-
-#### Changes (Proposals)
-
-```
-openspec/changes/
-├── add-auth-middleware/
-│   ├── proposal.md       # Problem, solution, alternatives
-│   ├── design.md         # Technical design (optional)
-│   ├── tasks.md          # Task breakdown
-│   └── specs/            # Delta specs
-│       └── api/
-│           └── middleware.md
-└── archive/              # Completed changes
-```
-
-**Lifecycle**: Created → In Progress → Complete → Archived
-
----
-
-## Data Flow
-
-### 1. Spec Management Flow
-
-```
-┌─────────┐     MCP      ┌─────────┐     Domain     ┌──────────┐
-│ Claude  │────Call─────>│   MCP   │────Logic──────>│  Spec    │
-│  Code   │              │ Server  │                 │ Manager  │
-└─────────┘     Result    └─────────┘     CRUD       └──────────┘
-     ▲           <─────         │                          │
-     │                          │                          │ File I/O
-     └──────────────────────────┴──────────────────────────┴──────>
-                                                      openspec/
-```
-
-**Steps**:
-1. User calls command (`/ent:plan`) or agent uses tool
-2. Claude Code invokes MCP tool (`spec_create`)
-3. MCP server validates request
-4. Domain layer performs business logic
-5. File system updated
-6. Result returned to Claude Code
-
----
-
-### 2. Task Execution Flow
-
-```
-┌────────────┐                 ┌──────────┐                 ┌─────────┐
-│  Agent     │───Get Next─────>│ Registry │───Query────────>│ BoltDB  │
-│  (Coder)   │                 │  Tools   │                 │ State   │
-└────────────┘                 └──────────┘                 └─────────┘
-      │                              │
-      │ Execute                      │ Update Status
-      ▼                              ▼
-┌────────────┐                 ┌──────────┐
-│   Code     │◀────Read────────│  Spec    │
-│ Repository │                 │  Files   │
-└────────────┘                 └──────────┘
-```
-
-**Steps**:
-1. Agent requests next task (`registry_next`)
-2. Registry queries BoltDB for available tasks
-3. Task loaded from change directory
-4. Agent reads relevant specs
-5. Agent executes task
-6. Agent updates task status
-7. Changes committed to repository
-
----
-
-### 3. Workflow State Machine
-
-```
-        start
-          │
-          ▼
-   ┌──────────┐
-   │  Draft   │──────────────┐
-   └──────────┘              │ reject
-          │ approve           │
-          ▼                   ▼
-   ┌──────────┐         ┌──────────┐
-   │  Review  │         │ Revise   │
-   └──────────┘         └──────────┘
-          │ approve           │
-          ▼                   │
-   ┌──────────┐              │
-   │Implement │◀─────────────┘
-   └──────────┘
-          │ complete
-          ▼
-   ┌──────────┐
-   │ Archive  │
-   └──────────┘
-```
-
-**States**:
-- **Draft**: Proposal being written
-- **Review**: Awaiting human approval
-- **Revise**: Rejected, needs changes
-- **Implement**: Tasks being executed
-- **Archive**: Completed, specs merged
-
----
-
-## Layer Responsibilities
-
-### Clean Architecture Layers
-
-```
-┌────────────────────────────────────────┐
-│           Transport Layer              │  MCP tools, CLI commands
-│  (internal/mcp/tools, internal/cli)   │
-└────────────────┬───────────────────────┘
-                 │ calls
-┌────────────────▼───────────────────────┐
-│           Use Case Layer               │  Workflow orchestration
-│  (internal/workflow, internal/agent)  │  Agent execution
-└────────────────┬───────────────────────┘
-                 │ uses
-┌────────────────▼───────────────────────┐
-│           Domain Layer                 │  Business logic
-│  (internal/spec, internal/domain)     │  Core types
-└────────────────┬───────────────────────┘
-                 │ depends on abstractions
-┌────────────────▼───────────────────────┐
-│         Infrastructure Layer           │  File I/O, BoltDB
-│  (internal/store, internal/fs)        │  External systems
-└────────────────────────────────────────┘
-```
-
-**Dependency Rule**: Dependencies flow inward. Inner layers never depend on outer layers.
-
----
-
-### Layer Details
-
-#### Transport Layer
-
-**Responsibility**: Handle external requests (MCP, CLI).
-
-**Examples**:
-- `internal/mcp/tools/spec.go` - MCP tool handlers
-- `internal/cli/init.go` - CLI commands
-
-**Does NOT**:
-- Contain business logic
-- Access infrastructure directly
-
----
-
-#### Use Case Layer
-
-**Responsibility**: Orchestrate domain operations.
-
-**Examples**:
-- `internal/workflow/` - Workflow state management
-- `internal/agent/executor.go` - Agent task execution
-
-**Does**:
-- Coordinate multiple domain operations
-- Manage transactions
-- Handle authorization
-
----
-
-#### Domain Layer
-
-**Responsibility**: Core business logic.
-
-**Examples**:
-- `internal/spec/manager.go` - Spec CRUD operations
-- `internal/domain/agent.go` - Agent resolution
-
-**Does**:
-- Validate business rules
-- Define core types
-- Encapsulate domain knowledge
-
-**Does NOT**:
-- Depend on infrastructure
-- Know about transport mechanisms
-
----
-
-#### Infrastructure Layer
-
-**Responsibility**: External system integration.
-
-**Examples**:
-- `internal/store/bolt.go` - BoltDB persistence
-- `internal/fs/` - File system operations
-
-**Does**:
-- Implement repository interfaces
-- Handle external dependencies
-- Manage connections
-
----
-
-## Design Decisions
-
-### 1. MCP Server Architecture
-
-**Decision**: Use MCP protocol for Claude Code integration.
-
-**Rationale**:
-- Industry standard (Anthropic, OpenAI, AWS support)
-- Language-agnostic
-- Bidirectional communication
-- Tool discovery
-
-**Trade-offs**:
-- ✅ Pro: Wide compatibility
-- ✅ Pro: Future-proof
-- ❌ Con: Requires running process
-
----
-
-### 2. OpenSpec Workflow
-
-**Decision**: Separate specs (truth) from changes (proposals).
-
-**Rationale**:
-- **Brownfield-first**: Works with existing codebases
-- **Audit trail**: Complete change history
-- **Iterative**: Changes evolve through stages
-- **Review gates**: Human oversight
-
-**Trade-offs**:
-- ✅ Pro: Clear separation of concerns
-- ✅ Pro: Change tracking
-- ❌ Con: More file structure
-
----
-
-### 3. Embedded vs. Runtime Templates
-
-**Decision**: Hybrid approach - embedded structure templates, AI-generated business logic.
-
-**Rationale**:
-- Templates ensure **structural consistency**
-- AI generates **domain-specific logic**
-- Best of both worlds
-
-**Trade-offs**:
-- ✅ Pro: Consistency + Flexibility
-- ✅ Pro: Reduces token usage
-- ❌ Con: More complex system
-
----
-
-### 4. BoltDB for State
-
-**Decision**: Use BoltDB for workflow and registry state.
-
-**Rationale**:
-- **Embedded**: No external database
-- **ACID**: Reliable transactions
-- **Fast**: In-process access
-- **Simple**: Single file
-
-**Trade-offs**:
-- ✅ Pro: Zero configuration
-- ✅ Pro: Portable
-- ❌ Con: Single writer (not an issue for local dev)
-
----
-
-### 5. Split-File Agent Format
-
-**Decision**: Separate agent metadata (YAML) from prompts (Markdown).
-
-**Rationale**:
-- **Clarity**: Easy to read/edit
-- **Reusability**: Share prompt fragments
-- **Validation**: YAML schema validation
-- **Version control**: Better diffs
-
-**Trade-offs**:
-- ✅ Pro: Maintainable
-- ✅ Pro: Composable
-- ❌ Con: Two files per agent
-
----
-
-### 6. Progressive Skill Loading
-
-**Decision**: Load skills in three stages (metadata → core → extended).
-
-**Rationale**:
-- **Token efficiency**: Load only what's needed
-- **Performance**: Faster initial load
-- **Scalability**: Support 100+ skills
-
-**Stages**:
-1. **Metadata** (150 tokens): ID, triggers, quality score
-2. **Core** (500 tokens): Core expertise, common patterns
-3. **Extended** (1500 tokens): Advanced topics, references
-
-**Trade-offs**:
-- ✅ Pro: 70-90% token reduction
-- ✅ Pro: Faster responses
-- ❌ Con: More complex loading logic
-
----
-
-## Technology Stack
-
-### Core Technologies
-
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Go** | Primary language | 1.24+ |
-| **MCP Protocol** | AI tool integration | 2025 spec |
-| **BoltDB** | State persistence | v1.3.7 |
-| **Markdown** | Documentation format | CommonMark |
-| **YAML** | Configuration format | 1.2 |
-
-### Go Libraries
-
-| Library | Purpose |
-|---------|---------|
-| `github.com/mark3labs/mcp-go` | MCP server SDK |
-| `go.etcd.io/bbolt` | Embedded database |
-| `github.com/caarlos0/env/v11` | Environment config |
-| `gopkg.in/yaml.v3` | YAML parsing |
-
-### Development Tools
-
-| Tool | Purpose |
-|------|---------|
-| `golangci-lint` | Linting |
-| `gofumpt` | Formatting |
-| `testify` | Testing assertions |
-| `make` | Build automation |
-
----
-
-## Project Structure
+### Directory Overview
 
 ```
 go-ent/
-├── cmd/
-│   └── ent/                   # MCP server + CLI entry point
-│       └── main.go
-├── internal/
-│   ├── cli/                   # CLI commands
-│   ├── config/                # Configuration management
-│   ├── domain/                # Core domain types
-│   ├── mcp/
-│   │   ├── server/            # MCP server setup
-│   │   └── tools/             # Tool handlers
-│   ├── spec/                  # Spec management domain
-│   ├── store/                 # BoltDB persistence
-│   └── workflow/              # Workflow orchestration
-├── plugins/go-ent/            # Claude Code plugin
-│   ├── agents/
-│   │   ├── meta/              # Agent YAML definitions
-│   │   └── prompts/           # Agent Markdown prompts
-│   ├── commands/              # Slash commands
-│   ├── skills/                # Skill definitions
-│   └── .claude-plugin/
-│       ├── plugin.json        # MCP configuration
-│       └── marketplace.json   # Marketplace metadata
-├── openspec/                  # Self-hosted development
-│   ├── config.yaml
-│   ├── specs/
-│   ├── changes/
-│   └── changes/archive/
-├── docs/                      # Documentation
-└── scripts/                   # Build/run scripts
+├── pkg/           # Source code and canonical definitions
+├── .claude/       # Generated by Claude Code (DO NOT EDIT)
+└── .opencode/     # Generated by OpenCode (DO NOT EDIT)
+```
+
+### `pkg/` - Source Code
+
+**Purpose:** Contains all human-written source code and canonical definitions.
+
+**Contents:**
+- `pkg/schemas/` - Go code generated from YAML schemas
+- `pkg/skills/` - Skill definitions in markdown format
+- `pkg/` - All other Go packages and implementations
+
+**Editing Policy:** ✅ EDIT FREELY - This is the primary source code directory.
+
+**Example:**
+```go
+// pkg/schemas/agent.go - Generated from YAML
+type Agent struct {
+    Name        string
+    Description string
+    Model       string
+    Skills      []string
+}
+```
+
+### `.claude/` - Claude Code Generated
+
+**Purpose:** Contains artifacts generated by Claude Code during development workflows.
+
+**Contents:**
+- `.claude/agents/` - Generated agent configurations
+- `.claude/commands/` - Generated command definitions
+- `.claude/skills/` - Processed skill files for Claude Code
+
+**Editing Policy:** ❌ DO NOT EDIT MANUALLY - All changes will be overwritten.
+
+**Example:**
+```yaml
+# .claude/skills/ent/ent-conventions/SKILL.md
+# Generated from pkg/skills/ent/ent-conventions/SKILL.md
+# Claude Code consumes this directly
+---
+name: ent-conventions
+description: 'Go code style...'
+version: 1.0.0
+---
+## Role
+...
+```
+
+**Why Separate?**
+- Claude Code expects a specific directory structure
+- Generation process adds metadata and transforms content
+- Allows regeneration without conflicts
+
+### `.opencode/` - OpenCode Generated
+
+**Purpose:** Contains artifacts generated by OpenCode for different consumption contexts.
+
+**Contents:**
+- `.opencode/skills/` - Skill files in OpenCode format
+- Additional generated assets for other tools
+
+**Editing Policy:** ❌ DO NOT EDIT MANUALLY - All changes will be overwritten.
+
+**Relationship to `.claude/`:**
+- Same source (`pkg/skills/`)
+- Different output format for different tools
+- Parallel generation pipelines
+
+---
+
+## Schema Locations
+
+go-ent uses YAML as the canonical schema definition language, with Go code generated from these schemas.
+
+### Schema Definition Locations
+
+**Canonical Source:** `schemas/`
+
+```
+schemas/
+├── claude.yaml       # Claude Code agent/skill spec
+├── opencode.yaml     # OpenCode spec
+└── [future specs]    # Additional tool specifications
+```
+
+**Purpose:**
+- Human-readable schema definitions
+- Single source of truth for data structures
+- Easy to review and modify
+- Tool-agnostic format
+
+**Example (schemas/claude.yaml):**
+```yaml
+agent:
+  description: Agent frontmatter specification
+  fields:
+    name:
+      type: string
+      required: true
+      description: Agent identifier
+
+    description:
+      type: string
+      required: true
+      description: Brief description
+
+    model:
+      type: string
+      values: [sonnet, opus, haiku, inherit]
+      default: inherit
+```
+
+### Generated Go Code Location
+
+**Location:** `pkg/schemas/`
+
+```
+pkg/schemas/
+├── agent.example.md  # Example usage
+├── agent.schema.json # JSON schema export
+└── [future files]   # Generated Go structs
+```
+
+**Purpose:**
+- Type-safe Go code for schema definitions
+- Used throughout the codebase
+- Generated from YAML to ensure consistency
+
+**Generation Process:**
+```bash
+# When schemas change, regenerate:
+make generate-schemas
+# or
+go generate ./pkg/schemas/...
+```
+
+**Usage in Code:**
+```go
+import "github.com/victorzhuk/go-ent/pkg/schemas"
+
+// Use generated types
+agent := schemas.Agent{
+    Name:        "coder",
+    Description: "Code implementation",
+    Model:       "sonnet",
+}
+```
+
+### Schema Update Workflow
+
+1. **Modify YAML:**
+   ```bash
+   vim schemas/claude.yaml
+   ```
+
+2. **Regenerate Go Code:**
+   ```bash
+   make generate-schemas
+   ```
+
+3. **Update Tests:**
+   ```bash
+   vim pkg/schemas/agent_test.go
+   ```
+
+4. **Run Tests:**
+   ```bash
+   go test ./pkg/schemas/...
+   ```
+
+---
+
+## Template Terminology
+
+The word "template" has three distinct meanings in go-ent. Understanding these differences is crucial for navigating the codebase.
+
+### 1. Skill Templates
+
+**Location:** CLI management (`internal/cli/skill/templates.go`)
+
+**Purpose:** Pre-built skill patterns for common development tasks.
+
+**Usage:**
+```bash
+# List available templates
+ent skill list-templates
+
+# Create skill from template
+ent skill new my-payment-skill \
+  --template go-basic \
+  --description "Payment processing"
+```
+
+**Example Template:**
+```go
+// internal/cli/skill/templates.go
+var builtInTemplates = []template.Template{
+    {
+        Name:        "go-basic",
+        Category:    "go",
+        Description: "Basic Go development skill",
+        Content:     `...markdown template content...`,
+    },
+}
+```
+
+**Generated Output:**
+- Creates a new SKILL.md file in `pkg/skills/`
+- Includes frontmatter, sections, and examples
+- Ready for customization
+
+### 2. Go Templates (text/template)
+
+**Location:** Template engine (`internal/template/`)
+
+**Purpose:** Standard Go template system for dynamic content generation.
+
+**Used For:**
+- Generating skill files from templates
+- Creating command outputs
+- Formatting documentation
+
+**Example:**
+```go
+// internal/template/engine.go
+import "text/template"
+
+const skillTemplate = `
+---
+name: {{.Name}}
+description: "{{.Description}}"
+version: {{.Version}}
+---
+
+## Role
+
+{{.RoleContent}}
+
+## Instructions
+
+{{.Instructions}}
+`
+
+func GenerateSkill(data SkillData) (string, error) {
+    tmpl := template.Must(template.New("skill").Parse(skillTemplate))
+    var buf bytes.Buffer
+    if err := tmpl.Execute(&buf, data); err != nil {
+        return "", err
+    }
+    return buf.String(), nil
+}
+```
+
+**Template Syntax:**
+- `{{.Field}}` - Variable interpolation
+- `{{range .Items}}...{{end}}` - Loops
+- `{{if .Condition}}...{{end}}` - Conditionals
+
+### 3. Template Engine
+
+**Location:** `internal/template/`
+
+**Purpose:** Complete template processing system.
+
+**Components:**
+- `engine.go` - Template execution engine
+- `loader.go` - Load templates from files
+- `parser.go` - Parse template syntax
+- `generator.go` - Generate content from templates
+- `funcs.go` - Custom template functions
+
+**Features:**
+- Load templates from files
+- Validate template syntax
+- Execute with data context
+- Custom helper functions
+
+**Example Usage:**
+```go
+import "github.com/victorzhuk/go-ent/internal/template"
+
+// Load a template
+tmpl, err := template.Load("path/to/template.tmpl")
+if err != nil {
+    return err
+}
+
+// Execute with data
+output, err := tmpl.Execute(data)
+if err != nil {
+    return err
+}
+```
+
+### Summary Table
+
+| Term | Location | Purpose | Example |
+|------|----------|---------|---------|
+| **Skill Templates** | CLI commands | Pre-built skill patterns | `go-basic`, `go-complete` |
+| **Go Templates** | Standard library | Dynamic content generation | `text/template` syntax |
+| **Template Engine** | `internal/template/` | Template processing system | Load, parse, execute |
+
+---
+
+## Skill System Organization
+
+The skill system is distributed across multiple directories, each serving a specific purpose in the skill lifecycle.
+
+### Directory Structure
+
+```
+go-ent/
+├── pkg/skills/          # Source definitions (canonical)
+│   ├── core/           # Core development skills
+│   ├── ent/            # go-ent specific skills
+│   └── go/             # Go language skills
+│
+├── internal/skill/      # Processing code
+│   ├── parser.go       # Parse SKILL.md files
+│   ├── registry.go     # Skill registry
+│   ├── validator.go    # Validation logic
+│   └── scorer.go       # Quality scoring
+│
+├── .claude/skills/      # Generated outputs
+│   ├── core/           # Processed for Claude Code
+│   ├── ent/
+│   └── go/
+│
+└── .opencode/skills/    # Generated for OpenCode
+    ├── core/
+    ├── ent/
+    └── go/
+```
+
+### `pkg/skills/` - Source Definitions
+
+**Purpose:** Canonical skill definitions in markdown format.
+
+**Structure:**
+```bash
+pkg/skills/
+├── core/                    # Cross-language core skills
+│   ├── arch-core/
+│   │   └── SKILL.md        # Architecture patterns
+│   ├── debug-core/
+│   │   └── SKILL.md        # Debugging methodology
+│   ├── review-core/
+│   │   └── SKILL.md        # Code review best practices
+│   └── security-core/
+│       └── SKILL.md        # Security fundamentals
+│
+├── ent/                     # go-ent framework skills
+│   ├── ent-conventions/
+│   │   └── SKILL.md        # Go code style
+│   ├── ent-openspec/
+│   │   └── SKILL.md        # OpenSpec workflow
+│   ├── ent-principals/
+│   │   └── SKILL.md        # Principal hierarchy
+│   └── ent-judgment/
+│       └── SKILL.md        # Decision framework
+│
+└── go/                      # Go language skills
+    ├── go-arch/
+    │   └── SKILL.md        # Clean Architecture
+    ├── go-code/
+    │   └── SKILL.md        # Go patterns
+    ├── go-db/
+    │   └── SKILL.md        # Database integration
+    └── go-test/
+        └── SKILL.md        # Testing patterns
+```
+
+**Skill File Format:**
+```markdown
+---
+name: skill-name
+description: "Brief description"
+version: "1.0.0"
+author: "go-ent"
+disable-model-invocation: true
+user-invocable: false
+---
+
+## Role
+
+[What this skill does]
+
+## Instructions
+
+[How to use this skill]
+
+## Examples
+
+[Code examples]
+```
+
+**Editing Policy:** ✅ EDIT FREELY - This is the source for all skills.
+
+### `internal/skill/` - Processing Code
+
+**Purpose:** Go code that processes, validates, and manages skills.
+
+**Key Components:**
+
+**Parser (`parser.go`):**
+```go
+func ParseSkillFile(path string) (*Skill, error) {
+    // Read markdown file
+    content := os.ReadFile(path)
+
+    // Parse frontmatter
+    frontmatter := parseFrontmatter(content)
+
+    // Extract sections
+    sections := extractSections(content)
+
+    return &Skill{
+        Frontmatter: frontmatter,
+        Sections:    sections,
+    }, nil
+}
+```
+
+**Registry (`registry.go`):**
+```go
+type Registry struct {
+    skills map[string]*Skill
+    mu     sync.RWMutex
+}
+
+func (r *Registry) Register(skill *Skill) error {
+    r.mu.Lock()
+    defer r.mu.Unlock()
+    r.skills[skill.Name] = skill
+    return nil
+}
+
+func (r *Registry) Get(name string) (*Skill, error) {
+    r.mu.RLock()
+    defer r.mu.RUnlock()
+    skill, ok := r.skills[name]
+    if !ok {
+        return nil, ErrNotFound
+    }
+    return skill, nil
+}
+```
+
+**Validator (`validator.go`):**
+```go
+func ValidateSkill(skill *Skill) (*ValidationReport, error) {
+    report := &ValidationReport{}
+
+    // Check required fields
+    if skill.Name == "" {
+        report.AddError("name is required")
+    }
+
+    // Validate frontmatter
+    if err := validateFrontmatter(skill.Frontmatter); err != nil {
+        report.AddError(fmt.Sprintf("frontmatter: %w", err))
+    }
+
+    // Check section structure
+    validateSections(skill.Sections, report)
+
+    return report, nil
+}
+```
+
+**Scorer (`scorer.go`):**
+```go
+func ScoreSkill(skill *Skill) (int, error) {
+    score := 0
+
+    // Check frontmatter completeness (+20)
+    if hasRequiredFrontmatter(skill) {
+        score += 20
+    }
+
+    // Check examples (+30)
+    if hasExamples(skill) {
+        score += 30
+    }
+
+    // Check references (+10)
+    if hasReferences(skill) {
+        score += 10
+    }
+
+    return score, nil
+}
+```
+
+**Editing Policy:** ✅ EDIT FREELY - This is implementation code.
+
+### `.claude/skills/` - Generated Outputs
+
+**Purpose:** Skill files processed and formatted for Claude Code consumption.
+
+**Characteristics:**
+- Frontmatter in specific format
+- Sections normalized
+- Additional metadata added
+- Optimized for Claude Code parsing
+
+**Editing Policy:** ❌ DO NOT EDIT - Regenerated from `pkg/skills/`.
+
+### `.opencode/skills/` - OpenCode Outputs
+
+**Purpose:** Skill files processed for OpenCode consumption.
+
+**Characteristics:**
+- Different frontmatter format
+- Content transformed for OpenCode
+- Additional tool-specific metadata
+
+**Editing Policy:** ❌ DO NOT EDIT - Regenerated from `pkg/skills/`.
+
+### Skill Lifecycle
+
+```
+1. Author (pkg/skills/)
+   ↓
+2. Validate (internal/skill/)
+   ↓
+3. Score Quality (internal/skill/)
+   ↓
+4. Generate for Claude Code (.claude/skills/)
+   ↓
+5. Generate for OpenCode (.opencode/skills/)
+   ↓
+6. Deploy to tools
 ```
 
 ---
 
-## See Also
+## Contribution Guidelines
 
-- [Architecture Review](./ARCHITECTURE_REVIEW.md) - Detailed analysis and recommendations
-- [Development Guide](./DEVELOPMENT.md) - Development workflow
-- [OpenSpec Workflow](./OPENSPEC_WORKFLOW.md) - Spec-driven development
-- [MCP API Reference](./MCP_API.md) *(coming soon)* - Tool API documentation
+This section provides guidance for contributing to different parts of the go-ent codebase.
+
+### Adding New Skills
+
+**Step 1: Create Skill File**
+
+```bash
+# Choose appropriate category
+cd pkg/skills/core/  # or pkg/skills/ent/ or pkg/skills/go/
+
+# Create new skill directory
+mkdir my-new-skill
+cd my-new-skill
+
+# Create SKILL.md
+cat > SKILL.md << 'EOF'
+---
+name: my-new-skill
+description: "Brief description of what this skill does"
+version: "1.0.0"
+author: "your-name"
+disable-model-invocation: false
+user-invocable: true
+---
+
+## Role
+
+[Explain what this skill does and when to use it]
+
+## Instructions
+
+[Detailed instructions for the AI]
+
+## Examples
+
+[Code examples showing usage]
+EOF
+```
+
+**Step 2: Validate Skill**
+
+```bash
+# Validate the skill
+make validate-skill FILE=pkg/skills/core/my-new-skill/SKILL.md
+
+# Check quality score
+ent skill quality pkg/skills/core/my-new-skill/SKILL.md
+```
+
+**Step 3: Test Generation**
+
+```bash
+# Generate Claude Code version
+make generate-skills
+
+# Verify output
+ls .claude/skills/core/my-new-skill/SKILL.md
+```
+
+**Step 4: Add Tests**
+
+```bash
+# Add unit test
+cat > internal/skill/testdata/my_new_skill_test.go << 'EOF'
+package skill_test
+
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+)
+
+func TestParseMyNewSkill(t *testing.T) {
+    skill, err := ParseSkillFile("pkg/skills/core/my-new-skill/SKILL.md")
+    assert.NoError(t, err)
+    assert.Equal(t, "my-new-skill", skill.Name)
+}
+EOF
+```
+
+**Step 5: Commit**
+
+```bash
+git add pkg/skills/core/my-new-skill/
+git add internal/skill/testdata/my_new_skill_test.go
+git commit -m "add: new skill for [purpose]"
+```
+
+### Modifying Schemas
+
+**Step 1: Edit YAML Schema**
+
+```bash
+# Edit the canonical schema
+vim schemas/claude.yaml
+```
+
+**Step 2: Regenerate Go Code**
+
+```bash
+# Generate Go structs
+make generate-schemas
+```
+
+**Step 3: Update Tests**
+
+```bash
+# Update test cases to match new schema
+vim pkg/schemas/agent_test.go
+```
+
+**Step 4: Verify**
+
+```bash
+# Run tests
+go test ./pkg/schemas/...
+
+# Check that code compiles
+go build ./...
+```
+
+**Step 5: Update Documentation**
+
+```bash
+# Update any documentation referencing schema fields
+vim docs/SCHEMA_REFERENCE.md
+```
+
+### Working with Generated Files
+
+**DO NOT EDIT:**
+- `.claude/` - Generated by Claude Code
+- `.opencode/` - Generated by OpenCode
+- `pkg/schemas/*.go` - Generated from YAML schemas
+
+**What to Do Instead:**
+
+**Case 1: Need to modify generated skill output**
+→ Edit source in `pkg/skills/`
+→ Regenerate: `make generate-skills`
+
+**Case 2: Need to modify generated schema code**
+→ Edit YAML in `schemas/`
+→ Regenerate: `make generate-schemas`
+
+**Case 3: Bug in generation process**
+→ Fix generator code in `internal/skill/` or `internal/cli/`
+→ Regenerate and verify
+
+**Case 4: Want to add custom content**
+→ Add to source file (`pkg/skills/*/SKILL.md`)
+→ Generation preserves content
+
+**Case 5: Formatting issue in generated file**
+→ Fix in generator code
+→ Don't manually format generated file
+
+### Code Style Guidelines
+
+**For Go Code:**
+- Follow project conventions (see `CONVENTIONS.md`)
+- Use `make fmt` before committing
+- Run `make lint` to catch issues
+- Write tests for new functionality
+
+**For Skill Files:**
+- Use markdown frontmatter
+- Include clear role and instructions
+- Provide concrete examples
+- Reference related documentation
+- Keep sections organized
+
+**For YAML Schemas:**
+- Use 2-space indentation
+- Include field descriptions
+- Mark required fields clearly
+- Document allowed values
+
+### Testing Your Changes
+
+**Unit Tests:**
+```bash
+# Test specific package
+go test ./internal/skill/...
+
+# Run with coverage
+go test -cover ./...
+
+# Run all tests
+make test
+```
+
+**Integration Tests:**
+```bash
+# Test skill loading
+go test ./internal/skill/... -run TestLoadAllSkills
+
+# Test generation
+go test ./internal/cli/skill/... -run TestGenerateSkills
+```
+
+**Manual Testing:**
+```bash
+# List skills
+ent skill list
+
+# Get skill info
+ent skill info ent-conventions
+
+# Validate skill
+ent skill validate pkg/skills/ent/ent-conventions/SKILL.md
+```
 
 ---
 
-**Version:** v0.3.0
-**Last updated:** 2026-01-28
+## Migration Guide
+
+This section covers historical changes to the architecture and how to handle references to removed components.
+
+### Removed Packages
+
+#### `internal/marketplace/`
+
+**Status:** ❌ REMOVED - Unused, zero production references
+
+**History:**
+- Originally planned for plugin marketplace
+- Never implemented in production
+- Removed in cleanup effort
+
+**What to Ignore:**
+- Any documentation mentioning marketplace functionality
+- References to marketplace in old issues or PRs
+- Configuration related to marketplace
+
+#### `pkg/skills/plugins/`
+
+**Status:** ❌ REMOVED - Duplicate functionality
+
+**History:**
+- Temporary location for plugin-related skills
+- Functionality moved to better location
+- Duplicate caused confusion
+
+**Current Location:**
+- Plugin-related skills now in appropriate directories
+- Check `pkg/skills/ent/` for go-ent specific skills
+
+### Historical References
+
+**When You See These in Old Documentation:**
+
+**"marketplace" or "plugin marketplace":**
+→ Ignore - This feature was never implemented
+→ Current skill system doesn't use marketplace
+
+**"pkg/skills/plugins/":**
+→ Look in `pkg/skills/ent/` or `pkg/skills/core/` instead
+→ Skills are organized by category, not by plugin type
+
+**"skill v1 format":**
+→ All skills now use v3 format (see `SKILL_AUTHORING.md`)
+→ Old v1 skills can be migrated with `ent skill migrate` (deprecated)
+
+**"plugin marketplace integration":**
+→ Skills are loaded from `pkg/skills/` directly
+→ No marketplace integration exists
+
+### Version History
+
+**v0.1.x - Early Development**
+- Initial skill system
+- Marketplace concepts (never implemented)
+- Plugin experiments
+
+**v0.2.x - Skill v2**
+- Improved skill format
+- Progressive loading
+- Quality scoring
+- Marketplace references in documentation
+
+**v0.3.x - Current (v3)**
+- MCP integration
+- Removed unused packages
+- Clean architecture
+- Three-directory pattern established
+
+### Updating Old References
+
+**When Updating Documentation:**
+
+**Bad Example (old docs):**
+> "Install skills from the marketplace using the plugin system."
+
+**Corrected:**
+> "Skills are loaded from `pkg/skills/` during development and generated to `.claude/skills/` for deployment."
+
+**Bad Example (old docs):**
+> "Check `pkg/skills/plugins/` for plugin-specific skills."
+
+**Corrected:**
+> "go-ent specific skills are in `pkg/skills/ent/`, cross-language skills in `pkg/skills/core/`."
+
+### Common Confusions
+
+**Q: Where do I find skills for external tools?**
+A: go-ent doesn't have a marketplace. Skills are developed in-house in `pkg/skills/`.
+
+**Q: How do I install third-party skills?**
+A: You don't. Create skills following the patterns in `pkg/skills/`.
+
+**Q: What happened to the plugin system?**
+A: The plugin system still exists (see `plugins/`), but marketplace concepts were removed.
+
+**Q: Where are marketplace-related configurations?**
+A: They don't exist. Marketplace was never implemented.
+
+### Modern Architecture vs. Old
+
+| Aspect | Old (v0.1-v0.2) | Current (v0.3+) |
+|--------|-----------------|-----------------|
+| **Skills Location** | `pkg/skills/plugins/` | `pkg/skills/{core,ent,go}/` |
+| **Skill Format** | v1/v2 | v3 |
+| **Marketplace** | Planned (never implemented) | Not planned |
+| **Generated Files** | Mixed locations | `.claude/` and `.opencode/` |
+| **Schema** | Hand-written Go | YAML with Go generation |
+| **Templates** | Limited | Comprehensive system |
+
+---
+
+## Quick Reference
+
+### What Goes Where?
+
+| Want to... | Location | Command |
+|------------|----------|---------|
+| Create a new skill | `pkg/skills/` | `ent skill new` |
+| Modify schema | `schemas/` | `vim schemas/*.yaml` |
+| Fix generation bug | `internal/skill/` | `vim internal/skill/parser.go` |
+| Test skill | `internal/skill/testdata/` | `go test ./internal/skill/` |
+| View generated skill | `.claude/skills/` | `cat .claude/skills/*/SKILL.md` |
+| Use skill template | `internal/cli/skill/templates.go` | `ent skill new --template` |
+| Apply Go template | `internal/template/` | `template.Load().Execute()` |
+| Check quality | (function in code) | `ent skill quality` |
+
+### Edit vs. Don't Edit
+
+| Directory | Edit? | Why? |
+|-----------|-------|------|
+| `pkg/` | ✅ Yes | Source code |
+| `schemas/` | ✅ Yes | Canonical definitions |
+| `.claude/` | ❌ No | Generated |
+| `.opencode/` | ❌ No | Generated |
+| `internal/` | ✅ Yes | Implementation |
+| `cmd/` | ✅ Yes | Application code |
+| `docs/` | ✅ Yes | Documentation |
+
+### Common Workflows
+
+**Add Skill:**
+```bash
+# 1. Create skill
+ent skill new my-skill --template go-basic
+
+# 2. Edit
+vim pkg/skills/go/my-skill/SKILL.md
+
+# 3. Validate
+ent skill validate pkg/skills/go/my-skill/SKILL.md
+
+# 4. Generate
+make generate-skills
+
+# 5. Test
+ent skill info my-skill
+```
+
+**Modify Schema:**
+```bash
+# 1. Edit YAML
+vim schemas/claude.yaml
+
+# 2. Generate
+make generate-schemas
+
+# 3. Test
+go test ./pkg/schemas/...
+
+# 4. Update docs
+vim docs/SCHEMA_REFERENCE.md
+```
+
+**Debug Generation:**
+```bash
+# 1. Check source
+cat pkg/skills/ent/ent-conventions/SKILL.md
+
+# 2. Check generator
+vim internal/skill/parser.go
+
+# 3. Run with debug
+make generate-skills DEBUG=1
+
+# 4. Compare output
+diff pkg/skills/... .claude/skills/...
+```
+
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Source Layer                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  pkg/skills/ │  │   schemas/   │  │ internal/*/  │      │
+│  │              │  │              │  │              │      │
+│  │  Skill MD    │  │  YAML Schema │  │  Parser      │      │
+│  │  Templates   │  │              │  │  Validator   │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+                          ↓ Generate
+┌─────────────────────────────────────────────────────────────┐
+│                    Generated Layer                          │
+│  ┌──────────────┐  ┌──────────────┐                         │
+│  │ .claude/     │  │ .opencode/   │                         │
+│  │              │  │              │                         │
+│  │  Skills      │  │  Skills      │                         │
+│  │  Agents      │  │              │                         │
+│  │  Commands    │  │              │                         │
+│  └──────────────┘  └──────────────┘                         │
+└─────────────────────────────────────────────────────────────┘
+                          ↓ Consume
+┌─────────────────────────────────────────────────────────────┐
+│                    Tools Layer                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ Claude Code  │  │  OpenCode    │  │  CLI Tools   │      │
+│  │              │  │              │  │              │      │
+│  │  Skills      │  │  Skills      │  │  Commands    │      │
+│  │  Agents      │  │              │  │              │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Summary
+
+**Key Architectural Principles:**
+
+1. **Separation of Concerns** - Source vs. generated vs. consumed
+2. **Single Source of Truth** - YAML schemas, markdown skills
+3. **Generated Artifacts** - Never edit, always regenerate
+4. **Template Flexibility** - Three types for different purposes
+5. **Clear Migration Path** - Historical cleanup, forward-looking
+
+**Remember:**
+- ✅ Edit `pkg/` and `schemas/` freely
+- ❌ Never edit `.claude/` or `.opencode/`
+- ✅ Create skills in `pkg/skills/`
+- ✅ Modify schemas as YAML
+- ❌ Ignore marketplace references (never implemented)
+
+---
+
+**Version:** 0.3.0
+**Last Updated:** 2026-01-30
