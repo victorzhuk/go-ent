@@ -379,18 +379,17 @@ func loadPrompts() (map[string]string, error) {
 
 func loadShared() (string, error) {
 	sharedFiles := []string{
-		"_principals.md",
-		"_judgment.md",
-		"_openspec.md",
-		"_conventions.md",
-		"_handoffs.md",
-		"_tooling.md",
+		"principals.md",
+		"judgment.md",
+		"openspec.md",
+		"conventions.md",
+		"tooling.md",
 	}
 
 	var shared strings.Builder
 
 	for _, filename := range sharedFiles {
-		path := filepath.Join("agents/prompts/shared", filename)
+		path := filepath.Join("prompts", filename)
 		data, err := pkg.FS.ReadFile(path)
 		if err != nil {
 			return "", fmt.Errorf("read %s: %w", path, err)

@@ -39,32 +39,6 @@ type Trigger struct {
 	Weight       float64  `yaml:"weight,omitempty"`
 }
 
-// skillMetaV2 represents v2 frontmatter structure for unmarshaling.
-type skillMetaV2 struct {
-	Name         string            `yaml:"name"`
-	Description  string            `yaml:"description"`
-	Version      string            `yaml:"version"`
-	Author       string            `yaml:"author"`
-	Tags         []string          `yaml:"tags"`
-	AllowedTools []string          `yaml:"allowedTools"`
-	Triggers     []Trigger         `yaml:"triggers"`
-	DependsOn    []string          `yaml:"depends_on"`
-	DelegatesTo  map[string]string `yaml:"delegates_to"`
-}
-
-// skillMetaV3 represents v3 frontmatter structure for unmarshaling.
-type skillMetaV3 struct {
-	Name         string            `yaml:"name"`
-	Description  string            `yaml:"description"`
-	Version      string            `yaml:"version"`
-	Author       string            `yaml:"author"`
-	Tags         []string          `yaml:"tags"`
-	AllowedTools []string          `yaml:"allowed-tools"`
-	Triggers     *v3Triggers       `yaml:"triggers"`
-	DependsOn    []string          `yaml:"depends_on"`
-	DelegatesTo  map[string]string `yaml:"delegates_to"`
-}
-
 // skillMetaV4 represents v4 frontmatter structure for unmarshaling.
 // v4 uses minimal frontmatter with flat trigger array.
 type skillMetaV4 struct {
@@ -88,21 +62,10 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-// detectVersion checks skill format version based on content markers.
+// detectVersion checks if skill is v4 format.
 // v4: Flat triggers array + Markdown sections (## Role, ## Instructions, ## Examples)
-// v3: Object triggers + Markdown sections
-// v2: XML tags (<role>, <instructions>) + description-based triggers
-// v1: Basic frontmatter only
 func (p *Parser) detectVersion(content, frontmatter string) string {
-	// Check for XML tags (v2)
-	if strings.Contains(content, "<role>") || strings.Contains(content, "<instructions>") {
-		return "v2"
-	}
-
-	// Check for v4 markers: flat triggers array + required Markdown sections
-	hasFlatTriggers := strings.Contains(frontmatter, "triggers:") &&
-		!strings.Contains(frontmatter, "keywords:") &&
-		!strings.Contains(frontmatter, "file_pattern:")
+	hasFlatTriggers := strings.Contains(frontmatter, "triggers:")
 	hasV4Sections := strings.Contains(content, "## Role") &&
 		strings.Contains(content, "## Instructions") &&
 		strings.Contains(content, "## Examples")
@@ -111,63 +74,7 @@ func (p *Parser) detectVersion(content, frontmatter string) string {
 		return "v4"
 	}
 
-	// Check for v3 markers: triggers in frontmatter AND Markdown sections
-	hasFrontmatterTriggers := strings.Contains(frontmatter, "triggers:")
-	hasMarkdownSections := strings.Contains(content, "## Role") ||
-		strings.Contains(content, "## Instructions")
-
-	if hasFrontmatterTriggers && hasMarkdownSections {
-		return "v3"
-	}
-
-	// Default to v1 for simple frontmatter-only skills
-	return "v1"
-}
-
-// parseFrontmatterV2 parses v2 frontmatter using yaml.Unmarshal.
-func (p *Parser) parseFrontmatterV2(frontmatter string) (*skillMetaV2, error) {
-	var meta skillMetaV2
-	if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
-		return nil, fmt.Errorf("parse yaml: %w", err)
-	}
-
-	if meta.Name == "" {
-		return nil, fmt.Errorf("missing name in frontmatter")
-	}
-
-	for i := range meta.Triggers {
-		if meta.Triggers[i].Weight == 0 {
-			meta.Triggers[i].Weight = 0.7
-		}
-		if meta.Triggers[i].Weight < 0.0 || meta.Triggers[i].Weight > 1.0 {
-			return nil, fmt.Errorf("trigger weight must be between 0.0 and 1.0, got %f", meta.Triggers[i].Weight)
-		}
-	}
-
-	return &meta, nil
-}
-
-// parseFrontmatterV3 parses v3 frontmatter using yaml.Unmarshal.
-func (p *Parser) parseFrontmatterV3(frontmatter string) (*skillMetaV3, error) {
-	var meta skillMetaV3
-	if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
-		return nil, fmt.Errorf("parse yaml: %w", err)
-	}
-
-	if meta.Name == "" {
-		return nil, fmt.Errorf("missing name in frontmatter")
-	}
-
-	if meta.Triggers != nil {
-		if meta.Triggers.Weight == 0 {
-			meta.Triggers.Weight = 0.7
-		}
-		if meta.Triggers.Weight < 0.0 || meta.Triggers.Weight > 1.0 {
-			return nil, fmt.Errorf("trigger weight must be between 0.0 and 1.0, got %f", meta.Triggers.Weight)
-		}
-	}
-
-	return &meta, nil
+	return "unknown"
 }
 
 // parseFrontmatterV4 parses v4 frontmatter using yaml.Unmarshal.
@@ -214,6 +121,7 @@ func (p *Parser) detectCategory(path string) string {
 }
 
 // ParseSkillFile parses a SKILL.md file and extracts metadata.
+// Only v4 format is supported.
 func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 	f, err := os.Open(path) // #nosec G304 -- controlled config/template file path
 	if err != nil {
@@ -232,134 +140,29 @@ func (p *Parser) ParseSkillFile(path string) (*SkillMeta, error) {
 	}
 
 	version := p.detectVersion(string(content), frontmatter)
+	if version != "v4" {
+		return nil, fmt.Errorf("unsupported skill format: %s (only v4 is supported)", version)
+	}
 
-	var result *SkillMeta
+	v4Meta, err := p.parseFrontmatterV4(frontmatter)
+	if err != nil {
+		return nil, fmt.Errorf("parse v4: %w", err)
+	}
 
-	if version == "v3" {
-		v3Meta, err := p.parseFrontmatterV3(frontmatter)
-		if err != nil {
-			return nil, fmt.Errorf("parse v3: %w", err)
-		}
+	contentStr := string(content)
 
-		var explicitTriggers []Trigger
-		var triggers []string
-
-		if v3Meta.Triggers != nil {
-			trigger := Trigger{
-				Keywords:     v3Meta.Triggers.Keywords,
-				FilePatterns: []string{},
-				Weight:       v3Meta.Triggers.Weight,
-			}
-			if v3Meta.Triggers.FilePattern != "" {
-				trigger.FilePatterns = append(trigger.FilePatterns, v3Meta.Triggers.FilePattern)
-			}
-			if trigger.Weight == 0 {
-				trigger.Weight = 0.7
-			}
-			explicitTriggers = []Trigger{trigger}
-			triggers = p.triggersToStrings(explicitTriggers)
-		} else {
-			descriptionTriggers := p.extractTriggers(v3Meta.Description)
-			triggers = descriptionTriggers
-			explicitTriggers = p.stringsToTriggers(descriptionTriggers, 0.5)
-		}
-
-		result = &SkillMeta{
-			Name:             v3Meta.Name,
-			Description:      v3Meta.Description,
-			Version:          v3Meta.Version,
-			Author:           v3Meta.Author,
-			Tags:             v3Meta.Tags,
-			AllowedTools:     v3Meta.AllowedTools,
-			Triggers:         triggers,
-			ExplicitTriggers: explicitTriggers,
-			FilePath:         path,
-			StructureVersion: "v3",
-			DependsOn:        v3Meta.DependsOn,
-			DelegatesTo:      v3Meta.DelegatesTo,
-		}
-	} else if version == "v2" {
-		v2Meta, err := p.parseFrontmatterV2(frontmatter)
-		if err != nil {
-			return nil, fmt.Errorf("parse v2: %w", err)
-		}
-
-		var explicitTriggers []Trigger
-		var triggers []string
-
-		if len(v2Meta.Triggers) > 0 {
-			explicitTriggers = v2Meta.Triggers
-			triggers = p.triggersToStrings(explicitTriggers)
-		} else {
-			descriptionTriggers := p.extractTriggers(v2Meta.Description)
-			triggers = descriptionTriggers
-			explicitTriggers = p.stringsToTriggers(descriptionTriggers, 0.5)
-		}
-
-		result = &SkillMeta{
-			Name:             v2Meta.Name,
-			Description:      v2Meta.Description,
-			Version:          v2Meta.Version,
-			Author:           v2Meta.Author,
-			Tags:             v2Meta.Tags,
-			AllowedTools:     v2Meta.AllowedTools,
-			Triggers:         triggers,
-			ExplicitTriggers: explicitTriggers,
-			FilePath:         path,
-			StructureVersion: "v2",
-			DependsOn:        v2Meta.DependsOn,
-			DelegatesTo:      v2Meta.DelegatesTo,
-		}
-	} else if version == "v4" {
-		v4Meta, err := p.parseFrontmatterV4(frontmatter)
-		if err != nil {
-			return nil, fmt.Errorf("parse v4: %w", err)
-		}
-
-		contentStr := string(content)
-
-		result = &SkillMeta{
-			Name:             v4Meta.Name,
-			Description:      v4Meta.Description,
-			Triggers:         v4Meta.Triggers,
-			ExplicitTriggers: p.stringsToTriggers(v4Meta.Triggers, 0.7),
-			FilePath:         path,
-			Category:         p.detectCategory(path),
-			StructureVersion: "v4",
-			Role:             p.extractMarkdownSection(contentStr, "Role"),
-			Instructions:     p.extractMarkdownSection(contentStr, "Instructions"),
-			Examples:         p.extractMarkdownSection(contentStr, "Examples"),
-			References:       p.extractReferencesSection(contentStr),
-		}
-	} else {
-		var meta struct {
-			Name        string `yaml:"name"`
-			Description string `yaml:"description"`
-		}
-
-		if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
-			return nil, fmt.Errorf("parse yaml: %w", err)
-		}
-
-		if meta.Name == "" {
-			return nil, fmt.Errorf("missing name in frontmatter")
-		}
-
-		triggers := p.extractTriggers(meta.Description)
-
-		result = &SkillMeta{
-			Name:             meta.Name,
-			Description:      meta.Description,
-			Version:          "",
-			Author:           "",
-			Tags:             nil,
-			AllowedTools:     nil,
-			Triggers:         triggers,
-			FilePath:         path,
-			StructureVersion: "v1",
-			DependsOn:        nil,
-			DelegatesTo:      nil,
-		}
+	result := &SkillMeta{
+		Name:             v4Meta.Name,
+		Description:      v4Meta.Description,
+		Triggers:         v4Meta.Triggers,
+		ExplicitTriggers: p.stringsToTriggers(v4Meta.Triggers, 0.7),
+		FilePath:         path,
+		Category:         p.detectCategory(path),
+		StructureVersion: "v4",
+		Role:             p.extractMarkdownSection(contentStr, "Role"),
+		Instructions:     p.extractMarkdownSection(contentStr, "Instructions"),
+		Examples:         p.extractMarkdownSection(contentStr, "Examples"),
+		References:       p.extractReferencesSection(contentStr),
 	}
 
 	return result, nil
@@ -399,24 +202,6 @@ func (p *Parser) extractFrontmatter(f *os.File) (string, error) {
 	}
 
 	return strings.Join(lines, "\n"), nil
-}
-
-// extractXMLTag extracts content between opening and closing XML tags.
-func (p *Parser) extractXMLTag(content, tagName string) string {
-	openTag := "<" + tagName + ">"
-	closeTag := "</" + tagName + ">"
-
-	openIdx := strings.Index(content, openTag)
-	if openIdx == -1 {
-		return ""
-	}
-
-	closeIdx := strings.Index(content, closeTag)
-	if closeIdx == -1 {
-		return ""
-	}
-
-	return strings.TrimSpace(content[openIdx+len(openTag) : closeIdx])
 }
 
 // extractMarkdownSection extracts content under a Markdown heading (e.g., "## Role").
@@ -501,37 +286,6 @@ func (p *Parser) extractReferencesSection(content string) []string {
 	}
 
 	return refs
-}
-
-// extractTriggers extracts keywords from "Auto-activates for:" in description.
-func (p *Parser) extractTriggers(description string) []string {
-	const prefix = "Auto-activates for:"
-	idx := strings.Index(description, prefix)
-	if idx == -1 {
-		return nil
-	}
-
-	// Extract text after "Auto-activates for:"
-	rest := description[idx+len(prefix):]
-
-	// Find the end (period or end of string)
-	endIdx := strings.Index(rest, ".")
-	if endIdx == -1 {
-		endIdx = len(rest)
-	}
-	triggerText := rest[:endIdx]
-
-	// Split by commas
-	parts := strings.Split(triggerText, ",")
-	triggers := make([]string, 0, len(parts))
-	for _, part := range parts {
-		trigger := strings.TrimSpace(part)
-		if trigger != "" {
-			triggers = append(triggers, strings.ToLower(trigger))
-		}
-	}
-
-	return triggers
 }
 
 // triggersToStrings converts explicit triggers to string format for backward compatibility.

@@ -90,5 +90,3 @@ gofmt -s -w .                             # Format code
 - Prefer rg over grep, fd over find
 - Use semantic analysis for understanding, not editing
 - Check command outputs for errors
-
-See full tooling reference in `plugins/go-ent/agents/prompts/shared/_tooling.md`

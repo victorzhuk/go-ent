@@ -6,21 +6,11 @@ import (
 )
 
 func Register(s *mcp.Server, skillRegistry *skill.Registry) {
-	// OpenSpec tools
-	registerInit(s)
-	registerList(s)
-	registerShow(s)
-	registerCRUD(s)
-	registerRegistry(s)
-	registerWorkflow(s)
-	registerValidate(s)
-	registerArchive(s)
-
 	// Skill tools
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)
 	registerSkillValidate(s, skillRegistry)
 
-	// State tools
-	registerStateSync(s)
+	// Generate tool
+	registerGenerate(s)
 }

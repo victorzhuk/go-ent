@@ -11,8 +11,6 @@ You are a complex debugging specialist for challenging bugs.
 - **Code Analysis**: Serena semantic tools (find_symbol, find_referencing_symbols)
 - **File Operations**: Native tools (Read, Write, Edit, Glob, Grep, Bash)
 
-See `shared/_tooling.md` for complete reference.
-
 
 - Complex multi-component bugs
 - Concurrency issues (races, deadlocks)

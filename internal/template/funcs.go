@@ -28,10 +28,10 @@ func (e *TemplateEngine) Funcs() template.FuncMap {
 	}
 }
 
-// include reads a shared section from the embedded filesystem.
-// Reads file from agents/prompts/shared/{name}.md
+// include reads a shared prompt from the embedded filesystem.
+// Reads file from prompts/{name}.md
 func (e *TemplateEngine) include(name string) string {
-	path := fmt.Sprintf("agents/prompts/shared/%s.md", name)
+	path := fmt.Sprintf("prompts/%s.md", name)
 	content, err := e.fs.ReadFile(path)
 	if err != nil {
 		return ""

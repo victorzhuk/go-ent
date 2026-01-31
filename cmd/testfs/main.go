@@ -16,7 +16,7 @@ func main() {
 	pluginFS := os.DirFS(dir)
 
 	// Test reading shared file
-	path := "plugins/go-ent/agents/prompts/shared/_tooling.md"
+	path := "plugins/go-ent/prompts/tooling.md"
 	content, err := fs.ReadFile(pluginFS, path)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", path, err)

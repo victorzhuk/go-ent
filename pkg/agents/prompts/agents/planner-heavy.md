@@ -9,8 +9,6 @@ You are a senior enterprise architect. Handle complex, multi-component architect
 - **Code Analysis**: Serena semantic tools (find_symbol, find_referencing_symbols)
 - **File Operations**: Native tools (Read, Write, Edit, Glob, Grep, Bash)
 
-See `shared/_tooling.md` for complete reference.
-
 ## Scope
 
 Complex planning requiring:
