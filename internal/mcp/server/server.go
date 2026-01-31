@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/version"
@@ -25,7 +26,7 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	)
 
 	// Initialize skill registry
-	registry := skill.NewRegistry()
+	skillRegistry := skill.NewRegistry()
 	if skillsPath == "" {
 		// Default to plugins/go-ent/skills relative to executable
 		exe, err := os.Executable()
@@ -38,14 +39,30 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		}
 	}
 
-	if err := registry.Load(skillsPath); err != nil {
+	if err := skillRegistry.Load(skillsPath); err != nil {
 		slog.Warn("failed to load skills", "path", skillsPath, "error", err)
 	} else {
-		slog.Info("loaded skills", "count", len(registry.All()), "path", skillsPath)
+		slog.Info("loaded skills", "count", len(skillRegistry.All()), "path", skillsPath)
+	}
+
+	// Initialize agent registry
+	agentRegistry := agent.NewRegistry()
+	agentsPath := "pkg/agents/meta"
+	if err := agentRegistry.Load(agentsPath); err != nil {
+		slog.Warn("failed to load agents", "path", agentsPath, "error", err)
+	} else {
+		slog.Info("loaded agents", "count", len(agentRegistry.All()), "path", agentsPath)
+	}
+
+	// Get current working directory for OpenSpec client
+	cwd, err := os.Getwd()
+	if err != nil {
+		slog.Warn("failed to get working directory, using current dir", "error", err)
+		cwd = "."
 	}
 
 	// Register MCP tools
-	tools.Register(s, registry)
+	tools.Register(s, skillRegistry, agentRegistry, cwd)
 
 	return s
 }

@@ -1,115 +1,91 @@
 ## Tasks
 
-### 1. Remove registry.yaml
+### Phase 1: BoltDB Layer (4h)
 
-- [ ] **1.1** Remove registry.yaml generation from sync
-  - Files: `internal/spec/store.go`
+- [ ] **1.1** Add fsnotify dependency
+  - Files: `go.mod`
   - Dependencies: none
-  - Effort: 1h
-
-- [ ] **1.2** Remove registry.yaml loading
-  - Files: `internal/spec/store.go`, `internal/spec/registry.go`
-  - Dependencies: 1.1
-  - Effort: 1h
-
-- [ ] **1.3** Delete registry.yaml file
-  - Files: `openspec/registry.yaml`
-  - Dependencies: 1.2
   - Effort: 0.5h
 
-### 2. Simplify Registry Types
+- [ ] **1.2** Create BoltDB store with buckets
+  - Files: `internal/spec/boltdb.go`
+  - Buckets: changes, tasks, deps, blockers, runtime, meta
+  - Dependencies: 1.1
+  - Effort: 1.5h
 
-- [ ] **2.1** Remove Registry struct YAML fields
-  - Files: `internal/spec/registry.go`
+- [ ] **1.3** Implement CRUD operations
+  - Files: `internal/spec/boltdb.go`
+  - Methods: GetTask, PutTask, GetChange, PutChange, GetDeps, PutDeps
+  - Dependencies: 1.2
+  - Effort: 1h
+
+- [ ] **1.4** Implement full rebuild from markdown
+  - Files: `internal/spec/boltdb.go`
+  - Method: RebuildFromMarkdown(rootPath)
   - Dependencies: 1.3
   - Effort: 1h
 
-- [ ] **2.2** Simplify RegistryTask to essential fields
-  - Files: `internal/spec/registry.go`
+### Phase 2: File Watcher (3h)
+
+- [ ] **2.1** Create file watcher with debounce
+  - Files: `internal/spec/watcher.go`
+  - Debounce: 100ms
+  - Dependencies: 1.4
+  - Effort: 1.5h
+
+- [ ] **2.2** Implement incremental sync
+  - Files: `internal/spec/watcher.go`
+  - Parse changed file, update BoltDB, recompute deps
   - Dependencies: 2.1
   - Effort: 1h
 
-- [ ] **2.3** Remove unused registry types
-  - Files: `internal/spec/registry.go`
+- [ ] **2.3** Add error handling and recovery
+  - Files: `internal/spec/watcher.go`
+  - Parse errors, corruption detection, fallback
   - Dependencies: 2.2
-  - Effort: 1h
+  - Effort: 0.5h
 
-### 3. Update Store
+### Phase 3: MCP Tools (3h)
 
-- [ ] **3.1** Remove YAML persistence from Store
-  - Files: `internal/spec/store.go`
+- [ ] **3.1** Create query tools
+  - Files: `internal/mcp/tools/registry_list.go`, `registry_get.go`
+  - Tools: registry_list_changes, registry_get_change, registry_list_tasks
   - Dependencies: 2.3
   - Effort: 1h
 
-- [ ] **3.2** Simplify Store to BoltDB only
-  - Files: `internal/spec/store.go`
+- [ ] **3.2** Create next task and deps tools
+  - Files: `internal/mcp/tools/registry_next.go`, `registry_deps.go`
+  - Tools: registry_next_task, registry_deps
   - Dependencies: 3.1
   - Effort: 1h
 
-- [ ] **3.3** Update Store tests
-  - Files: `internal/spec/store_config_test.go`, `internal/spec/boltdb_test.go`
+- [ ] **3.3** Create action tools
+  - Files: `internal/mcp/tools/registry_actions.go`
+  - Tools: registry_mark_done, registry_start_task, registry_sync
   - Dependencies: 3.2
   - Effort: 1h
 
-### 4. Simplify Sync Logic
+### Phase 4: Integration (2h)
 
-- [ ] **4.1** Change sync to one-directional (tasks.md → db)
-  - Files: `internal/spec/tracker.go`
-  - Dependencies: 3.2
-  - Effort: 2h
+- [ ] **4.1** Register MCP tools
+  - Files: `internal/mcp/tools/register.go`
+  - Register all 10 registry tools
+  - Dependencies: 3.3
+  - Effort: 0.5h
 
-- [ ] **4.2** Remove bidirectional sync logic
-  - Files: `internal/spec/tracker.go`, `internal/spec/sync.go` (if exists)
+- [ ] **4.2** Initialize BoltDB and watcher in server
+  - Files: `internal/mcp/server/server.go`
+  - Open BoltDB, start watcher, trigger initial sync
   - Dependencies: 4.1
-  - Effort: 1h
+  - Effort: 0.5h
 
-- [ ] **4.3** Update sync tests
-  - Files: `internal/spec/tracker_test.go`
+- [ ] **4.3** Update .gitignore and add tests
+  - Files: `.gitignore`, `internal/spec/boltdb_test.go`
+  - Add .state.db to gitignore, unit tests
   - Dependencies: 4.2
-  - Effort: 1h
-
-### 5. Update State Management
-
-- [ ] **5.1** Simplify StateStore to runtime only
-  - Files: `internal/spec/state.go`
-  - Dependencies: 4.2
-  - Effort: 1h
-
-- [ ] **5.2** Remove state.md generation
-  - Files: `internal/spec/state.go`
-  - Dependencies: 5.1
-  - Effort: 1h
-
-- [ ] **5.3** Update state tests
-  - Files: `internal/spec/state_test.go`
-  - Dependencies: 5.2
-  - Effort: 1h
-
-### 6. Update MCP Tools
-
-- [ ] **6.1** Update spec_sync tool for one-directional sync
-  - Files: `internal/mcp/tools/spec.go`
-  - Dependencies: 4.2
-  - Effort: 1h
-
-- [ ] **6.2** Remove registry_* tools (handled in consolidate-mcp-tools)
-  - Files: none (already removed)
-  - Dependencies: 6.1
-  - Effort: 0h
-
-### 7. Documentation
-
-- [ ] **7.1** Update OPENSPEC_WORKFLOW.md with simplified registry
-  - Files: `docs/OPENSPEC_WORKFLOW.md`
-  - Dependencies: 6.1
-  - Effort: 1h
-
-- [ ] **7.2** Update ARCHITECTURE.md
-  - Files: `docs/ARCHITECTURE.md`
-  - Dependencies: 7.1
   - Effort: 1h
 
 ---
 
-**Total Tasks**: 18
-**Estimated Effort**: ~16 hours
+**Total Tasks**: 12
+**Estimated Effort**: ~12 hours

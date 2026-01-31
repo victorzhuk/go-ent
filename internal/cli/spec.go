@@ -1,333 +1,51 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/openspec"
 )
 
 func newSpecCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "spec",
-		Short: "Manage OpenSpec specifications",
-		Long:  "Initialize, list, and inspect OpenSpec specifications, changes, and tasks",
+		Short: "Manage OpenSpec specifications (wrapper for openspec CLI)",
+		Long:  "Thin wrapper around openspec CLI commands. For full functionality, use openspec directly.",
 	}
 
-	cmd.AddCommand(newSpecInitCmd())
 	cmd.AddCommand(newSpecListCmd())
-	cmd.AddCommand(newSpecShowCmd())
-	cmd.AddCommand(newSpecArchiveCmd())
-
-	return cmd
-}
-
-func newSpecInitCmd() *cobra.Command {
-	var (
-		name        string
-		module      string
-		description string
-	)
-
-	cmd := &cobra.Command{
-		Use:   "init [path]",
-		Short: "Initialize openspec folder in a project",
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			path := "."
-			if len(args) > 0 {
-				path = args[0]
-			}
-
-			store := spec.NewStore(path)
-
-			exists, err := store.Exists()
-			if err != nil {
-				return fmt.Errorf("check openspec folder: %w", err)
-			}
-
-			if exists {
-				fmt.Printf("openspec folder already exists at %s\n", store.SpecPath())
-				return nil
-			}
-
-			project := spec.Project{
-				Name:        name,
-				Module:      module,
-				Description: description,
-			}
-
-			if err := store.Init(project); err != nil {
-				return fmt.Errorf("initialize: %w", err)
-			}
-
-			fmt.Printf("✅ Initialized openspec at %s\n", store.SpecPath())
-			fmt.Println("\nNext steps:")
-			fmt.Println("  1. Create specs: openspec/specs/{name}/spec.md")
-			fmt.Println("  2. Create changes: openspec/changes/{id}/proposal.md")
-			fmt.Println("  3. Run: go-ent spec list spec")
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&name, "name", "", "Project name")
-	cmd.Flags().StringVar(&module, "module", "", "Go module path")
-	cmd.Flags().StringVar(&description, "description", "", "Project description")
 
 	return cmd
 }
 
 func newSpecListCmd() *cobra.Command {
-	var (
-		status string
-		format string
-	)
+	var what string
 
 	cmd := &cobra.Command{
-		Use:   "list <type>",
-		Short: "List specs, changes, or tasks",
-		Long:  "Type must be one of: spec, change, task",
-		Args:  cobra.ExactArgs(1),
+		Use:   "list",
+		Short: "List OpenSpec changes or specs",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			itemType := args[0]
-
-			if itemType != "spec" && itemType != "change" && itemType != "task" {
-				return fmt.Errorf("invalid type: %s. Must be spec, change, or task", itemType)
-			}
-
 			cwd, err := os.Getwd()
 			if err != nil {
-				return fmt.Errorf("get current directory: %w", err)
+				return fmt.Errorf("get working directory: %w", err)
 			}
 
-			store := spec.NewStore(cwd)
-
-			exists, err := store.Exists()
+			client := openspec.New(cwd)
+			data, err := client.List(context.Background(), what)
 			if err != nil {
-				return fmt.Errorf("check openspec folder: %w", err)
+				return fmt.Errorf("list %s: %w", what, err)
 			}
 
-			if !exists {
-				return fmt.Errorf("no openspec folder found. Run 'go-ent spec init' first")
-			}
-
-			var items []spec.ListItem
-
-			switch itemType {
-			case "spec":
-				items, err = store.ListSpecs()
-			case "change":
-				items, err = store.ListChanges(status)
-			case "task":
-				items, err = store.ListTasks()
-			}
-
-			if err != nil {
-				return fmt.Errorf("list %s: %w", itemType, err)
-			}
-
-			if len(items) == 0 {
-				fmt.Printf("No %s found\n", itemType)
-				return nil
-			}
-
-			switch format {
-			case "table":
-				return printSpecTable(items, itemType)
-			case "detailed":
-				return printSpecDetailed(items)
-			default:
-				return fmt.Errorf("unknown format: %s", format)
-			}
-		},
-	}
-
-	cmd.Flags().StringVar(&status, "status", "", "Filter by status (for changes: active, archived)")
-	cmd.Flags().StringVarP(&format, "format", "f", "table", "Output format (table, detailed)")
-
-	return cmd
-}
-
-func newSpecShowCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "show <type> <id>",
-		Short: "Show detailed content of a spec, change, or task",
-		Long:  "Type must be one of: spec, change, task",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			itemType := args[0]
-			id := args[1]
-
-			if itemType != "spec" && itemType != "change" && itemType != "task" {
-				return fmt.Errorf("invalid type: %s. Must be spec, change, or task", itemType)
-			}
-
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("get current directory: %w", err)
-			}
-
-			store := spec.NewStore(cwd)
-
-			exists, err := store.Exists()
-			if err != nil {
-				return fmt.Errorf("check openspec folder: %w", err)
-			}
-
-			if !exists {
-				return fmt.Errorf("no openspec folder found. Run 'go-ent spec init' first")
-			}
-
-			var path string
-			switch itemType {
-			case "spec":
-				path = fmt.Sprintf("specs/%s/spec.md", id)
-			case "change":
-				path = fmt.Sprintf("changes/%s/proposal.md", id)
-			case "task":
-				path = fmt.Sprintf("tasks/%s.md", id)
-			}
-
-			content, err := store.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("read %s: %w", path, err)
-			}
-
-			fmt.Printf("# %s: %s\n\n", itemType, id)
-			fmt.Println(content)
-
-			return nil
-		},
-	}
-}
-
-func printSpecTable(items []spec.ListItem, itemType string) error {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_ = w.Flush() // intentionally ignore error in defer
-
-	if itemType == "change" {
-		_, _ = fmt.Fprintln(w, "ID\tSTATUS\tNAME")
-		_, _ = fmt.Fprintln(w, "--\t------\t----")
-		for _, item := range items {
-			_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", item.ID, item.Status, item.Name)
-		}
-	} else {
-		_, _ = fmt.Fprintln(w, "ID\tNAME")
-		_, _ = fmt.Fprintln(w, "--\t----")
-		for _, item := range items {
-			_, _ = fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Name)
-		}
-	}
-
-	return nil
-}
-
-func printSpecDetailed(items []spec.ListItem) error {
-	for i, item := range items {
-		if i > 0 {
-			fmt.Println()
-		}
-
-		fmt.Printf("# %s\n\n", item.ID)
-		if item.Name != "" {
-			fmt.Printf("**Name**: %s\n", item.Name)
-		}
-		if item.Type != "" {
-			fmt.Printf("**Type**: %s\n", item.Type)
-		}
-		if item.Status != "" {
-			fmt.Printf("**Status**: %s\n", item.Status)
-		}
-		if item.Description != "" {
-			fmt.Printf("\n%s\n", item.Description)
-		}
-		if item.Path != "" {
-			fmt.Printf("\n**Path**: %s\n", item.Path)
-		}
-	}
-
-	return nil
-}
-
-func newSpecArchiveCmd() *cobra.Command {
-	var (
-		skipSpecs bool
-		dryRun    bool
-	)
-
-	cmd := &cobra.Command{
-		Use:   "archive <change-id>",
-		Short: "Archive a completed change",
-		Long:  "Archive a change to the archive directory and optionally merge delta specs into main specs",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			changeID := args[0]
-
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("get current directory: %w", err)
-			}
-
-			store := spec.NewStore(cwd)
-
-			exists, err := store.Exists()
-			if err != nil {
-				return fmt.Errorf("check openspec folder: %w", err)
-			}
-
-			if !exists {
-				return fmt.Errorf("no openspec folder found. Run 'go-ent spec init' first")
-			}
-
-			archiver := spec.NewArchiver(store)
-
-			validation, err := archiver.ValidateBeforeArchive(changeID, true)
-			if err != nil {
-				return fmt.Errorf("validate change: %w", err)
-			}
-
-			if !validation.Valid {
-				fmt.Printf("❌ Change validation failed:\n")
-				for _, issue := range validation.Issues {
-					fmt.Printf("  - %s\n", issue.Message)
-				}
-				return fmt.Errorf("change is not ready to archive")
-			}
-
-			result, err := archiver.Archive(changeID, skipSpecs, dryRun)
-			if err != nil {
-				return fmt.Errorf("archive change: %w", err)
-			}
-
-			if dryRun {
-				fmt.Printf("✅ Dry run complete - change would be archived to: %s\n", result.ArchivePath)
-			} else {
-				fmt.Printf("✅ Archived change %s to: %s\n", result.ChangeID, result.ArchivePath)
-			}
-
-			if len(result.UpdatedSpecs) > 0 {
-				fmt.Println("\nUpdated specs:")
-				for _, s := range result.UpdatedSpecs {
-					fmt.Printf("  - %s\n", s)
-				}
-			}
-
-			if len(result.Errors) > 0 {
-				fmt.Println("\nWarnings:")
-				for _, e := range result.Errors {
-					fmt.Printf("  - %s\n", e)
-				}
-			}
-
+			// Just print the raw output for simplicity
+			fmt.Println(string(data))
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&skipSpecs, "skip-specs", false, "Skip merging delta specs into main specs")
-	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be archived without making changes")
+	cmd.Flags().StringVar(&what, "type", "changes", "What to list: changes or specs")
 
 	return cmd
 }

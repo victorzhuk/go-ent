@@ -2,127 +2,132 @@
 
 ## Summary
 
-Simplify the task registry system by establishing `tasks.md` files as the single source of truth and reducing BoltDB to a runtime cache. Remove the redundant `registry.yaml` and simplify sync logic.
+Implement hybrid sync architecture with markdown as source of truth and BoltDB as runtime cache. File watcher (fsnotify) provides near real-time sync for fast MCP access.
 
 ## Problem
 
-The current registry system has three sources of truth:
-
-1. **`openspec/changes/*/tasks.md`** - Markdown task lists (intended source of truth)
-2. **`openspec/registry.yaml`** - YAML registry synced from tasks.md (redundant)
-3. **`openspec/registry.db`** - BoltDB runtime state (assignments, sessions)
-
-This creates:
-- Sync complexity (tasks.md ↔ registry.yaml ↔ registry.db)
-- Potential inconsistencies
-- Confusion about which to read/write
-- Double maintenance
+The current registry system:
+- Re-parses markdown files on every MCP query (slow)
+- No caching layer for fast lookups
+- No real-time sync when files change
+- Limited MCP tools for registry access
 
 ## Solution
 
-### New Architecture
+### Architecture
 
 ```
-┌─────────────────────────────────────────┐
-│  tasks.md (Single Source of Truth)     │
-│  - Task definitions                     │
-│  - Task status (checked/unchecked)      │
-│  - Dependencies                         │
-└─────────────────┬───────────────────────┘
-                  │ parse on startup
-                  ▼
-┌─────────────────────────────────────────┐
-│  registry.db (Runtime Cache)           │
-│  - Task assignments                     │
-│  - Session tracking                     │
-│  - Temporary state                      │
-│  - Rebuilt from tasks.md on sync        │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 1: SOURCE OF TRUTH (Markdown)                       │
+│  openspec/changes/{id}/tasks.md                            │
+│  openspec/changes/{id}/proposal.md                         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Human/Agent edits
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│  LAYER 2: SYNC ENGINE (fsnotify + Debounce)                │
+│  Watch: openspec/**/*.md                                   │
+│  Debounce: 100ms                                           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Parse & Index
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│  LAYER 3: BOLTDB CACHE (openspec/.state.db)                │
+│  Buckets: changes, tasks, deps, blockers, runtime, meta    │
+│  Design: O(1) lookups, no parsing at query time            │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Read-only queries
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│  LAYER 4: MCP API (Read-Only)                              │
+│  Query: registry_list_changes, registry_get_change, etc.   │
+│  Action: registry_mark_done, registry_start_task, etc.     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Key Changes
+### Key Design Decisions
 
-| Aspect | Current | New |
-|--------|---------|-----|
-| Source of truth | tasks.md + registry.yaml | tasks.md only |
-| Sync direction | Bidirectional | One-way: tasks.md → db |
-| Registry.yaml | Maintained | Removed |
-| Status storage | Both files | tasks.md checkboxes |
-| Assignment | registry.yaml | registry.db only |
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| File watcher | fsnotify | Real-time sync, industry standard |
+| Debounce | 100ms | Batch rapid editor events |
+| In-progress state | Runtime only | Transient, simpler recovery |
+| Migration | None | Start fresh, no legacy burden |
+| Sync direction | One-way (md → db) | Clear source of truth |
 
-### tasks.md as Source of Truth
+### Data Flow
 
-Task status is determined by checkbox state:
-
-```markdown
-## Tasks
-
-### 1. Foundation
-- [x] **1.1** Create domain entities ✓ (2026-01-15)
-- [ ] **1.2** Implement repository
-- [ ] **1.3** Add tests
 ```
-
-- `[ ]` = pending
-- `[x]` = completed
-- In-progress tracked in registry.db only
-
-### Simplified Sync
-
-```go
-// On startup or explicit sync
-func Sync() error {
-    // 1. Parse all tasks.md files
-    tasks := parseTasksFromMarkdown()
-    
-    // 2. Rebuild registry.db (preserving assignments)
-    db.rebuild(tasks, preserveAssignments=true)
-    
-    // 3. Done - no bidirectional sync
-}
+Human edits tasks.md ──► File watcher detects ──► Debounce (100ms)
+                                                        │
+                                                        ▼
+                              Parse markdown ──► Update BoltDB
+                                                        │
+                              MCP query ◄───────────────┘
+                              (fast O(1) lookup)
 ```
 
 ## Affected Systems
 
-- `internal/spec/registry.go` - Simplify registry types
-- `internal/spec/store.go` - Remove registry.yaml handling
-- `internal/spec/workflow.go` - Simplify workflow state
-- `internal/spec/state.go` - Remove redundant state tracking
-- `internal/mcp/tools/registry.go` - Update to use tasks.md
-- `openspec/registry.yaml` - Delete
-- `openspec/registry.db` - Keep as runtime cache
+- `internal/spec/boltdb.go` - New: BoltDB store with buckets
+- `internal/spec/watcher.go` - New: File watcher with debounce
+- `internal/spec/state.go` - Update: Remove old state tracking
+- `internal/mcp/tools/registry_*.go` - New: MCP registry tools
+- `internal/mcp/server/server.go` - Update: Initialize BoltDB + watcher
+- `.gitignore` - Add `openspec/.state.db`
+- `go.mod` - Add `github.com/fsnotify/fsnotify v1.7.0`
 
-## Breaking Changes
+## BoltDB Schema
 
-- [x] Remove registry.yaml
-- [x] Change sync to one-directional
-- [x] Simplify registry types
-- [x] Update MCP tools
+```go
+// changes/ bucket - Change metadata
+// tasks/ bucket - Task definitions
+// deps/ bucket - Dependency graph (forward + reverse)
+// blockers/ bucket - Pre-computed blocked tasks
+// runtime/ bucket - In-progress state (ephemeral)
+// meta/ bucket - Sync state (mtimes, version)
+```
 
-## Migration Path
+## MCP Tools
 
-1. Ensure all status is in tasks.md checkboxes
-2. Remove registry.yaml generation
-3. Update sync logic to one-directional
-4. Update tools to read from tasks.md
-5. Delete registry.yaml file
+### Query Tools (Read BoltDB)
+- `registry_list_changes` - List all changes
+- `registry_get_change` - Get change details + tasks
+- `registry_list_tasks` - Filtered, sorted tasks
+- `registry_next_task` - Next unblocked task
+- `registry_deps` - Dependency graph
+- `registry_search` - Full-text search
+- `registry_status` - Aggregated stats
 
-## Alternatives Considered
+### Action Tools (Write Markdown)
+- `registry_mark_done` - Check task in tasks.md
+- `registry_start_task` - Set in-progress (runtime only)
+- `registry_sync` - Force full rebuild
 
-1. **Keep registry.yaml**: Rejected - redundant with tasks.md
-2. **Use only registry.db**: Rejected - tasks.md is human-readable source of truth
-3. **tasks.md as source + db as cache (chosen)**: Clean separation of concerns
+## Error Recovery
+
+| Error | Strategy |
+|-------|----------|
+| Parse error | Log, skip file, retry on next change |
+| BoltDB corrupt | Delete, rebuild from markdown |
+| Watcher fail | Fallback to explicit sync only |
+| Sync conflict | Last-write-wins (mtime authority) |
 
 ## Success Criteria
 
-- [ ] registry.yaml removed
-- [ ] Sync simplified to one-directional
-- [ ] tasks.md is single source of truth
-- [ ] registry.db is runtime cache only
-- [ ] MCP tools updated
-- [ ] Tests updated and passing
+- [ ] BoltDB store implemented with O(1) lookups
+- [ ] File watcher with debounce (100ms)
+- [ ] Incremental sync on file change
+- [ ] Full rebuild on startup
+- [ ] MCP query tools (7 tools)
+- [ ] MCP action tools (3 tools)
+- [ ] Tests passing
 - [ ] Documentation updated
 
 ## Effort Estimate
 
-**~10 hours** across 8 tasks
+**~12 hours** across 4 phases:
+- Phase 1: BoltDB layer (4h)
+- Phase 2: File watcher (3h)
+- Phase 3: MCP tools (3h)
+- Phase 4: Integration (2h)
