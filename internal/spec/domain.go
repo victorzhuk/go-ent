@@ -65,3 +65,17 @@ type ListItem struct {
 	Path        string
 	Description string
 }
+
+type Registry struct {
+	Version  int              `yaml:"version"`
+	Changes  []RegistryChange `yaml:"changes"`
+	Metadata map[string]any   `yaml:"metadata,omitempty"`
+}
+
+type RegistryChange struct {
+	ID        string       `yaml:"id"`
+	Title     string       `yaml:"title"`
+	Status    ChangeStatus `yaml:"status"`
+	CreatedAt string       `yaml:"created_at"`
+	UpdatedAt string       `yaml:"updated_at"`
+}

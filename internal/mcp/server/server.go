@@ -9,6 +9,7 @@ import (
 	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	"github.com/victorzhuk/go-ent/internal/spec"
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
@@ -61,8 +62,43 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		cwd = "."
 	}
 
+	// Initialize BoltStore for registry
+	store, err := spec.NewBoltStore(cwd)
+	if err != nil {
+		slog.Warn("failed to initialize BoltStore", "error", err)
+		store = nil
+	} else {
+		slog.Info("initialized BoltStore for OpenSpec registry")
+	}
+
+	// Initialize file watcher for BoltStore
+	var watcher *spec.Watcher
+	if store != nil {
+		watcher, err = spec.NewWatcher(store, 0)
+		if err != nil {
+			slog.Warn("failed to create watcher", "error", err)
+			watcher = nil
+		} else {
+			if err := watcher.Start(cwd); err != nil {
+				slog.Warn("failed to start watcher", "error", err)
+				watcher = nil
+			} else {
+				slog.Info("started file watcher for OpenSpec registry")
+			}
+		}
+	}
+
+	// Trigger initial sync
+	if store != nil {
+		if err := store.RebuildFromMarkdown(cwd); err != nil {
+			slog.Warn("failed to perform initial sync", "error", err)
+		} else {
+			slog.Info("completed initial sync from OpenSpec markdown")
+		}
+	}
+
 	// Register MCP tools
-	tools.Register(s, skillRegistry, agentRegistry, cwd)
+	tools.Register(s, skillRegistry, agentRegistry, cwd, store)
 
 	return s
 }

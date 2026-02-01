@@ -5,9 +5,10 @@ import (
 	"github.com/victorzhuk/go-ent/internal/agent"
 	"github.com/victorzhuk/go-ent/internal/openspec"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
-func Register(s *mcp.Server, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string) {
+func Register(s *mcp.Server, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore) {
 	// Skill tools
 	registerSkillList(s, skillRegistry)
 	registerSkillInfo(s, skillRegistry)
@@ -26,6 +27,19 @@ func Register(s *mcp.Server, skillRegistry *skill.Registry, agentRegistry *agent
 	registerOpenSpecValidate(s, openspecClient)
 	registerOpenSpecStatus(s, openspecClient)
 	registerOpenSpecInstructions(s, openspecClient)
+
+	// Registry tools
+	if store != nil {
+		registerRegistryListChanges(s, store)
+		registerRegistryListTasks(s, store)
+		registerRegistryGetChange(s, store)
+		registerRegistryStatus(s, store)
+		registerRegistryNextTask(s, store)
+		registerRegistryDeps(s, store)
+		registerRegistryMarkDone(s, cwd)
+		registerRegistryStartTask(s, store)
+		registerRegistrySync(s, store)
+	}
 
 	// Agent tools
 	registerAgentList(s, agentRegistry)
