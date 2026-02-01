@@ -9,6 +9,11 @@ skills:
     - go-code
 toolPresets:
     - editing
+tools:
+    - list
+    - todoread
+    - todowrite
+    - skill
 disallowedToolPresets:
     - serena-editing
 dependencies:

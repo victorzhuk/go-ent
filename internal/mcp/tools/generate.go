@@ -21,7 +21,7 @@ type GenerateInput struct {
 	GoVersion   string `json:"go_version,omitempty"`
 }
 
-func registerGenerate(s *mcp.Server) {
+func registerGenerate(s *mcp.Server, toolRegistry *ToolRegistry) {
 	tool := &mcp.Tool{
 		Name:        "generate",
 		Description: "Generate a new Go project from templates. Supports 'standard' (web service) and 'mcp' (MCP server) project types.",
@@ -56,6 +56,7 @@ func registerGenerate(s *mcp.Server) {
 	}
 
 	mcp.AddTool(s, tool, generateHandler)
+	toolRegistry.Register("generate", tool.Description, "generation")
 }
 
 func generateHandler(ctx context.Context, req *mcp.CallToolRequest, input GenerateInput) (*mcp.CallToolResult, any, error) {

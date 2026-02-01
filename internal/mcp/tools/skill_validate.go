@@ -19,7 +19,7 @@ type SkillValidateOutput struct {
 	Issues []skill.ValidationIssue `json:"issues"`
 }
 
-func registerSkillValidate(s *mcp.Server, skillRegistry *skill.Registry) {
+func registerSkillValidate(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry) {
 	tool := &mcp.Tool{
 		Name:        "skill_validate",
 		Description: "Validate skill structure and content quality",
@@ -39,6 +39,7 @@ func registerSkillValidate(s *mcp.Server, skillRegistry *skill.Registry) {
 	}
 
 	mcp.AddTool(s, tool, skillValidateHandler(skillRegistry))
+	toolRegistry.Register("skill_validate", tool.Description, "skills")
 }
 
 func skillValidateHandler(skillRegistry *skill.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input SkillValidateInput) (*mcp.CallToolResult, any, error) {

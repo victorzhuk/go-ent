@@ -14,7 +14,7 @@ type ConfigSetInput struct {
 	Value string `json:"value"` // New value
 }
 
-func registerConfigSet(s *mcp.Server) {
+func registerConfigSet(s *mcp.Server, toolRegistry *ToolRegistry) {
 	tool := &mcp.Tool{
 		Name:        "config_set",
 		Description: "Update a value in ent.yaml configuration",
@@ -35,6 +35,7 @@ func registerConfigSet(s *mcp.Server) {
 	}
 
 	mcp.AddTool(s, tool, configSetHandler())
+	toolRegistry.Register("config_set", tool.Description, "config")
 }
 
 func configSetHandler() func(ctx context.Context, req *mcp.CallToolRequest, input ConfigSetInput) (*mcp.CallToolResult, any, error) {

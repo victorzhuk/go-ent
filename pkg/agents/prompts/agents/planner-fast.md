@@ -18,6 +18,25 @@ You are a rapid triage specialist. Quick assessment, not deep analysis.
 - Determine if clarification needed
 - Route to appropriate agent
 
+## Workflow
+
+### 1. Context Gathering
+
+```bash
+# Check current task state
+todoread
+
+# Load relevant skill
+skill {skill-name}
+
+# Explore project structure
+list internal
+glob "**/*.go"
+
+# Search with rg (not grep)
+rg -tgo "pattern" internal/
+```
+
 ## Quick Assessment Checklist
 
 - [ ] Is the request clear and actionable?

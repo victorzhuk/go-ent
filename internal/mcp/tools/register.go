@@ -8,48 +8,48 @@ import (
 	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
-func Register(s *mcp.Server, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore) {
+func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore) {
 	// Skill tools
-	registerSkillList(s, skillRegistry)
-	registerSkillInfo(s, skillRegistry)
-	registerSkillValidate(s, skillRegistry)
-	registerSkillMatch(s, skillRegistry)
+	registerSkillList(s, toolRegistry, skillRegistry)
+	registerSkillInfo(s, toolRegistry, skillRegistry)
+	registerSkillValidate(s, toolRegistry, skillRegistry)
+	registerSkillMatch(s, toolRegistry, skillRegistry)
 
 	// Generate tool
-	registerGenerate(s)
+	registerGenerate(s, toolRegistry)
 
 	// OpenSpec tools
 	openspecClient := openspec.New(cwd)
-	registerOpenSpecList(s, openspecClient)
-	registerOpenSpecShow(s, openspecClient)
-	registerOpenSpecNewChange(s, openspecClient)
-	registerOpenSpecArchive(s, openspecClient)
-	registerOpenSpecValidate(s, openspecClient)
-	registerOpenSpecStatus(s, openspecClient)
-	registerOpenSpecInstructions(s, openspecClient)
+	registerOpenSpecList(s, toolRegistry, openspecClient)
+	registerOpenSpecShow(s, toolRegistry, openspecClient)
+	registerOpenSpecNewChange(s, toolRegistry, openspecClient)
+	registerOpenSpecArchive(s, toolRegistry, openspecClient)
+	registerOpenSpecValidate(s, toolRegistry, openspecClient)
+	registerOpenSpecStatus(s, toolRegistry, openspecClient)
+	registerOpenSpecInstructions(s, toolRegistry, openspecClient)
 
 	// Registry tools
 	if store != nil {
-		registerRegistryListChanges(s, store)
-		registerRegistryListTasks(s, store)
-		registerRegistryGetChange(s, store)
-		registerRegistryStatus(s, store)
-		registerRegistryNextTask(s, store)
-		registerRegistryDeps(s, store)
-		registerRegistryMarkDone(s, cwd)
-		registerRegistryStartTask(s, store)
-		registerRegistrySync(s, store)
+		registerRegistryListChanges(s, toolRegistry, store)
+		registerRegistryListTasks(s, toolRegistry, store)
+		registerRegistryGetChange(s, toolRegistry, store)
+		registerRegistryStatus(s, toolRegistry, store)
+		registerRegistryNextTask(s, toolRegistry, store)
+		registerRegistryDeps(s, toolRegistry, store)
+		registerRegistryMarkDone(s, toolRegistry, cwd)
+		registerRegistryStartTask(s, toolRegistry, store)
+		registerRegistrySync(s, toolRegistry, store)
 	}
 
 	// Agent tools
-	registerAgentList(s, agentRegistry)
-	registerAgentInfo(s, agentRegistry)
-	registerAgentGenerate(s, "pkg/agents/meta")
+	registerAgentList(s, toolRegistry, agentRegistry)
+	registerAgentInfo(s, toolRegistry, agentRegistry)
+	registerAgentGenerate(s, toolRegistry, "pkg/agents/meta")
 
 	// Config tools
-	registerConfigShow(s)
-	registerConfigSet(s)
+	registerConfigShow(s, toolRegistry)
+	registerConfigSet(s, toolRegistry)
 
 	// Discovery tools
-	registerToolList(s)
+	registerToolList(s, toolRegistry)
 }

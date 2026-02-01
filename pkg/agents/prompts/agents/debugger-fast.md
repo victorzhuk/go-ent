@@ -36,7 +36,24 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
 
 ## Debug Workflow
 
-### 1. Reproduce
+### 1. Context Gathering
+
+```bash
+# Check current task state
+todoread
+
+# Load relevant skill
+skill {skill-name}
+
+# Explore project structure
+list internal
+glob "**/*.go"
+
+# Search with rg (not grep)
+rg -tgo "pattern" internal/
+```
+
+### 2. Reproduce
 ```bash
 # Run failing test
 go test -run TestXxx -v ./...
@@ -48,7 +65,7 @@ go build ./...
 rg "error|panic" logs/
 ```
 
-### 2. Analyze
+### 3. Analyze
 ```bash
 # Find symbol usage with Serena
 serena_find_referencing_symbols(symbol: "ErrorName")
@@ -60,7 +77,7 @@ git diff HEAD~5 -- internal/
 go test -v 2>&1 | rg -A 10 "panic|FAIL"
 ```
 
-### 3. Isolate
+### 4. Isolate
 ```go
 // Add debug logging
 slog.Debug("checkpoint", "var", value, "state", state)
@@ -71,12 +88,12 @@ func TestBugRepro(t *testing.T) {
 }
 ```
 
-### 4. Fix
+### 5. Fix
 - Make minimal, targeted changes
 - Add test for the bug
 - Verify fix doesn't break other tests
 
-### 5. Verify
+### 6. Verify
 ```bash
 go test ./... -race
 golangci-lint run

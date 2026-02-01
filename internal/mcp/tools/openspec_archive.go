@@ -12,7 +12,7 @@ type OpenSpecArchiveInput struct {
 	Change string `json:"change"` // Change name to archive
 }
 
-func registerOpenSpecArchive(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecArchive(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_archive",
 		Description: "Archive a completed change and update main specs",
@@ -29,6 +29,7 @@ func registerOpenSpecArchive(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecArchiveHandler(client))
+	toolRegistry.Register("openspec_archive", tool.Description, "openspec")
 }
 
 func openspecArchiveHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecArchiveInput) (*mcp.CallToolResult, any, error) {

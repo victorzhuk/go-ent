@@ -5,6 +5,16 @@ model: fast
 color: '#90EE90'
 skills:
     - arch-core
+toolPresets:
+    - readonly
+    - serena-analysis
+    - planning
+tools:
+    - glob
+    - list
+    - todoread
+    - todowrite
+    - skill
 dependencies:
     - planner
     - architect

@@ -1,14 +1,10 @@
-name: planner
-description: Task planner. Breaks features into actionable tasks.
-extends: planner
+name: decomposer
+description: Task decomposition specialist. Breaks designs into <4h actionable tasks.
 model: main
-color: '#32CD32'
-toolPresets:
-    - readonly
-    - serena-analysis
-    - planning
+color: '#FFA500'
+skills:
+    - go-code
 tools:
-    - glob
     - list
     - todoread
     - todowrite
@@ -21,4 +17,4 @@ prompts:
         - _judgment
         - _principals
         - _openspec
-    main: agents/planner
+    main: agents/decomposer

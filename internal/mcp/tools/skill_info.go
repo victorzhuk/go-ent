@@ -13,7 +13,7 @@ type SkillInfoInput struct {
 	Name string `json:"name"`
 }
 
-func registerSkillInfo(s *mcp.Server, skillRegistry *skill.Registry) {
+func registerSkillInfo(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry) {
 	tool := &mcp.Tool{
 		Name:        "skill_info",
 		Description: "Get detailed information about a specific skill",
@@ -30,6 +30,7 @@ func registerSkillInfo(s *mcp.Server, skillRegistry *skill.Registry) {
 	}
 
 	mcp.AddTool(s, tool, skillInfoHandler(skillRegistry))
+	toolRegistry.Register("skill_info", tool.Description, "skills")
 }
 
 func skillInfoHandler(skillRegistry *skill.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input SkillInfoInput) (*mcp.CallToolResult, any, error) {

@@ -13,7 +13,7 @@ type OpenSpecListInput struct {
 	Type string `json:"type"` // "changes" or "specs"
 }
 
-func registerOpenSpecList(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecList(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_list",
 		Description: "List OpenSpec changes or specs with their status and progress",
@@ -30,6 +30,7 @@ func registerOpenSpecList(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecListHandler(client))
+	toolRegistry.Register("openspec_list", tool.Description, "openspec")
 }
 
 func openspecListHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecListInput) (*mcp.CallToolResult, any, error) {

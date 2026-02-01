@@ -29,7 +29,7 @@ type DependencyRelation struct {
 	Status   spec.TaskStatus `json:"status"`
 }
 
-func registerRegistryDeps(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryDeps(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_deps",
 		Description: "Show dependency graph for a task or change",
@@ -50,6 +50,7 @@ func registerRegistryDeps(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryDepsHandler(store))
+	toolRegistry.Register("registry_deps", tool.Description, "registry")
 }
 
 func registryDepsHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryDepsInput) (*mcp.CallToolResult, any, error) {

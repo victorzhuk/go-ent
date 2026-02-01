@@ -26,7 +26,7 @@ type SkillMatchResult struct {
 	Score       float64  `json:"score"` // Relevance score (0-1)
 }
 
-func registerSkillMatch(s *mcp.Server, skillRegistry *skill.Registry) {
+func registerSkillMatch(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry) {
 	tool := &mcp.Tool{
 		Name:        "skill_match",
 		Description: "Find skills matching a query using keyword search",
@@ -48,6 +48,7 @@ func registerSkillMatch(s *mcp.Server, skillRegistry *skill.Registry) {
 	}
 
 	mcp.AddTool(s, tool, skillMatchHandler(skillRegistry))
+	toolRegistry.Register("skill_match", tool.Description, "discovery")
 }
 
 func skillMatchHandler(skillRegistry *skill.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input SkillMatchInput) (*mcp.CallToolResult, any, error) {

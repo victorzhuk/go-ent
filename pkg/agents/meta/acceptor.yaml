@@ -7,6 +7,11 @@ skills:
     - go-test
 toolPresets:
     - readonly
+tools:
+    - list
+    - todoread
+    - todowrite
+    - skill
 dependencies:
     - coder
     - architect

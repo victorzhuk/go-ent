@@ -97,8 +97,11 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 		}
 	}
 
+	// Create tool registry
+	toolRegistry := tools.NewToolRegistry()
+
 	// Register MCP tools
-	tools.Register(s, skillRegistry, agentRegistry, cwd, store)
+	tools.Register(s, toolRegistry, skillRegistry, agentRegistry, cwd, store)
 
 	return s
 }

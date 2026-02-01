@@ -9,6 +9,10 @@ skills:
     - debug-core
 toolPresets:
     - editing
+tools:
+    - list
+    - todoread
+    - skill
 disallowedToolPresets:
     - serena-editing
 dependencies: []

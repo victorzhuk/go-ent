@@ -7,6 +7,13 @@ skills:
     - debug-core
 toolPresets:
     - readonly
+tools:
+    - list
+    - webfetch
+    - websearch
+    - todoread
+    - todowrite
+    - skill
 dependencies:
     - debugger-fast
     - debugger-heavy

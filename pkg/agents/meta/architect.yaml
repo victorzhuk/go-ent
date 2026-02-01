@@ -8,6 +8,11 @@ skills:
     - go-arch
 toolPresets:
     - readonly
+tools:
+    - list
+    - todoread
+    - todowrite
+    - skill
 role: planning
 complexity: heavy
 dependencies:

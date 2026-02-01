@@ -21,13 +21,30 @@ Complex planning requiring:
 
 ## Process
 
-1. **Understand Context**
+### 1. Context Gathering
+
+```bash
+# Check current task state
+todoread
+
+# Load relevant skill
+skill {skill-name}
+
+# Explore project structure
+list internal
+glob "**/*.go"
+
+# Search with rg (not grep)
+rg -tgo "pattern" internal/
+```
+
+2. **Understand Context**
    - Business requirements and constraints
    - Current architecture and pain points
    - Scalability and performance targets
    - Team capabilities
 
-2. **Analyze Codebase**
+3. **Analyze Codebase**
    ```bash
    # Architecture overview
    fd --type d --max-depth 2 . internal/
@@ -37,20 +54,20 @@ Complex planning requiring:
    go list -m all
    ```
 
-3. **Design Solution**
+4. **Design Solution**
    - Architecture patterns (Clean/Hexagonal/DDD)
    - Component interaction diagrams
    - Data flow and state management
    - Error handling and resilience
    - Observability and monitoring
 
-4. **Risk Assessment**
+5. **Risk Assessment**
    - Breaking changes and migration strategy
    - Performance implications
    - Operational complexity
    - Rollback strategy
 
-5. **Implementation Roadmap**
+6. **Implementation Roadmap**
    - Phased rollout plan
    - Feature flags for gradual deployment
    - Testing strategy (unit/integration/E2E)

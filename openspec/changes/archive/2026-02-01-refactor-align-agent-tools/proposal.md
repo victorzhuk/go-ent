@@ -6,7 +6,7 @@
 
 **Current Problem:**
 
-The go-ent agent system has 14+ agents with inconsistent tool configurations, causing inefficiencies and outdated patterns:
+The go-ent agent system has 13 agents with inconsistent tool configurations, causing inefficiencies and outdated patterns:
 
 - **12 agents missing critical tools**: `todoread`, `todowrite`, `skill`, and `list` tools are absent from most agent configurations
 - **Outdated search patterns**: 47+ instances of `grep` commands in agent prompts that should use `rg` (ripgrep) for 10x faster searches
@@ -14,9 +14,9 @@ The go-ent agent system has 14+ agents with inconsistent tool configurations, ca
 - **Missing context gathering**: Workflows don't start with standardized context gathering phases
 
 **Quantified Impact:**
-- 14 agent files require updates (`.claude/agents/*.md`)
+- 13 agent files require updates (`pkg/agents/meta/*.yaml`)
 - ~47 grep patterns need replacement with rg equivalents
-- 12 agents need tool additions (4 tools each = 48 tool additions)
+- 12 agents need tool additions (4 tools each = 36 tool additions)
 - Estimated time waste: 15-20% slower searches, inconsistent task tracking
 
 ## What Changes
@@ -24,7 +24,7 @@ The go-ent agent system has 14+ agents with inconsistent tool configurations, ca
 ### Before
 
 ```yaml
-# .claude/agents/coder.md (current)
+# pkg/agents/meta/coder.yaml (current)
 tools:
   read: true
   write: true
@@ -44,7 +44,7 @@ grep -r "type.*Repository" internal/
 ### After
 
 ```yaml
-# .claude/agents/coder.md (updated)
+# pkg/agents/meta/coder.yaml (updated)
 tools:
   read: true
   write: true
@@ -69,22 +69,19 @@ rg -tgo "type.*Repository" internal/
 
 | Phase | File | Change Description |
 |-------|------|-------------------|
-| **Phase 1** | `.claude/agents/acceptor.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/architect.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/coder.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/debugger.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/debugger-fast.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/debugger-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/decomposer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
-| **Phase 1** | `.claude/agents/planner.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| **Phase 1** | `.claude/agents/planner-fast.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| **Phase 1** | `.claude/agents/planner-heavy.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| **Phase 1** | `.claude/agents/reproducer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/researcher.md` | Add `list`, `webfetch`, `websearch`, `todoread`, `todowrite`, `skill` tools |
-| **Phase 1** | `.claude/agents/reviewer.md` | Add `list`, `todoread`, `skill` tools; replace grep with rg |
-| **Phase 1** | `.claude/agents/task-fast.md` | Add `list`, `todoread`, `skill` tools |
-| **Phase 1** | `.claude/agents/task-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
-| **Phase 1** | `.claude/agents/tester.md` | Add `list`, `todoread`, `skill` tools |
+| **Phase 1** | `pkg/agents/meta/acceptor.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/architect.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/coder.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/debugger.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/debugger-fast.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/debugger-heavy.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/decomposer.yaml` | Add `list`, `todoread`, `todowrite`, `skill` tools |
+| **Phase 1** | `pkg/agents/meta/planner.yaml` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `pkg/agents/meta/planner-fast.yaml` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `pkg/agents/meta/planner-heavy.yaml` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `pkg/agents/meta/researcher.yaml` | Add `list`, `webfetch`, `websearch`, `todoread`, `todowrite`, `skill` tools |
+| **Phase 1** | `pkg/agents/meta/reviewer.yaml` | Add `list`, `todoread`, `skill` tools; replace grep with rg |
+| **Phase 1** | `pkg/agents/meta/tester.yaml` | Add `list`, `todoread`, `skill` tools |
 | **Phase 4** | `internal/cli/init.go` | Add `planning` preset to agent initialization; update tool registry |
 | **Phase 4** | `pkg/agents/meta/*.yaml` | Add dynamic tool list support; implement additive inheritance |
 
@@ -141,7 +138,7 @@ rg -tgo "pattern" internal/
 
 ## Success Criteria
 
-- [ ] All 14 agent files updated with missing tools
+- [ ] All 13 agent files updated with missing tools
 - [ ] All grep commands replaced with rg equivalents
 - [ ] All find commands replaced with fd equivalents
 - [ ] "Optimal Tooling" section added to all agents

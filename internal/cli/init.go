@@ -175,6 +175,27 @@ func loadBases() (map[string]*agentMeta, error) {
 	return bases, nil
 }
 
+func mergeSlices(base, variant []string) []string {
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, v := range base {
+		if !seen[v] {
+			seen[v] = true
+			result = append(result, v)
+		}
+	}
+
+	for _, v := range variant {
+		if !seen[v] {
+			seen[v] = true
+			result = append(result, v)
+		}
+	}
+
+	return result
+}
+
 func mergeAgents(base, variant *agentMeta) *agentMeta {
 	merged := *base
 
@@ -197,24 +218,12 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 		merged.Complexity = variant.Complexity
 	}
 
-	if len(variant.Skills) > 0 {
-		merged.Skills = variant.Skills
-	}
-	if len(variant.Tools) > 0 {
-		merged.Tools = variant.Tools
-	}
-	if len(variant.ToolPresets) > 0 {
-		merged.ToolPresets = variant.ToolPresets
-	}
-	if len(variant.DisallowedToolPresets) > 0 {
-		merged.DisallowedToolPresets = variant.DisallowedToolPresets
-	}
-	if len(variant.DisallowedTools) > 0 {
-		merged.DisallowedTools = variant.DisallowedTools
-	}
-	if len(variant.Dependencies) > 0 {
-		merged.Dependencies = variant.Dependencies
-	}
+	merged.Skills = mergeSlices(base.Skills, variant.Skills)
+	merged.Tools = mergeSlices(base.Tools, variant.Tools)
+	merged.ToolPresets = mergeSlices(base.ToolPresets, variant.ToolPresets)
+	merged.DisallowedToolPresets = mergeSlices(base.DisallowedToolPresets, variant.DisallowedToolPresets)
+	merged.DisallowedTools = mergeSlices(base.DisallowedTools, variant.DisallowedTools)
+	merged.Dependencies = mergeSlices(base.Dependencies, variant.Dependencies)
 
 	return &merged
 }

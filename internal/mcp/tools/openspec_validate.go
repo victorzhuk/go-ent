@@ -13,7 +13,7 @@ type OpenSpecValidateInput struct {
 	Scope string `json:"scope"` // "all", "changes", "specs", or empty
 }
 
-func registerOpenSpecValidate(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecValidate(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_validate",
 		Description: "Validate OpenSpec changes and specs for correctness",
@@ -30,6 +30,7 @@ func registerOpenSpecValidate(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecValidateHandler(client))
+	toolRegistry.Register("openspec_validate", tool.Description, "openspec")
 }
 
 func openspecValidateHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecValidateInput) (*mcp.CallToolResult, any, error) {

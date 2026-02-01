@@ -21,10 +21,10 @@ type RegistryNextTaskResponse struct {
 	DependsOn []string `json:"depends_on"`
 }
 
-func registerRegistryNextTask(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryNextTask(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_next_task",
-		Description: "Find the next unblocked task that can be worked on",
+		Description: "Find next unblocked task that can be worked on",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -37,6 +37,7 @@ func registerRegistryNextTask(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryNextTaskHandler(store))
+	toolRegistry.Register("registry_next_task", tool.Description, "registry")
 }
 
 func registryNextTaskHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryNextTaskInput) (*mcp.CallToolResult, any, error) {

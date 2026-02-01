@@ -28,7 +28,7 @@ type AgentSummary struct {
 	Skills      []string `json:"skills,omitempty"`
 }
 
-func registerAgentList(s *mcp.Server, agentRegistry *agent.Registry) {
+func registerAgentList(s *mcp.Server, toolRegistry *ToolRegistry, agentRegistry *agent.Registry) {
 	tool := &mcp.Tool{
 		Name:        "agent_list",
 		Description: "List all available agents with their metadata",
@@ -48,6 +48,7 @@ func registerAgentList(s *mcp.Server, agentRegistry *agent.Registry) {
 	}
 
 	mcp.AddTool(s, tool, agentListHandler(agentRegistry))
+	toolRegistry.Register("agent_list", tool.Description, "agents")
 }
 
 func agentListHandler(agentRegistry *agent.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input AgentListInput) (*mcp.CallToolResult, any, error) {

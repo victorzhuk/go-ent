@@ -33,7 +33,7 @@ type ChangeQuickInfo struct {
 	TaskCount int     `json:"task_count"`
 }
 
-func registerRegistryStatus(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryStatus(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_status",
 		Description: "Get aggregated stats from the OpenSpec registry",
@@ -44,6 +44,7 @@ func registerRegistryStatus(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryStatusHandler(store))
+	toolRegistry.Register("registry_status", tool.Description, "registry")
 }
 
 func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStatusInput) (*mcp.CallToolResult, any, error) {

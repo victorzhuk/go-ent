@@ -49,7 +49,7 @@ type TaskSummaryStats struct {
 	Completed  int `json:"completed"`
 }
 
-func registerRegistryGetChange(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryGetChange(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_get_change",
 		Description: "Get detailed change info with all tasks",
@@ -66,6 +66,7 @@ func registerRegistryGetChange(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryGetChangeHandler(store))
+	toolRegistry.Register("registry_get_change", tool.Description, "registry")
 }
 
 func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryGetChangeInput) (*mcp.CallToolResult, any, error) {

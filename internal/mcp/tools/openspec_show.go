@@ -14,7 +14,7 @@ type OpenSpecShowInput struct {
 	Type string `json:"type"` // "change" or "spec" (optional)
 }
 
-func registerOpenSpecShow(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecShow(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_show",
 		Description: "Show detailed information about a change or spec",
@@ -36,6 +36,7 @@ func registerOpenSpecShow(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecShowHandler(client))
+	toolRegistry.Register("openspec_show", tool.Description, "openspec")
 }
 
 func openspecShowHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecShowInput) (*mcp.CallToolResult, any, error) {

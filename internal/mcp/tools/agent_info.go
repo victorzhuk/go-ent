@@ -13,7 +13,7 @@ type AgentInfoInput struct {
 	Name string `json:"name"` // Agent name
 }
 
-func registerAgentInfo(s *mcp.Server, agentRegistry *agent.Registry) {
+func registerAgentInfo(s *mcp.Server, toolRegistry *ToolRegistry, agentRegistry *agent.Registry) {
 	tool := &mcp.Tool{
 		Name:        "agent_info",
 		Description: "Get detailed information about a specific agent",
@@ -22,7 +22,7 @@ func registerAgentInfo(s *mcp.Server, agentRegistry *agent.Registry) {
 			"properties": map[string]any{
 				"name": map[string]any{
 					"type":        "string",
-					"description": "Name of the agent to get info for",
+					"description": "Name of agent to get info for",
 				},
 			},
 			"required": []string{"name"},
@@ -30,6 +30,7 @@ func registerAgentInfo(s *mcp.Server, agentRegistry *agent.Registry) {
 	}
 
 	mcp.AddTool(s, tool, agentInfoHandler(agentRegistry))
+	toolRegistry.Register("agent_info", tool.Description, "agents")
 }
 
 func agentInfoHandler(agentRegistry *agent.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input AgentInfoInput) (*mcp.CallToolResult, any, error) {

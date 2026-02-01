@@ -60,7 +60,24 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
 
 ## Debugging Workflow
 
-### 1. Gather Information
+### 1. Context Gathering
+
+```bash
+# Check current task state
+todoread
+
+# Load relevant skill
+skill {skill-name}
+
+# Explore project structure
+list internal
+glob "**/*.go"
+
+# Search with rg (not grep)
+rg -tgo "pattern" internal/
+```
+
+### 2. Gather Information
 
 ```bash
 # Reproduce the issue
@@ -73,7 +90,7 @@ git log --oneline -10 -- {affected-path}
 rg "error message" internal/
 ```
 
-### 2. Analyze Context
+### 3. Analyze Context
 
 Use Serena semantic tools for code analysis:
 1. `serena_get_symbols_overview` - Understand component structure
@@ -82,7 +99,7 @@ Use Serena semantic tools for code analysis:
 4. `serena_search_for_pattern` - Check integration points
 5. Use native Read tool for examining specific implementations
 
-### 3. Form Hypothesis
+### 4. Form Hypothesis
 
 Based on:
 - Error messages and stack traces
@@ -95,7 +112,7 @@ Hypothesize:
 - Why it manifests
 - What conditions trigger it
 
-### 4. Verify Hypothesis
+### 5. Verify Hypothesis
 
 ```go
 // Add strategic logging
@@ -110,7 +127,7 @@ func TestBugScenario(t *testing.T) {
 }
 ```
 
-### 5. Implement Fix
+### 6. Implement Fix
 
 1. Make minimal, targeted changes
 2. Add defensive checks if needed
@@ -118,7 +135,7 @@ func TestBugScenario(t *testing.T) {
 4. Add regression test
 5. Verify fix doesn't break other tests
 
-### 6. Validate Thoroughly
+### 7. Validate Thoroughly
 
 ```bash
 # Run affected tests

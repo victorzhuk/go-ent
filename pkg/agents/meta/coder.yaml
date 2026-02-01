@@ -7,6 +7,11 @@ skills:
     - go-db
 toolPresets:
     - editing
+tools:
+    - list
+    - todoread
+    - todowrite
+    - skill
 disallowedToolPresets:
     - serena-editing
 role: execution

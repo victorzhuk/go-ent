@@ -14,7 +14,7 @@ type AgentGenerateInput struct {
 	Targets []string `json:"targets,omitempty"` // Target platforms (claude, opencode), default: both
 }
 
-func registerAgentGenerate(s *mcp.Server, srcDir string) {
+func registerAgentGenerate(s *mcp.Server, toolRegistry *ToolRegistry, srcDir string) {
 	tool := &mcp.Tool{
 		Name:        "agent_generate",
 		Description: "Generate agent configurations for target platforms from meta definitions",
@@ -38,6 +38,7 @@ func registerAgentGenerate(s *mcp.Server, srcDir string) {
 	}
 
 	mcp.AddTool(s, tool, agentGenerateHandler(srcDir))
+	toolRegistry.Register("agent_generate", tool.Description, "agents")
 }
 
 func agentGenerateHandler(srcDir string) func(ctx context.Context, req *mcp.CallToolRequest, input AgentGenerateInput) (*mcp.CallToolResult, any, error) {

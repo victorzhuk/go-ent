@@ -54,7 +54,7 @@ type RegistryMarkDoneResponse struct {
 	Message string `json:"message"`
 }
 
-func registerRegistryMarkDone(s *mcp.Server, cwd string) {
+func registerRegistryMarkDone(s *mcp.Server, toolRegistry *ToolRegistry, cwd string) {
 	tool := &mcp.Tool{
 		Name:        "registry_mark_done",
 		Description: "Mark a task as completed by checking the checkbox in the tasks.md file",
@@ -75,6 +75,7 @@ func registerRegistryMarkDone(s *mcp.Server, cwd string) {
 	}
 
 	mcp.AddTool(s, tool, registryMarkDoneHandler(cwd))
+	toolRegistry.Register("registry_mark_done", tool.Description, "registry")
 }
 
 func registryMarkDoneHandler(cwd string) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryMarkDoneInput) (*mcp.CallToolResult, any, error) {
@@ -139,10 +140,10 @@ type RegistryStartTaskResponse struct {
 	StartedAt string `json:"started_at"`
 }
 
-func registerRegistryStartTask(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_start_task",
-		Description: "Set a task as in-progress in the runtime state (BoltDB only, not persisted to markdown)",
+		Description: "Set a task as in-progress in runtime state (BoltDB only, not persisted to markdown)",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -168,6 +169,7 @@ func registerRegistryStartTask(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryStartTaskHandler(store))
+	toolRegistry.Register("registry_start_task", tool.Description, "registry")
 }
 
 func registryStartTaskHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
@@ -237,10 +239,10 @@ type RegistrySyncResponse struct {
 	Duration    string `json:"duration"`
 }
 
-func registerRegistrySync(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistrySync(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_sync",
-		Description: "Force a full rebuild of the BoltDB cache from markdown files",
+		Description: "Force a full rebuild of BoltDB cache from markdown files",
 		InputSchema: map[string]any{
 			"type":       "object",
 			"properties": map[string]any{},
@@ -248,6 +250,7 @@ func registerRegistrySync(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registrySyncHandler(store))
+	toolRegistry.Register("registry_sync", tool.Description, "registry")
 }
 
 func registrySyncHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistrySyncInput) (*mcp.CallToolResult, any, error) {

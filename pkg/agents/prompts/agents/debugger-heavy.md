@@ -47,7 +47,24 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
 
 ## Debugging Workflow
 
-### 1. Understand Context
+### 1. Context Gathering
+
+```bash
+# Check current task state
+todoread
+
+# Load relevant skill
+skill {skill-name}
+
+# Explore project structure
+list internal
+glob "**/*.go"
+
+# Search with rg (not grep)
+rg -tgo "pattern" internal/
+```
+
+### 2. Understand Context
 
 1. Read reproduction case
 2. Review root cause analysis (if available)
@@ -57,7 +74,7 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
 4. Understand data flow
 5. Identify integration points
 
-### 2. Deep Investigation
+### 3. Deep Investigation
 
 **For concurrency bugs:**
 - Use race detector: `go test -race`
@@ -77,7 +94,7 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
 - Review resource cleanup
 - Use defer for cleanup
 
-### 3. Fix Strategy
+### 4. Fix Strategy
 
 1. Design fix approach:
    - Minimal change vs full refactor
@@ -96,7 +113,7 @@ Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbo
    - Check with race detector
    - Verify performance impact
 
-### 4. Regression Prevention
+### 5. Regression Prevention
 
 1. Add comprehensive tests:
    - Unit tests for fix

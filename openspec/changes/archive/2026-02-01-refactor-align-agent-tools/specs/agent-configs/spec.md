@@ -6,27 +6,27 @@
 All agent files SHALL include the `list`, `todoread`, `todowrite`, and `skill` tools.
 
 #### Scenario: Coder agent has all required tools
-- **GIVEN** the coder agent configuration
+- **GIVEN** the coder agent configuration at `pkg/agents/meta/coder.yaml`
 - **WHEN** tools are listed
 - **THEN** the agent SHALL have: `read`, `write`, `edit`, `bash`, `glob`, `grep`, `list`, `todoread`, `todowrite`, `skill`, and `mcp__plugin_serena_serena`
 
 #### Scenario: Planner agent has all required tools
-- **GIVEN** the planner agent configuration
+- **GIVEN** the planner agent configuration at `pkg/agents/meta/planner.yaml`
 - **WHEN** tools are listed
 - **THEN** the agent SHALL have: `read`, `glob`, `grep`, `list`, `todoread`, `todowrite`, `skill`, and task management tools
 
 #### Scenario: Debugger agent has all required tools
-- **GIVEN** the debugger agent configuration
+- **GIVEN** the debugger agent configuration at `pkg/agents/meta/debugger.yaml`
 - **WHEN** tools are listed
 - **THEN** the agent SHALL have editing tools plus `list`, `todoread`, `todowrite`, `skill`
 
 #### Scenario: Researcher agent has web tools
-- **GIVEN** the researcher agent configuration
+- **GIVEN** the researcher agent configuration at `pkg/agents/meta/researcher.yaml`
 - **WHEN** tools are listed
 - **THEN** the agent SHALL have: `list`, `webfetch`, `websearch`, `todoread`, `todowrite`, `skill`
 
 #### Scenario: Reviewer agent has required tools
-- **GIVEN** the reviewer agent configuration
+- **GIVEN** the reviewer agent configuration at `pkg/agents/meta/reviewer.yaml`
 - **WHEN** tools are listed
 - **THEN** the agent SHALL have: `read`, `glob`, `grep`, `list`, `todoread`, `skill`
 

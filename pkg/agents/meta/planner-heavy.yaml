@@ -8,6 +8,16 @@ skills:
     - go-api
     - go-code
     - go-db
+toolPresets:
+    - readonly
+    - serena-analysis
+    - planning
+tools:
+    - glob
+    - list
+    - todoread
+    - todowrite
+    - skill
 dependencies:
     - planner
     - decomposer

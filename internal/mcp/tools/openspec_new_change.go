@@ -12,7 +12,7 @@ type OpenSpecNewChangeInput struct {
 	Name string `json:"name"` // Change name
 }
 
-func registerOpenSpecNewChange(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecNewChange(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_new_change",
 		Description: "Create a new OpenSpec change proposal",
@@ -29,6 +29,7 @@ func registerOpenSpecNewChange(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecNewChangeHandler(client))
+	toolRegistry.Register("openspec_new_change", tool.Description, "openspec")
 }
 
 func openspecNewChangeHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecNewChangeInput) (*mcp.CallToolResult, any, error) {

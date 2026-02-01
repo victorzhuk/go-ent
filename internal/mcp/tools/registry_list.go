@@ -27,7 +27,7 @@ type ChangeSummary struct {
 	UpdatedAt  string            `json:"updated_at"`
 }
 
-func registerRegistryListChanges(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryListChanges(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_list_changes",
 		Description: "List all changes from the OpenSpec registry",
@@ -38,6 +38,7 @@ func registerRegistryListChanges(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryListChangesHandler(store))
+	toolRegistry.Register("registry_list_changes", tool.Description, "registry")
 }
 
 func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListChangesInput) (*mcp.CallToolResult, any, error) {
@@ -120,7 +121,7 @@ type TaskSummary struct {
 	DependsOn []string        `json:"depends_on,omitempty"`
 }
 
-func registerRegistryListTasks(s *mcp.Server, store *spec.BoltStore) {
+func registerRegistryListTasks(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_list_tasks",
 		Description: "List tasks from the OpenSpec registry with optional filtering",
@@ -141,6 +142,7 @@ func registerRegistryListTasks(s *mcp.Server, store *spec.BoltStore) {
 	}
 
 	mcp.AddTool(s, tool, registryListTasksHandler(store))
+	toolRegistry.Register("registry_list_tasks", tool.Description, "registry")
 }
 
 func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListTasksInput) (*mcp.CallToolResult, any, error) {

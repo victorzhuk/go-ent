@@ -13,7 +13,7 @@ type ConfigShowInput struct {
 	Key string `json:"key,omitempty"` // Optional key to show specific config value
 }
 
-func registerConfigShow(s *mcp.Server) {
+func registerConfigShow(s *mcp.Server, toolRegistry *ToolRegistry) {
 	tool := &mcp.Tool{
 		Name:        "config_show",
 		Description: "Show ent.yaml configuration",
@@ -29,6 +29,7 @@ func registerConfigShow(s *mcp.Server) {
 	}
 
 	mcp.AddTool(s, tool, configShowHandler())
+	toolRegistry.Register("config_show", tool.Description, "config")
 }
 
 func configShowHandler() func(ctx context.Context, req *mcp.CallToolRequest, input ConfigShowInput) (*mcp.CallToolResult, any, error) {

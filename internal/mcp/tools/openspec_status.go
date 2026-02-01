@@ -13,7 +13,7 @@ type OpenSpecStatusInput struct {
 	Change string `json:"change"` // Change name (optional)
 }
 
-func registerOpenSpecStatus(s *mcp.Server, client *openspec.Client) {
+func registerOpenSpecStatus(s *mcp.Server, toolRegistry *ToolRegistry, client *openspec.Client) {
 	tool := &mcp.Tool{
 		Name:        "openspec_status",
 		Description: "Display artifact completion status for a change",
@@ -29,6 +29,7 @@ func registerOpenSpecStatus(s *mcp.Server, client *openspec.Client) {
 	}
 
 	mcp.AddTool(s, tool, openspecStatusHandler(client))
+	toolRegistry.Register("openspec_status", tool.Description, "openspec")
 }
 
 func openspecStatusHandler(client *openspec.Client) func(ctx context.Context, req *mcp.CallToolRequest, input OpenSpecStatusInput) (*mcp.CallToolResult, any, error) {

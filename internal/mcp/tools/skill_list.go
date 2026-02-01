@@ -24,7 +24,7 @@ type SkillSummary struct {
 	Triggers    []string `json:"triggers"`
 }
 
-func registerSkillList(s *mcp.Server, skillRegistry *skill.Registry) {
+func registerSkillList(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry) {
 	tool := &mcp.Tool{
 		Name:        "skill_list",
 		Description: "List all available skills with their metadata",
@@ -40,6 +40,7 @@ func registerSkillList(s *mcp.Server, skillRegistry *skill.Registry) {
 	}
 
 	mcp.AddTool(s, tool, skillListHandler(skillRegistry))
+	toolRegistry.Register("skill_list", tool.Description, "skills")
 }
 
 func skillListHandler(skillRegistry *skill.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input SkillListInput) (*mcp.CallToolResult, any, error) {

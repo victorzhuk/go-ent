@@ -10,7 +10,9 @@ toolPresets:
     - readonly
     - serena-analysis
 tools:
-    - Bash
+    - list
+    - todoread
+    - skill
 prompts:
     shared:
         - _tooling
