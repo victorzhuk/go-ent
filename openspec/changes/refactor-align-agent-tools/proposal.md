@@ -67,24 +67,26 @@ rg -tgo "type.*Repository" internal/
 
 ### Key Components
 
-| File | Change Description |
-|------|-------------------|
-| `.claude/agents/acceptor.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/architect.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/coder.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/debugger.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/debugger-fast.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/debugger-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/decomposer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
-| `.claude/agents/planner.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| `.claude/agents/planner-fast.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| `.claude/agents/planner-heavy.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
-| `.claude/agents/reproducer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
-| `.claude/agents/researcher.md` | Add `list`, `webfetch`, `websearch`, `todoread`, `todowrite`, `skill` tools |
-| `.claude/agents/reviewer.md` | Add `list`, `todoread`, `skill` tools; replace grep with rg |
-| `.claude/agents/task-fast.md` | Add `list`, `todoread`, `skill` tools |
-| `.claude/agents/task-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
-| `.claude/agents/tester.md` | Add `list`, `todoread`, `skill` tools |
+| Phase | File | Change Description |
+|-------|------|-------------------|
+| **Phase 1** | `.claude/agents/acceptor.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/architect.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/coder.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/debugger.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/debugger-fast.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/debugger-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/decomposer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
+| **Phase 1** | `.claude/agents/planner.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `.claude/agents/planner-fast.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `.claude/agents/planner-heavy.md` | Add `glob`, `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg, find with fd |
+| **Phase 1** | `.claude/agents/reproducer.md` | Add `list`, `todoread`, `todowrite`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/researcher.md` | Add `list`, `webfetch`, `websearch`, `todoread`, `todowrite`, `skill` tools |
+| **Phase 1** | `.claude/agents/reviewer.md` | Add `list`, `todoread`, `skill` tools; replace grep with rg |
+| **Phase 1** | `.claude/agents/task-fast.md` | Add `list`, `todoread`, `skill` tools |
+| **Phase 1** | `.claude/agents/task-heavy.md` | Add `list`, `todoread`, `todowrite`, `skill` tools |
+| **Phase 1** | `.claude/agents/tester.md` | Add `list`, `todoread`, `skill` tools |
+| **Phase 4** | `internal/cli/init.go` | Add `planning` preset to agent initialization; update tool registry |
+| **Phase 4** | `pkg/agents/meta/*.yaml` | Add dynamic tool list support; implement additive inheritance |
 
 **New Section Added to All Agents:**
 ```markdown
@@ -132,6 +134,11 @@ rg -tgo "pattern" internal/
 - Clear guidance on optimal command usage
 - Standardized context gathering workflow
 
+**Internal Registry Changes:**
+- Tool inheritance supports additive merging (base + agent-specific tools)
+- Dynamic tool list generation from registry metadata
+- Planning preset added to agent initialization
+
 ## Success Criteria
 
 - [ ] All 14 agent files updated with missing tools
@@ -141,6 +148,9 @@ rg -tgo "pattern" internal/
 - [ ] Context gathering phase added to execution agents
 - [ ] Agent configuration validated (no YAML syntax errors)
 - [ ] Sample agent invocations tested successfully
+- [ ] **Inheritance**: Tool lists merge additively (base + agent-specific without duplication)
+- [ ] **Planning preset**: Added to agent initialization in `internal/cli/init.go`
+- [ ] **Dynamic tool list**: Registry generates tool lists from metadata dynamically
 
 ## Risk Assessment
 

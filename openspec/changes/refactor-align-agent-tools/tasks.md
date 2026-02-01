@@ -10,11 +10,14 @@ T1.1 → T1.2 → T1.3 → T1.4
               T2.1 → T2.2 → T2.3
                             ↓
                       T3.1 → T3.2
+                                    ↓
+                              T4.1 → T4.2 → T4.3 → T4.4
 ```
 
 - **Phase 1** (Tool Additions): No dependencies - can start immediately
 - **Phase 2** (Command Replacements): Depends on Phase 1 completion
 - **Phase 3** (Documentation & Validation): Depends on Phase 2 completion
+- **Phase 4** (Internal Registry Fixes): Depends on Phase 3 completion
 
 ## Phase 1: Add Missing Tools
 
@@ -230,11 +233,90 @@ Validation:
 - [ ] Context gathering phase added to 10 execution agents
 - [ ] All agent files validated for consistency
 
+## Phase 4: Fix Agent Inheritance Mechanism
+
+### T4.1: Fix mergeAgents() to use additive inheritance for slices
+**Files:** `internal/cli/init.go`
+**Dependencies:** T3.2
+**Parallel with:** None
+
+Steps:
+- [ ] 4.1.1 Change mergeAgents() function to merge slices additively instead of replacing
+- [ ] 4.1.2 Create mergeSlices() helper function
+- [ ] 4.1.3 Update merge logic for: Skills
+- [ ] 4.1.4 Update merge logic for: ToolPresets
+- [ ] 4.1.5 Update merge logic for: Tools
+- [ ] 4.1.6 Update merge logic for: DisallowedToolPresets
+- [ ] 4.1.7 Update merge logic for: DisallowedTools
+- [ ] 4.1.8 Update merge logic for: Dependencies
+
+Validation:
+- [ ] Child agents inherit parent slices additively
+- [ ] Duplicate values are handled correctly
+- [ ] Empty slices don't override parent values
+
+---
+
+### T4.2: Add planning preset to planner agents
+**Files:** `pkg/agents/meta/planner.yaml`, `pkg/agents/meta/planner-fast.yaml`, `pkg/agents/meta/planner-heavy.yaml`
+**Dependencies:** T4.1
+**Parallel with:** None
+
+Steps:
+- [ ] 4.2.1 Add "planning" to toolPresets for planner.yaml
+- [ ] 4.2.2 Add "planning" to toolPresets for planner-fast.yaml
+- [ ] 4.2.3 Add "planning" to toolPresets for planner-heavy.yaml
+
+Validation:
+- [ ] All three planner variants have "planning" preset
+- [ ] YAML syntax valid for all files
+
+---
+
+### T4.3: Document inheritance behavior
+**Files:** Create `docs/AGENT_INHERITANCE.md`
+**Dependencies:** T4.2
+**Parallel with:** None
+
+Steps:
+- [ ] 4.3.1 Document how agent inheritance works (extends field)
+- [ ] 4.3.2 Explain additive merge semantics for slices
+- [ ] 4.3.3 Provide examples of agent inheritance
+- [ ] 4.3.4 Document override behavior for non-slice fields
+
+Validation:
+- [ ] Documentation is clear and complete
+- [ ] Examples are accurate and helpful
+
+---
+
+### T4.4: Make tool_list.go dynamic
+**Files:** `internal/mcp/tools/tool_list.go`, `internal/mcp/tools/register.go`
+**Dependencies:** T4.3
+**Parallel with:** None
+
+Steps:
+- [ ] 4.4.1 Create tool registry to track registered tools
+- [ ] 4.4.2 Modify register functions to populate registry
+- [ ] 4.4.3 Update tool_list.go to use dynamic registry instead of hardcoded list
+- [ ] 4.4.4 Ensure thread-safety for registry access
+
+Validation:
+- [ ] Tools are dynamically registered
+- [ ] tool_list.go reflects actual registered tools
+- [ ] No hardcoded tool list remains
+
+## Phase 4 Checkpoint
+- [ ] mergeAgents() uses additive inheritance for slices
+- [ ] All planner agents have "planning" preset
+- [ ] Inheritance documentation created
+- [ ] Tool list is dynamically generated
+
 ## Completion Summary
 
-**Estimated Timeline:** 2-3 days
-**Total Tasks:** 16 (T1.1-T1.4, T2.1-T2.3, T3.1-T3.2)
-**Files Modified:** 14 agent files
+**Estimated Timeline:** 3-4 days
+**Total Tasks:** 20 (T1.1-T1.4, T2.1-T2.3, T3.1-T3.2, T4.1-T4.4)
+**Files Modified:** 14 agent files + 3 internal files + 1 new doc
 
 ### Final Validation
 - [ ] All 14 agent files have consistent tool configurations
@@ -243,3 +325,5 @@ Validation:
 - [ ] All agents have Optimal Tooling section
 - [ ] Execution agents have Context Gathering phase
 - [ ] Agent configuration is valid YAML
+- [ ] Agent inheritance works correctly with additive merge
+- [ ] Tool list is dynamically generated from registry
