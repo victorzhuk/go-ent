@@ -1,519 +1,492 @@
-# Agents and Skills System (v3)
+# Agents and Skills
 
-Comprehensive guide to go-ent's v3 agent and skill architecture with dual-platform support for Claude Code and OpenCode.
+> **Updated:** February 2026 - Reflects new consolidated structure after Phase 1-2 refactoring
 
----
+This document describes the agent and skill system in go-ent after the comprehensive refactoring that consolidated skills and introduced a template-based architecture.
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Agent Architecture](#agent-architecture)
-- [Available Agents](#available-agents)
-- [Skill System](#skill-system)
-- [Available Skills](#available-skills)
-- [Reference Skills](#reference-skills)
-- [Usage Patterns](#usage-patterns)
-
----
+- [Consolidated Skills](#consolidated-skills)
+- [Agents](#agents)
+- [Template System](#template-system)
+- [Architecture](#architecture)
+- [Usage](#usage)
 
 ## Overview
 
-go-ent uses a **multi-agent system** where specialized agents collaborate to accomplish development tasks. Each agent has:
-
-- **Domain expertise** (skills preloaded at startup)
-- **Tool access** (allowed/disallowed tools)
-- **Delegation chains** (dependencies)
-- **Model assignment** (main/fast/heavy internally, sonnet/opus/haiku for Claude Code)
-
-### v3 Design Principles
-
-1. **Dual-Platform Support** - Works with both Claude Code and OpenCode
-2. **Split Format** - Metadata (YAML) separated from prompts (Markdown)
-3. **Template Generation** - Platform-specific output from unified source
-4. **Reference Skills** - Agents preload shared skills via `skills:` field
-5. **Markdown Sections** - Skills use `## Role`, `## Instructions` format
-6. **Explicit Configuration** - All tool access and skills declared upfront
-
----
-
-## Agent Architecture
-
-### Split Format (v3)
-
-Agents use a **split format** with metadata separated from prompts, allowing dual-platform support:
-
-```
-plugins/go-ent/
-└── agents/
-    ├── meta/                      # Agent metadata (YAML)
-    │   ├── architect.yaml         # System design
-    │   ├── coder.yaml             # Implementation
-    │   ├── planner.yaml           # Task planning
-    │   ├── debugger.yaml          # Bug investigation
-    │   ├── tester.yaml            # Test coverage
-    │   ├── reviewer.yaml          # Code review
-    │   └── ...                    # 16 total agents
-    ├── prompts/
-    │   ├── shared/                # Shared prompt sections
-    │   │   ├── _tooling.md        # Tool usage guidance
-    │   │   ├── _conventions.md    # Go coding standards
-    │   │   ├── _handoffs.md       # Agent handoff patterns
-    │   │   ├── _judgment.md       # Decision framework
-    │   │   ├── _principals.md     # Value hierarchy
-    │   │   └── _openspec.md       # OpenSpec workflow
-    │   └── agents/                # Agent-specific prompts
-    │       ├── coder.md           # Implementation prompt
-    │       ├── planner.md         # Planning prompt
-    │       └── ...
-    ├── presets/
-    │   └── tools.yaml             # Tool preset definitions
-    └── templates/
-        ├── claude.yaml.tmpl       # Claude Code generation
-        └── opencode.yaml.tmpl     # OpenCode generation
-```
-
-### Generated Output
-
-Run `go-ent init --tool <platform>` to generate platform-specific files:
-
-**Claude Code** (`.claude/agents/ent/*.md`):
-```markdown
----
-name: coder
-description: Go developer. Implements features, writes code.
-model: sonnet                      # Claude Code model name
-skills:
-  - go-code
-  - go-db
-disallowedTools:
-  - mcp__plugin_serena_serena__replace_symbol_body
-color: "#32CD32"
-role: execution
-complexity: standard
-dependencies:
-  - tester
-  - reviewer
----
-
-[Combined shared prompts + agent-specific prompt]
-```
-
-**OpenCode** (`.opencode/agents/ent/*.md`):
-```markdown
----
-name: coder
-description: Go developer. Implements features, writes code.
-model: main                        # OpenCode model name
-tools:
-    read: true                     # Lowercase object format
-    write: true
-    edit: true
-    bash: true
-skills:
-  - go-code
-  - go-db
-tags:
-  - role:execution                 # Tag format for role
-color: "#32CD32"
-dependencies:
-  - tester
-  - reviewer
----
-
-[Combined shared prompts + agent-specific prompt]
-```
-
-### Metadata Structure
-
-**File**: `agents/meta/<name>.yaml`
-
-```yaml
-name: coder
-description: Go developer. Implements features, writes code.
-model: main                        # Internal: main/fast/heavy (platform-agnostic)
-color: '#32CD32'
-skills:
-  - go-code
-  - go-db
-toolPresets:
-  - editing                        # Expands to tools based on platform
-disallowedToolPresets:
-  - serena-editing                 # Expands to Serena MCP tools
-role: execution
-complexity: standard
-dependencies:
-  - tester
-  - reviewer
-  - debugger
-prompts:
-  shared:                          # Shared prompt sections (preloaded skills)
-    - _tooling
-    - _conventions
-    - _handoffs
-    - _judgment
-    - _principals
-    - _openspec
-  main: agents/coder               # Agent-specific prompt path
-```
-
-### Metadata Fields
-
-**Required:**
-- `name` - Agent identifier (lowercase, hyphens, no `ent:` prefix)
-- `description` - When to delegate to this agent
-- `model` - Internal model: `main` (Sonnet), `fast` (Haiku), `heavy` (Opus)
-- `prompts.main` - Path to agent-specific prompt (e.g., `agents/coder`)
-
-**Optional:**
-- `color` - Agent color in hex (e.g., `'#32CD32'`)
-- `role` - Agent role: `orchestration`, `planning`, `execution`, `validation`, `research`
-- `complexity` - Complexity level: `fast`, `standard`, `heavy`
-- `skills` - Domain skills to preload (array)
-- `toolPresets` - Tool groupings (e.g., `editing`, `readonly`, `planning`)
-- `disallowedToolPresets` - Denied tool groupings (e.g., `serena-editing`)
-- `tools` - Explicit tool list (array, overrides presets)
-- `disallowedTools` - Explicit denied tools (array)
-- `dependencies` - Other agents this depends on (array, no `ent:` prefix)
-- `prompts.shared` - Shared prompt sections (array, e.g., `_tooling`, `_conventions`)
-- `permissionMode` - Permission handling mode
-- `hooks` - Lifecycle hooks (PreToolUse, PostToolUse, Stop)
-
-**Optional (go-ent extensions):**
-- `color` - Hex color for UI
-- `role` - Role category (planning, execution, validation, etc.)
-- `complexity` - Complexity level (light, standard, heavy)
-- `dependencies` - Agents this can delegate to (array)
-
----
-
-## Available Agents
-
-### Planning Agents (3)
-
-**planner.md** - Standard task planning (sonnet)
-```yaml
-description: Task planner. Breaks features into actionable tasks.
-model: sonnet
-skills: [go-arch, go-code, ent-tools-planning, ent-conventions]
-```
-
-**planner-fast.md** - Quick planning (haiku)
-```yaml
-description: Quick task assessment and planning.
-model: haiku
-skills: [go-arch, ent-tools-readonly]
-```
-
-**planner-heavy.md** - Deep architectural planning (opus)
-```yaml
-description: Complex architectural planning with deep analysis.
-model: opus
-skills: [go-arch, arch-core, api-design, ent-tools-planning]
-```
-
-### Execution Agents (3)
-
-**coder.md** - Go implementation (sonnet)
-```yaml
-description: Go developer. Implements features, writes code.
-model: sonnet
-skills: [go-code, go-db, ent-tools-editing, ent-conventions]
-dependencies: [tester, reviewer, debugger]
-```
-
-**tester.md** - Test coverage and TDD (sonnet)
-```yaml
-description: Test engineer. Writes tests, TDD cycles.
-model: sonnet
-skills: [go-test, go-code, ent-tools-editing]
-dependencies: [debugger]
-```
-
-**reproducer.md** - Bug reproduction (sonnet)
-```yaml
-description: Create minimal bug reproductions. Write failing tests first.
-model: sonnet
-skills: [go-test, debug-core, ent-tools-editing]
-```
-
-### Debugging Agents (3)
-
-**debugger.md** - Standard debugging (sonnet)
-```yaml
-description: Standard debugging. Systematic issue investigation.
-model: sonnet
-skills: [go-code, debug-core, ent-tools-editing]
-dependencies: [tester, reviewer]
-```
-
-**debugger-fast.md** - Quick fixes (haiku)
-```yaml
-description: Quick debugging for simple issues.
-model: haiku
-skills: [debug-core, ent-tools-editing]
-```
-
-**debugger-heavy.md** - Complex issues (opus)
-```yaml
-description: Complex debugging. Concurrency, performance, multi-component.
-model: opus
-skills: [go-code, go-perf, debug-core, ent-tools-editing]
-```
-
-### Review & Research (3)
-
-**reviewer.md** - Code review (opus)
-```yaml
-description: Code reviewer. Reviews for bugs, quality, adherence.
-model: opus
-skills: [go-review, review-core, go-code, ent-tools-readonly]
-```
-
-**researcher.md** - Codebase research (sonnet)
-```yaml
-description: Research agent. Deep code analysis and investigation.
-model: sonnet
-skills: [go-arch, ent-tools-serena-analysis]
-```
-
-**architect.md** - System design (opus)
-```yaml
-description: System architect. Designs components, layers, data flow.
-model: opus
-skills: [go-arch, arch-core, api-design, ent-tools-planning]
-dependencies: [planner, coder]
-```
-
-### Task Management (3)
-
-**task-fast.md** - Quick task assessment (haiku)
-```yaml
-description: Quick task assessment and routing.
-model: haiku
-skills: [arch-core, ent-tools-readonly]
-```
-
-**task-heavy.md** - Complex task analysis (opus)
-```yaml
-description: Complex task analysis with deep reasoning.
-model: opus
-skills: [arch-core, go-arch, ent-tools-planning]
-```
-
-**decomposer.md** - Task breakdown (sonnet)
-```yaml
-description: Task breakdown and dependency analysis.
-model: sonnet
-skills: [go-arch, ent-tools-planning]
-```
-
-### Validation (1)
-
-**acceptor.md** - Acceptance criteria (sonnet)
-```yaml
-description: Validate acceptance criteria and requirements.
-model: sonnet
-skills: [go-test, ent-tools-readonly]
-```
-
----
-
-## Skill System
-
-### Skill Format (v3)
-
-Skills use **Markdown sections** instead of XML tags:
-
-**File**: `skills/<category>/<name>/SKILL.md`
-
-```markdown
----
-name: go-error
-description: "Error handling patterns"
-version: "1.0.0"
-triggers:
-  keywords:
-    - error handling
-  file_pattern: "*.go"
-  weight: 0.8
----
-
-## Role
-
-Expert Go error handling engineer.
-
-## Instructions
-
-### Error Wrapping
-Always wrap errors with context using %w.
-
-## Constraints
-
-- Include proper error wrapping
-- Exclude unwrapped errors
-
-## Examples
-
-\```go
-if err != nil {
-    return fmt.Errorf("query: %w", err)
-}
-\```
-```
-
-### Skill Categories
-
-**Core Skills (5):**
-- `api-design` - REST/GraphQL API patterns
-- `arch-core` - Architecture principles
-- `debug-core` - Debugging approaches
-- `review-core` - Code review frameworks
-- `security-core` - Security best practices
-
-**Go Skills (12):**
-- `go-api` - Go API implementation
-- `go-arch` - Go architecture
-- `go-code` - Go coding patterns
-- `go-config` - Configuration management
-- `go-db` - Database patterns
-- `go-error` - Error handling
-- `go-migration` - Database migrations
-- `go-ops` - Operational patterns
-- `go-perf` - Performance optimization
-- `go-review` - Go code review
-- `go-sec` - Go security
-- `go-test` - Testing and TDD
-
----
-
-## Reference Skills
-
-### What Are Reference Skills?
-
-**Reference skills** are skills that agents preload via the `skills:` field instead of embedding content inline. They provide:
-
-1. **Single source of truth** - Update once, affects all agents
-2. **Composability** - Mix and match as needed
-3. **Reusability** - Shared across multiple agents
-4. **Maintainability** - Clear separation of concerns
+The go-ent agent system uses a **hybrid model**: templates for structural consistency, skills for domain knowledge. This architecture was established through a multi-phase refactoring (2024-2026) that:
+
+1. **Phase 1**: Consolidated 11 skills to 7, reduced prompts from 5 to 3 (48% line reduction)
+2. **Phase 2**: Built template infrastructure with parameterized sections
+3. **Phase 3**: Migrated agents to template-based generation (70% prompt reduction)
+
+### Key Benefits
+
+- **Single source of truth** - Skills define domain knowledge once
+- **Parameterized templates** - Role-specific content (execution, planning, validation, research)
+- **Conditional rendering** - Tool restrictions and dependencies rendered dynamically
+- **Reduced duplication** - ~65% reduction in total maintenance burden
+- **Consistent quality** - All agents follow same patterns and best practices
+
+## Consolidated Skills
+
+### Core Skills (3)
+
+#### 1. ent-foundation
+**Purpose:** Core decision framework, judgment, principals, and Go conventions
+**Preloaded by:** All agents
+**Content:**
+- Constitutional AI judgment framework
+- Principal hierarchy (project conventions > user intent > best practices > safety > simplicity)
+- Go code conventions (naming, errors, comments, Clean Architecture)
+- When to ask vs. decide guidance
+- Non-negotiable boundaries
+
+**Triggers:** `ent-foundation`, `judgment`, `principals`, `conventions`
+
+#### 2. ent-workflow
+**Purpose:** OpenSpec workflow and agent delegation patterns
+**Preloaded by:** All agents
+**Content:**
+- OpenSpec CLI workflow (new change, fast-forward, validate, archive)
+- Artifact management (proposal.md, tasks.md, specs/)
+- Agent delegation patterns (when to delegate, handoffs)
+- Safety checkpoints before irreversible operations
+
+**Triggers:** `ent-workflow`, `openspec`, `change proposal`, `spec workflow`, `handoffs`, `delegation`
+
+#### 3. ent-tooling
+**Purpose:** Tool usage guidance and modern CLI alternatives
+**Preloaded by:** All agents
+**Content:**
+- Modern tool alternatives (rg, fd, bat, eza)
+- Native vs. MCP tool usage
+- Performance optimization guidance
+
+**Triggers:** `ent-tooling`, `tools`, `cli`
 
 ### Tool Skills (4)
 
-**ent-tools-readonly** - Read-only access
+#### ent-tools-readonly
+**Purpose:** Read-only tool preset configuration
+**Used by:** Research and validation agents
+
+#### ent-tools-editing
+**Purpose:** Editing tool preset configuration
+**Used by:** Implementation agents
+
+#### ent-tools-planning
+**Purpose:** Planning tool preset configuration
+**Used by:** Planning agents
+
+#### ent-tools-serena-analysis
+**Purpose:** Serena semantic analysis tool configuration
+**Used by:** All agents with code analysis needs
+
+### Archived Skills
+
+The following skills were consolidated in Phase 1 (2026-01):
+- `ent-judgment` → merged into `ent-foundation`
+- `ent-principals` → merged into `ent-foundation`
+- `ent-conventions` → merged into `ent-foundation`
+- `ent-handoffs` → merged into `ent-workflow`
+- `ent-openspec` → merged into `ent-workflow`
+
+Location: `pkg/skills/ent/_archived/`
+
+## Agents
+
+### Agent Roles
+
+Agents are categorized by role, which determines their behavior and content:
+
+| Role | Purpose | Examples |
+|------|---------|----------|
+| **execution** | Code implementation | coder, tester, debugger |
+| **planning** | Task breakdown, architecture | planner, architect, decomposer |
+| **validation** | Code review, quality checks | reviewer, acceptor |
+| **research** | Investigation, analysis | researcher |
+
+### Agent List (13 total)
+
+#### Execution Agents (5)
+
+**coder** - Go developer, implements features
+- Role: execution
+- Model: main (sonnet)
+- Dependencies: tester, reviewer, debugger
+- Skills: go-code, go-db, ent-foundation, ent-workflow, ent-tooling
+
+**tester** - Test engineer, writes tests
+- Role: execution
+- Model: main (sonnet)
+- Skills: go-test, ent-foundation, ent-workflow, ent-tooling
+
+**debugger** - Standard debugging and investigation
+- Role: execution
+- Model: main (sonnet)
+- Skills: go-code, ent-foundation, ent-workflow, ent-tooling
+
+**debugger-fast** - Quick debugging for simple issues
+- Role: execution
+- Model: fast (haiku)
+- Skills: go-code, ent-foundation, ent-workflow, ent-tooling
+
+**debugger-heavy** - Complex debugging (concurrency, performance)
+- Role: execution
+- Model: heavy (opus)
+- Skills: go-code, go-perf, ent-foundation, ent-workflow, ent-tooling
+
+#### Planning Agents (4)
+
+**planner** - Task breakdown and planning
+- Role: planning
+- Model: main (sonnet)
+- Dependencies: coder, tester
+- Skills: go-arch, ent-foundation, ent-workflow, ent-tooling
+
+**planner-fast** - Quick task assessment and routing
+- Role: planning
+- Model: fast (haiku)
+- Skills: ent-foundation, ent-workflow, ent-tooling
+
+**planner-heavy** - Deep architectural planning
+- Role: planning
+- Model: heavy (opus)
+- Skills: go-arch, go-api, ent-foundation, ent-workflow, ent-tooling
+
+**architect** - System design and architecture
+- Role: planning
+- Model: heavy (opus)
+- Dependencies: planner, coder
+- Skills: go-arch, go-api, ent-foundation, ent-workflow, ent-tooling
+
+#### Validation Agents (3)
+
+**reviewer** - Code review for bugs, quality, adherence
+- Role: validation
+- Model: heavy (opus)
+- Skills: go-review, ent-foundation, ent-workflow, ent-tooling
+
+**acceptor** - Validate acceptance criteria and requirements
+- Role: validation
+- Model: main (sonnet)
+- Skills: ent-foundation, ent-workflow, ent-tooling
+
+#### Research Agents (1)
+
+**researcher** - Codebase research and deep analysis
+- Role: research
+- Model: main (sonnet)
+- Skills: ent-foundation, ent-workflow, ent-tooling
+
+#### Other Agents (1)
+
+**decomposer** - Task decomposition specialist
+- Model: main (sonnet)
+- Skills: ent-foundation, ent-workflow, ent-tooling
+
+## Template System
+
+### Architecture
+
+The template system uses a **slot-based composition** model:
+
+```
+Agent Definition = Base Template + Section Templates + Agent-Specific Content + Shared Prompts
+```
+
+#### Components
+
+1. **Base Template** (`pkg/agents/templates/base-agent.md.tmpl`)
+   - Defines overall structure
+   - Embeds agent-specific content
+   - Embeds shared prompts
+
+2. **Section Templates** (`pkg/agents/templates/sections/`)
+   - `_tooling.md.tmpl` - Tool usage guidance (conditional tool restrictions)
+   - `_workflow.md.tmpl` - Context gathering workflow (role-specific steps)
+   - `_principles.md.tmpl` - Constitutional AI guidance (role-specific examples)
+   - `_handoff.md.tmpl` - Agent delegation patterns (uses dependencies)
+
+3. **Agent-Specific Prompts** (`pkg/agents/prompts/agents/`)
+   - Role introduction and responsibilities
+   - Agent-specific patterns and examples
+   - Unique guidance for that agent
+
+4. **Shared Prompts** (`pkg/prompts/`)
+   - `foundation.md` - Core decision framework
+   - `workflow.md` - OpenSpec workflow essentials
+   - `tooling.md` - Tool usage guidance
+
+### Template Parameters
+
+Templates receive an `AgentTemplateData` structure with:
+
+| Parameter | Type | Purpose |
+|-----------|------|---------|
+| Name | string | Agent name |
+| Description | string | Agent description |
+| Role | string | execution, planning, validation, research |
+| RoleTitle | string | Human-readable role (Implementation, Planning, etc.) |
+| Complexity | string | fast, standard, heavy |
+| Dependencies | []string | Agents to delegate to |
+| Skills | []string | Skills loaded by agent |
+| DisallowedTools | []string | Tools agent cannot use |
+| HasDisallowedTools | bool | Whether tool restrictions exist |
+| AgentContent | string | Agent-specific prompt |
+| SharedPrompts | []string | Shared prompt contents |
+
+### Template Helpers
+
+Available in all templates:
+
+- `title` - Title case
+- `upper` - Uppercase
+- `lower` - Lowercase
+- `contains` - Substring check
+- `hasPrefix` - Prefix check
+- `hasSuffix` - Suffix check
+- `join` - Join array
+- `replace` - Replace all
+
+### Example Template Usage
+
+```go-template
+## Constitutional AI Principles
+
+### Judgment for {{ .RoleTitle }}
+
+Exercise judgment as a thoughtful senior {{ .RoleTitle }} agent.
+
+{{- if eq .Role "execution" }}
+**Implementation Judgment Examples:**
+- Testing Decisions: Test critical logic, skip trivial getters
+{{- else if eq .Role "planning" }}
+**Planning Judgment Examples:**
+- Task Granularity: Balance detail with usefulness
+{{- end }}
+
+{{- if .HasDisallowedTools }}
+## CRITICAL: Tool Restrictions
+
+**NEVER use:**
+{{- range .DisallowedTools }}
+- ❌ `{{ . }}`
+{{- end }}
+{{- end }}
+```
+
+## Architecture
+
+### Directory Structure
+
+```
+pkg/
+├── agents/
+│   ├── meta/                    # Agent metadata (YAML)
+│   │   ├── coder.yaml
+│   │   ├── planner.yaml
+│   │   └── ...
+│   ├── prompts/
+│   │   └── agents/              # Agent-specific prompts
+│   │       ├── coder.md
+│   │       ├── planner.md
+│   │       └── ...
+│   └── templates/               # Template system
+│       ├── base-agent.md.tmpl
+│       ├── claude.yaml.tmpl     # Claude Code format
+│       ├── opencode.yaml.tmpl   # OpenCode format
+│       └── sections/
+│           ├── _tooling.md.tmpl
+│           ├── _workflow.md.tmpl
+│           ├── _principles.md.tmpl
+│           └── _handoff.md.tmpl
+├── prompts/                     # Shared prompts
+│   ├── foundation.md
+│   ├── workflow.md
+│   ├── tooling.md
+│   └── _archived/
+└── skills/
+    └── ent/                     # Skills
+        ├── ent-foundation/
+        ├── ent-workflow/
+        ├── ent-tooling/
+        ├── ent-tools-*/
+        └── _archived/
+
+.claude/                         # Generated output
+├── agents/ent/                  # Generated agents
+│   ├── coder.md
+│   └── ...
+└── skills/ent/ent/              # Copied skills
+    ├── ent-foundation/
+    └── ...
+```
+
+### Generation Flow
+
+1. **Load Metadata** - Read agent YAML files from `pkg/agents/meta/`
+2. **Load Tool Presets** - Resolve tool configurations
+3. **Load Prompts** - Read agent-specific prompts from `pkg/agents/prompts/agents/`
+4. **Load Templates** - Load base and section templates
+5. **Assemble Content**:
+   - Render agent metadata as YAML frontmatter
+   - Assemble agent-specific content with section templates
+   - Embed shared prompts (mapped via `sharedPromptToSkill`)
+6. **Write Output** - Generate to `.claude/agents/ent/`
+
+### Shared Prompt Mapping
+
+The `sharedPromptToSkill` map in `internal/cli/init.go` converts shared prompt references to skill names:
+
+```go
+var sharedPromptToSkill = map[string]string{
+    "_foundation": "ent-foundation",
+    "_workflow":   "ent-workflow",
+    "_tooling":    "ent-tooling",
+}
+```
+
+This allows agent metadata to reference `_foundation` while the generated agent loads the `ent-foundation` skill.
+
+## Usage
+
+### Creating a New Agent
+
+1. **Create metadata** (`pkg/agents/meta/myagent.yaml`):
 ```yaml
+name: myagent
+description: Brief description
+model: main
+role: execution
 skills:
-  - ent-tools-readonly  # Grants: Read, Glob, Grep
+  - go-code
+toolPresets:
+  - editing
+dependencies:
+  - tester
+prompts:
+  shared:
+    - _foundation
+    - _workflow
+    - _tooling
+  main: agents/myagent
 ```
 
-**ent-tools-editing** - Full editing access
-```yaml
-skills:
-  - ent-tools-editing  # Grants: Read, Write, Edit, Bash, Glob, Grep
+2. **Create prompt** (`pkg/agents/prompts/agents/myagent.md`):
+```markdown
+You are a [role description].
+
+## Responsibilities
+- Specific responsibility 1
+- Specific responsibility 2
+
+## Patterns
+[Agent-specific patterns and examples]
 ```
 
-**ent-tools-serena-analysis** - Semantic analysis
-```yaml
-skills:
-  - ent-tools-serena-analysis  # Grants: Serena read-only tools
+3. **Regenerate**:
+```bash
+make build
+./bin/ent init --tools=claude --force
 ```
 
-**ent-tools-planning** - Planning toolset
-```yaml
-skills:
-  - ent-tools-planning  # Combined: read-only + task management + semantic
+### Modifying Shared Content
+
+**For constitutional AI / judgment / conventions:**
+Edit `pkg/skills/ent/ent-foundation/SKILL.md` and `pkg/prompts/foundation.md`
+
+**For OpenSpec workflow / handoffs:**
+Edit `pkg/skills/ent/ent-workflow/SKILL.md` and `pkg/prompts/workflow.md`
+
+**For tool usage:**
+Edit `pkg/skills/ent/ent-tooling/SKILL.md` and `pkg/prompts/tooling.md`
+
+After editing, regenerate agents:
+```bash
+make build
+./bin/ent init --tools=claude --force
 ```
 
-### Shared Knowledge Skills (6)
+### Modifying Templates
 
-**ent-tooling** - Tool usage guidance
-- Native tools (Read, Write, Edit)
-- Serena semantic analysis
-- Git commands
-- Go commands
-- Modern search (rg, fd)
+**For structural changes affecting all agents:**
+1. Edit section templates in `pkg/agents/templates/sections/`
+2. Test changes: `go test ./internal/cli -v`
+3. Regenerate: `make build && ./bin/ent init --tools=claude --force`
 
-**ent-conventions** - Go code style
-- Naming conventions
-- Error handling
-- Comments policy
-- Clean Architecture layers
-- File organization
-
-**ent-handoffs** - Agent delegation
-- When to delegate
-- Irreversible action checkpoints
-- Handoff vs. escalation
-- Agent responsibility matrix
-
-**ent-judgment** - Constitutional AI
-- Senior developer judgment
-- When to ask vs. decide
-- Non-negotiable boundaries
-- Decision frameworks
-
-**ent-principals** - Principal hierarchy
-- Conflict resolution (Convention > Intent > Practice > Safety > Simplicity)
-- When to ask vs. decide
-- Escalation criteria
-
-**ent-openspec** - OpenSpec workflow
-- File structure (proposal.md, tasks.md, designs/)
-- Workflow steps
-- Task completion tracking
-- Design documentation
-
----
-
-## Usage Patterns
-
-### Direct Invocation
-
-```
-/ent:coder "Implement user authentication"
-/ent:planner "Break down payment system"
-/ent:debugger "Fix race condition in handler"
+**For role-specific content:**
+Use conditionals in templates:
+```go-template
+{{- if eq .Role "execution" }}
+[Execution-specific content]
+{{- else if eq .Role "planning" }}
+[Planning-specific content]
+{{- end }}
 ```
 
-### Automatic Delegation
+## Testing
 
-Claude automatically delegates based on agent descriptions:
+### Unit Tests
 
-```
-User: "I need to implement a new API endpoint for user profiles"
-
-Claude: [Analyzes request] → Delegates to @ent:coder
-```
-
-### Skill Activation
-
-Skills activate automatically based on:
-1. **Preloaded skills** - Agent's `skills:` field
-2. **Trigger keywords** - Skill's `triggers.keywords`
-3. **File patterns** - Skill's `triggers.file_pattern`
-4. **Manual invocation** - User requests specific skill
-
-### Agent Chains
-
-**Feature Implementation:**
-```
-architect → planner → coder → tester → reviewer
+Template system tests:
+```bash
+go test ./internal/cli -v -run "TestLoadSection|TestRenderSection|TestAssemble"
 ```
 
-**Bug Fix:**
-```
-debugger → tester → reviewer
+### Integration Tests
+
+Regenerate and verify:
+```bash
+# Backup current output
+cp -r .claude/agents/ent/ /tmp/agents-backup/
+
+# Regenerate
+make build
+./bin/ent init --tools=claude --force
+
+# Verify no unexpected changes
+diff -r .claude/agents/ent/ /tmp/agents-backup/
 ```
 
-**Complex Architecture:**
-```
-architect → reviewer (heavy) → planner → decomposer → coder
+### Validation
+
+```bash
+# Verify skill loading
+grep -r "ent-foundation\|ent-workflow\|ent-tooling" .claude/agents/ent/
+
+# Verify agent count
+ls .claude/agents/ent/*.md | wc -l  # Should be 13
+
+# Verify skill count
+ls -d .claude/skills/ent/ent/ent-* | grep -v _archived | wc -l  # Should be 7
 ```
 
----
+## Migration History
+
+### Phase 1: Skill & Prompt Consolidation (2026-01)
+- Consolidated 11 skills → 7 (36% reduction)
+- Consolidated 5 prompts → 3 (40% reduction)
+- Eliminated 225 lines of duplication (48% reduction)
+- Archived deprecated skills and prompts
+
+### Phase 2: Template System Enhancement (2026-02)
+- Created 4 section templates with role parameterization
+- Built template engine with 12 parameters and 8 helpers
+- Added comprehensive test suite (13 tests, 100% coverage)
+- Zero breaking changes
+
+### Phase 3: Agent Prompt Migration (2026-02)
+- Migrated all 13 agents to template-based generation
+- Reduced agent prompts from ~200 lines to ~60 lines (70% reduction)
+- Eliminated remaining duplication across agents
+- Total maintenance reduction: 65%
 
 ## See Also
 
-- [SKILL-AUTHORING.md](./SKILL-AUTHORING.md) - Write v3 skills
-- [CLAUDE_CODE_COMPATIBILITY.md](./CLAUDE_CODE_COMPATIBILITY.md) - Alignment guide
-- [MIGRATION_V3.md](./MIGRATION_V3.md) - Migrate from v2
-- [DEVELOPMENT.md](./DEVELOPMENT.md) - Development workflow
+- [PROMPT_DESIGN.md](PROMPT_DESIGN.md) - Template design patterns and best practices
+- [DEVELOPMENT.md](DEVELOPMENT.md) - Template development guide
+- [AGENT_INHERITANCE.md](AGENT_INHERITANCE.md) - Agent inheritance system
+- [SKILL-AUTHORING.md](SKILL-AUTHORING.md) - Skill authoring guide

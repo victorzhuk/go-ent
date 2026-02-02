@@ -290,6 +290,14 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 	merged.DisallowedTools = mergeSlices(base.DisallowedTools, variant.DisallowedTools)
 	merged.Dependencies = mergeSlices(base.Dependencies, variant.Dependencies)
 
+	// Merge prompts configuration
+	if variant.Prompts.Main != "" {
+		merged.Prompts.Main = variant.Prompts.Main
+	}
+	if len(variant.Prompts.Shared) > 0 {
+		merged.Prompts.Shared = mergeSlices(base.Prompts.Shared, variant.Prompts.Shared)
+	}
+
 	return &merged
 }
 
@@ -524,6 +532,43 @@ func processIncludes(content string, params map[string]string) string {
 		content = strings.ReplaceAll(content, placeholder, value)
 	}
 	return content
+}
+
+// inlineSharedPrompts loads and inlines shared prompts for an agent
+func inlineSharedPrompts(mainPrompt string, meta *agentMeta) (string, error) {
+	if len(meta.Prompts.Shared) == 0 {
+		return mainPrompt, nil
+	}
+
+	var result strings.Builder
+	result.WriteString(mainPrompt)
+	result.WriteString("\n\n")
+
+	// Load and append each shared prompt
+	for _, name := range meta.Prompts.Shared {
+		// Add underscore prefix if not present
+		promptName := name
+		if name[0] != '_' {
+			promptName = "_" + name
+		}
+
+		path := filepath.Join("agents/prompts/shared", promptName+".md")
+		data, err := pkg.FS.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("read shared prompt %s: %w", name, err)
+		}
+
+		// Add section header
+		header := strings.ToUpper(name[:1]) + name[1:]
+		if name[0] == '_' {
+			header = strings.ToUpper(name[1:2]) + name[2:]
+		}
+		fmt.Fprintf(&result, "## %s\n\n", header)
+		result.Write(data)
+		result.WriteString("\n\n")
+	}
+
+	return strings.TrimSpace(result.String()), nil
 }
 
 func renderAgent(meta *agentMeta, prompt string, tpl *template.Template) (string, error) {
@@ -838,7 +883,13 @@ Examples:
 					metaCopy := *meta
 					metaCopy.Model = resolver.ResolveAgent(meta.Model)
 
-					content, err := renderAgent(&metaCopy, prompt, tpl)
+					// Inline shared prompts
+					fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
+					if err != nil {
+						return fmt.Errorf("inline shared prompts for %s: %w", name, err)
+					}
+
+					content, err := renderAgent(&metaCopy, fullPrompt, tpl)
 					if err != nil {
 						return fmt.Errorf("render agent %s: %w", name, err)
 					}

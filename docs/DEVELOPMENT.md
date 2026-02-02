@@ -797,3 +797,319 @@ Don't mix concerns across layers.
 - 7 agents, 9 skills, 16 commands
 - Full OpenSpec workflow integration
 - Layered fallback architecture
+
+---
+
+## Template Development
+
+> **Added:** February 2026 - Template system development guide
+
+### Overview
+
+The template system enables consistent agent generation through parameterized, role-specific sections.
+
+### Directory Structure
+
+```
+pkg/agents/templates/
+├── base-agent.md.tmpl          # Base template with slots
+├── claude.yaml.tmpl             # Claude Code frontmatter
+├── opencode.yaml.tmpl           # OpenCode frontmatter
+└── sections/                    # Section templates
+    ├── _tooling.md.tmpl         # Tool usage
+    ├── _workflow.md.tmpl        # Context gathering
+    ├── _principles.md.tmpl      # Constitutional AI
+    └── _handoff.md.tmpl         # Agent delegation
+```
+
+### Creating a New Section Template
+
+**1. Create Template File**
+
+`pkg/agents/templates/sections/_mysection.md.tmpl`:
+
+```go-template
+## My Section Title
+
+Universal content shown to all agents.
+
+{{- if eq .Role "execution" }}
+Execution-specific content.
+{{- else if eq .Role "planning" }}
+Planning-specific content.
+{{- end }}
+
+{{- if .HasSomeCondition }}
+Conditional content.
+{{- end }}
+```
+
+**2. Add Load Function**
+
+Update `internal/cli/template_sections.go`:
+
+```go
+func loadAllSectionTemplates() (map[string]*template.Template, error) {
+    sections := make(map[string]*template.Template)
+    
+    sectionNames := []string{
+        "_tooling",
+        "_workflow",
+        "_principles",
+        "_handoff",
+        "_mysection",  // Add new section
+    }
+    
+    // ... rest of function
+}
+```
+
+**3. Add to Assembly Order**
+
+Update `assembleAgentFromSections()`:
+
+```go
+sectionOrder := []string{
+    "_tooling",
+    "_workflow",
+    "_mysection",    // Add in desired order
+    "_principles",
+    "_handoff",
+}
+```
+
+**4. Write Tests**
+
+`internal/cli/template_sections_test.go`:
+
+```go
+func TestRenderMySectionTemplate(t *testing.T) {
+    tpl, err := loadSectionTemplate("_mysection")
+    require.NoError(t, err)
+    
+    tests := []struct {
+        name string
+        data *AgentTemplateData
+        want []string
+    }{
+        {
+            name: "execution role",
+            data: &AgentTemplateData{
+                Role: "execution",
+            },
+            want: []string{
+                "My Section Title",
+                "Execution-specific content",
+            },
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got, err := renderSectionTemplate(tpl, tt.data)
+            require.NoError(t, err)
+            
+            for _, want := range tt.want {
+                assert.Contains(t, got, want)
+            }
+        })
+    }
+}
+```
+
+**5. Test and Verify**
+
+```bash
+# Run tests
+go test ./internal/cli -v -run "TestRenderMySection"
+
+# Regenerate agents
+make build
+./bin/ent init --tools=claude --force
+
+# Verify output
+cat .claude/agents/ent/coder.md | grep -A10 "My Section Title"
+```
+
+### Modifying Existing Templates
+
+**1. Edit Template**
+
+Make changes to `pkg/agents/templates/sections/*.tmpl`
+
+**2. Update Tests**
+
+Adjust tests to match new content/structure
+
+**3. Run Tests**
+
+```bash
+go test ./internal/cli -v
+```
+
+**4. Regenerate and Verify**
+
+```bash
+# Backup
+cp -r .claude/agents/ent/ /tmp/agents-backup/
+
+# Regenerate
+make build
+./bin/ent init --tools=claude --force
+
+# Compare
+diff -r .claude/agents/ent/ /tmp/agents-backup/
+```
+
+### Template Parameters
+
+Available in all templates via `AgentTemplateData`:
+
+| Parameter | Type | Example | Usage |
+|-----------|------|---------|-------|
+| Name | string | "coder" | `{{ .Name }}` |
+| Role | string | "execution" | `{{- if eq .Role "execution" }}` |
+| RoleTitle | string | "Implementation" | `{{ .RoleTitle }}` |
+| Dependencies | []string | ["tester"] | `{{- range .Dependencies }}` |
+| DisallowedTools | []string | ["tool1"] | `{{- range .DisallowedTools }}` |
+| HasDisallowedTools | bool | true | `{{- if .HasDisallowedTools }}` |
+
+### Template Helpers
+
+Available functions:
+
+```go-template
+{{ .Name | title }}        # Title case
+{{ .Name | upper }}        # Uppercase
+{{ .Name | lower }}        # Lowercase
+{{ contains .Name "cod" }} # Substring check
+{{ hasPrefix .Name "co" }} # Prefix check
+{{ hasSuffix .Name "er" }} # Suffix check
+{{ join .Skills ", " }}    # Join array
+{{ replace .Name "o" "0" 2 }} # Replace all
+```
+
+### Best Practices
+
+**1. Role Parameterization**
+```go-template
+{{- if eq .Role "execution" }}
+Concrete code patterns
+{{- else if eq .Role "planning" }}
+Architecture guidance
+{{- else if eq .Role "validation" }}
+Review criteria
+{{- end }}
+```
+
+**2. Conditional Sections**
+```go-template
+{{- if .HasDisallowedTools }}
+## CRITICAL: Tool Restrictions
+{{- range .DisallowedTools }}
+- ❌ `{{ . }}`
+{{- end }}
+{{- end }}
+```
+
+**3. Safe Array Iteration**
+```go-template
+{{- if .Dependencies }}
+## Handoff
+{{- range .Dependencies }}
+- @ent/{{ . }}
+{{- end }}
+{{- end }}
+```
+
+**4. Testing Strategy**
+- Test each role variant
+- Test conditional rendering
+- Test with/without optional fields
+- Test array iteration edge cases
+
+### Common Patterns
+
+**Progressive Disclosure:**
+```go-template
+## Section Title
+
+[Always shown]
+
+{{- if condition }}
+[Conditionally shown]
+{{- end }}
+```
+
+**Role-Based Content:**
+```go-template
+{{- if eq .Role "execution" }}
+[Execution content]
+{{- else if eq .Role "planning" }}
+[Planning content]
+{{- else if eq .Role "validation" }}
+[Validation content]
+{{- else if eq .Role "research" }}
+[Research content]
+{{- end }}
+```
+
+**Array Safety:**
+```go-template
+{{- if .Items }}
+{{- range .Items }}
+- {{ . }}
+{{- end }}
+{{- end }}
+```
+
+### Troubleshooting
+
+**Template Parse Errors:**
+```
+Error: template: section:5: unexpected "}" in operand
+```
+Fix: Check conditional syntax, ensure `{{- end }}` matches `{{- if }}`
+
+**Missing Parameters:**
+```
+Error: can't evaluate field Role in type *AgentTemplateData
+```
+Fix: Add parameter to `AgentTemplateData` struct in `template_helpers.go`
+
+**Test Failures:**
+```
+Error: output missing expected string: "foo"
+```
+Fix: Update test expectations to match new template output
+
+### Integration with Agent Generation
+
+**Flow:**
+1. Load agent metadata (YAML)
+2. Load agent-specific prompt (Markdown)
+3. Load section templates
+4. Render sections with agent data
+5. Assemble: metadata + content + sections
+6. Write to `.claude/agents/ent/`
+
+**Code Entry Point:**
+
+`internal/cli/init.go`:
+```go
+// Load templates
+sections, err := loadAllSectionTemplates()
+
+// Create template data
+data := NewAgentTemplateData(meta, agentContent, sharedPrompts)
+
+// Assemble
+content, err := assembleAgentFromSections(data, sections)
+```
+
+### See Also
+
+- [PROMPT_DESIGN.md](PROMPT_DESIGN.md) - Template design patterns
+- [AGENTS_AND_SKILLS.md](AGENTS_AND_SKILLS.md) - Agent system overview
+- `internal/cli/template_sections.go` - Template implementation
+- `internal/cli/template_sections_test.go` - Template tests

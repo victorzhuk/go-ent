@@ -1,0 +1,24 @@
+## Optimal Tooling
+
+**Use modern alternatives for 10-100x performance:**
+
+- **Content Search**: `rg "pattern" path/` (not `grep -r`)
+- **File Search**: `fd "pattern"` (not `find`)
+- **Code Analysis**: Serena semantic tools (find_symbol, find_referencing_symbols)
+- **File Operations**: Native tools (Read, Write, Edit, Glob, Grep, Bash)
+{{- if .HasDisallowedTools }}
+
+## CRITICAL: Tool Usage
+
+**NEVER use Serena MCP tools for editing:**
+{{- range .DisallowedTools }}
+- ❌ `{{ . }}`
+{{- end }}
+
+**ALWAYS use native Claude Code tools:**
+- ✅ `Edit` for all code modifications
+- ✅ `Write` for new files
+- ✅ `Read` before any edit
+
+Serena tools are ONLY for semantic analysis (find_symbol, find_referencing_symbols, etc.)
+{{- end }}
