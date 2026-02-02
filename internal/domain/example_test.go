@@ -86,9 +86,8 @@ func ExampleSkill() {
 	skill := &customSkill{name: "go-code"}
 
 	ctx := domain.SkillContext{
-		Action:  domain.SpecActionImplement,
-		Runtime: domain.RuntimeClaudeCode,
-		Agent:   domain.AgentRoleDeveloper,
+		Action: domain.SpecActionImplement,
+		Agent:  domain.AgentRoleDeveloper,
 		Metadata: map[string]interface{}{
 			"language": "go",
 		},
@@ -173,26 +172,4 @@ func ExampleAgentError() {
 	// agent error [developer]: invalid agent config
 	// Agent role: developer
 	// Invalid config detected
-}
-
-// ExampleExecutionContext demonstrates creating execution context.
-func ExampleExecutionContext() {
-	ctx := &domain.ExecutionContext{
-		Runtime:  domain.RuntimeClaudeCode,
-		Agent:    domain.AgentRoleDeveloper,
-		Strategy: domain.ExecutionStrategySingle,
-		ChangeID: "add-feature",
-		TaskID:   "1.2",
-	}
-
-	fmt.Printf("Runtime: %s\n", ctx.Runtime)
-	fmt.Printf("Agent: %s\n", ctx.Agent)
-	fmt.Printf("Strategy: %s\n", ctx.Strategy)
-	fmt.Printf("Change: %s, Task: %s\n", ctx.ChangeID, ctx.TaskID)
-
-	// Output:
-	// Runtime: claude-code
-	// Agent: developer
-	// Strategy: single
-	// Change: add-feature, Task: 1.2
 }

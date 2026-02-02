@@ -1,0 +1,34 @@
+name: standard
+category: agent
+description: Standard agent template for general-purpose AI agents
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: AGENT_NAME
+    prompt: Agent name (e.g., my-agent, custom-reviewer)
+    default: my-agent
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of agent's purpose
+    default: Custom AI agent
+    required: true
+  - key: MODEL
+    prompt: Model tier (haiku/main/opus)
+    default: main
+    required: true
+  - key: ROLE
+    prompt: Agent role (planning/execution/review/research)
+    default: execution
+    required: true
+  - key: COMPLEXITY
+    prompt: Task complexity handled (simple/standard/complex)
+    default: standard
+    required: true
+  - key: SKILLS
+    prompt: Comma-separated skill names (e.g., go-code,go-db)
+    default: ""
+    required: false
+  - key: TOOLS
+    prompt: Comma-separated additional tools (e.g., todoread,skill)
+    default: "todoread,todowrite"
+    required: false

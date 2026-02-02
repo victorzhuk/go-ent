@@ -141,10 +141,9 @@ func TestSkillMetadata(t *testing.T) {
 
 func TestSkillContext(t *testing.T) {
 	ctx := SkillContext{
-		Action:  SpecActionImplement,
-		Phase:   ActionPhaseExecution,
-		Runtime: RuntimeClaudeCode,
-		Agent:   AgentRoleDeveloper,
+		Action: SpecActionImplement,
+		Phase:  ActionPhaseExecution,
+		Agent:  AgentRoleDeveloper,
 		Metadata: map[string]interface{}{
 			"change_id": "add-feature",
 			"priority":  "high",
@@ -153,7 +152,6 @@ func TestSkillContext(t *testing.T) {
 
 	assert.Equal(t, SpecActionImplement, ctx.Action)
 	assert.Equal(t, ActionPhaseExecution, ctx.Phase)
-	assert.Equal(t, RuntimeClaudeCode, ctx.Runtime)
 	assert.Equal(t, AgentRoleDeveloper, ctx.Agent)
 	assert.Equal(t, "add-feature", ctx.Metadata["change_id"])
 	assert.Equal(t, "high", ctx.Metadata["priority"])
@@ -223,7 +221,6 @@ func TestSkillContext_Empty(t *testing.T) {
 
 	assert.Equal(t, SpecAction(""), ctx.Action)
 	assert.Equal(t, ActionPhase(""), ctx.Phase)
-	assert.Equal(t, Runtime(""), ctx.Runtime)
 	assert.Equal(t, AgentRole(""), ctx.Agent)
 	assert.Nil(t, ctx.Metadata)
 }

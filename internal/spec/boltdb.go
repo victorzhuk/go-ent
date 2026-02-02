@@ -436,7 +436,16 @@ func taskKey(changeID, taskNum string) string {
 func (s *BoltStore) RebuildFromMarkdown(rootPath string) error {
 	openspecDir := filepath.Join(rootPath, "openspec", "changes")
 
-	changes, tasks, deps, fileMTimes, err := s.walkOpenspecDir(openspecDir)
+	// Get stored mtimes for incremental sync
+	storedMeta, err := s.GetSyncMeta()
+	if err != nil {
+		storedMeta = &SyncMeta{FileMTimes: make(map[string]int64)}
+	}
+	if storedMeta.FileMTimes == nil {
+		storedMeta.FileMTimes = make(map[string]int64)
+	}
+
+	changes, tasks, deps, fileMTimes, err := s.walkOpenspecDirWithMTimes(openspecDir, storedMeta.FileMTimes)
 	if err != nil {
 		return fmt.Errorf("walk openspec dir: %w", err)
 	}
@@ -508,6 +517,10 @@ func (s *BoltStore) RebuildFromMarkdown(rootPath string) error {
 }
 
 func (s *BoltStore) walkOpenspecDir(openspecDir string) ([]*ChangeMetadata, []*Task, []*DependencyInfo, map[string]int64, error) {
+	return s.walkOpenspecDirWithMTimes(openspecDir, nil)
+}
+
+func (s *BoltStore) walkOpenspecDirWithMTimes(openspecDir string, storedMTimes map[string]int64) ([]*ChangeMetadata, []*Task, []*DependencyInfo, map[string]int64, error) {
 	var changes []*ChangeMetadata
 	var tasks []*Task
 	var deps []*DependencyInfo
@@ -517,6 +530,9 @@ func (s *BoltStore) walkOpenspecDir(openspecDir string) ([]*ChangeMetadata, []*T
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("read openspec dir: %w", err)
 	}
+
+	parseCount := 0
+	skipCount := 0
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
@@ -529,14 +545,54 @@ func (s *BoltStore) walkOpenspecDir(openspecDir string) ([]*ChangeMetadata, []*T
 		tasksPath := filepath.Join(changeDir, "tasks.md")
 		proposalPath := filepath.Join(changeDir, "proposal.md")
 
-		title, err := s.ParseProposalTitle(proposalPath)
+		// Check if tasks.md needs to be reparsed
+		tasksInfo, err := os.Stat(tasksPath)
 		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("parse proposal %s: %w", changeID, err)
+			return nil, nil, nil, nil, fmt.Errorf("stat tasks %s: %w", changeID, err)
+		}
+		tasksMTime := tasksInfo.ModTime().Unix()
+		fileMTimes[tasksPath] = tasksMTime
+
+		// Check if file unchanged and we can load from cache
+		fileUnchanged := false
+		if storedMTimes != nil {
+			if storedMTime, exists := storedMTimes[tasksPath]; exists && storedMTime == tasksMTime {
+				fileUnchanged = true
+			}
 		}
 
-		changeTasks, err := s.ParseTasksFile(tasksPath, changeID, &fileMTimes)
-		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("parse tasks %s: %w", changeID, err)
+		var changeTasks []*Task
+		var title string
+
+		if fileUnchanged {
+			// Load from existing BoltDB data instead of re-parsing
+			existingChange, err := s.GetChange(changeID)
+			if err == nil && existingChange != nil {
+				title = existingChange.Title
+				cachedTasks, err := s.GetTasksByChange(changeID)
+				if err == nil && len(cachedTasks) > 0 {
+					changeTasks = cachedTasks
+					skipCount++
+				} else {
+					fileUnchanged = false
+				}
+			} else {
+				fileUnchanged = false
+			}
+		}
+
+		// Parse if file changed or cache miss
+		if !fileUnchanged {
+			title, err = s.ParseProposalTitle(proposalPath)
+			if err != nil {
+				return nil, nil, nil, nil, fmt.Errorf("parse proposal %s: %w", changeID, err)
+			}
+
+			changeTasks, err = s.ParseTasksFile(tasksPath, changeID, &fileMTimes)
+			if err != nil {
+				return nil, nil, nil, nil, fmt.Errorf("parse tasks %s: %w", changeID, err)
+			}
+			parseCount++
 		}
 
 		completed, inProgress, blocked := s.CountTaskStatuses(changeTasks)
@@ -567,6 +623,10 @@ func (s *BoltStore) walkOpenspecDir(openspecDir string) ([]*ChangeMetadata, []*T
 
 		changeDeps := s.BuildDependencies(changeTasks)
 		deps = append(deps, changeDeps...)
+	}
+
+	if skipCount > 0 {
+		fmt.Fprintf(os.Stderr, "BoltDB sync: parsed %d changes, skipped %d unchanged\n", parseCount, skipCount)
 	}
 
 	return changes, tasks, deps, fileMTimes, nil

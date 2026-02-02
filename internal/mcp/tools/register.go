@@ -18,14 +18,11 @@ func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Re
 	// Generate tool
 	registerGenerate(s, toolRegistry)
 
-	// OpenSpec tools
+	// OpenSpec tools (mutation only - use registry tools for queries)
 	openspecClient := openspec.New(cwd)
-	registerOpenSpecList(s, toolRegistry, openspecClient)
-	registerOpenSpecShow(s, toolRegistry, openspecClient)
 	registerOpenSpecNewChange(s, toolRegistry, openspecClient)
 	registerOpenSpecArchive(s, toolRegistry, openspecClient)
 	registerOpenSpecValidate(s, toolRegistry, openspecClient)
-	registerOpenSpecStatus(s, toolRegistry, openspecClient)
 	registerOpenSpecInstructions(s, toolRegistry, openspecClient)
 
 	// Registry tools

@@ -12,9 +12,7 @@ import (
 // - Project and spec metadata (Project, ListItem)
 //
 // The internal/domain package defines types for the multi-agent execution system:
-// - Agent roles and capabilities (AgentRole, AgentConfig, AgentCapability)
-// - Runtime environments (Runtime, RuntimeCapability)
-// - Execution semantics (ExecutionStrategy, ExecutionContext, ExecutionResult)
+// - Agent roles (AgentRole)
 // - Actions and phases (SpecAction, ActionPhase)
 // - Skill abstraction (Skill interface and supporting types)
 //

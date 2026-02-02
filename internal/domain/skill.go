@@ -50,9 +50,6 @@ type SkillContext struct {
 	// Phase is the current development phase.
 	Phase ActionPhase
 
-	// Runtime is the execution environment.
-	Runtime Runtime
-
 	// Agent is the role of the executing agent.
 	Agent AgentRole
 

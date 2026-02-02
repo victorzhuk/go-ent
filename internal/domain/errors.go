@@ -13,9 +13,6 @@ var (
 	// ErrInvalidAgentConfig indicates the agent configuration is invalid.
 	ErrInvalidAgentConfig = errors.New("invalid agent config")
 
-	// ErrRuntimeUnavailable indicates the runtime environment is not available.
-	ErrRuntimeUnavailable = errors.New("runtime unavailable")
-
 	// ErrInvalidAction indicates an invalid or unsupported action was requested.
 	ErrInvalidAction = errors.New("invalid action")
 
@@ -37,20 +34,6 @@ func (e *AgentError) Error() string {
 }
 
 func (e *AgentError) Unwrap() error {
-	return e.Err
-}
-
-// RuntimeError wraps runtime-related errors with additional context.
-type RuntimeError struct {
-	Runtime Runtime
-	Err     error
-}
-
-func (e *RuntimeError) Error() string {
-	return fmt.Sprintf("runtime error [%s]: %v", e.Runtime, e.Err)
-}
-
-func (e *RuntimeError) Unwrap() error {
 	return e.Err
 }
 
@@ -86,12 +69,6 @@ func (e *SkillError) Unwrap() error {
 func IsAgentError(err error) bool {
 	var agentErr *AgentError
 	return errors.As(err, &agentErr)
-}
-
-// IsRuntimeError checks if an error is a runtime-related error.
-func IsRuntimeError(err error) bool {
-	var runtimeErr *RuntimeError
-	return errors.As(err, &runtimeErr)
 }
 
 // IsActionError checks if an error is an action-related error.

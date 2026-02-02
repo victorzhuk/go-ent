@@ -1,0 +1,16 @@
+name: ${AGENT_NAME}
+description: ${DESCRIPTION}
+model: ${MODEL}
+color: '#4A90E2'
+skills:${SKILLS_YAML}
+toolPresets:
+    - editing
+tools:${TOOLS_YAML}
+role: ${ROLE}
+complexity: ${COMPLEXITY}
+prompts:
+    shared:
+        - _conventions
+        - _judgment
+        - _principals
+    main: agents/${AGENT_NAME}
