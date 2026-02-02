@@ -3,30 +3,27 @@ description: Complex debugging. Concurrency, performance, multi-component issues
 model: heavy
 color: '#8B0000'
 skills:
-    - go-perf
-    - go-sec
-    - go-test
-    - debug-core
-    - go-code
+- go-perf
+- go-sec
+- go-test
+- debug-core
+- go-code
 toolPresets:
-    - editing
+- editing
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 disallowedToolPresets:
-    - serena-editing
+- serena-editing
 dependencies:
-    - acceptor
-    - tester
-    - reviewer
+- acceptor
+- tester
+- reviewer
 prompts:
-    shared:
-        - _openspec
-        - _tooling
-        - _conventions
-        - _handoffs
-        - _judgment
-        - _principals
-    main: agents/debugger-heavy
+  shared:
+  - _workflow
+  - _tooling
+  - _foundation
+  main: agents/debugger-heavy

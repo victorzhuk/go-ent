@@ -4,21 +4,18 @@ extends: planner
 model: main
 color: '#32CD32'
 toolPresets:
-    - readonly
-    - serena-analysis
-    - planning
+- readonly
+- serena-analysis
+- planning
 tools:
-    - glob
-    - list
-    - todoread
-    - todowrite
-    - skill
+- glob
+- list
+- todoread
+- todowrite
+- skill
 prompts:
-    shared:
-        - _tooling
-        - _conventions
-        - _handoffs
-        - _judgment
-        - _principals
-        - _openspec
-    main: agents/planner
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/planner

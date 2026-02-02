@@ -4,26 +4,23 @@ extends: planner
 model: fast
 color: '#90EE90'
 skills:
-    - arch-core
+- arch-core
 toolPresets:
-    - readonly
-    - serena-analysis
-    - planning
+- readonly
+- serena-analysis
+- planning
 tools:
-    - glob
-    - list
-    - todoread
-    - todowrite
-    - skill
+- glob
+- list
+- todoread
+- todowrite
+- skill
 dependencies:
-    - planner
-    - architect
+- planner
+- architect
 prompts:
-    shared:
-        - _tooling
-        - _handoffs
-        - _judgment
-        - _openspec
-        - _conventions
-        - _principals
-    main: agents/planner-fast
+  shared:
+  - _tooling
+  - _workflow
+  - _foundation
+  main: agents/planner-fast

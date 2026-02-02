@@ -3,28 +3,25 @@ description: Research root causes, investigate code, analyze bugs. Deep code ana
 model: heavy
 color: '#9370DB'
 skills:
-    - go-code
-    - debug-core
+- go-code
+- debug-core
 toolPresets:
-    - readonly
+- readonly
 tools:
-    - list
-    - webfetch
-    - websearch
-    - todoread
-    - todowrite
-    - skill
+- list
+- webfetch
+- websearch
+- todoread
+- todowrite
+- skill
 dependencies:
-    - debugger-fast
-    - debugger-heavy
-    - architect
-    - planner
+- debugger-fast
+- debugger-heavy
+- architect
+- planner
 prompts:
-    shared:
-        - _principals
-        - _handoffs
-        - _openspec
-        - _tooling
-        - _conventions
-        - _judgment
-    main: agents/researcher
+  shared:
+  - _foundation
+  - _workflow
+  - _tooling
+  main: agents/researcher

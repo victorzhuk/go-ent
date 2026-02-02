@@ -3,18 +3,15 @@ description: Task decomposition specialist. Breaks designs into <4h actionable t
 model: main
 color: '#FFA500'
 skills:
-    - go-code
+- go-code
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 prompts:
-    shared:
-        - _tooling
-        - _conventions
-        - _handoffs
-        - _judgment
-        - _principals
-        - _openspec
-    main: agents/decomposer
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/decomposer

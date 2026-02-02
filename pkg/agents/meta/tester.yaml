@@ -5,23 +5,20 @@ color: '#00FFFF'
 role: execution
 complexity: standard
 skills:
-    - go-test
-    - debug-core
+- go-test
+- debug-core
 toolPresets:
-    - editing
+- editing
 tools:
-    - list
-    - todoread
-    - skill
+- list
+- todoread
+- skill
 disallowedToolPresets:
-    - serena-editing
+- serena-editing
 dependencies: []
 prompts:
-    shared:
-        - _tooling
-        - _conventions
-        - _handoffs
-        - _judgment
-        - _principals
-        - _openspec
-    main: agents/tester
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/tester

@@ -3,27 +3,24 @@ description: System architect. Designs components, layers, data flow.
 model: heavy
 color: '#4169E1'
 skills:
-    - go-api
-    - api-design
-    - go-arch
+- go-api
+- api-design
+- go-arch
 toolPresets:
-    - readonly
+- readonly
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 role: planning
 complexity: heavy
 dependencies:
-    - planner
-    - coder
+- planner
+- coder
 prompts:
-    shared:
-        - _conventions
-        - _judgment
-        - _tooling
-        - _handoffs
-        - _principals
-        - _openspec
-    main: agents/architect
+  shared:
+  - _foundation
+  - _tooling
+  - _workflow
+  main: agents/architect

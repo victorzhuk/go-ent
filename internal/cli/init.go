@@ -39,12 +39,9 @@ var toolPriority = map[string]int{
 }
 
 var sharedPromptToSkill = map[string]string{
-	"_conventions": "ent-conventions",
-	"_judgment":    "ent-judgment",
-	"_principals":  "ent-principals",
-	"_openspec":    "ent-openspec",
-	"_tooling":     "ent-tooling",
-	"_handoffs":    "ent-handoffs",
+	"_foundation": "ent-foundation",
+	"_workflow":   "ent-workflow",
+	"_tooling":    "ent-tooling",
 }
 
 type toolPresets struct {

@@ -4,30 +4,27 @@ extends: planner
 model: heavy
 color: '#228B22'
 skills:
-    - go-arch
-    - go-api
-    - go-code
-    - go-db
+- go-arch
+- go-api
+- go-code
+- go-db
 toolPresets:
-    - readonly
-    - serena-analysis
-    - planning
+- readonly
+- serena-analysis
+- planning
 tools:
-    - glob
-    - list
-    - todoread
-    - todowrite
-    - skill
+- glob
+- list
+- todoread
+- todowrite
+- skill
 dependencies:
-    - planner
-    - decomposer
-    - architect
+- planner
+- decomposer
+- architect
 prompts:
-    shared:
-        - _handoffs
-        - _judgment
-        - _tooling
-        - _principals
-        - _openspec
-        - _conventions
-    main: agents/planner-heavy
+  shared:
+  - _workflow
+  - _foundation
+  - _tooling
+  main: agents/planner-heavy

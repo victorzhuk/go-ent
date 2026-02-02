@@ -3,28 +3,25 @@ description: Standard debugging. Systematic issue investigation and resolution.
 model: main
 color: '#DC143C'
 skills:
-    - go-test
-    - debug-core
-    - go-perf
-    - go-code
+- go-test
+- debug-core
+- go-perf
+- go-code
 toolPresets:
-    - editing
+- editing
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 disallowedToolPresets:
-    - serena-editing
+- serena-editing
 dependencies:
-    - tester
-    - reviewer
+- tester
+- reviewer
 prompts:
-    shared:
-        - _tooling
-        - _conventions
-        - _handoffs
-        - _judgment
-        - _principals
-        - _openspec
-    main: agents/debugger
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/debugger

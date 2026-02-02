@@ -3,27 +3,24 @@ description: Quick debugging for simple issues. Fast troubleshooting.
 model: fast
 color: '#FF6347'
 skills:
-    - debug-core
-    - go-code
+- debug-core
+- go-code
 toolPresets:
-    - editing
+- editing
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 disallowedToolPresets:
-    - serena-editing
+- serena-editing
 dependencies:
-    - reviewer
-    - coder
-    - tester
+- reviewer
+- coder
+- tester
 prompts:
-    shared:
-        - _conventions
-        - _judgment
-        - _principals
-        - _tooling
-        - _handoffs
-        - _openspec
-    main: agents/debugger-fast
+  shared:
+  - _foundation
+  - _tooling
+  - _workflow
+  main: agents/debugger-fast

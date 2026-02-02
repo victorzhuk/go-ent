@@ -3,29 +3,26 @@ description: Go developer. Implements features, writes code.
 model: main
 color: '#32CD32'
 skills:
-    - go-code
-    - go-db
+- go-code
+- go-db
 toolPresets:
-    - editing
+- editing
 tools:
-    - list
-    - todoread
-    - todowrite
-    - skill
+- list
+- todoread
+- todowrite
+- skill
 disallowedToolPresets:
-    - serena-editing
+- serena-editing
 role: execution
 complexity: standard
 dependencies:
-    - tester
-    - reviewer
-    - debugger
+- tester
+- reviewer
+- debugger
 prompts:
-    shared:
-        - _conventions
-        - _judgment
-        - _principals
-        - _openspec
-        - _tooling
-        - _handoffs
-    main: agents/coder
+  shared:
+  - _foundation
+  - _workflow
+  - _tooling
+  main: agents/coder

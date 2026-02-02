@@ -1,24 +1,22 @@
 name: reviewer
-description: Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions.
+description: Code reviewer. Reviews code for bugs, security, quality, and adherence
+  to project conventions.
 model: heavy
 color: '#4169E1'
 skills:
-    - go-review
-    - security-core
-    - go-sec
+- go-review
+- security-core
+- go-sec
 toolPresets:
-    - readonly
-    - serena-analysis
+- readonly
+- serena-analysis
 tools:
-    - list
-    - todoread
-    - skill
+- list
+- todoread
+- skill
 prompts:
-    shared:
-        - _tooling
-        - _conventions
-        - _openspec
-        - _handoffs
-        - _judgment
-        - _principals
-    main: agents/reviewer
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/reviewer
