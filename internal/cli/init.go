@@ -64,6 +64,7 @@ type agentMeta struct {
 	Color                 string        `yaml:"color"`
 	Role                  string        `yaml:"role"`
 	Complexity            string        `yaml:"complexity"`
+	Hidden                *bool         `yaml:"hidden"` // nil = visible (default)
 	Skills                []string      `yaml:"skills"`
 	Tools                 []string      `yaml:"tools"`
 	ToolPresets           []string      `yaml:"toolPresets"`
@@ -90,6 +91,14 @@ func (m *agentMeta) ModelClaude() string {
 // ModelOpenCode returns internal model name as-is for OpenCode
 func (m *agentMeta) ModelOpenCode() string {
 	return m.Model
+}
+
+// HiddenForOpenCode returns true if the agent should be hidden in OpenCode
+func (m *agentMeta) HiddenForOpenCode() bool {
+	if m.Hidden == nil {
+		return false
+	}
+	return *m.Hidden
 }
 
 // GeneratedSkills returns skills including those mapped from shared prompts
@@ -273,6 +282,9 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 	if variant.Complexity != "" {
 		merged.Complexity = variant.Complexity
 	}
+	if variant.Hidden != nil {
+		merged.Hidden = variant.Hidden
+	}
 
 	merged.Skills = mergeSlices(base.Skills, variant.Skills)
 	merged.Tools = mergeSlices(base.Tools, variant.Tools)
@@ -320,23 +332,24 @@ func sortTools(tools []string) []string {
 }
 
 func expandToolPresets(meta *agentMeta, presets *toolPresets) {
-	// Normalize tool names to title case for case-insensitive deduplication
+	// Normalize for deduplication:
+	// - MCP tools (mcp__*): exact match (case-sensitive)
+	// - Built-in tools: case-insensitive via strings.ToLower()
 	normalize := func(tool string) string {
-		if tool == "" {
-			return tool
+		if strings.HasPrefix(tool, "mcp__") {
+			return tool // exact
 		}
-		// Capitalize first letter if lowercase (Glob, Read, not glob, read)
-		first := tool[0]
-		if first >= 'a' && first <= 'z' {
-			return string(first-32) + tool[1:]
-		}
-		return tool
+		return strings.ToLower(tool)
 	}
 
-	toolSet := make(map[string]bool)
+	// Map normalized -> original to preserve first occurrence's casing
+	toolMap := make(map[string]string)
 
 	for _, tool := range meta.Tools {
-		toolSet[normalize(tool)] = true
+		normalized := normalize(tool)
+		if _, exists := toolMap[normalized]; !exists {
+			toolMap[normalized] = tool
+		}
 	}
 
 	for _, presetName := range meta.ToolPresets {
@@ -345,13 +358,16 @@ func expandToolPresets(meta *agentMeta, presets *toolPresets) {
 			continue
 		}
 		for _, tool := range tools {
-			toolSet[normalize(tool)] = true
+			normalized := normalize(tool)
+			if _, exists := toolMap[normalized]; !exists {
+				toolMap[normalized] = tool
+			}
 		}
 	}
 
-	disallowedSet := make(map[string]bool)
+	disallowedMap := make(map[string]bool)
 	for _, tool := range meta.DisallowedTools {
-		disallowedSet[normalize(tool)] = true
+		disallowedMap[normalize(tool)] = true
 	}
 
 	for _, presetName := range meta.DisallowedToolPresets {
@@ -360,17 +376,19 @@ func expandToolPresets(meta *agentMeta, presets *toolPresets) {
 			continue
 		}
 		for _, tool := range tools {
-			disallowedSet[normalize(tool)] = true
+			disallowedMap[normalize(tool)] = true
 		}
 	}
 
-	for tool := range disallowedSet {
-		delete(toolSet, tool)
+	// Remove disallowed tools
+	for normalized := range disallowedMap {
+		delete(toolMap, normalized)
 	}
 
-	meta.Tools = make([]string, 0, len(toolSet))
-	for tool := range toolSet {
-		meta.Tools = append(meta.Tools, tool)
+	// Extract original tool names
+	meta.Tools = make([]string, 0, len(toolMap))
+	for _, original := range toolMap {
+		meta.Tools = append(meta.Tools, original)
 	}
 
 	meta.Tools = sortTools(meta.Tools)
@@ -476,31 +494,6 @@ func loadPrompts() (map[string]string, error) {
 	}
 
 	return prompts, nil
-}
-
-func loadShared() (string, error) {
-	sharedFiles := []string{
-		"principals.md",
-		"judgment.md",
-		"openspec.md",
-		"conventions.md",
-		"tooling.md",
-	}
-
-	var shared strings.Builder
-
-	for _, filename := range sharedFiles {
-		path := filepath.Join("prompts", filename)
-		data, err := pkg.FS.ReadFile(path)
-		if err != nil {
-			return "", fmt.Errorf("read %s: %w", path, err)
-		}
-
-		shared.Write(data)
-		shared.WriteString("\n\n")
-	}
-
-	return shared.String(), nil
 }
 
 func loadTemplate(tool string) (*template.Template, error) {
