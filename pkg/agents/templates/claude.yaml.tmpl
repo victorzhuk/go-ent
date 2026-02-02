@@ -1,8 +1,8 @@
 ---
 name: {{.Name}}
 description: "{{.Description}}"
-model: {{.ModelClaude}}{{if .Skills}}
-skills:{{range .Skills}}
+model: {{.ModelClaude}}{{if .GeneratedSkills}}
+skills:{{range .GeneratedSkills}}
     - {{.}}{{end}}{{end}}{{if .DisallowedToolsClaude}}
 disallowedTools:{{range .DisallowedToolsClaude}}
     - {{.}}{{end}}{{end}}{{if .Color}}

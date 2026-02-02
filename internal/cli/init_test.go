@@ -67,15 +67,14 @@ model: {{.Model}}
 	require.NoError(t, err)
 
 	meta := &agentMeta{
-		Name:        "ent:test",
+		Name:        "test",
 		Description: "Test agent",
 		Model:       "main",
 	}
 
 	prompt := "# Test Prompt Content"
-	shared := "## Shared Content"
 
-	result, err := renderAgent(meta, prompt, shared, tpl)
+	result, err := renderAgent(meta, prompt, tpl)
 	require.NoError(t, err)
 
 	// Split into lines to verify structure
@@ -105,8 +104,7 @@ model: {{.Model}}
 		}
 	}
 
-	// Verify content is present
-	assert.Contains(t, result, "Shared Content")
+	// Verify content is present (shared content is now loaded via skills)
 	assert.Contains(t, result, "Test Prompt Content")
 }
 
@@ -120,7 +118,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "valid agent",
 			agent: agentMeta{
-				Name:        "ent:coder",
+				Name:        "coder",
 				Description: "A valid description with more than 10 chars",
 				Model:       "main",
 				Color:       "#FF0000",
@@ -139,19 +137,19 @@ func TestValidateAgent(t *testing.T) {
 			errMsg:  "name is required",
 		},
 		{
-			name: "invalid name prefix",
+			name: "invalid name with colon",
 			agent: agentMeta{
 				Name:        "invalid:name",
 				Description: "Valid description",
 				Model:       "main",
 			},
 			wantErr: true,
-			errMsg:  "name must start with 'ent:'",
+			errMsg:  "name should not contain ':'",
 		},
 		{
 			name: "missing description",
 			agent: agentMeta{
-				Name:  "ent:test",
+				Name:  "test",
 				Model: "main",
 			},
 			wantErr: true,
@@ -160,7 +158,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "description too short",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Short",
 				Model:       "main",
 			},
@@ -170,7 +168,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "missing model",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 			},
 			wantErr: true,
@@ -179,7 +177,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "invalid model",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 				Model:       "invalid",
 			},
@@ -189,7 +187,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "invalid color format",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 				Model:       "main",
 				Color:       "red",
@@ -200,7 +198,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "invalid role",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 				Model:       "main",
 				Role:        "invalid",
@@ -211,7 +209,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "invalid complexity",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 				Model:       "main",
 				Complexity:  "invalid",
@@ -222,7 +220,7 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name: "invalid tool preset",
 			agent: agentMeta{
-				Name:        "ent:test",
+				Name:        "test",
 				Description: "Valid description",
 				Model:       "main",
 				ToolPresets: []string{"invalid-preset"},
@@ -231,19 +229,19 @@ func TestValidateAgent(t *testing.T) {
 			errMsg:  "unknown tool preset",
 		},
 		{
-			name: "valid new tool presets",
+			name: "valid agent with valid tool presets",
 			agent: agentMeta{
-				Name:        "ent:test",
-				Description: "Valid description with new presets",
+				Name:        "test",
+				Description: "Valid description with presets",
 				Model:       "main",
-				ToolPresets: []string{"task-management", "planning-full", "execution-full"},
+				ToolPresets: []string{"readonly", "editing"},
 			},
 			wantErr: false,
 		},
 		{
 			name: "invalid disallowed tool preset",
 			agent: agentMeta{
-				Name:                  "ent:test",
+				Name:                  "test",
 				Description:           "Valid description",
 				Model:                 "main",
 				DisallowedToolPresets: []string{"invalid-preset"},
@@ -252,15 +250,15 @@ func TestValidateAgent(t *testing.T) {
 			errMsg:  "unknown disallowed tool preset",
 		},
 		{
-			name: "invalid dependency",
+			name: "invalid dependency with colon",
 			agent: agentMeta{
-				Name:         "ent:test",
+				Name:         "test",
 				Description:  "Valid description",
 				Model:        "main",
-				Dependencies: []string{"invalid-dep"},
+				Dependencies: []string{"ent:invalid"},
 			},
 			wantErr: true,
-			errMsg:  "dependency must start with 'ent:'",
+			errMsg:  "dependency should not contain ':'",
 		},
 	}
 

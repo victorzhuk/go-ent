@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -14,6 +15,37 @@ import (
 	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/pkg"
 )
+
+var toolPriority = map[string]int{
+	// Core I/O (10-19)
+	"Edit":  10,
+	"Read":  11,
+	"Write": 12,
+	// Search (20-29)
+	"Glob": 20,
+	"Grep": 21,
+	// Shell (30-39)
+	"Bash": 30,
+	// Tasks (40-49)
+	"TaskCreate": 40,
+	"TaskGet":    41,
+	"TaskList":   42,
+	"TaskUpdate": 43,
+	// Web (50-59)
+	"WebFetch":  50,
+	"WebSearch": 51,
+	// Other built-in: 100 (alphabetical)
+	// MCP tools: 200+ (by server then tool name)
+}
+
+var sharedPromptToSkill = map[string]string{
+	"_conventions": "ent-conventions",
+	"_judgment":    "ent-judgment",
+	"_principals":  "ent-principals",
+	"_openspec":    "ent-openspec",
+	"_tooling":     "ent-tooling",
+	"_handoffs":    "ent-handoffs",
+}
 
 type toolPresets struct {
 	Presets map[string][]string `yaml:"presets"`
@@ -58,6 +90,30 @@ func (m *agentMeta) ModelClaude() string {
 // ModelOpenCode returns internal model name as-is for OpenCode
 func (m *agentMeta) ModelOpenCode() string {
 	return m.Model
+}
+
+// GeneratedSkills returns skills including those mapped from shared prompts
+func (m *agentMeta) GeneratedSkills() []string {
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, s := range m.Skills {
+		if !seen[s] {
+			seen[s] = true
+			result = append(result, s)
+		}
+	}
+
+	for _, shared := range m.Prompts.Shared {
+		if skillName, ok := sharedPromptToSkill[shared]; ok {
+			if !seen[skillName] {
+				seen[skillName] = true
+				result = append(result, skillName)
+			}
+		}
+	}
+
+	return result
 }
 
 // ToolsOpenCode converts tools list to OpenCode object format
@@ -242,11 +298,45 @@ func loadToolPresets() (*toolPresets, error) {
 	return &presets, nil
 }
 
+func getToolPriority(tool string) int {
+	if strings.HasPrefix(tool, "mcp__") {
+		return 200
+	}
+	if p, ok := toolPriority[tool]; ok {
+		return p
+	}
+	return 100
+}
+
+func sortTools(tools []string) []string {
+	sort.Slice(tools, func(i, j int) bool {
+		pi, pj := getToolPriority(tools[i]), getToolPriority(tools[j])
+		if pi != pj {
+			return pi < pj
+		}
+		return tools[i] < tools[j]
+	})
+	return tools
+}
+
 func expandToolPresets(meta *agentMeta, presets *toolPresets) {
+	// Normalize tool names to title case for case-insensitive deduplication
+	normalize := func(tool string) string {
+		if tool == "" {
+			return tool
+		}
+		// Capitalize first letter if lowercase (Glob, Read, not glob, read)
+		first := tool[0]
+		if first >= 'a' && first <= 'z' {
+			return string(first-32) + tool[1:]
+		}
+		return tool
+	}
+
 	toolSet := make(map[string]bool)
 
-	for _, tools := range meta.Tools {
-		toolSet[tools] = true
+	for _, tool := range meta.Tools {
+		toolSet[normalize(tool)] = true
 	}
 
 	for _, presetName := range meta.ToolPresets {
@@ -255,13 +345,13 @@ func expandToolPresets(meta *agentMeta, presets *toolPresets) {
 			continue
 		}
 		for _, tool := range tools {
-			toolSet[tool] = true
+			toolSet[normalize(tool)] = true
 		}
 	}
 
 	disallowedSet := make(map[string]bool)
 	for _, tool := range meta.DisallowedTools {
-		disallowedSet[tool] = true
+		disallowedSet[normalize(tool)] = true
 	}
 
 	for _, presetName := range meta.DisallowedToolPresets {
@@ -270,7 +360,7 @@ func expandToolPresets(meta *agentMeta, presets *toolPresets) {
 			continue
 		}
 		for _, tool := range tools {
-			disallowedSet[tool] = true
+			disallowedSet[normalize(tool)] = true
 		}
 	}
 
@@ -282,6 +372,8 @@ func expandToolPresets(meta *agentMeta, presets *toolPresets) {
 	for tool := range toolSet {
 		meta.Tools = append(meta.Tools, tool)
 	}
+
+	meta.Tools = sortTools(meta.Tools)
 }
 
 func validateAgent(meta *agentMeta, filename string) error {
@@ -444,7 +536,7 @@ func processIncludes(content string, params map[string]string) string {
 	return content
 }
 
-func renderAgent(meta *agentMeta, prompt, shared string, tpl *template.Template) (string, error) {
+func renderAgent(meta *agentMeta, prompt string, tpl *template.Template) (string, error) {
 	var result strings.Builder
 
 	if err := tpl.Execute(&result, meta); err != nil {
@@ -458,12 +550,9 @@ func renderAgent(meta *agentMeta, prompt, shared string, tpl *template.Template)
 	}
 
 	processedPrompt := processIncludes(prompt, roleParams)
-	processedShared := processIncludes(shared, roleParams)
 
 	// Template already includes closing ---, just add content
 	result.WriteString("\n")
-	result.WriteString(processedShared)
-	result.WriteString("\n\n")
 	result.WriteString(processedPrompt)
 
 	return result.String(), nil
@@ -698,15 +787,15 @@ Supported tools:
   opencode   - Configure for OpenCode
 
 Examples:
-  ent init --tool=claude
-  ent init --tool=opencode
-  ent init --tool=claude,opencode
-  ent init --tool=claude --prefix=myproject
-  ent init --tool=claude --dry-run`,
+  ent init --tools=claude
+  ent init --tools=opencode
+  ent init --tools=claude,opencode
+  ent init --tools=claude --prefix=myproject
+  ent init --tools=claude --dry-run`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if flags.tool == "" {
-				return errors.New("--tool is required")
+				return errors.New("--tools is required")
 			}
 
 			// Plugin FS is now always available via pkg.FS
@@ -731,11 +820,6 @@ Examples:
 			prompts, err := loadPrompts()
 			if err != nil {
 				return fmt.Errorf("load prompts: %w", err)
-			}
-
-			shared, err := loadShared()
-			if err != nil {
-				return fmt.Errorf("load shared: %w", err)
 			}
 
 			agentCount := len(agents)
@@ -764,7 +848,7 @@ Examples:
 					metaCopy := *meta
 					metaCopy.Model = resolver.ResolveAgent(meta.Model)
 
-					content, err := renderAgent(&metaCopy, prompt, shared, tpl)
+					content, err := renderAgent(&metaCopy, prompt, tpl)
 					if err != nil {
 						return fmt.Errorf("render agent %s: %w", name, err)
 					}

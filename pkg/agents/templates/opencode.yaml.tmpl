@@ -1,10 +1,11 @@
 ---
 name: {{.Name}}
 description: "{{.Description}}"
+hidden: true
 model: {{.ModelOpenCode}}{{if .ToolsOpenCode}}
 tools:{{range .ToolsOpenCode}}
-    {{.}}{{end}}{{end}}{{if .Skills}}
-skills:{{range .Skills}}
+    {{.}}{{end}}{{end}}{{if .GeneratedSkills}}
+skills:{{range .GeneratedSkills}}
     - {{.}}{{end}}{{end}}{{if .Role}}
 tags:
     - role:{{.Role}}{{end}}{{if .Color}}
