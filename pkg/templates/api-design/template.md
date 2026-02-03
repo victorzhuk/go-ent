@@ -63,9 +63,9 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/platformspecs/User'
                   meta:
-                    $ref: '#/components/schemas/PaginationMeta'
+                    $ref: '#/components/platformspecs/PaginationMeta'
         '400':
           $ref: '#/components/responses/BadRequest'
     post:
@@ -76,14 +76,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/platformspecs/CreateUserRequest'
       responses:
         '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -105,7 +105,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
@@ -123,14 +123,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/platformspecs/UpdateUserRequest'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -389,19 +389,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
     Conflict:
       description: Resource conflict
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
   schemas:
     Error:
       type: object
@@ -616,9 +616,9 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Post'
+                      $ref: '#/components/platformspecs/Post'
                   meta:
-                    $ref: '#/components/schemas/PaginationMeta'
+                    $ref: '#/components/platformspecs/PaginationMeta'
     post:
       summary: Create post
       operationId: createPost
@@ -629,14 +629,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePostRequest'
+              $ref: '#/components/platformspecs/CreatePostRequest'
       responses:
         '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/platformspecs/Post'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -658,7 +658,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/platformspecs/Post'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
@@ -678,14 +678,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePostRequest'
+              $ref: '#/components/platformspecs/UpdatePostRequest'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/platformspecs/Post'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -711,7 +711,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Comment'
+                  $ref: '#/components/platformspecs/Comment'
     post:
       summary: Create comment on post
       operationId: createComment
@@ -729,14 +729,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCommentRequest'
+              $ref: '#/components/platformspecs/CreateCommentRequest'
       responses:
         '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
+                $ref: '#/components/platformspecs/Comment'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -753,7 +753,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Tag'
+                  $ref: '#/components/platformspecs/Tag'
 components:
   securitySchemes:
     bearerAuth:
@@ -782,7 +782,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/platformspecs/Tag'
         createdAt:
           type: string
           format: date-time
@@ -876,19 +876,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/platformspecs/Error'
     Error:
       type: object
       required:

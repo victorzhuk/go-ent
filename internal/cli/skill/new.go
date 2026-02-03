@@ -208,7 +208,7 @@ func runNonInteractive(name, templateName, description, category, author, tags s
 func getTemplateDir() string {
 	exe, err := os.Executable()
 	if err != nil {
-		return "plugins/go-ent/templates/skills"
+		return "pkg/templates/skills"
 	}
 
 	exeDir := filepath.Dir(exe)
@@ -218,5 +218,5 @@ func getTemplateDir() string {
 		return path
 	}
 
-	return "plugins/go-ent/templates/skills"
+	return "pkg/templates/skills"
 }

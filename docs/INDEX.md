@@ -80,7 +80,6 @@ Contributing to go-ent itself:
 ### Configuration
 
 - **[Configuration Reference](./CONFIGURATION.md)** - All configuration options
-- **[Model Configuration](./MODEL_CONFIGURATION.md)** - Model selection and setup *(coming soon)*
 
 ### API Reference
 
@@ -103,9 +102,8 @@ Contributing to go-ent itself:
 
 | Document | Description |
 |----------|-------------|
-| [Skill Authoring](./SKILL-AUTHORING.md) | Complete v2 format guide |
-| [Skill Validation](./SKILL_VALIDATION.md) | Quality scoring |
-| [Skill Templates](./SKILL_TEMPLATE_SYSTEM.md) | Template system |
+| [Skill Authoring](./SKILL-AUTHORING.md) | Complete v3 format guide |
+| [Skill Quality Scoring](./skill-quality-scoring.md) | Quality metrics and evaluation |
 | [Available Skills](../README.md#skills-auto-activated) | Skill list in README |
 
 ### OpenSpec
@@ -113,7 +111,6 @@ Contributing to go-ent itself:
 | Document | Description |
 |----------|-------------|
 | [OpenSpec Workflow](./OPENSPEC_WORKFLOW.md) | Complete workflow guide |
-| [Project Structure](./PROJECT_STRUCTURE.md) | Folder organization |
 | [CLI Examples](./CLI_EXAMPLES.md) | Spec management examples |
 
 ### Configuration
@@ -136,7 +133,6 @@ Contributing to go-ent itself:
 - **Run common workflows** → [CLI Examples](./CLI_EXAMPLES.md)
 - **Configure my project** → [Configuration Reference](./CONFIGURATION.md)
 - **Understand the workflow** → [OpenSpec Workflow](./OPENSPEC_WORKFLOW.md)
-- **Troubleshoot issues** → [Troubleshooting](./TROUBLESHOOTING.md) *(coming soon)*
 
 ### As a Plugin Author
 
@@ -146,17 +142,16 @@ Contributing to go-ent itself:
 - **Build a plugin** → [Plugin Development](./PLUGIN_DEVELOPMENT.md) *(coming soon)*
 - **Add an agent** → [Development Guide](./DEVELOPMENT.md#adding-new-agents)
 - **Create MCP tools** → [MCP API Reference](./MCP_API.md) *(coming soon)*
-- **Validate my work** → [Skill Validation](./SKILL_VALIDATION.md)
+- **Validate skills** → [Skill Quality Scoring](./skill-quality-scoring.md)
 
 ### As a Contributor
 
 **I want to...**
 
 - **Contribute code** → [Contributing Guide](./CONTRIBUTING.md) *(coming soon)*
-- **Understand architecture** → [Architecture](./ARCHITECTURE.md) *(coming soon)*
+- **Understand architecture** → [Architecture](./ARCHITECTURE.md)
 - **Set up development** → [Development Guide](./DEVELOPMENT.md)
-- **Run tests** → [Testing](./TESTING.md) *(coming soon)*
-- **See changelog** → [Changelog](../CHANGELOG.md) *(coming soon)*
+- **See changelog** → [Changelog](../CHANGELOG.md)
 
 ---
 
@@ -194,7 +189,6 @@ Contributing to go-ent itself:
 | [Agents & Skills](./AGENTS_AND_SKILLS.md) | 📝 Planned | Medium |
 | [MCP API Reference](./MCP_API.md) | 📝 Planned | Medium |
 | [Commands Reference](./COMMANDS_REFERENCE.md) | 📝 Planned | Medium |
-| [Troubleshooting](./TROUBLESHOOTING.md) | 📝 Planned | Low |
 
 ---
 

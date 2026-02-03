@@ -14,7 +14,7 @@ import (
 func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 	t.Parallel()
 
-	templatePath := filepath.Join("..", "..", "plugins", "go-ent", "templates", "skills", "go-basic", "template.md")
+	templatePath := filepath.Join("..", "..", "pkg", "templates", "go-basic", "template.md")
 
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err, "template file should exist")
@@ -73,7 +73,7 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 func TestGoBasicTemplate_StructuralValidation(t *testing.T) {
 	t.Parallel()
 
-	templatePath := filepath.Join("..", "..", "plugins", "go-ent", "templates", "skills", "go-basic", "template.md")
+	templatePath := filepath.Join("..", "..", "pkg", "templates", "go-basic", "template.md")
 
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func countOccurrences(s, substr string) int {
 func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 	t.Parallel()
 
-	templatePath := filepath.Join("..", "..", "plugins", "go-ent", "templates", "skills", "go-complete", "template.md")
+	templatePath := filepath.Join("..", "..", "pkg", "templates", "go-complete", "template.md")
 
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err, "template file should exist")
@@ -172,7 +172,7 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 func TestGoCompleteTemplate_StructuralValidation(t *testing.T) {
 	t.Parallel()
 
-	templatePath := filepath.Join("..", "..", "plugins", "go-ent", "templates", "skills", "go-complete", "template.md")
+	templatePath := filepath.Join("..", "..", "pkg", "templates", "go-complete", "template.md")
 
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err)

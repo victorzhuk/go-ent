@@ -1,11 +1,21 @@
 name: debugger
-description: Standard debugging. Systematic issue investigation and resolution.
+description: Standard debugging. Systematic issue investigation and resolution. Supports complexity routing.
 model: main
 color: '#DC143C'
+complexity: auto
+complexityHints:
+  simple: "Quick debugging for simple issues. Fast troubleshooting of obvious bugs."
+  standard: "Standard debugging. Systematic investigation of moderate issues."
+  complex: "Complex debugging. Concurrency issues, performance problems, multi-component failures."
+modelMapping:
+  simple: haiku
+  standard: sonnet
+  complex: opus
 skills:
 - go-test
 - debug-core
 - go-perf
+- go-sec
 - go-code
 toolPresets:
 - editing
@@ -19,6 +29,7 @@ disallowedToolPresets:
 dependencies:
 - tester
 - reviewer
+- coder
 prompts:
   shared:
   - _tooling

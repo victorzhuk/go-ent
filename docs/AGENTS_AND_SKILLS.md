@@ -1,6 +1,6 @@
 # Agents and Skills
 
-> **Updated:** February 2026 - Reflects new consolidated structure after Phase 1-2 refactoring
+> **Note:** This document describes the current 13-agent structure. Agent simplification to 7 agents with complexity routing is planned for the next release.
 
 This document describes the agent and skill system in go-ent after the comprehensive refactoring that consolidated skills and introduced a template-based architecture.
 
@@ -66,23 +66,16 @@ The go-ent agent system uses a **hybrid model**: templates for structural consis
 
 **Triggers:** `ent-tooling`, `tools`, `cli`
 
-### Tool Skills (4)
+### Tool Presets
 
-#### ent-tools-readonly
-**Purpose:** Read-only tool preset configuration
-**Used by:** Research and validation agents
+Tool access is configured through `pkg/agents/presets/tools.yaml` with the following presets:
 
-#### ent-tools-editing
-**Purpose:** Editing tool preset configuration
-**Used by:** Implementation agents
+- **readonly**: Read, Glob, Grep - for research and validation agents
+- **editing**: Read, Write, Edit, Bash, Glob, Grep - for implementation agents
+- **planning**: Readonly tools + Task* tools + Serena analysis - for planning agents
+- **serena-analysis**: Serena semantic code analysis tools - available to all agents
 
-#### ent-tools-planning
-**Purpose:** Planning tool preset configuration
-**Used by:** Planning agents
-
-#### ent-tools-serena-analysis
-**Purpose:** Serena semantic analysis tool configuration
-**Used by:** All agents with code analysis needs
+This replaces the previous ent-tools-* empty shell skills that were removed in the modernization.
 
 ### Archived Skills
 

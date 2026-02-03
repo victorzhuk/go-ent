@@ -7,16 +7,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// findSchemaPath looks for the schemas directory starting from current dir
+// findSchemaPath looks for the platformspecs directory starting from current dir
 func findSchemaPath(tool string) (string, error) {
 	// Try current directory first
-	path := fmt.Sprintf("schemas/%s.yaml", tool)
+	path := fmt.Sprintf("platformspecs/%s.yaml", tool)
 	if _, err := os.Stat(path); err == nil {
 		return path, nil
 	}
 
-	// Try from ../../schemas (for tests running from internal/genspec)
-	path = fmt.Sprintf("../../schemas/%s.yaml", tool)
+	// Try from ../../platformspecs (for tests running from internal/genspec)
+	path = fmt.Sprintf("../../platformspecs/%s.yaml", tool)
 	if _, err := os.Stat(path); err == nil {
 		return path, nil
 	}
@@ -24,7 +24,7 @@ func findSchemaPath(tool string) (string, error) {
 	return "", fmt.Errorf("schema not found: %s.yaml", tool)
 }
 
-// LoadToolSpec loads the spec for a given tool (claude, opencode) from the schemas/ directory
+// LoadToolSpec loads the spec for a given tool (claude, opencode) from the platformspecs/ directory
 func LoadToolSpec(tool string) (*ToolSpec, error) {
 	path, err := findSchemaPath(tool)
 	if err != nil {

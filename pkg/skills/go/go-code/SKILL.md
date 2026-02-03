@@ -1,10 +1,14 @@
 ---
 name: go-code
-description: Modern Go implementation patterns, error handling, concurrency
+description: Modern Go implementation patterns, error handling, concurrency, configuration
 triggers:
   - go code
   - golang
   - implementation
+  - config
+  - configuration
+  - environment
+  - env var
 ---
 
 ## Role
@@ -24,8 +28,9 @@ Provide production-ready Go code following established patterns:
 3. **Error Handling**: Wrapped errors with lowercase context using `%w`
 4. **Context**: Always first parameter, propagated through all layers
 5. **Interfaces**: Minimal interfaces at consumer side, return structs
-6. **Examples**: Complete, runnable code blocks with language tags
-7. **Explanations**: Clear, concise justifications for pattern choices
+6. **Configuration**: Environment variables with caarlos0/env/v11, nested structs, validation
+7. **Examples**: Complete, runnable code blocks with language tags
+8. **Explanations**: Clear, concise justifications for pattern choices
 
 Focus on practical implementation with minimal abstractions unless complexity demands it.
 

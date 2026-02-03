@@ -15,16 +15,18 @@ type Registry struct {
 
 // AgentMeta represents agent metadata loaded from YAML.
 type AgentMeta struct {
-	Name                  string   `yaml:"name"`
-	Description           string   `yaml:"description"`
-	Model                 string   `yaml:"model"`
-	Skills                []string `yaml:"skills,omitempty"`
-	ToolPresets           []string `yaml:"toolPresets,omitempty"`
-	DisallowedToolPresets []string `yaml:"disallowedToolPresets,omitempty"`
-	Role                  string   `yaml:"role,omitempty"`
-	Complexity            string   `yaml:"complexity,omitempty"`
-	Dependencies          []string `yaml:"dependencies,omitempty"`
-	Color                 string   `yaml:"color,omitempty"`
+	Name                  string            `yaml:"name"`
+	Description           string            `yaml:"description"`
+	Model                 string            `yaml:"model"`
+	Skills                []string          `yaml:"skills,omitempty"`
+	ToolPresets           []string          `yaml:"toolPresets,omitempty"`
+	DisallowedToolPresets []string          `yaml:"disallowedToolPresets,omitempty"`
+	Role                  string            `yaml:"role,omitempty"`
+	Complexity            string            `yaml:"complexity,omitempty"`
+	ComplexityHints       map[string]string `yaml:"complexityHints,omitempty"`
+	ModelMapping          map[string]string `yaml:"modelMapping,omitempty"`
+	Dependencies          []string          `yaml:"dependencies,omitempty"`
+	Color                 string            `yaml:"color,omitempty"`
 }
 
 // NewRegistry creates a new agent registry.

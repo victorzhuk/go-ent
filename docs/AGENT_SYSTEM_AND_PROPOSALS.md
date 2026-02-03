@@ -400,7 +400,7 @@ Use for complex architectural changes:
 | `plugins/go-ent/agents/meta/*.yaml` | Agent configs |
 | `plugins/go-ent/agents/meta/bases/*.yaml` | Base agent configs for inheritance |
 | `plugins/go-ent/agents/presets/tools.yaml` | Tool preset definitions |
-| `plugins/go-ent/schemas/agent.schema.json` | Agent validation schema |
+| `plugins/go-ent/platformspecs/agent.schema.json` | Agent validation schema |
 | `plugins/go-ent/agents/prompts/shared/_openspec.md` | Workflow guide |
 | `plugins/go-ent/agents/prompts/shared/_handoffs.md` | Delegation rules |
 | `plugins/go-ent/agents/prompts/shared/_judgment.md` | Decision framework |

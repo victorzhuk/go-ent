@@ -234,7 +234,7 @@ commands/
 <!-- domains/openspec.md -->
 When working with OpenSpec changes:
 - Always read `openspec/changes/{id}/tasks.md`
-- Validate against `openspec/schemas/`
+- Validate against `openspec/platformspecs/`
 - Use `go_ent_spec_*` MCP tools for spec management
 ```
 

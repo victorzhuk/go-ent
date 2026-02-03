@@ -29,14 +29,14 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	// Initialize skill registry
 	skillRegistry := skill.NewRegistry()
 	if skillsPath == "" {
-		// Default to plugins/go-ent/skills relative to executable
+		// Default to pkg/skills relative to executable
 		exe, err := os.Executable()
 		if err == nil {
 			exeDir := filepath.Dir(exe)
 			skillsPath = filepath.Join(exeDir, "..", "plugins", "go-ent", "skills")
 		} else {
 			// Fallback to relative path
-			skillsPath = "plugins/go-ent/skills"
+			skillsPath = "pkg/skills"
 		}
 	}
 

@@ -30,9 +30,9 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/platformspecs/User'
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
+                    $ref: '#/components/platformspecs/Pagination'
 
     post:
       summary: Create user
@@ -41,14 +41,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/platformspecs/CreateUserRequest'
       responses:
         '201':
           description: User created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
 
   /users/{id}:
     get:
@@ -66,7 +66,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
 
     put:
       summary: Update user
@@ -82,14 +82,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/platformspecs/UpdateUserRequest'
       responses:
         '200':
           description: User updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/platformspecs/User'
 
     delete:
       summary: Delete user

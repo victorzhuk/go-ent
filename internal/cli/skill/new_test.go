@@ -53,7 +53,7 @@ func TestRunNonInteractive(t *testing.T) {
 	t.Run("creates correct output path", func(t *testing.T) {
 		cfg, err := runNonInteractive("go-payment", "tpl", "Test skill", "go", "author", "tags")
 		require.NoError(t, err)
-		expectedPath := "plugins/go-ent/skills/go/go-payment/SKILL.md"
+		expectedPath := "pkg/skills/go/go-payment/SKILL.md"
 		assert.Equal(t, expectedPath, cfg.OutputPath)
 	})
 
@@ -64,7 +64,7 @@ func TestRunNonInteractive(t *testing.T) {
 		assert.Equal(t, "test-template", cfg.TemplateName)
 		assert.Equal(t, "Test description", cfg.Description)
 		assert.Equal(t, "go", cfg.Category)
-		assert.Equal(t, "plugins/go-ent/skills/go/go-test/SKILL.md", cfg.OutputPath)
+		assert.Equal(t, "pkg/skills/go/go-test/SKILL.md", cfg.OutputPath)
 	})
 
 	t.Run("handles uppercase category detection", func(t *testing.T) {

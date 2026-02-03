@@ -1,19 +1,24 @@
 name: reviewer
-description: Code reviewer. Reviews code for bugs, security, quality, and adherence
-  to project conventions.
+description: Code reviewer. Reviews code for bugs, security, quality, adherence to conventions, and validates acceptance criteria.
 model: heavy
 color: '#4169E1'
 skills:
 - go-review
+- review-core
 - security-core
 - go-sec
+- go-test
 toolPresets:
 - readonly
 - serena-analysis
 tools:
 - list
 - todoread
+- todowrite
 - skill
+dependencies:
+- coder
+- architect
 prompts:
   shared:
   - _tooling

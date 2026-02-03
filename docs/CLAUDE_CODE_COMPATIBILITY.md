@@ -284,7 +284,7 @@ plugins/plugin-name/
 │   └── */SKILL.md
 ├── commands/        # Command definitions
 │   └── *.md
-└── schemas/         # Validation schemas
+└── platformspecs/         # Validation schemas
     └── *.schema.json
 ```
 
@@ -302,7 +302,7 @@ plugins/plugin-name/
 
 **Validate agent against Claude Code schema:**
 ```bash
-ent validate --agent .claude/agents/coder.md --schema schemas/agent.schema.json
+ent validate --agent .claude/agents/coder.md --schema platformspecs/agent.schema.json
 ```
 
 **Validate skill format:**

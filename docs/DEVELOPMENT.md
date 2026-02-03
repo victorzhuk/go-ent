@@ -9,7 +9,7 @@ go-ent uses its own plugin system for development (dogfooding). This means you c
 go-ent uses a **dual-configuration** approach:
 
 ### Production Configuration (Plugin)
-**File**: `plugins/go-ent/.mcp.json` (committed)
+**File**: `.mcp.json` (committed)
 ```json
 {
   "go-ent": {
@@ -65,7 +65,7 @@ Check that `.claude/settings.local.json` contains:
     "go-ent-local": {
       "source": {
         "source": "directory",
-        "path": "./plugins/go-ent"
+        "path": "."
       }
     }
   },
@@ -185,7 +185,7 @@ This:
 
 **Plugin Changes (Agents/Skills/Commands):**
 
-Edit Markdown files in `plugins/go-ent/`:
+Edit Markdown files in pkg/ directories:
 - `agents/go-ent:*.md` - Agent definitions
 - `skills/go-*/SKILL.md` - Skill knowledge bases
 - `commands/go-ent:*.md` - Command definitions
@@ -208,7 +208,7 @@ Then restart Claude Code to reload the MCP connection.
 
 **v3 Split Format** - Metadata (YAML) + Prompts (Markdown) for dual-platform support
 
-1. Create metadata file `plugins/go-ent/agents/meta/newagent.yaml`:
+1. Create metadata file `pkg/agents/meta/newagent.yaml`:
 
 ```yaml
 name: newagent
@@ -234,7 +234,7 @@ prompts:
   main: agents/newagent            # Agent-specific prompt
 ```
 
-2. Create prompt file `plugins/go-ent/agents/prompts/agents/newagent.md`:
+2. Create prompt file `pkg/agents/prompts/agents/newagent.md`:
 
 ```markdown
 You are a specialized agent for...
@@ -271,7 +271,7 @@ You: [approach]
 
 **v3 Format** - Markdown sections with YAML frontmatter (recommended)
 
-1. Create `plugins/go-ent/skills/{category}/skillname/SKILL.md`:
+1. Create `pkg/skills/{category}/skillname/SKILL.md`:
 
 ```markdown
 ---
@@ -335,9 +335,9 @@ Guidelines for output.
 For complete skill authoring guide, see [SKILL-AUTHORING.md](./SKILL-AUTHORING.md).
 
 **Quick Start**:
-1. Create skill file at `plugins/go-ent/skills/{category}/{skill-id}/SKILL.md`
+1. Create skill file at `pkg/skills/{category}/{skill-id}/SKILL.md`
 2. Use v2 format with required XML sections
-3. Validate: `ent skill validate plugins/go-ent/skills/...`
+3. Validate: `ent skill validate pkg/skills/...`
 4. Test with Claude Code
 
 **Skill Categories**:
@@ -354,8 +354,8 @@ For complete details on skill structure, validation, quality scoring, and best p
 For complete agent development guide, see [AGENTS_AND_SKILLS.md](./AGENTS_AND_SKILLS.md).
 
 **Quick Start (v3 Split Format)**:
-1. Create metadata: `plugins/go-ent/agents/meta/<agent>.yaml`
-2. Create prompt: `plugins/go-ent/agents/prompts/agents/<agent>.md`
+1. Create metadata: `pkg/agents/meta/<agent>.yaml`
+2. Create prompt: `pkg/agents/prompts/agents/<agent>.md`
 3. Use platform-agnostic model names (`main`/`fast`/`heavy`)
 4. Configure `toolPresets` instead of explicit tools
 5. List shared prompts in `prompts.shared` array
@@ -371,7 +371,7 @@ For complete agent development guide, see [AGENTS_AND_SKILLS.md](./AGENTS_AND_SK
 
 ### Adding a New Command
 
-1. Create `plugins/go-ent/commands/ent:newcmd.md`:
+1. Create `pkg/commands/ent:newcmd.md`:
 1. Step 1
 2. Step 2
 3. Invokes MCP tool `mcp__go_ent__tool_name`
@@ -520,14 +520,14 @@ If you break something:
 
 **Checks:**
 1. Verify `.claude/settings.local.json` has `extraKnownMarketplaces` config
-2. Check `plugins/go-ent/.claude-plugin/plugin.json` exists
+2. Check `.claude-plugin/plugin.json` exists
 3. Restart Claude Code
 4. Check Claude Code logs for plugin loading errors
 
 **Fix:**
 ```bash
 # Verify plugin.json is valid
-cat plugins/go-ent/.claude-plugin/plugin.json
+cat .claude-plugin/plugin.json
 
 # Check marketplace registration
 cat .claude-plugin/marketplace.json
@@ -784,10 +784,10 @@ Don't mix concerns across layers.
 ## Resources
 
 - **OpenSpec Workflow:** `openspec/AGENTS.md` (835 lines of comprehensive instructions)
-- **Plugin Structure:** `plugins/go-ent/README.md`
-- **Skill Definitions:** `plugins/go-ent/skills/*/SKILL.md`
-- **Agent Definitions:** `plugins/go-ent/agents/*.md`
-- **Command Definitions:** `plugins/go-ent/commands/*.md`
+- **Plugin Structure:** `README.md` (project root)
+- **Skill Definitions:** `pkg/skills/*/SKILL.md`
+- **Agent Definitions:** `pkg/agents/`
+- **Command Definitions:** `pkg/commands/*.md`
 - **Metrics System:** `docs/METRICS.md` (opt-out, data collection details)
 
 ## Version History

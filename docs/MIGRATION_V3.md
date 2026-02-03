@@ -78,7 +78,7 @@ plugins/go-ent/
 │   ├── aliases/       ✅ New: OpenSpec aliases
 │   ├── utilities/     ✅ New: Standalone tools
 │   └── context/       ✅ Renamed from domains/
-└── schemas/
+└── platformspecs/
     └── agent.schema.json  ✅ Unified schema
 ```
 
@@ -352,7 +352,7 @@ No action required! The plugin maintainer handles migration.
 - [ ] Read [AGENTS_AND_SKILLS.md](./AGENTS_AND_SKILLS.md) for new format
 - [ ] Read [SKILL-AUTHORING.md](./SKILL-AUTHORING.md) for v3 skills
 - [ ] Follow [CLAUDE_CODE_COMPATIBILITY.md](./CLAUDE_CODE_COMPATIBILITY.md)
-- [ ] Use new agent template from `schemas/agent.example.md`
+- [ ] Use new agent template from `platformspecs/agent.example.md`
 
 ---
 

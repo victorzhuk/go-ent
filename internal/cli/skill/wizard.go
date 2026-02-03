@@ -104,12 +104,12 @@ func PromptCategory() (string, error) {
 }
 
 // DetermineOutputPath generates the output path for a skill file based on category and name.
-// Returns a path in the format: plugins/go-ent/skills/{category}/{skillName}/SKILL.md
+// Returns a path in the format: pkg/skills/{category}/{skillName}/SKILL.md
 func DetermineOutputPath(category, skillName string) string {
 	if category == "" {
 		category = "core"
 	}
-	return fmt.Sprintf("plugins/go-ent/skills/%s/%s/SKILL.md", category, skillName)
+	return fmt.Sprintf("pkg/skills/%s/%s/SKILL.md", category, skillName)
 }
 
 // PromptTemplateSelection presents an interactive prompt for selecting a template.

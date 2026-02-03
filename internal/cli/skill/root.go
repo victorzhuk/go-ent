@@ -207,7 +207,7 @@ Examples:
 func getSkillsPath() string {
 	exe, err := os.Executable()
 	if err != nil {
-		return "plugins/go-ent/skills"
+		return "pkg/skills"
 	}
 
 	exeDir := filepath.Dir(exe)
@@ -217,7 +217,7 @@ func getSkillsPath() string {
 		return path
 	}
 
-	return "plugins/go-ent/skills"
+	return "pkg/skills"
 }
 
 func printSkillsTable(skills []skill.SkillMeta) error {

@@ -152,7 +152,7 @@ func printTemplatesTable(templates []templateDisplay) error {
 func getTemplatesPath() string {
 	exe, err := os.Executable()
 	if err != nil {
-		return "plugins/go-ent/templates/skills"
+		return "pkg/templates/skills"
 	}
 
 	exeDir := filepath.Dir(exe)
@@ -162,7 +162,7 @@ func getTemplatesPath() string {
 		return path
 	}
 
-	return "plugins/go-ent/templates/skills"
+	return "pkg/templates/skills"
 }
 
 func getCustomTemplatesPath() string {
@@ -201,14 +201,14 @@ Validation:
 Destination:
   By default, templates are added to the user templates directory
   (~/.go-ent/templates/skills/). Use --built-in flag to add to the
-  built-in directory (requires write permissions to plugins/go-ent/templates/skills/).
+  built-in directory (requires write permissions to pkg/templates/skills/).
 
 Examples:
   # Add template from local directory (uses user templates directory)
   ent skill add-template /path/to/my-template
 
   # Add template to built-in directory
-  ent skill add-template /path/to/my-template --built-in /path/to/go-ent/plugins/go-ent/templates/skills/`,
+  ent skill add-template /path/to/my-template --built-in /path/to/go-ent/pkg/templates/skills/`,
 
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -217,7 +217,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVar(&destDir, "built-in", "", "Add to built-in templates directory (path to plugins/go-ent/templates/skills/)")
+	cmd.Flags().StringVar(&destDir, "built-in", "", "Add to built-in templates directory (path to pkg/templates/skills/)")
 	cmd.Flags().StringVar(&destDir, "custom", "", "Add to custom templates directory (path to user templates)")
 
 	return cmd

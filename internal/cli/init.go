@@ -54,24 +54,30 @@ type promptsConfig struct {
 }
 
 type agentMeta struct {
-	Name                  string        `yaml:"name"`
-	Description           string        `yaml:"description"`
-	Extends               string        `yaml:"extends"`
-	Model                 string        `yaml:"model"`
-	Color                 string        `yaml:"color"`
-	Role                  string        `yaml:"role"`
-	Complexity            string        `yaml:"complexity"`
-	Hidden                *bool         `yaml:"hidden"` // nil = visible (default)
-	Skills                []string      `yaml:"skills"`
-	Tools                 []string      `yaml:"tools"`
-	ToolPresets           []string      `yaml:"toolPresets"`
-	DisallowedToolPresets []string      `yaml:"disallowedToolPresets"`
-	DisallowedTools       []string      `yaml:"disallowedTools"`
-	Dependencies          []string      `yaml:"dependencies"`
-	Prompts               promptsConfig `yaml:"prompts"`
+	Name                  string            `yaml:"name"`
+	Description           string            `yaml:"description"`
+	Extends               string            `yaml:"extends"`
+	Model                 string            `yaml:"model"`
+	Color                 string            `yaml:"color"`
+	Role                  string            `yaml:"role"`
+	Complexity            string            `yaml:"complexity"`
+	ComplexityHints       map[string]string `yaml:"complexityHints"`
+	ModelMapping          map[string]string `yaml:"modelMapping"`
+	Hidden                *bool             `yaml:"hidden"` // nil = visible (default)
+	Skills                []string          `yaml:"skills"`
+	Tools                 []string          `yaml:"tools"`
+	ToolPresets           []string          `yaml:"toolPresets"`
+	DisallowedToolPresets []string          `yaml:"disallowedToolPresets"`
+	DisallowedTools       []string          `yaml:"disallowedTools"`
+	Dependencies          []string          `yaml:"dependencies"`
+	Prompts               promptsConfig     `yaml:"prompts"`
 }
 
 // ModelClaude converts internal model name to Claude Code format
+// For agents with complexity="auto" and modelMapping, this supports dynamic model selection:
+// - Runtime complexity assessment would use complexityHints to pick simple/standard/complex
+// - modelMapping maps complexity level to model tier (e.g., simple→haiku, complex→opus)
+// For now, uses the explicit Model field as set in agent metadata.
 func (m *agentMeta) ModelClaude() string {
 	switch m.Model {
 	case "main":

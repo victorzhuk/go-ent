@@ -1,8 +1,23 @@
 name: planner
-description: Task planner. Breaks features into actionable tasks.
+description: Task planner. Breaks features into actionable tasks. Supports complexity routing.
 extends: planner
 model: main
 color: '#32CD32'
+complexity: auto
+complexityHints:
+  simple: "Quick feasibility check and triage. Single file changes, clear requirements."
+  standard: "Multi-file changes, moderate scope. Standard task breakdown and planning."
+  complex: "Complex architectural planning. Deep analysis for large-scale changes, architecture decisions."
+modelMapping:
+  simple: haiku
+  standard: sonnet
+  complex: opus
+skills:
+- arch-core
+- go-arch
+- go-api
+- go-code
+- go-db
 toolPresets:
 - readonly
 - serena-analysis
@@ -13,6 +28,9 @@ tools:
 - todoread
 - todowrite
 - skill
+dependencies:
+- architect
+- decomposer
 prompts:
   shared:
   - _tooling

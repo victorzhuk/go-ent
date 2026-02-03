@@ -220,37 +220,37 @@ func TestDetermineOutputPath(t *testing.T) {
 			name:      "Go skill",
 			category:  "go",
 			skillName: "go-payment",
-			want:      "plugins/go-ent/skills/go/go-payment/SKILL.md",
+			want:      "pkg/skills/go/go-payment/SKILL.md",
 		},
 		{
 			name:      "TypeScript skill",
 			category:  "typescript",
 			skillName: "typescript-api",
-			want:      "plugins/go-ent/skills/typescript/typescript-api/SKILL.md",
+			want:      "pkg/skills/typescript/typescript-api/SKILL.md",
 		},
 		{
 			name:      "API skill",
 			category:  "api",
 			skillName: "api-design",
-			want:      "plugins/go-ent/skills/api/api-design/SKILL.md",
+			want:      "pkg/skills/api/api-design/SKILL.md",
 		},
 		{
 			name:      "empty category defaults to core",
 			category:  "",
 			skillName: "general",
-			want:      "plugins/go-ent/skills/core/general/SKILL.md",
+			want:      "pkg/skills/core/general/SKILL.md",
 		},
 		{
 			name:      "custom skill name",
 			category:  "go",
 			skillName: "my-custom-skill",
-			want:      "plugins/go-ent/skills/go/my-custom-skill/SKILL.md",
+			want:      "pkg/skills/go/my-custom-skill/SKILL.md",
 		},
 		{
 			name:      "special characters in name",
 			category:  "go",
 			skillName: "go-http-client",
-			want:      "plugins/go-ent/skills/go/go-http-client/SKILL.md",
+			want:      "pkg/skills/go/go-http-client/SKILL.md",
 		},
 	}
 

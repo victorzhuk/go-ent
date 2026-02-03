@@ -1330,14 +1330,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateOrderRequest'
+              $ref: '#/components/platformspecs/CreateOrderRequest'
       responses:
         '201':
           description: Order created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponse'
+                $ref: '#/components/platformspecs/OrderResponse'
   /orders/{id}:
     get:
       summary: Get order
@@ -1361,7 +1361,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/OrderItem'
+            $ref: '#/components/platformspecs/OrderItem'
     OrderItem:
       type: object
       required: [product_id, quantity]
