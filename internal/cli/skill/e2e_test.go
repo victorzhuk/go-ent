@@ -165,8 +165,10 @@ Invalid skill with parsing error
 			"--non-interactive",
 		}
 
-		os.Setenv("GO_ENT_TEMPLATE_DIR", customTemplateDir)
-		defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", customTemplateDir))
+		defer func() {
+			_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		}()
 
 		_, stderr, err := runCommand(args...)
 		assert.Error(t, err, "should fail with parsing error")
@@ -262,10 +264,12 @@ JSON response with status
 	require.NoError(t, os.MkdirAll(filepath.Dir(destTemplateDir), 0o755))
 	require.NoError(t, copyDir(customTemplatePath, destTemplateDir))
 
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	t.Run("list shows custom template", func(t *testing.T) {
 		stdout, _, err := runCommand("skill", "list-templates")
@@ -309,10 +313,12 @@ func TestE2E_5_4_3_AutoDetectCategory(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	testCases := []struct {
 		name        string
@@ -402,8 +408,8 @@ func TestE2E_5_4_4_ErrorHandling(t *testing.T) {
 	skillsDir := setupTestSkills(t)
 
 	t.Run("missing template", func(t *testing.T) {
-		os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+		require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
 
 		args := []string{
 			"skill", "new", "test-skill",
@@ -430,8 +436,8 @@ func TestE2E_5_4_4_ErrorHandling(t *testing.T) {
 		mdPath := filepath.Join(invalidPath, "template.md")
 		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
-		os.Setenv("GO_ENT_TEMPLATE_DIR", invalidDir)
-		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", invalidDir))
+		require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
 
 		args := []string{
 			"skill", "new", "test-skill",
@@ -474,8 +480,8 @@ This skill is invalid and should fail validation.
 		mdPath := filepath.Join(invalidPath, "template.md")
 		require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 
-		os.Setenv("GO_ENT_TEMPLATE_DIR", invalidTemplateDir)
-		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", invalidTemplateDir))
+		require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
 
 		args := []string{
 			"skill", "new", "test-invalid",
@@ -495,7 +501,7 @@ This skill is invalid and should fail validation.
 	})
 
 	t.Run("missing required flags", func(t *testing.T) {
-		os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
 
 		t.Run("missing template", func(t *testing.T) {
 			args := []string{
@@ -537,7 +543,7 @@ This skill is invalid and should fail validation.
 
 	t.Run("no templates available", func(t *testing.T) {
 		emptyDir := t.TempDir()
-		os.Setenv("GO_ENT_TEMPLATE_DIR", emptyDir)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", emptyDir))
 
 		args := []string{
 			"skill", "new", "test-skill",
@@ -560,10 +566,12 @@ func TestE2E_5_4_5_FileAlreadyExists(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	t.Run("should error with clear message", func(t *testing.T) {
 		args := []string{
@@ -627,10 +635,12 @@ func TestE2E_IntegrationScenarios(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	t.Run("list select create validate workflow", func(t *testing.T) {
 		stdout, _, err := runCommand("skill", "list-templates")

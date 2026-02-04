@@ -91,7 +91,7 @@ func NewBoltStore(rootPath string) (*BoltStore, error) {
 	}
 
 	if err := store.initBuckets(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("init buckets: %w", err)
 	}
 
@@ -516,10 +516,6 @@ func (s *BoltStore) RebuildFromMarkdown(rootPath string) error {
 	return nil
 }
 
-func (s *BoltStore) walkOpenspecDir(openspecDir string) ([]*ChangeMetadata, []*Task, []*DependencyInfo, map[string]int64, error) {
-	return s.walkOpenspecDirWithMTimes(openspecDir, nil)
-}
-
 func (s *BoltStore) walkOpenspecDirWithMTimes(openspecDir string, storedMTimes map[string]int64) ([]*ChangeMetadata, []*Task, []*DependencyInfo, map[string]int64, error) {
 	var changes []*ChangeMetadata
 	var tasks []*Task
@@ -598,11 +594,12 @@ func (s *BoltStore) walkOpenspecDirWithMTimes(openspecDir string, storedMTimes m
 		completed, inProgress, blocked := s.CountTaskStatuses(changeTasks)
 
 		var status ChangeStatus
-		if completed == len(changeTasks) && len(changeTasks) > 0 {
+		switch {
+		case completed == len(changeTasks) && len(changeTasks) > 0:
 			status = StatusApproved
-		} else if completed > 0 {
+		case completed > 0:
 			status = StatusActive
-		} else {
+		default:
 			status = StatusDraft
 		}
 
@@ -633,6 +630,7 @@ func (s *BoltStore) walkOpenspecDirWithMTimes(openspecDir string, storedMTimes m
 }
 
 func (s *BoltStore) ParseProposalTitle(path string) (string, error) {
+	// #nosec G304 - path is validated by caller
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("read proposal: %w", err)
@@ -652,6 +650,7 @@ func (s *BoltStore) ParseProposalTitle(path string) (string, error) {
 }
 
 func (s *BoltStore) ParseTasksFile(path string, changeID string, fileMTimes *map[string]int64) ([]*Task, error) {
+	// #nosec G304 - path is validated by caller
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read tasks: %w", err)

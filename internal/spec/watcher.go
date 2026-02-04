@@ -250,11 +250,12 @@ func (w *Watcher) syncChange(changeID string) error {
 	completed, inProgress, blocked := w.boltStore.CountTaskStatuses(tasks)
 
 	var status ChangeStatus
-	if completed == len(tasks) && len(tasks) > 0 {
+	switch {
+	case completed == len(tasks) && len(tasks) > 0:
 		status = StatusApproved
-	} else if completed > 0 {
+	case completed > 0:
 		status = StatusActive
-	} else {
+	default:
 		status = StatusDraft
 	}
 

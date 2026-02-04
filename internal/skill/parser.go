@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -45,13 +44,6 @@ type skillMetaV4 struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
 	Triggers    []string `yaml:"triggers"`
-}
-
-// v3Triggers represents v3 trigger structure in frontmatter.
-type v3Triggers struct {
-	Keywords    []string `yaml:"keywords,omitempty"`
-	FilePattern string   `yaml:"file_pattern,omitempty"`
-	Weight      float64  `yaml:"weight,omitempty"`
 }
 
 // Parser handles parsing of SKILL.md files.
@@ -328,59 +320,4 @@ func (p *Parser) stringsToTriggers(strings []string, weight float64) []Trigger {
 		triggers = append(triggers, p.stringToTrigger(s, weight))
 	}
 	return triggers
-}
-
-// loadReferences checks if references/ directory exists and returns list of valid reference files.
-// Validates structure: max depth 1, no frontmatter in .md files.
-func (p *Parser) loadReferences(skillDir string) ([]string, error) {
-	refsDir := filepath.Join(skillDir, "references")
-	if _, err := os.Stat(refsDir); os.IsNotExist(err) {
-		return nil, nil
-	}
-
-	var refs []string
-
-	err := filepath.Walk(refsDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if path == refsDir {
-			return nil
-		}
-
-		relPath, err := filepath.Rel(refsDir, path)
-		if err != nil {
-			return err
-		}
-
-		depth := strings.Count(relPath, string(filepath.Separator))
-
-		if info.IsDir() {
-			if depth > 1 {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		if filepath.Ext(path) == ".md" {
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("read reference %s: %w", path, err)
-			}
-
-			if strings.Contains(string(content), "---") {
-				return fmt.Errorf("reference file has frontmatter: %s", path)
-			}
-
-			refs = append(refs, relPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("walk references: %w", err)
-	}
-
-	return refs, nil
 }

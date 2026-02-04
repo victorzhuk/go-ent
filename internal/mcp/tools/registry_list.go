@@ -184,9 +184,10 @@ func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, r
 			sb.WriteString(fmt.Sprintf("## %d. %s - %s\n\n", i+1, task.ChangeID, task.TaskNum))
 
 			statusIcon := "⏳"
-			if task.Status == spec.TaskCompleted {
+			switch task.Status {
+			case spec.TaskCompleted:
 				statusIcon = "✅"
-			} else if task.Status == spec.TaskInProgress {
+			case spec.TaskInProgress:
 				statusIcon = "🔄"
 			}
 

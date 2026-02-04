@@ -1,0 +1,27 @@
+name: planner-fast
+description: Quick task assessment and routing. Fast feasibility check and triage.
+extends: planner
+model: fast
+color: '#32CD32'
+skills:
+- arch-core
+- go-arch
+- go-code
+toolPresets:
+- readonly
+- serena-analysis
+- planning
+tools:
+- glob
+- list
+- todoread
+- todowrite
+- skill
+dependencies:
+- architect
+prompts:
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/planner

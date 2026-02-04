@@ -1,0 +1,30 @@
+name: debugger-heavy
+description: Complex debugging. Concurrency issues, performance problems, multi-component failures.
+extends: debugger
+model: heavy
+color: '#DC143C'
+skills:
+- go-test
+- debug-core
+- go-perf
+- go-sec
+- go-code
+toolPresets:
+- editing
+tools:
+- list
+- todoread
+- todowrite
+- skill
+disallowedToolPresets:
+- serena-editing
+dependencies:
+- tester
+- reviewer
+- coder
+prompts:
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/debugger

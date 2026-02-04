@@ -1,0 +1,30 @@
+name: planner-heavy
+description: Deep architectural planning. Complex analysis for large-scale changes and architecture decisions.
+extends: planner
+model: heavy
+color: '#32CD32'
+skills:
+- arch-core
+- go-arch
+- go-api
+- go-code
+- go-db
+toolPresets:
+- readonly
+- serena-analysis
+- planning
+tools:
+- glob
+- list
+- todoread
+- todowrite
+- skill
+dependencies:
+- architect
+- decomposer
+prompts:
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/planner

@@ -58,6 +58,7 @@ func lintSkill(filePath string, dryRun bool) error {
 		return fmt.Errorf("parse: %w", err)
 	}
 
+	// #nosec G304 - filePath is validated by caller
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

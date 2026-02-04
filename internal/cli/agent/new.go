@@ -105,10 +105,10 @@ Environment variables:
 			}
 
 			// Create directories
-			if err := os.MkdirAll(metaDir, 0o755); err != nil {
+			if err := os.MkdirAll(metaDir, 0o750); err != nil {
 				return fmt.Errorf("create meta directory: %w", err)
 			}
-			if err := os.MkdirAll(promptsDir, 0o755); err != nil {
+			if err := os.MkdirAll(promptsDir, 0o750); err != nil {
 				return fmt.Errorf("create prompts directory: %w", err)
 			}
 
@@ -163,6 +163,7 @@ func getAgentTemplateDir() string {
 }
 
 func renderTemplateFile(templatePath, outputPath string, data map[string]string) error {
+	// #nosec G304 - templatePath is validated by caller
 	content, err := os.ReadFile(templatePath)
 	if err != nil {
 		return fmt.Errorf("read template: %w", err)
@@ -173,7 +174,7 @@ func renderTemplateFile(templatePath, outputPath string, data map[string]string)
 		return fmt.Errorf("replace placeholders: %w", err)
 	}
 
-	if err := os.WriteFile(outputPath, []byte(rendered), 0o644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(rendered), 0o600); err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
 

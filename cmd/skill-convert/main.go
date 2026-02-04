@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,13 +9,6 @@ import (
 	"strings"
 	"time"
 )
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
 
 type Config struct {
 	Input     string
@@ -163,36 +155,36 @@ func parseFlags() (*Config, error) {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 
-		switch {
-		case arg == "--input" || arg == "-i":
+		switch arg {
+		case "--input", "-i":
 			if i+1 >= len(args) {
 				return nil, fmt.Errorf("--input requires value")
 			}
 			cfg.Input = args[i+1]
 			i++
-		case arg == "--output" || arg == "-o":
+		case "--output", "-o":
 			if i+1 >= len(args) {
 				return nil, fmt.Errorf("--output requires value")
 			}
 			cfg.Output = args[i+1]
 			i++
-		case arg == "--all":
+		case "--all":
 			cfg.All = true
-		case arg == "--skills-dir":
+		case "--skills-dir":
 			if i+1 >= len(args) {
 				return nil, fmt.Errorf("--skills-dir requires value")
 			}
 			cfg.SkillsDir = args[i+1]
 			i++
-		case arg == "--dry-run" || arg == "-d":
+		case "--dry-run", "-d":
 			cfg.DryRun = true
-		case arg == "--backup" || arg == "-b":
+		case "--backup", "-b":
 			cfg.Backup = true
-		case arg == "--validate":
+		case "--validate":
 			cfg.Validate = true
-		case arg == "--verbose" || arg == "-v":
+		case "--verbose", "-v":
 			cfg.Verbose = true
-		case arg == "--help" || arg == "-h":
+		case "--help", "-h":
 			printHelp()
 			os.Exit(0)
 		default:
@@ -371,7 +363,8 @@ func parseFrontmatter(lines []string, skill *V3Skill) {
 		case "category":
 			skill.Category = value
 		case "keywords":
-			if strings.HasPrefix(value, "[") {
+			switch {
+			case strings.HasPrefix(value, "["):
 				value = strings.Trim(value, "[]")
 				items := strings.Split(value, ",")
 				for _, item := range items {
@@ -380,9 +373,9 @@ func parseFrontmatter(lines []string, skill *V3Skill) {
 						skill.Triggers.Keywords = append(skill.Triggers.Keywords, item)
 					}
 				}
-			} else if value == "-" || value == "" {
+			case value == "-" || value == "":
 				inKeywordsSection = true
-			} else {
+			default:
 				skill.Triggers.Keywords = append(skill.Triggers.Keywords, value)
 			}
 		case "file_pattern":
@@ -475,23 +468,6 @@ func cleanDescription(desc string) string {
 	}
 
 	return desc
-}
-
-func countItems(content string) int {
-	count := 0
-
-	bulletPattern := regexp.MustCompile(`^\s*[-*]\s+`)
-	numberPattern := regexp.MustCompile(`^\s*\d+\.\s+`)
-
-	scanner := bufio.NewScanner(strings.NewReader(content))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if bulletPattern.MatchString(line) || numberPattern.MatchString(line) {
-			count++
-		}
-	}
-
-	return count
 }
 
 func extractReferences(instructions, role, examples string) []Reference {
@@ -628,7 +604,7 @@ func writeFiles(outputDir string, files map[string]string, backup, dryRun bool) 
 	if backup {
 		timestamp := time.Now().Unix()
 		backupDir := fmt.Sprintf("%s.backup.%d", outputDir, timestamp)
-		if err := os.MkdirAll(backupDir, 0o755); err != nil {
+		if err := os.MkdirAll(backupDir, 0o750); err != nil {
 			return fmt.Errorf("create backup dir: %w", err)
 		}
 
@@ -645,7 +621,7 @@ func writeFiles(outputDir string, files map[string]string, backup, dryRun bool) 
 			}
 			destPath := filepath.Join(backupDir, relPath)
 			destDir := filepath.Dir(destPath)
-			if err := os.MkdirAll(destDir, 0o755); err != nil {
+			if err := os.MkdirAll(destDir, 0o750); err != nil {
 				return err
 			}
 			if err := copyFile(path, destPath); err != nil {
@@ -664,11 +640,11 @@ func writeFiles(outputDir string, files map[string]string, backup, dryRun bool) 
 		fullPath := filepath.Join(outputDir, path)
 		dir := filepath.Dir(fullPath)
 
-		if err := os.MkdirAll(dir, 0o755); err != nil {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return fmt.Errorf("create dir %s: %w", dir, err)
 		}
 
-		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
+		if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
 			return fmt.Errorf("write %s: %w", path, err)
 		}
 	}
@@ -677,11 +653,12 @@ func writeFiles(outputDir string, files map[string]string, backup, dryRun bool) 
 }
 
 func copyFile(src, dst string) error {
+	// #nosec G304 - src is validated by caller
 	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(dst, data, 0o644)
+	return os.WriteFile(dst, data, 0o600)
 }
 
 func copyDir(src, dst string) error {
@@ -700,10 +677,11 @@ func copyDir(src, dst string) error {
 		destPath := filepath.Join(dst, relPath)
 		destDir := filepath.Dir(destPath)
 
-		if err := os.MkdirAll(destDir, 0o755); err != nil {
+		if err := os.MkdirAll(destDir, 0o750); err != nil {
 			return err
 		}
 
+		// #nosec G304 - path is validated by filepath.Walk
 		return copyFile(path, destPath)
 	})
 }

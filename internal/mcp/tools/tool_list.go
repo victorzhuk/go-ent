@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type ToolListInput struct{}
@@ -49,8 +51,9 @@ func toolListHandler(toolRegistry *ToolRegistry) func(ctx context.Context, req *
 			categories[t.Category] = append(categories[t.Category], t)
 		}
 
+		caser := cases.Title(language.English)
 		for cat, catTools := range categories {
-			sb.WriteString(fmt.Sprintf("## %s (%d)\n\n", strings.Title(cat), len(catTools)))
+			sb.WriteString(fmt.Sprintf("## %s (%d)\n\n", caser.String(cat), len(catTools)))
 			for _, t := range catTools {
 				sb.WriteString(fmt.Sprintf("- **%s**: %s\n", t.Name, t.Description))
 			}

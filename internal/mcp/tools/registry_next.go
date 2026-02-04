@@ -89,7 +89,7 @@ func registryNextTaskHandler(store *spec.BoltStore) func(ctx context.Context, re
 		deps, _ := store.GetDeps(nextTask.ChangeID, nextTask.TaskNum)
 
 		var content string
-		content += fmt.Sprintf("# Next Task to Work On\n\n")
+		content += "# Next Task to Work On\n\n"
 		content += fmt.Sprintf("## %s - %s\n\n", nextTask.ChangeID, nextTask.TaskNum)
 
 		if change != nil {

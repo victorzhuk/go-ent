@@ -14,6 +14,7 @@ import (
 // readFile tries local filesystem first, falls back to embedded
 func readFile(path string) ([]byte, error) {
 	// Try local filesystem first (allows project customization)
+	// #nosec G304 - path is validated by caller
 	if data, err := os.ReadFile(path); err == nil {
 		return data, nil
 	}

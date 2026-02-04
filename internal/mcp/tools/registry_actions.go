@@ -83,6 +83,7 @@ func registryMarkDoneHandler(cwd string, hookRegistry *hooks.Registry) func(ctx 
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryMarkDoneInput) (*mcp.CallToolResult, any, error) {
 		tasksPath := filepath.Join(cwd, "openspec", "changes", input.ChangeID, "tasks.md")
 
+		// #nosec G304 - tasksPath is constructed from validated inputs
 		data, err := os.ReadFile(tasksPath)
 		if err != nil {
 			return nil, nil, fmt.Errorf("read tasks.md: %w", err)
@@ -118,7 +119,7 @@ func registryMarkDoneHandler(cwd string, hookRegistry *hooks.Registry) func(ctx 
 		}
 
 		content := strings.Join(lines, "\n")
-		if err := os.WriteFile(tasksPath, []byte(content), 0o644); err != nil {
+		if err := os.WriteFile(tasksPath, []byte(content), 0o600); err != nil {
 			return nil, nil, fmt.Errorf("write tasks.md: %w", err)
 		}
 

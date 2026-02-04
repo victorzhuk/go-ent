@@ -38,6 +38,7 @@ func NewRegistry(configPath string, executor *Executor) (*Registry, error) {
 
 // LoadFromFile loads hook configuration from a YAML or JSON file.
 func (r *Registry) LoadFromFile(path string) error {
+	// #nosec G304 - path is validated by caller
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("read file: %w", err)

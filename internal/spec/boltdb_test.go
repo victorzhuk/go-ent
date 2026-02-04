@@ -17,7 +17,7 @@ func TestNewBoltStore(t *testing.T) {
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
 		require.NotNil(t, store)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		assert.Contains(t, store.path, ".cache")
 	})
@@ -29,7 +29,7 @@ func TestNewBoltStore(t *testing.T) {
 
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		_, err = store.GetChange("nonexistent")
 		require.NoError(t, err)
@@ -43,7 +43,7 @@ func TestPutTask_GetTask(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task := &Task{
 			ID:         "change-1:1.1",
@@ -80,7 +80,7 @@ func TestPutTask_GetTask(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task, err := store.GetTask("nonexistent", "1.1")
 		require.NoError(t, err)
@@ -93,7 +93,7 @@ func TestPutTask_GetTask(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		err = store.PutTask(nil)
 		assert.Error(t, err)
@@ -108,7 +108,7 @@ func TestDeleteTask(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task := &Task{
 			ID:       "change-1:1.1",
@@ -135,7 +135,7 @@ func TestDeleteTask(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		err = store.DeleteTask("nonexistent", "1.1")
 		require.NoError(t, err)
@@ -149,7 +149,7 @@ func TestPutChange_GetChange(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		change := &ChangeMetadata{
 			ID:         "change-1",
@@ -185,7 +185,7 @@ func TestPutChange_GetChange(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		change, err := store.GetChange("nonexistent")
 		require.NoError(t, err)
@@ -198,7 +198,7 @@ func TestPutChange_GetChange(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		err = store.PutChange(nil)
 		assert.Error(t, err)
@@ -213,7 +213,7 @@ func TestPutDeps_GetDeps(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		deps := &DependencyInfo{
 			TaskID:        "change-1:1.2",
@@ -243,7 +243,7 @@ func TestPutDeps_GetDeps(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		deps, err := store.GetDeps("nonexistent", "1.1")
 		require.NoError(t, err)
@@ -256,7 +256,7 @@ func TestPutDeps_GetDeps(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		err = store.PutDeps(nil)
 		assert.Error(t, err)
@@ -271,7 +271,7 @@ func TestListAllChanges(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		change1 := &ChangeMetadata{
 			ID:     "change-1",
@@ -301,7 +301,7 @@ func TestListAllChanges(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		changes, err := store.ListAllChanges()
 		require.NoError(t, err)
@@ -316,7 +316,7 @@ func TestListTasks(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task1 := &Task{
 			ID:       "change-1:1.1",
@@ -360,7 +360,7 @@ func TestListTasks(t *testing.T) {
 		tmpDir := t.TempDir()
 		store, err := NewBoltStore(tmpDir)
 		require.NoError(t, err)
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		task1 := &Task{
 			ID:       "change-1:1.1",

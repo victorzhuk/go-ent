@@ -154,9 +154,10 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 
 		for i, task := range tasks {
 			statusIcon := "⏳"
-			if task.Status == spec.TaskCompleted {
+			switch task.Status {
+			case spec.TaskCompleted:
 				statusIcon = "✅"
-			} else if task.Status == spec.TaskInProgress {
+			case spec.TaskInProgress:
 				statusIcon = "🔄"
 			}
 

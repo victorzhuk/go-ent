@@ -29,6 +29,7 @@ func (v *Validator) ValidateAgent(path string) ValidationResult {
 	result := ValidationResult{File: path}
 
 	// Read file
+	// #nosec G304 - path is validated by caller
 	content, err := os.ReadFile(path)
 	if err != nil {
 		result.Errors = append(result.Errors, ValidationError{

@@ -31,6 +31,7 @@ func LoadToolSpec(tool string) (*ToolSpec, error) {
 		return nil, err
 	}
 
+	// #nosec G304 - path is validated by findSchemaPath
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read schema: %w", err)

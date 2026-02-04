@@ -1,4 +1,4 @@
-name: ent:planner
+name: planner
 description: Task planner. Breaks features into actionable tasks.
 model: main
 color: "#32CD32"

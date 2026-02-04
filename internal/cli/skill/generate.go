@@ -59,9 +59,9 @@ func runSkillGenerate(cmd *cobra.Command, args []string) error {
 	for _, tool := range tools {
 		switch tool {
 		case "claude":
-			targets = append(targets, generator.NewClaudeTarget(".claude/agents"))
+			targets = append(targets, generator.NewClaudeTarget(".claude/skills"))
 		case "opencode":
-			targets = append(targets, generator.NewOpenCodeTarget(".opencode/agents"))
+			targets = append(targets, generator.NewOpenCodeTarget(".opencode/skills"))
 		case "openspec":
 			// OpenSpec is a workflow tool, not a skill generation target - skip
 			continue
@@ -151,11 +151,11 @@ func generateSkill(targets []generator.Target, category, name string) error {
 
 func writeSkillOutput(path string, data []byte) error {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return fmt.Errorf("create dir: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, 0o644); err != nil {
+	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
 

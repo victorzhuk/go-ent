@@ -42,11 +42,11 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 				OutputPath:   outputPath,
 			}
 
-			os.RemoveAll(filepath.Dir(outputPath))
+			_ = os.RemoveAll(filepath.Dir(outputPath))
 
 			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill from template")
-			defer os.RemoveAll(filepath.Dir(outputPath))
+			defer func() { _ = os.RemoveAll(filepath.Dir(outputPath)) }()
 
 			assert.FileExists(t, outputPath, "skill file should exist")
 
@@ -236,11 +236,11 @@ func TestQualityScoreFromGeneratedSkills(t *testing.T) {
 				OutputPath:   outputPath,
 			}
 
-			os.RemoveAll(filepath.Dir(outputPath))
+			_ = os.RemoveAll(filepath.Dir(outputPath))
 
 			_, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill")
-			defer os.RemoveAll(filepath.Dir(outputPath))
+			defer func() { _ = os.RemoveAll(filepath.Dir(outputPath)) }()
 
 			parser := skillpkg.NewParser()
 			meta, err := parser.ParseSkillFile(outputPath)
@@ -274,11 +274,11 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 				OutputPath:   outputPath,
 			}
 
-			os.RemoveAll(filepath.Dir(outputPath))
+			_ = os.RemoveAll(filepath.Dir(outputPath))
 
 			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			require.NoError(t, err, "generate skill")
-			defer os.RemoveAll(filepath.Dir(outputPath))
+			defer func() { _ = os.RemoveAll(filepath.Dir(outputPath)) }()
 
 			content, err := os.ReadFile(outputPath)
 			require.NoError(t, err, "read skill file")

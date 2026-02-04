@@ -3,12 +3,16 @@ package cli
 import (
 	"strings"
 	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // templateHelpers returns a FuncMap with helper functions for templates
 func templateHelpers() template.FuncMap {
+	caser := cases.Title(language.English)
 	return template.FuncMap{
-		"title":     strings.Title,
+		"title":     caser.String,
 		"upper":     strings.ToUpper,
 		"lower":     strings.ToLower,
 		"contains":  strings.Contains,
@@ -72,5 +76,6 @@ func getRoleTitle(role string) string {
 	if title, ok := roleMap[role]; ok {
 		return title
 	}
-	return strings.Title(role)
+	caser := cases.Title(language.English)
+	return caser.String(role)
 }

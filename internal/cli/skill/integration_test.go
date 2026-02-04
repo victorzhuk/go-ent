@@ -77,10 +77,12 @@ func TestIntegration_NewCommand_5_2_1_ValidNameAndTemplate(t *testing.T) {
 		"--non-interactive",
 	}
 
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	stdout, stderr, err := runCommand(args...)
 	if err != nil {
@@ -118,10 +120,12 @@ func TestIntegration_NewCommand_5_2_2_InvalidTemplate(t *testing.T) {
 		"--non-interactive",
 	}
 
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	_, stderr, err := runCommand(args...)
 
@@ -149,10 +153,12 @@ func TestIntegration_NewCommand_5_2_3_NonInteractive(t *testing.T) {
 			"--non-interactive",
 		}
 
-		os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-		os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-		defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-		defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+		require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+		defer func() {
+			_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+			_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+		}()
 
 		stdout, stderr, err := runCommand(args...)
 		if err != nil {
@@ -190,8 +196,8 @@ func TestIntegration_NewCommand_5_2_3_NonInteractive(t *testing.T) {
 			"--non-interactive",
 		}
 
-		os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-		defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+		defer func() { _ = os.Unsetenv("GO_ENT_TEMPLATE_DIR") }()
 
 		_, stderr, err := runCommand(args...)
 
@@ -208,8 +214,8 @@ func TestIntegration_ListTemplates_5_2_4_WithFilters(t *testing.T) {
 	}
 
 	templateDir := setupTestTemplates(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	defer func() { _ = os.Unsetenv("GO_ENT_TEMPLATE_DIR") }()
 
 	t.Run("list all templates", func(t *testing.T) {
 		stdout, _, err := runCommand("skill", "list-templates")
@@ -349,10 +355,12 @@ func TestIntegration_FileSystem_5_2_8_Operations(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	t.Run("create skill file", func(t *testing.T) {
 		args := []string{
@@ -450,10 +458,12 @@ func TestIntegration_EndToEnd(t *testing.T) {
 
 	templateDir := setupTestTemplates(t)
 	skillsDir := setupTestSkills(t)
-	os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir)
-	os.Setenv("GO_ENT_SKILLS_DIR", skillsDir)
-	defer os.Unsetenv("GO_ENT_TEMPLATE_DIR")
-	defer os.Unsetenv("GO_ENT_SKILLS_DIR")
+	require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+	require.NoError(t, os.Setenv("GO_ENT_SKILLS_DIR", skillsDir))
+	defer func() {
+		_ = os.Unsetenv("GO_ENT_TEMPLATE_DIR")
+		_ = os.Unsetenv("GO_ENT_SKILLS_DIR")
+	}()
 
 	t.Run("complete workflow", func(t *testing.T) {
 		stdout, _, err := runCommand("skill", "list-templates")

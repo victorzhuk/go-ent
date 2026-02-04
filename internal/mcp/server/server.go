@@ -166,7 +166,7 @@ func createHookMiddleware(hookRegistry *hooks.Registry) mcp.Middleware {
 					var resultData any
 					if result != nil {
 						if data, jsonErr := json.Marshal(result); jsonErr == nil {
-							json.Unmarshal(data, &resultData)
+							_ = json.Unmarshal(data, &resultData)
 						}
 					}
 

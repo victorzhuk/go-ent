@@ -7,6 +7,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type RegistryStatusInput struct{}
@@ -78,7 +80,7 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 		}
 
 		if totalChanges > 0 {
-			completionPercent = completionPercent / float64(totalChanges)
+			completionPercent /= float64(totalChanges)
 		}
 
 		for _, task := range tasks {
@@ -124,11 +126,12 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 		sb.WriteString(fmt.Sprintf("- Overall Completion: %.1f%%\n\n", completionPercent))
 
 		sb.WriteString("## Changes by Status\n\n")
+		caser := cases.Title(language.English)
 		statuses := []spec.ChangeStatus{spec.StatusDraft, spec.StatusActive, spec.StatusApproved, spec.StatusArchived}
 		for _, status := range statuses {
 			count := changesByStatus[string(status)]
 			if count > 0 {
-				sb.WriteString(fmt.Sprintf("- %s: %d\n", strings.Title(string(status)), count))
+				sb.WriteString(fmt.Sprintf("- %s: %d\n", caser.String(string(status)), count))
 			}
 		}
 		sb.WriteString("\n")
@@ -139,9 +142,10 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 			count := tasksByStatus[string(status)]
 			if count > 0 {
 				icon := "⏳"
-				if status == spec.TaskCompleted {
+				switch status {
+				case spec.TaskCompleted:
 					icon = "✅"
-				} else if status == spec.TaskInProgress {
+				case spec.TaskInProgress:
 					icon = "🔄"
 				}
 				sb.WriteString(fmt.Sprintf("- %s %s: %d\n", icon, strings.ReplaceAll(string(status), "_", " "), count))

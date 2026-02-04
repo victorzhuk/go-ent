@@ -16,6 +16,13 @@ linters:
     - misspell      # Spell check
     - copyloopvar   # Go 1.22+ loop variable semantics
   disable-all: false
+  
+  exclusions:
+    rules:
+      - path: _test\.go$
+        linters:
+          - gosec
+          - errcheck
 
 formatters:
   enable:
@@ -86,7 +93,7 @@ issues:
 
   exclude-rules:
     # Exclude some linters from running on tests files
-    - path: .*_test\.go$
+    - path: _test\.go$
       linters:
         - errcheck
         - gosec

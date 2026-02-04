@@ -47,14 +47,9 @@ func configShowHandler() func(ctx context.Context, req *mcp.CallToolRequest, inp
 		}
 
 		// If key is specified, extract that value
-		var result any
-		if input.Key != "" {
-			// TODO: Implement key path extraction
-			// For now, just return the whole config
-			result = config
-		} else {
-			result = config
-		}
+		// TODO: Implement key path extraction
+		// For now, just return the whole config
+		result := config
 
 		// Format as YAML
 		output, err := yaml.Marshal(result)

@@ -1,0 +1,27 @@
+name: debugger-fast
+description: Quick debugging for simple issues. Fast troubleshooting of obvious bugs.
+extends: debugger
+model: fast
+color: '#DC143C'
+skills:
+- go-test
+- debug-core
+- go-code
+toolPresets:
+- editing
+tools:
+- list
+- todoread
+- todowrite
+- skill
+disallowedToolPresets:
+- serena-editing
+dependencies:
+- tester
+- coder
+prompts:
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/debugger

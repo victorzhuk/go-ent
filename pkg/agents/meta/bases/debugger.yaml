@@ -1,4 +1,4 @@
-name: ent:debugger
+name: debugger
 description: Standard debugging. Systematic issue investigation and resolution.
 model: main
 color: "#DC143C"
@@ -11,5 +11,5 @@ toolPresets:
 disallowedToolPresets:
   - serena-editing
 dependencies:
-  - ent:tester
-  - ent:reviewer
+  - tester
+  - reviewer

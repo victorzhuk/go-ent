@@ -313,36 +313,3 @@ func (s *Store) SaveConfig(cfg *config.Config) error {
 
 	return nil
 }
-
-// Generic YAML helpers
-func loadYAML[T any](path string) (*T, error) {
-	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
-	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", path, err)
-	}
-
-	var obj T
-	if err := yaml.Unmarshal(data, &obj); err != nil {
-		return nil, fmt.Errorf("unmarshal %s: %w", path, err)
-	}
-
-	return &obj, nil
-}
-
-func saveYAML[T any](path string, obj *T) error {
-	data, err := yaml.Marshal(obj)
-	if err != nil {
-		return fmt.Errorf("marshal: %w", err)
-	}
-
-	if err := os.WriteFile(path, data, 0o600); err != nil {
-		return fmt.Errorf("write %s: %w", path, err)
-	}
-
-	return nil
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
-}

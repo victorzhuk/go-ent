@@ -24,7 +24,7 @@ type WizardConfig struct {
 
 // PromptModel presents an interactive prompt for selecting an AI model tier
 func PromptModel() (string, error) {
-	models := []string{"haiku", "main", "opus"}
+	models := []string{"fast", "main", "heavy"}
 	var model string
 	prompt := &survey.Select{
 		Message: "Select model tier:",
@@ -32,11 +32,11 @@ func PromptModel() (string, error) {
 		Default: "main",
 		Description: func(value string, index int) string {
 			switch value {
-			case "haiku":
+			case "fast":
 				return "Fast, cost-effective (simple tasks)"
 			case "main":
 				return "Balanced performance (standard tasks)"
-			case "opus":
+			case "heavy":
 				return "Maximum capability (complex tasks)"
 			default:
 				return ""
@@ -51,7 +51,7 @@ func PromptModel() (string, error) {
 
 // PromptRole presents an interactive prompt for selecting an agent role
 func PromptRole() (string, error) {
-	roles := []string{"execution", "planning", "review", "research"}
+	roles := []string{"execution", "planning", "validation", "research"}
 	var role string
 	prompt := &survey.Select{
 		Message: "Select agent role:",
@@ -63,7 +63,7 @@ func PromptRole() (string, error) {
 				return "Implements features and writes code"
 			case "planning":
 				return "Plans tasks and strategies"
-			case "review":
+			case "validation":
 				return "Reviews code and validates quality"
 			case "research":
 				return "Researches and analyzes codebase"
@@ -229,15 +229,15 @@ func ValidateConfig(cfg *WizardConfig) error {
 	}
 
 	// Validate model
-	validModels := map[string]bool{"haiku": true, "main": true, "opus": true}
+	validModels := map[string]bool{"fast": true, "main": true, "heavy": true}
 	if !validModels[cfg.Model] {
-		return fmt.Errorf("invalid model %q, must be one of: haiku, main, opus", cfg.Model)
+		return fmt.Errorf("invalid model %q, must be one of: fast, main, heavy", cfg.Model)
 	}
 
 	// Validate role
-	validRoles := map[string]bool{"execution": true, "planning": true, "review": true, "research": true}
+	validRoles := map[string]bool{"execution": true, "planning": true, "validation": true, "research": true}
 	if !validRoles[cfg.Role] {
-		return fmt.Errorf("invalid role %q, must be one of: execution, planning, review, research", cfg.Role)
+		return fmt.Errorf("invalid role %q, must be one of: execution, planning, validation, research", cfg.Role)
 	}
 
 	// Validate complexity

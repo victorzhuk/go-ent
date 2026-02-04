@@ -1,0 +1,25 @@
+name: acceptor
+description: Validate acceptance criteria and requirements. Ensures implementation meets specifications.
+model: main
+color: '#4169E1'
+skills:
+- go-code
+- go-test
+- arch-core
+toolPresets:
+- readonly
+- serena-analysis
+tools:
+- glob
+- list
+- todoread
+- skill
+dependencies:
+- tester
+- reviewer
+prompts:
+  shared:
+  - _tooling
+  - _foundation
+  - _workflow
+  main: agents/acceptor

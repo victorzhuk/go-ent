@@ -216,22 +216,23 @@ func buildChangeDeps(store *spec.BoltStore, changeID string) (*RegistryDepsRespo
 
 func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *RegistryDepsResponse) string {
 	var content string
-	content += fmt.Sprintf("# Dependency Graph\n\n")
+	content += "# Dependency Graph\n\n"
 	content += fmt.Sprintf("## Change: %s\n\n", change.ID)
 	content += fmt.Sprintf("**Title**: %s\n\n", change.Title)
-	content += fmt.Sprintf("---\n\n")
+	content += "---\n\n"
 	content += fmt.Sprintf("## Task: %s\n\n", task.TaskNum)
 	content += fmt.Sprintf("**Content**: %s\n\n", task.Content)
 	content += fmt.Sprintf("**Status**: %s\n\n", task.Status)
-	content += fmt.Sprintf("---\n\n")
+	content += "---\n\n"
 
 	if len(resp.Dependencies) > 0 {
-		content += fmt.Sprintf("### Dependencies (this task depends on)\n\n")
+		content += "### Dependencies (this task depends on)\n\n"
 		for i, dep := range resp.Dependencies {
 			statusIcon := "✅"
-			if dep.Status == spec.TaskPending {
+			switch dep.Status {
+			case spec.TaskPending:
 				statusIcon = "⏳"
-			} else if dep.Status == spec.TaskInProgress {
+			case spec.TaskInProgress:
 				statusIcon = "🔄"
 			}
 			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, statusIcon)
@@ -239,16 +240,17 @@ func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *Registry
 			content += fmt.Sprintf("- Content: %s\n\n", dep.Content)
 		}
 	} else {
-		content += fmt.Sprintf("### Dependencies\n\nNo dependencies\n\n")
+		content += "### Dependencies\n\nNo dependencies\n\n"
 	}
 
 	if len(resp.Dependents) > 0 {
-		content += fmt.Sprintf("### Dependents (tasks waiting on this one)\n\n")
+		content += "### Dependents (tasks waiting on this one)\n\n"
 		for i, dep := range resp.Dependents {
 			statusIcon := "✅"
-			if dep.Status == spec.TaskPending {
+			switch dep.Status {
+			case spec.TaskPending:
 				statusIcon = "⏳"
-			} else if dep.Status == spec.TaskInProgress {
+			case spec.TaskInProgress:
 				statusIcon = "🔄"
 			}
 			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, statusIcon)
@@ -256,11 +258,11 @@ func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *Registry
 			content += fmt.Sprintf("- Content: %s\n\n", dep.Content)
 		}
 	} else {
-		content += fmt.Sprintf("### Dependents\n\nNo tasks depend on this one\n\n")
+		content += "### Dependents\n\nNo tasks depend on this one\n\n"
 	}
 
 	if len(resp.BlockingTasks) > 0 {
-		content += fmt.Sprintf("### Blocking Tasks (incomplete dependencies)\n\n")
+		content += "### Blocking Tasks (incomplete dependencies)\n\n"
 		for i, dep := range resp.BlockingTasks {
 			content += fmt.Sprintf("**%d. %s** ⏳\n", i+1, dep.TaskNum)
 			content += fmt.Sprintf("- Status: %s\n", dep.Status)
@@ -273,10 +275,10 @@ func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *Registry
 
 func formatChangeDeps(change *spec.ChangeMetadata, resp *RegistryDepsResponse) string {
 	var content string
-	content += fmt.Sprintf("# Dependency Graph\n\n")
+	content += "# Dependency Graph\n\n"
 	content += fmt.Sprintf("## Change: %s\n\n", change.ID)
 	content += fmt.Sprintf("**Title**: %s\n\n", change.Title)
-	content += fmt.Sprintf("---\n\n")
+	content += "---\n\n"
 
 	sort.Slice(resp.BlockingTasks, func(i, j int) bool {
 		return resp.BlockingTasks[i].TaskNum < resp.BlockingTasks[j].TaskNum
@@ -286,27 +288,27 @@ func formatChangeDeps(change *spec.ChangeMetadata, resp *RegistryDepsResponse) s
 	})
 
 	if len(resp.BlockingTasks) > 0 {
-		content += fmt.Sprintf("### Blocking Tasks (blocking other pending tasks)\n\n")
+		content += "### Blocking Tasks (blocking other pending tasks)\n\n"
 		for i, task := range resp.BlockingTasks {
 			content += fmt.Sprintf("**%d. %s** - %s\n\n", i+1, task.TaskNum, task.Status)
 			content += fmt.Sprintf("%s\n\n", task.Content)
 		}
 	} else {
-		content += fmt.Sprintf("### Blocking Tasks\n\nNo blocking tasks\n\n")
+		content += "### Blocking Tasks\n\nNo blocking tasks\n\n"
 	}
 
 	if len(resp.BlockedBy) > 0 {
-		content += fmt.Sprintf("### Blocked Tasks (waiting for dependencies)\n\n")
+		content += "### Blocked Tasks (waiting for dependencies)\n\n"
 		for i, task := range resp.BlockedBy {
 			content += fmt.Sprintf("**%d. %s** - %s\n\n", i+1, task.TaskNum, task.Status)
 			content += fmt.Sprintf("%s\n\n", task.Content)
 		}
 	} else {
-		content += fmt.Sprintf("### Blocked Tasks\n\nNo blocked tasks\n\n")
+		content += "### Blocked Tasks\n\nNo blocked tasks\n\n"
 	}
 
 	if len(resp.BlockingTasks) == 0 && len(resp.BlockedBy) == 0 {
-		content += fmt.Sprintf("### Summary\n\nNo dependencies blocking progress. All pending tasks can be worked on.\n\n")
+		content += "### Summary\n\nNo dependencies blocking progress. All pending tasks can be worked on.\n\n"
 	}
 
 	return content

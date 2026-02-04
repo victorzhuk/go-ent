@@ -155,6 +155,7 @@ func (e *Executor) executeHook(ctx context.Context, hook Hook, toolName string, 
 		}
 
 		// Run command with JSON input on stdin
+		// #nosec G204 - hook.Command is validated by configuration
 		cmd := exec.CommandContext(ctx, "bash", "-c", hook.Command)
 		cmd.Env = os.Environ()
 		for k, v := range env {

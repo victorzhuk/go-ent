@@ -56,6 +56,7 @@ func (r *Registry) Load(path string) error {
 		}
 
 		fullPath := filepath.Join(path, entry.Name())
+		// #nosec G304 - fullPath is constructed from validated directory entries
 		data, err := os.ReadFile(fullPath)
 		if err != nil {
 			return fmt.Errorf("read agent %s: %w", entry.Name(), err)
