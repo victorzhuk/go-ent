@@ -63,7 +63,8 @@ type agentMeta struct {
 	Complexity            string            `yaml:"complexity"`
 	ComplexityHints       map[string]string `yaml:"complexityHints"`
 	ModelMapping          map[string]string `yaml:"modelMapping"`
-	Hidden                *bool             `yaml:"hidden"` // nil = visible (default)
+	Mode                  string            `yaml:"mode"`   // primary, subagent, hidden
+	Hidden                *bool             `yaml:"hidden"` // DEPRECATED: backward compat
 	Skills                []string          `yaml:"skills"`
 	Tools                 []string          `yaml:"tools"`
 	ToolPresets           []string          `yaml:"toolPresets"`
@@ -94,6 +95,22 @@ func (m *agentMeta) ModelClaude() string {
 // ModelOpenCode returns internal model name as-is for OpenCode
 func (m *agentMeta) ModelOpenCode() string {
 	return m.Model
+}
+
+// EffectiveMode returns the mode to use, handling backward compatibility with Hidden field
+func (m *agentMeta) EffectiveMode() string {
+	if m.Mode != "" {
+		return m.Mode
+	}
+	if m.Hidden != nil && *m.Hidden {
+		return "hidden"
+	}
+	return "subagent"
+}
+
+// ModeOpenCode returns the mode for OpenCode template
+func (m *agentMeta) ModeOpenCode() string {
+	return m.EffectiveMode()
 }
 
 // HiddenForOpenCode returns true if the agent should be hidden in OpenCode
@@ -285,6 +302,9 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 	if variant.Complexity != "" {
 		merged.Complexity = variant.Complexity
 	}
+	if variant.Mode != "" {
+		merged.Mode = variant.Mode
+	}
 	if variant.Hidden != nil {
 		merged.Hidden = variant.Hidden
 	}
@@ -437,17 +457,27 @@ func validateAgent(meta *agentMeta, filename string) error {
 		return fmt.Errorf("%s: color must be a hex code starting with # (got: %s)", filename, meta.Color)
 	}
 
+	if meta.Mode != "" {
+		validModes := map[string]bool{"primary": true, "subagent": true, "hidden": true}
+		if !validModes[meta.Mode] {
+			return fmt.Errorf("%s: mode must be one of [primary, subagent, hidden] (got: %s)", filename, meta.Mode)
+		}
+	}
+	if meta.Hidden != nil && meta.Mode != "" {
+		return fmt.Errorf("%s: cannot use both 'mode' and deprecated 'hidden' fields", filename)
+	}
+
 	if meta.Role != "" {
-		validRoles := map[string]bool{"planning": true, "execution": true, "validation": true, "research": true}
+		validRoles := map[string]bool{"planning": true, "execution": true, "validation": true, "research": true, "orchestration": true}
 		if !validRoles[meta.Role] {
-			return fmt.Errorf("%s: role must be one of [planning, execution, validation, research] (got: %s)", filename, meta.Role)
+			return fmt.Errorf("%s: role must be one of [planning, execution, validation, research, orchestration] (got: %s)", filename, meta.Role)
 		}
 	}
 
 	if meta.Complexity != "" {
-		validComplexity := map[string]bool{"simple": true, "standard": true, "heavy": true}
+		validComplexity := map[string]bool{"auto": true, "simple": true, "standard": true, "heavy": true}
 		if !validComplexity[meta.Complexity] {
-			return fmt.Errorf("%s: complexity must be one of [simple, standard, heavy] (got: %s)", filename, meta.Complexity)
+			return fmt.Errorf("%s: complexity must be one of [auto, simple, standard, heavy] (got: %s)", filename, meta.Complexity)
 		}
 	}
 
@@ -601,10 +631,11 @@ func renderAgent(meta *agentMeta, prompt string, tpl *template.Template) (string
 
 func getRoleDisplay(meta *agentMeta) string {
 	roleMap := map[string]string{
-		"planning":   "Planning",
-		"execution":  "Implementation",
-		"validation": "Validation",
-		"research":   "Research",
+		"planning":      "Planning",
+		"execution":     "Implementation",
+		"validation":    "Validation",
+		"research":      "Research",
+		"orchestration": "Orchestration",
 	}
 
 	if display, ok := roleMap[meta.Role]; ok {
@@ -624,10 +655,11 @@ func getRoleDisplay(meta *agentMeta) string {
 
 func getRoleContext(meta *agentMeta) string {
 	contextMap := map[string]string{
-		"planning":   "task breakdown and architecture design",
-		"execution":  "code implementation and development",
-		"validation": "testing and quality assurance",
-		"research":   "investigation and analysis",
+		"planning":      "task breakdown and architecture design",
+		"execution":     "code implementation and development",
+		"validation":    "testing and quality assurance",
+		"research":      "investigation and analysis",
+		"orchestration": "workflow coordination and agent delegation",
 	}
 
 	if context, ok := contextMap[meta.Role]; ok {
@@ -655,12 +687,20 @@ func getAgentPath(tool, prefix, name string) string {
 }
 
 func writeFile(path, content string, force, dryRun bool) error {
-	if _, err := os.Stat(path); err == nil && !force {
-		return fmt.Errorf("file already exists: %s (use --force to overwrite)", path)
+	existed := false
+	if _, err := os.Stat(path); err == nil {
+		existed = true
+		if !force {
+			return fmt.Errorf("file already exists: %s (use --force to overwrite)", path)
+		}
 	}
 
 	if dryRun {
-		fmt.Printf("Would create: %s\n", path)
+		if existed {
+			fmt.Printf("Would overwrite: %s\n", path)
+		} else {
+			fmt.Printf("Would create: %s\n", path)
+		}
 		return nil
 	}
 
@@ -673,7 +713,11 @@ func writeFile(path, content string, force, dryRun bool) error {
 		return fmt.Errorf("write file %s: %w", path, err)
 	}
 
-	fmt.Printf("Created: %s\n", path)
+	if existed {
+		fmt.Printf("Overwritten: %s\n", path)
+	} else {
+		fmt.Printf("Created: %s\n", path)
+	}
 	return nil
 }
 

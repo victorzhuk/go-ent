@@ -3,12 +3,13 @@ package tools
 import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/agent"
+	"github.com/victorzhuk/go-ent/internal/hooks"
 	"github.com/victorzhuk/go-ent/internal/openspec"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
-func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore) {
+func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore, hookRegistry *hooks.Registry) {
 	// Skill tools
 	registerSkillList(s, toolRegistry, skillRegistry)
 	registerSkillInfo(s, toolRegistry, skillRegistry)
@@ -20,8 +21,8 @@ func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Re
 
 	// OpenSpec tools (mutation only - use registry tools for queries)
 	openspecClient := openspec.New(cwd)
-	registerOpenSpecNewChange(s, toolRegistry, openspecClient)
-	registerOpenSpecArchive(s, toolRegistry, openspecClient)
+	registerOpenSpecNewChange(s, toolRegistry, openspecClient, hookRegistry)
+	registerOpenSpecArchive(s, toolRegistry, openspecClient, hookRegistry)
 	registerOpenSpecValidate(s, toolRegistry, openspecClient)
 	registerOpenSpecInstructions(s, toolRegistry, openspecClient)
 
@@ -33,8 +34,8 @@ func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Re
 		registerRegistryStatus(s, toolRegistry, store)
 		registerRegistryNextTask(s, toolRegistry, store)
 		registerRegistryDeps(s, toolRegistry, store)
-		registerRegistryMarkDone(s, toolRegistry, cwd)
-		registerRegistryStartTask(s, toolRegistry, store)
+		registerRegistryMarkDone(s, toolRegistry, cwd, hookRegistry)
+		registerRegistryStartTask(s, toolRegistry, store, hookRegistry)
 		registerRegistrySync(s, toolRegistry, store)
 	}
 

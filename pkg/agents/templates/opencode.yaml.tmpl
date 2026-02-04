@@ -1,7 +1,8 @@
 ---
 name: {{.Name}}
-description: "{{.Description}}"
-hidden: {{.HiddenForOpenCode}}
+mode: {{.ModeOpenCode}}
+description: "{{.Description}}"{{if .HiddenForOpenCode}}
+hidden: true{{end}}
 model: {{.ModelOpenCode}}{{if .ToolsOpenCode}}
 tools:{{range .ToolsOpenCode}}
     {{.}}{{end}}{{end}}{{if .GeneratedSkills}}

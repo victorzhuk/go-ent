@@ -43,6 +43,7 @@ Contributing to go-ent itself:
 - **[Architecture](./ARCHITECTURE.md)** - System overview, components, data flow
 - **[Architecture Review](./ARCHITECTURE_REVIEW.md)** - Design analysis and recommendations
 - **[Flow Diagrams](./FLOW.md)** - Visual workflow representations
+- **[Hooks System](./HOOKS.md)** - Lifecycle event hooks and automation
 
 ### OpenSpec System
 

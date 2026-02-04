@@ -1,6 +1,6 @@
 ---
 name: ent-tooling
-description: Tool usage guidance: native tools, Serena semantic analysis, Git, Go, and Bash. Preloaded by all agents.
+description: Tool usage guidance - native tools, Serena semantic analysis, Git, Go, and Bash. Preloaded by all agents.
 triggers:
   - ent-tooling
 ---

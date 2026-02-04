@@ -204,7 +204,7 @@ func TestValidateAgent(t *testing.T) {
 				Role:        "invalid",
 			},
 			wantErr: true,
-			errMsg:  "role must be one of [planning, execution, validation, research]",
+			errMsg:  "role must be one of [planning, execution, validation, research, orchestration]",
 		},
 		{
 			name: "invalid complexity",
@@ -215,7 +215,7 @@ func TestValidateAgent(t *testing.T) {
 				Complexity:  "invalid",
 			},
 			wantErr: true,
-			errMsg:  "complexity must be one of [simple, standard, heavy]",
+			errMsg:  "complexity must be one of [auto, simple, standard, heavy]",
 		},
 		{
 			name: "invalid tool preset",
@@ -260,6 +260,69 @@ func TestValidateAgent(t *testing.T) {
 			wantErr: true,
 			errMsg:  "dependency should not contain ':'",
 		},
+		{
+			name: "valid primary mode",
+			agent: agentMeta{
+				Name:        "driver",
+				Description: "Valid description with primary mode",
+				Model:       "main",
+				Mode:        "primary",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid subagent mode",
+			agent: agentMeta{
+				Name:        "helper",
+				Description: "Valid description with subagent mode",
+				Model:       "main",
+				Mode:        "subagent",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid hidden mode",
+			agent: agentMeta{
+				Name:        "internal",
+				Description: "Valid description with hidden mode",
+				Model:       "main",
+				Mode:        "hidden",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid mode",
+			agent: agentMeta{
+				Name:        "test",
+				Description: "Valid description",
+				Model:       "main",
+				Mode:        "invalid",
+			},
+			wantErr: true,
+			errMsg:  "mode must be one of [primary, subagent, hidden]",
+		},
+		{
+			name: "cannot use both mode and hidden",
+			agent: agentMeta{
+				Name:        "test",
+				Description: "Valid description",
+				Model:       "main",
+				Mode:        "primary",
+				Hidden:      boolPtr(true),
+			},
+			wantErr: true,
+			errMsg:  "cannot use both 'mode' and deprecated 'hidden'",
+		},
+		{
+			name: "valid orchestration role",
+			agent: agentMeta{
+				Name:        "driver",
+				Description: "Driver agent for orchestration",
+				Model:       "main",
+				Role:        "orchestration",
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -274,6 +337,51 @@ func TestValidateAgent(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
+		})
+	}
+}
+
+func boolPtr(b bool) *bool {
+	return &b
+}
+
+func TestEffectiveMode(t *testing.T) {
+	tests := []struct {
+		name     string
+		agent    agentMeta
+		expected string
+	}{
+		{
+			name:     "mode takes precedence",
+			agent:    agentMeta{Mode: "primary"},
+			expected: "primary",
+		},
+		{
+			name:     "hidden true becomes hidden mode",
+			agent:    agentMeta{Hidden: boolPtr(true)},
+			expected: "hidden",
+		},
+		{
+			name:     "hidden false becomes subagent mode",
+			agent:    agentMeta{Hidden: boolPtr(false)},
+			expected: "subagent",
+		},
+		{
+			name:     "default is subagent",
+			agent:    agentMeta{},
+			expected: "subagent",
+		},
+		{
+			name:     "explicit subagent mode",
+			agent:    agentMeta{Mode: "subagent"},
+			expected: "subagent",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.agent.EffectiveMode()
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

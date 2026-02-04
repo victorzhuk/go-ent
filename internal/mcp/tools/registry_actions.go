@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/victorzhuk/go-ent/internal/hooks"
 	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
@@ -54,7 +55,7 @@ type RegistryMarkDoneResponse struct {
 	Message string `json:"message"`
 }
 
-func registerRegistryMarkDone(s *mcp.Server, toolRegistry *ToolRegistry, cwd string) {
+func registerRegistryMarkDone(s *mcp.Server, toolRegistry *ToolRegistry, cwd string, hookRegistry *hooks.Registry) {
 	tool := &mcp.Tool{
 		Name:        "registry_mark_done",
 		Description: "Mark a task as completed by checking the checkbox in the tasks.md file",
@@ -74,11 +75,11 @@ func registerRegistryMarkDone(s *mcp.Server, toolRegistry *ToolRegistry, cwd str
 		},
 	}
 
-	mcp.AddTool(s, tool, registryMarkDoneHandler(cwd))
+	mcp.AddTool(s, tool, registryMarkDoneHandler(cwd, hookRegistry))
 	toolRegistry.Register("registry_mark_done", tool.Description, "registry")
 }
 
-func registryMarkDoneHandler(cwd string) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryMarkDoneInput) (*mcp.CallToolResult, any, error) {
+func registryMarkDoneHandler(cwd string, hookRegistry *hooks.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryMarkDoneInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryMarkDoneInput) (*mcp.CallToolResult, any, error) {
 		tasksPath := filepath.Join(cwd, "openspec", "changes", input.ChangeID, "tasks.md")
 
@@ -121,6 +122,18 @@ func registryMarkDoneHandler(cwd string) func(ctx context.Context, req *mcp.Call
 			return nil, nil, fmt.Errorf("write tasks.md: %w", err)
 		}
 
+		// Trigger onTaskCompleted hook
+		if hookRegistry != nil {
+			openspecHooks := hookRegistry.GetOpenSpecHooks()
+			if err := hookRegistry.Executor().RunOpenSpecHook(ctx, openspecHooks.OnTaskCompleted, "task_completed", map[string]string{
+				"CHANGE_ID": input.ChangeID,
+				"TASK_NUM":  input.TaskNum,
+			}); err != nil {
+				// Log but don't fail the operation
+				fmt.Printf("Warning: onTaskCompleted hook failed: %v\n", err)
+			}
+		}
+
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("# Task Marked Complete\n\n✅ Task %s/%s has been marked as done.\n\nRun `registry_sync` to update the BoltDB cache.", input.ChangeID, input.TaskNum)}},
 		}, RegistryMarkDoneResponse{Success: true, Message: "Task marked complete"}, nil
@@ -140,7 +153,7 @@ type RegistryStartTaskResponse struct {
 	StartedAt string `json:"started_at"`
 }
 
-func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore, hookRegistry *hooks.Registry) {
 	tool := &mcp.Tool{
 		Name:        "registry_start_task",
 		Description: "Set a task as in-progress in runtime state (BoltDB only, not persisted to markdown)",
@@ -168,11 +181,11 @@ func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store 
 		},
 	}
 
-	mcp.AddTool(s, tool, registryStartTaskHandler(store))
+	mcp.AddTool(s, tool, registryStartTaskHandler(store, hookRegistry))
 	toolRegistry.Register("registry_start_task", tool.Description, "registry")
 }
 
-func registryStartTaskHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
+func registryStartTaskHandler(store *spec.BoltStore, hookRegistry *hooks.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
 		task, err := store.GetTask(input.ChangeID, input.TaskNum)
 		if err != nil {
@@ -201,6 +214,18 @@ func registryStartTaskHandler(store *spec.BoltStore) func(ctx context.Context, r
 
 		if err := store.PutRuntimeState(state); err != nil {
 			return nil, nil, fmt.Errorf("put runtime state: %w", err)
+		}
+
+		// Trigger onTaskStarted hook
+		if hookRegistry != nil {
+			openspecHooks := hookRegistry.GetOpenSpecHooks()
+			if err := hookRegistry.Executor().RunOpenSpecHook(ctx, openspecHooks.OnTaskStarted, "task_started", map[string]string{
+				"CHANGE_ID": input.ChangeID,
+				"TASK_NUM":  input.TaskNum,
+			}); err != nil {
+				// Log but don't fail the operation
+				fmt.Printf("Warning: onTaskStarted hook failed: %v\n", err)
+			}
 		}
 
 		var content strings.Builder

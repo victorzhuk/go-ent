@@ -1,0 +1,33 @@
+openspec:
+  onChangeCreated:
+    type: command
+    command: |
+      echo "✓ Change created: $CHANGE_ID"
+      echo "  Next: Edit proposal.md and create tasks"
+
+  onTasksReady:
+    type: agent
+    agent: planner
+    prompt: "Review and validate the task breakdown for change $CHANGE_ID"
+
+  onTaskStarted:
+    type: command
+    command: |
+      echo "▶ Task started: $CHANGE_ID / $TASK_NUM"
+
+  onTaskCompleted:
+    type: command
+    command: |
+      echo "✓ Task completed: $CHANGE_ID / $TASK_NUM"
+      echo "  Run 'go test ./...' to verify"
+
+  beforeArchive:
+    type: agent
+    agent: reviewer
+    prompt: "Final quality gate check before archiving $CHANGE_ID"
+
+  afterArchive:
+    type: command
+    command: |
+      echo "✓ Change archived: $CHANGE_ID"
+      echo "  Specs updated, ready for deployment"

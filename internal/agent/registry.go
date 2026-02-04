@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/victorzhuk/go-ent/internal/hooks"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,6 +28,7 @@ type AgentMeta struct {
 	ModelMapping          map[string]string `yaml:"modelMapping,omitempty"`
 	Dependencies          []string          `yaml:"dependencies,omitempty"`
 	Color                 string            `yaml:"color,omitempty"`
+	Hooks                 hooks.ToolHooks   `yaml:"hooks,omitempty"`
 }
 
 // NewRegistry creates a new agent registry.
