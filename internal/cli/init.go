@@ -686,6 +686,29 @@ func getAgentPath(tool, prefix, name string) string {
 	}
 }
 
+func cleanDirs(tool, prefix string, dryRun bool) error {
+	dirs := []string{
+		filepath.Join("."+tool, "agents", prefix),
+		filepath.Join("."+tool, "commands", prefix),
+		filepath.Join("."+tool, "skills", prefix),
+	}
+
+	for _, dir := range dirs {
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			continue
+		}
+		if dryRun {
+			fmt.Printf("Would remove: %s/\n", dir)
+			continue
+		}
+		if err := os.RemoveAll(dir); err != nil {
+			return fmt.Errorf("remove %s: %w", dir, err)
+		}
+		fmt.Printf("Removed: %s/\n", dir)
+	}
+	return nil
+}
+
 func writeFile(path, content string, force, dryRun bool) error {
 	existed := false
 	if _, err := os.Stat(path); err == nil {
@@ -854,6 +877,7 @@ type initFlags struct {
 	prefix string
 	force  bool
 	dryRun bool
+	clean  bool
 }
 
 func newInitCmd() *cobra.Command {
@@ -876,7 +900,8 @@ Examples:
   ent init --tools=opencode
   ent init --tools=claude,opencode
   ent init --tools=claude --prefix=myproject
-  ent init --tools=claude --dry-run`,
+  ent init --tools=claude --dry-run
+  ent init --tools=claude --clean`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if flags.tool == "" {
@@ -912,6 +937,13 @@ Examples:
 			tools := strings.Split(flags.tool, ",")
 			for _, tool := range tools {
 				tool = strings.TrimSpace(tool)
+
+				if flags.clean {
+					flags.force = true
+					if err := cleanDirs(tool, flags.prefix, flags.dryRun); err != nil {
+						return fmt.Errorf("clean %s directories: %w", tool, err)
+					}
+				}
 
 				tpl, err := loadTemplate(tool)
 				if err != nil {
@@ -1009,6 +1041,7 @@ Examples:
 	cmd.Flags().StringVar(&flags.prefix, "prefix", "ent", "Prefix for configuration directories")
 	cmd.Flags().BoolVar(&flags.force, "force", false, "Overwrite existing files")
 	cmd.Flags().BoolVar(&flags.dryRun, "dry-run", false, "Preview changes without writing files")
+	cmd.Flags().BoolVar(&flags.clean, "clean", false, "Remove existing output directories before generating")
 
 	return cmd
 }

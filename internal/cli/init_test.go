@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"text/template"
@@ -343,6 +345,95 @@ func TestValidateAgent(t *testing.T) {
 
 func boolPtr(b bool) *bool {
 	return &b
+}
+
+func TestCleanDirs(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, tmpDir string)
+		tool    string
+		prefix  string
+		dryRun  bool
+		wantErr bool
+		verify  func(t *testing.T, tmpDir string, dryRun bool)
+	}{
+		{
+			name: "removes existing directories",
+			setup: func(t *testing.T, tmpDir string) {
+				require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".claude/agents/ent"), 0o755))
+				require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".claude/commands/ent"), 0o755))
+				require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".claude/skills/ent"), 0o755))
+			},
+			tool:    "claude",
+			prefix:  "ent",
+			dryRun:  false,
+			wantErr: false,
+			verify: func(t *testing.T, tmpDir string, dryRun bool) {
+				if !dryRun {
+					// Directories should not exist after cleaning
+					_, err := os.Stat(filepath.Join(tmpDir, ".claude/agents/ent"))
+					assert.True(t, os.IsNotExist(err), "agents directory should be removed")
+					_, err = os.Stat(filepath.Join(tmpDir, ".claude/commands/ent"))
+					assert.True(t, os.IsNotExist(err), "commands directory should be removed")
+					_, err = os.Stat(filepath.Join(tmpDir, ".claude/skills/ent"))
+					assert.True(t, os.IsNotExist(err), "skills directory should be removed")
+				}
+			},
+		},
+		{
+			name: "dry run does not remove directories",
+			setup: func(t *testing.T, tmpDir string) {
+				require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".claude/agents/ent"), 0o755))
+			},
+			tool:    "claude",
+			prefix:  "ent",
+			dryRun:  true,
+			wantErr: false,
+			verify: func(t *testing.T, tmpDir string, dryRun bool) {
+				if dryRun {
+					// Directory should still exist in dry run mode
+					_, err := os.Stat(filepath.Join(tmpDir, ".claude/agents/ent"))
+					assert.NoError(t, err, "agents directory should still exist in dry run")
+				}
+			},
+		},
+		{
+			name: "handles non-existent directories",
+			setup: func(t *testing.T, tmpDir string) {
+				// No setup needed
+			},
+			tool:    "claude",
+			prefix:  "ent",
+			dryRun:  false,
+			wantErr: false,
+			verify:  func(t *testing.T, tmpDir string, dryRun bool) {},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			tt.setup(t, tmpDir)
+
+			// Change to temp directory
+			oldCwd, err := os.Getwd()
+			require.NoError(t, err)
+			defer func() {
+				require.NoError(t, os.Chdir(oldCwd))
+			}()
+			require.NoError(t, os.Chdir(tmpDir))
+
+			err = cleanDirs(tt.tool, tt.prefix, tt.dryRun)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			tt.verify(t, tmpDir, tt.dryRun)
+		})
+	}
 }
 
 func TestEffectiveMode(t *testing.T) {
