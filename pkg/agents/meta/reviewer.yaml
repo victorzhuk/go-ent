@@ -8,6 +8,7 @@ skills:
 - security-core
 - go-sec
 - go-test
+- go-observability
 toolPresets:
 - readonly
 - serena-analysis

@@ -6,6 +6,8 @@ skills:
 - go-api
 - api-design
 - go-arch
+- go-observability
+- go-messaging
 toolPresets:
 - readonly
 tools:

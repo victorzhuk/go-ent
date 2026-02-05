@@ -9,6 +9,8 @@ skills:
 - go-api
 - go-code
 - go-db
+- go-messaging
+- go-observability
 toolPresets:
 - readonly
 - serena-analysis

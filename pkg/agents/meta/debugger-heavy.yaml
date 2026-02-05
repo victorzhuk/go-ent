@@ -9,6 +9,8 @@ skills:
 - go-perf
 - go-sec
 - go-code
+- go-concurrency
+- go-observability
 toolPresets:
 - editing
 tools:

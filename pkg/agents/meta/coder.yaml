@@ -5,6 +5,7 @@ color: '#32CD32'
 skills:
 - go-code
 - go-db
+- go-concurrency
 toolPresets:
 - editing
 tools:
