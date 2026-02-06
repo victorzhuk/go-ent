@@ -1,5 +1,10 @@
 name: researcher
-description: Research root causes, investigate code, analyze bugs. Deep code analysis.
+description: Research root causes, investigate code, analyze bugs. Deep code analysis. Use for read-only investigation when you need to understand code before acting. Not for making changes.
+whenToUse: |
+  Use for deep investigation: understanding unfamiliar code, analyzing architecture,
+  researching root causes, or exploring dependencies.
+  Do NOT use for: fixing bugs (use debugger), implementing changes (use coder),
+  or planning (use planner). Researcher is read-only analysis.
 model: heavy
 color: '#9370DB'
 skills:

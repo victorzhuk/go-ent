@@ -95,17 +95,25 @@ func ConvertMetaToSource(meta *AgentMetaSource) *AgentSource {
 		claudeModel = "sonnet" // default
 	}
 
+	// Build extended description if whenToUse is provided
+	description := meta.Description
+	if meta.WhenToUse != "" {
+		description = meta.Description + "\n\n" + meta.WhenToUse
+	}
+
 	// For old format, both Claude and OpenCode use same model string
 	agent := &AgentSource{
 		Name:        meta.Name,
-		Description: meta.Description,
+		Description: description,
 		Model: ModelConfig{
 			Claude:   claudeModel,
 			OpenCode: meta.Model, // OpenCode uses main/fast/heavy directly
 		},
-		Skills:  meta.Skills,
-		Prompts: meta.Prompts,
-		Color:   meta.Color,
+		Skills:          meta.Skills,
+		Prompts:         meta.Prompts,
+		Color:           meta.Color,
+		ComplexityHints: meta.ComplexityHints,
+		ModelMapping:    meta.ModelMapping,
 	}
 
 	// Convert tool presets to tool configurations

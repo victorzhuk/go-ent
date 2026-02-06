@@ -1,5 +1,10 @@
 name: debugger-heavy
-description: Complex debugging. Concurrency issues, performance problems, multi-component failures.
+description: Complex debugging. Concurrency issues, performance problems, multi-component failures. Use for race conditions, deadlocks, or failures spanning multiple packages.
+whenToUse: |
+  Use for complex debugging: race conditions, deadlocks, performance issues,
+  multi-component failures, or subtle concurrency bugs.
+  Do NOT use for: simple bugs (use debugger-fast), standard bugs (use debugger),
+  or implementing fixes (use coder after identifying root cause).
 extends: debugger
 model: heavy
 color: '#DC143C'

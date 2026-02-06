@@ -18,6 +18,7 @@ type Registry struct {
 type AgentMeta struct {
 	Name                  string            `yaml:"name"`
 	Description           string            `yaml:"description"`
+	WhenToUse             string            `yaml:"whenToUse,omitempty"`
 	Model                 string            `yaml:"model"`
 	Skills                []string          `yaml:"skills,omitempty"`
 	ToolPresets           []string          `yaml:"toolPresets,omitempty"`

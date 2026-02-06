@@ -1,5 +1,11 @@
 // Package domain defines core domain types for the multi-agent orchestration system.
 //
+// # Domain Layer - Clean Architecture
+//
+// This package is the Domain layer in a Clean Architecture implementation. It has
+// ZERO external dependencies, using only the Go standard library. All types and
+// logic here are pure business rules that remain testable without mocks.
+//
 // # Overview
 //
 // This package establishes the vocabulary and type system for agent-based workflows,

@@ -1,5 +1,10 @@
 name: coder
-description: Go developer. Implements features, writes code.
+description: Go developer. Implements features, writes code. Use ONLY for writing new code or modifying existing code after a plan exists. Not for planning, debugging, testing, or reviewing.
+whenToUse: |
+  Use when there is a clear plan and the task is to write or modify Go code.
+  Do NOT use for: debugging (use debugger), planning (use planner),
+  writing tests only (use tester), reviewing code (use reviewer),
+  or investigating code (use researcher).
 model: main
 color: '#32CD32'
 skills:

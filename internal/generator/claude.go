@@ -10,12 +10,14 @@ import (
 
 // ClaudeFrontmatter represents Claude Code agent frontmatter
 type ClaudeFrontmatter struct {
-	Name            string   `yaml:"name"`
-	Description     string   `yaml:"description"`
-	Model           string   `yaml:"model,omitempty"`
-	Skills          []string `yaml:"skills,omitempty"`
-	DisallowedTools []string `yaml:"disallowedTools,omitempty"`
-	Color           string   `yaml:"color,omitempty"`
+	Name            string            `yaml:"name"`
+	Description     string            `yaml:"description"`
+	Model           string            `yaml:"model,omitempty"`
+	Skills          []string          `yaml:"skills,omitempty"`
+	DisallowedTools []string          `yaml:"disallowedTools,omitempty"`
+	Color           string            `yaml:"color,omitempty"`
+	ComplexityHints map[string]string `yaml:"complexityHints,omitempty"`
+	ModelMapping    map[string]string `yaml:"modelMapping,omitempty"`
 }
 
 // ClaudeTarget generates Claude Code agent files
@@ -38,11 +40,13 @@ func (t *ClaudeTarget) OutputPath(agentName string) string {
 func (t *ClaudeTarget) Generate(agent *AgentSource, prompts *PromptContent) ([]byte, error) {
 	// Build frontmatter
 	fm := ClaudeFrontmatter{
-		Name:        agent.Name,
-		Description: agent.Description,
-		Model:       agent.Model.Claude,
-		Skills:      agent.Skills,
-		Color:       agent.Color,
+		Name:            agent.Name,
+		Description:     agent.Description,
+		Model:           agent.Model.Claude,
+		Skills:          agent.Skills,
+		Color:           agent.Color,
+		ComplexityHints: agent.ComplexityHints,
+		ModelMapping:    agent.ModelMapping,
 	}
 
 	// Add disallowed tools if any

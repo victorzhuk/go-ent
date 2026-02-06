@@ -34,9 +34,14 @@ func (r *ModelResolver) ResolveAgent(agentModel string) string {
 
 	agentModel = strings.ToLower(agentModel)
 
-	// Check aliases first
+	// Check aliases first (legacy name support)
 	if alias, ok := r.cfg.Aliases[agentModel]; ok {
 		agentModel = alias
+	}
+
+	// If it's a valid category, resolve it
+	if IsValidModelCategory(agentModel) {
+		return r.Resolve(ModelCategory(agentModel))
 	}
 
 	// If it's a valid category, resolve it

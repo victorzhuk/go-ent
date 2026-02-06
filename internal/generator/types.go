@@ -2,30 +2,35 @@ package generator
 
 // AgentSource represents the unified source format for an agent
 type AgentSource struct {
-	Name        string         `yaml:"name"`
-	Description string         `yaml:"description"`
-	Model       ModelConfig    `yaml:"model"`
-	Skills      []string       `yaml:"skills"`
-	Tools       ToolsConfig    `yaml:"tools"`
-	Prompts     PromptsConfig  `yaml:"prompts"`
-	OpenCode    OpenCodeConfig `yaml:"opencode,omitempty"`
-	Color       string         `yaml:"color,omitempty"`
+	Name            string            `yaml:"name"`
+	Description     string            `yaml:"description"`
+	Model           ModelConfig       `yaml:"model"`
+	Skills          []string          `yaml:"skills"`
+	Tools           ToolsConfig       `yaml:"tools"`
+	Prompts         PromptsConfig     `yaml:"prompts"`
+	OpenCode        OpenCodeConfig    `yaml:"opencode,omitempty"`
+	Color           string            `yaml:"color,omitempty"`
+	ComplexityHints map[string]string `yaml:"complexityHints,omitempty"`
+	ModelMapping    map[string]string `yaml:"modelMapping,omitempty"`
 }
 
 // AgentMetaSource represents the platform-agnostic meta format
 // This is the new unified format stored in pkg/agents/meta/
 type AgentMetaSource struct {
-	Name                  string        `yaml:"name"`
-	Description           string        `yaml:"description"`
-	Model                 string        `yaml:"model"` // main, fast, heavy
-	Skills                []string      `yaml:"skills,omitempty"`
-	ToolPresets           []string      `yaml:"toolPresets,omitempty"` // editing, readonly, planning, etc.
-	DisallowedToolPresets []string      `yaml:"disallowedToolPresets,omitempty"`
-	Role                  string        `yaml:"role,omitempty"`         // planning, execution, debugging, validation, research
-	Complexity            string        `yaml:"complexity,omitempty"`   // standard, fast, heavy
-	Dependencies          []string      `yaml:"dependencies,omitempty"` // other agents this depends on
-	Prompts               PromptsConfig `yaml:"prompts"`
-	Color                 string        `yaml:"color,omitempty"`
+	Name                  string            `yaml:"name"`
+	Description           string            `yaml:"description"`
+	WhenToUse             string            `yaml:"whenToUse,omitempty"` // Explicit routing guidance for parent AI
+	Model                 string            `yaml:"model"`               // main, fast, heavy
+	Skills                []string          `yaml:"skills,omitempty"`
+	ToolPresets           []string          `yaml:"toolPresets,omitempty"` // editing, readonly, planning, etc.
+	DisallowedToolPresets []string          `yaml:"disallowedToolPresets,omitempty"`
+	Role                  string            `yaml:"role,omitempty"`       // planning, execution, debugging, validation, research
+	Complexity            string            `yaml:"complexity,omitempty"` // standard, fast, heavy
+	ComplexityHints       map[string]string `yaml:"complexityHints,omitempty"`
+	ModelMapping          map[string]string `yaml:"modelMapping,omitempty"`
+	Dependencies          []string          `yaml:"dependencies,omitempty"` // other agents this depends on
+	Prompts               PromptsConfig     `yaml:"prompts"`
+	Color                 string            `yaml:"color,omitempty"`
 }
 
 // ModelConfig maps model aliases to tool-specific model IDs

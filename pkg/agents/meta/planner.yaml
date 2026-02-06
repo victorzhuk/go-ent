@@ -1,5 +1,9 @@
 name: planner
-description: Task planner. Breaks features into actionable tasks. Supports complexity routing.
+description: Task planner. Breaks features into actionable tasks. Supports complexity routing. Use for any task that needs decomposition before coding begins.
+whenToUse: |
+  Use when you need to break down a feature or task into smaller steps.
+  Do NOT use for: implementing the plan (use coder), debugging (use debugger),
+  or pure research (use researcher). Plan first, then delegate execution.
 extends: planner
 model: main
 color: '#32CD32'

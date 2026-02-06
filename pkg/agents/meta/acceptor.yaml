@@ -1,5 +1,10 @@
 name: acceptor
-description: Validate acceptance criteria and requirements. Ensures implementation meets specifications.
+description: Validate acceptance criteria and requirements. Ensures implementation meets specifications. Use after implementation to verify requirements are met, distinct from code review.
+whenToUse: |
+  Use after implementation to verify that requirements and acceptance criteria are met.
+  Focuses on functional correctness against specs, not code quality.
+  Do NOT use for: code quality review (use reviewer), testing (use tester),
+  or debugging (use debugger). Acceptor validates "did we build the right thing?"
 model: main
 color: '#4169E1'
 skills:

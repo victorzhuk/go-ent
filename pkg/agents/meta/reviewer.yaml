@@ -1,5 +1,10 @@
 name: reviewer
-description: Code reviewer. Reviews code for bugs, security, quality, adherence to conventions, and validates acceptance criteria.
+description: Code reviewer. Reviews code for bugs, security, quality, adherence to conventions. Use after implementation is complete to validate before merging. Not for fixing code.
+whenToUse: |
+  Use after code is written and ready for review. Validates quality, security,
+  adherence to conventions, and identifies issues.
+  Do NOT use for: fixing bugs (use debugger), implementing features (use coder),
+  writing tests (use tester), or validating requirements (use acceptor).
 model: heavy
 color: '#4169E1'
 skills:

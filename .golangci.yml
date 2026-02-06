@@ -1,20 +1,32 @@
-version: "2"
+ version: "2"
 
 run:
   timeout: 5m
   go: '1.25'
+  # Exclude generated files
+  skip-dirs:
+    - dist
+    - bin
 
 linters:
   enable:
-    - errcheck      # Check for unchecked errors
-    - unused        # Check for unused code
-    - govet         # Vet examines Go source code
-    - staticcheck   # Advanced Go linter (includes gosimple)
-    - gocritic      # Opinionated linter
-    # - revive        # Fast linter - DISABLED (too many documentation warnings)
-    - gosec         # Security issues
-    - misspell      # Spell check
-    - copyloopvar   # Go 1.22+ loop variable semantics
+    - errcheck        # Check for unchecked errors
+    - errorlint       # Check for proper error wrapping and type assertions
+    - unused          # Check for unused code
+    - govet           # Vet examines Go source code
+    - staticcheck     # Advanced Go linter (includes gosimple)
+    - gocritic        # Opinionated linter
+    - gosec           # Security issues
+    - misspell        # Spell check
+    - copyloopvar     # Go 1.22+ loop variable semantics
+    - godot           # Check that comments end with periods
+    - gocyclo         # Compute cyclomatic complexities
+    - nilerr          # Check for nil errors returned from functions
+    - noctx           # Check that no context is used directly
+    - prealloc        # Find slice declarations that could potentially be preallocated
+    - unconvert       # Remove unnecessary type conversions
+    - unparam         # Find unused function parameters
+    - wastedassign    # Detect wasted assignment statements
   disable-all: false
   
   exclusions:
@@ -40,27 +52,46 @@ linters-settings:
   goimports:
     local-prefixes: github.com/victorzhuk/go-ent
 
-  gocritic:
-    enabled-checks:
-      - appendAssign
-      - assignOp
-      - boolExprSimplify
-      - captLocal
-      - commentFormatting
-      - deprecatedComment
-      - dupImport
-      - elseif
-      - emptyStringTest
-      - hexLiteral
-      - ifElseChain
-      - methodExprCall
-      - regexpMust
-      - singleCaseSwitch
-      - sloppyLen
-      - stringXbytes
-      - typeAssertChain
-      - unlambda
-      - unslice
+   gocritic:
+     enabled-checks:
+       - appendAssign
+       - assignOp
+       - boolExprSimplify
+       - captLocal
+       - commentFormatting
+       - commentedOutCode
+       - deprecatedComment
+       - dupImport
+       - elseif
+       - emptyStringTest
+       - equalFold
+       - hexLiteral
+       - ifElseChain
+       - importShadow
+       - indexAlloc
+       - initClause
+       - methodExprCall
+       - nilValReturn
+       - preferStringWriter
+       - rangeExprCopy
+       - regexpMust
+       - singleCaseSwitch
+       - sloppyLen
+       - stringXbytes
+       - suggestedName
+       - typeAssertChain
+       - typeDefFirst
+       - underef
+       - unlambda
+       - unslice
+       - weakCond
+
+   gocyclo:
+     min-complexity: 15
+
+   errorlint:
+    errorf: true
+    asserts: true
 
   revive:
     confidence: 0.8
@@ -91,17 +122,17 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
 
-  exclude-rules:
-    # Exclude some linters from running on tests files
-    - path: _test\.go$
-      linters:
-        - errcheck
-        - gosec
+   exclude-rules:
+     # Exclude some linters from running on tests files
+     - path: _test\.go$
+       linters:
+         - errcheck
+         - gosec
+         - noctx
+         - wastedassign
 
-    # Disable comment/documentation rules from revive
-    - linters:
-        - revive
-      text: "^exported: "
-    - linters:
-        - revive
-      text: "^package-comments: "
+     # Skip generated code
+     - path: generated/
+       linters:
+         - all
+

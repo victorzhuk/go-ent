@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"go.etcd.io/bbolt"
+
+	"github.com/victorzhuk/go-ent/internal/spec/parser"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
 const (
@@ -68,12 +72,17 @@ type SyncMeta struct {
 }
 
 type BoltStore struct {
-	db   *bbolt.DB
-	path string
-	mu   sync.RWMutex
+	db     *bbolt.DB
+	path   string
+	mu     sync.RWMutex
+	parser parser.TaskParser
 }
 
 func NewBoltStore(rootPath string) (*BoltStore, error) {
+	return NewBoltStoreWithParser(rootPath, parser.NewTaskParser())
+}
+
+func NewBoltStoreWithParser(rootPath string, p parser.TaskParser) (*BoltStore, error) {
 	cachePath := filepath.Join(rootPath, ".cache", "openspec.db")
 
 	if err := os.MkdirAll(filepath.Dir(cachePath), 0o750); err != nil {
@@ -86,8 +95,9 @@ func NewBoltStore(rootPath string) (*BoltStore, error) {
 	}
 
 	store := &BoltStore{
-		db:   db,
-		path: cachePath,
+		db:     db,
+		path:   cachePath,
+		parser: p,
 	}
 
 	if err := store.initBuckets(); err != nil {
@@ -147,7 +157,7 @@ func (s *BoltStore) GetTask(changeID, taskNum string) (*Task, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(tasksBucket))
 		if b == nil {
-			return fmt.Errorf("tasks bucket not found")
+			return fmt.Errorf("%w: tasks", storage.ErrBucketNotFound)
 		}
 
 		key := taskKey(changeID, taskNum)
@@ -170,7 +180,7 @@ func (s *BoltStore) PutTask(task *Task) error {
 	defer s.mu.Unlock()
 
 	if task == nil {
-		return fmt.Errorf("nil task")
+		return fmt.Errorf("%w: nil task", storage.ErrInvalidInput)
 	}
 
 	data, err := json.Marshal(task)
@@ -181,7 +191,7 @@ func (s *BoltStore) PutTask(task *Task) error {
 	err = s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(tasksBucket))
 		if b == nil {
-			return fmt.Errorf("tasks bucket not found")
+			return fmt.Errorf("%w: tasks", storage.ErrBucketNotFound)
 		}
 
 		key := taskKey(task.ChangeID, task.TaskNum)
@@ -201,7 +211,7 @@ func (s *BoltStore) DeleteTask(changeID, taskNum string) error {
 	err := s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(tasksBucket))
 		if b == nil {
-			return fmt.Errorf("tasks bucket not found")
+			return fmt.Errorf("%w: tasks", storage.ErrBucketNotFound)
 		}
 
 		key := taskKey(changeID, taskNum)
@@ -222,7 +232,7 @@ func (s *BoltStore) GetChange(changeID string) (*ChangeMetadata, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(changesBucket))
 		if b == nil {
-			return fmt.Errorf("changes bucket not found")
+			return fmt.Errorf("%w: changes", storage.ErrBucketNotFound)
 		}
 
 		data := b.Get([]byte(changeID))
@@ -244,7 +254,7 @@ func (s *BoltStore) PutChange(change *ChangeMetadata) error {
 	defer s.mu.Unlock()
 
 	if change == nil {
-		return fmt.Errorf("nil change")
+		return fmt.Errorf("%w: nil change", storage.ErrInvalidInput)
 	}
 
 	data, err := json.Marshal(change)
@@ -255,7 +265,7 @@ func (s *BoltStore) PutChange(change *ChangeMetadata) error {
 	err = s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(changesBucket))
 		if b == nil {
-			return fmt.Errorf("changes bucket not found")
+			return fmt.Errorf("%w: changes", storage.ErrBucketNotFound)
 		}
 
 		return b.Put([]byte(change.ID), data)
@@ -275,7 +285,7 @@ func (s *BoltStore) GetDeps(changeID, taskNum string) (*DependencyInfo, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(depsBucket))
 		if b == nil {
-			return fmt.Errorf("deps bucket not found")
+			return fmt.Errorf("%w: deps", storage.ErrBucketNotFound)
 		}
 
 		key := taskKey(changeID, taskNum)
@@ -298,7 +308,7 @@ func (s *BoltStore) PutDeps(deps *DependencyInfo) error {
 	defer s.mu.Unlock()
 
 	if deps == nil {
-		return fmt.Errorf("nil deps")
+		return fmt.Errorf("%w: nil deps", storage.ErrInvalidInput)
 	}
 
 	data, err := json.Marshal(deps)
@@ -309,7 +319,7 @@ func (s *BoltStore) PutDeps(deps *DependencyInfo) error {
 	err = s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(depsBucket))
 		if b == nil {
-			return fmt.Errorf("deps bucket not found")
+			return fmt.Errorf("%w: deps", storage.ErrBucketNotFound)
 		}
 
 		key := deps.TaskID
@@ -330,7 +340,7 @@ func (s *BoltStore) GetRuntimeState(changeID, taskNum string) (*RuntimeState, er
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(runtimeBucket))
 		if b == nil {
-			return fmt.Errorf("runtime bucket not found")
+			return fmt.Errorf("%w: runtime", storage.ErrBucketNotFound)
 		}
 
 		key := taskKey(changeID, taskNum)
@@ -353,7 +363,7 @@ func (s *BoltStore) PutRuntimeState(state *RuntimeState) error {
 	defer s.mu.Unlock()
 
 	if state == nil {
-		return fmt.Errorf("nil runtime state")
+		return fmt.Errorf("%w: nil runtime state", storage.ErrInvalidInput)
 	}
 
 	data, err := json.Marshal(state)
@@ -364,7 +374,7 @@ func (s *BoltStore) PutRuntimeState(state *RuntimeState) error {
 	err = s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(runtimeBucket))
 		if b == nil {
-			return fmt.Errorf("runtime bucket not found")
+			return fmt.Errorf("%w: runtime", storage.ErrBucketNotFound)
 		}
 
 		return b.Put([]byte(state.TaskID), data)
@@ -384,7 +394,7 @@ func (s *BoltStore) GetSyncMeta() (*SyncMeta, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(metaBucket))
 		if b == nil {
-			return fmt.Errorf("meta bucket not found")
+			return fmt.Errorf("%w: meta", storage.ErrBucketNotFound)
 		}
 
 		data := b.Get([]byte("sync_meta"))
@@ -406,7 +416,7 @@ func (s *BoltStore) PutSyncMeta(meta *SyncMeta) error {
 	defer s.mu.Unlock()
 
 	if meta == nil {
-		return fmt.Errorf("nil sync meta")
+		return fmt.Errorf("%w: nil sync meta", storage.ErrInvalidInput)
 	}
 
 	data, err := json.Marshal(meta)
@@ -417,7 +427,7 @@ func (s *BoltStore) PutSyncMeta(meta *SyncMeta) error {
 	err = s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(metaBucket))
 		if b == nil {
-			return fmt.Errorf("meta bucket not found")
+			return fmt.Errorf("%w: meta", storage.ErrBucketNotFound)
 		}
 
 		return b.Put([]byte("sync_meta"), data)
@@ -637,12 +647,16 @@ func (s *BoltStore) ParseProposalTitle(path string) (string, error) {
 	}
 
 	lines := string(data)
-	for i, line := range splitLines(lines) {
+	for i, line := range strings.Split(lines, "\n") {
 		if i > 10 {
 			break
 		}
 		if len(line) > 0 && line[0] == '#' {
-			return trimLeft(line, "# "), nil
+			// Strip leading '#' and spaces from markdown heading
+			for len(line) > 0 && (line[0] == '#' || line[0] == ' ') {
+				line = line[1:]
+			}
+			return strings.TrimSpace(line), nil
 		}
 	}
 
@@ -650,10 +664,9 @@ func (s *BoltStore) ParseProposalTitle(path string) (string, error) {
 }
 
 func (s *BoltStore) ParseTasksFile(path string, changeID string, fileMTimes *map[string]int64) ([]*Task, error) {
-	// #nosec G304 - path is validated by caller
-	data, err := os.ReadFile(path)
+	parserTasks, err := s.parser.ParseTasksFile(path, changeID)
 	if err != nil {
-		return nil, fmt.Errorf("read tasks: %w", err)
+		return nil, fmt.Errorf("parse tasks file: %w", err)
 	}
 
 	info, err := os.Stat(path)
@@ -662,96 +675,35 @@ func (s *BoltStore) ParseTasksFile(path string, changeID string, fileMTimes *map
 	}
 	(*fileMTimes)[path] = info.ModTime().Unix()
 
-	var tasks []*Task
-	lines := string(data)
-	taskLines := splitLines(lines)
-
-	for i, line := range taskLines {
-		task := s.parseTaskLine(line, changeID, i+1)
-		if task != nil {
-			task.ID = taskKey(changeID, task.TaskNum)
-			task.SyncedAt = time.Now()
-			task.DependsOn = s.extractDependencies(lines, i)
-			tasks = append(tasks, task)
+	tasks := make([]*Task, len(parserTasks))
+	for i, pt := range parserTasks {
+		tasks[i] = &Task{
+			ID:         pt.ID,
+			ChangeID:   pt.ChangeID,
+			TaskNum:    pt.TaskNum,
+			Content:    pt.Content,
+			Status:     specTaskStatus(pt.Status),
+			Priority:   pt.Priority,
+			DependsOn:  pt.DependsOn,
+			SourceLine: pt.SourceLine,
+			SyncedAt:   pt.SyncedAt,
 		}
 	}
 
 	return tasks, nil
 }
 
-func (s *BoltStore) parseTaskLine(line, changeID string, lineNum int) *Task {
-	if len(line) < 2 || (line[0:2] != "- " && line[0:2] != "* ") {
-		return nil
+func specTaskStatus(s parser.TaskStatus) TaskStatus {
+	switch s {
+	case parser.TaskPending:
+		return TaskPending
+	case parser.TaskInProgress:
+		return TaskInProgress
+	case parser.TaskCompleted:
+		return TaskCompleted
+	default:
+		return TaskPending
 	}
-
-	content := trimLeft(line[2:], " ")
-
-	if len(content) < 6 || content[0:3] != "[ ]" && content[0:3] != "[x]" {
-		return nil
-	}
-
-	completed := content[0:3] == "[x]"
-	content = trimLeft(content[3:], " ")
-
-	if len(content) < 2 || content[0:2] != "**" {
-		return nil
-	}
-
-	content = content[2:]
-	endIdx := findIndex(content, "**")
-	if endIdx == -1 {
-		return nil
-	}
-
-	taskNum := content[:endIdx]
-	content = trimLeft(content[endIdx+2:], " ")
-
-	status := TaskPending
-	if completed {
-		status = TaskCompleted
-	}
-
-	return &Task{
-		ChangeID:   changeID,
-		TaskNum:    taskNum,
-		Content:    content,
-		Status:     status,
-		Priority:   0,
-		SourceLine: lineNum,
-	}
-}
-
-func (s *BoltStore) extractDependencies(lines string, taskLineIdx int) []string {
-	taskLines := splitLines(lines)
-	var deps []string
-
-	for i := taskLineIdx + 1; i < len(taskLines); i++ {
-		line := trimLeft(taskLines[i], " \t")
-		if len(line) == 0 {
-			continue
-		}
-
-		if len(line) > 2 && (line[0:2] == "- " || line[0:2] == "* ") {
-			break
-		}
-
-		if len(line) > 12 && (line[0:13] == "Dependencies:" || line[0:13] == "dependencies:") {
-			depContent := trimLeft(line[13:], " ")
-			depNums := splitWords(depContent)
-			for _, num := range depNums {
-				if num != "" {
-					deps = append(deps, num)
-				}
-			}
-			break
-		}
-
-		if len(line) > 2 && line[0:2] == "# " || line[0:3] == "## " {
-			break
-		}
-	}
-
-	return deps
 }
 
 func (s *BoltStore) CountTaskStatuses(tasks []*Task) (completed, inProgress, blocked int) {
@@ -797,63 +749,6 @@ func (s *BoltStore) BuildDependencies(tasks []*Task) []*DependencyInfo {
 	return deps
 }
 
-func splitLines(s string) []string {
-	var lines []string
-	start := 0
-	for i := 0; i < len(s); i++ {
-		if s[i] == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
-		}
-	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-	return lines
-}
-
-func trimLeft(s, cutset string) string {
-	for len(s) > 0 {
-		found := false
-		for _, c := range cutset {
-			if len(s) > 0 && rune(s[0]) == c {
-				s = s[1:]
-				found = true
-				break
-			}
-		}
-		if !found {
-			break
-		}
-	}
-	return s
-}
-
-func findIndex(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
-}
-
-func splitWords(s string) []string {
-	var words []string
-	start := -1
-	for i := 0; i <= len(s); i++ {
-		if i == len(s) || s[i] == ',' || s[i] == ' ' || s[i] == '\t' {
-			if start != -1 {
-				words = append(words, s[start:i])
-				start = -1
-			}
-		} else if start == -1 {
-			start = i
-		}
-	}
-	return words
-}
-
 func (s *BoltStore) ListAllChanges() ([]*ChangeMetadata, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -862,7 +757,7 @@ func (s *BoltStore) ListAllChanges() ([]*ChangeMetadata, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(changesBucket))
 		if b == nil {
-			return fmt.Errorf("changes bucket not found")
+			return fmt.Errorf("%w: changes", storage.ErrBucketNotFound)
 		}
 
 		return b.ForEach(func(k, v []byte) error {
@@ -889,7 +784,7 @@ func (s *BoltStore) ListTasks(changeID, status string) ([]*Task, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(tasksBucket))
 		if b == nil {
-			return fmt.Errorf("tasks bucket not found")
+			return fmt.Errorf("%w: tasks", storage.ErrBucketNotFound)
 		}
 
 		return b.ForEach(func(k, v []byte) error {

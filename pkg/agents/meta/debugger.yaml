@@ -1,5 +1,9 @@
 name: debugger
-description: Standard debugging. Systematic issue investigation and resolution. Supports complexity routing.
+description: Standard debugging. Systematic issue investigation and resolution. Supports complexity routing. Use when something is broken, failing, or behaving unexpectedly.
+whenToUse: |
+  Use when encountering bugs, test failures, or unexpected behavior.
+  Do NOT use for: writing new features (use coder), planning (use planner),
+  or code review (use reviewer). Focus on fixing existing problems.
 model: main
 color: '#DC143C'
 complexity: auto

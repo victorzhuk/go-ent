@@ -1,5 +1,10 @@
 name: planner-fast
-description: Quick task assessment and routing. Fast feasibility check and triage.
+description: Quick task assessment and routing. Fast feasibility check and triage. Use for simple single-file changes with clear requirements.
+whenToUse: |
+  Use for simple, well-defined tasks: single-file changes, straightforward features,
+  or quick feasibility checks. Cost-optimized for speed.
+  Do NOT use for: multi-file changes (use planner), architectural decisions
+  (use planner-heavy or architect), or complex scope (use planner).
 extends: planner
 model: fast
 color: '#32CD32'

@@ -1,5 +1,10 @@
 name: decomposer
-description: Task breakdown and dependency analysis. Decomposes features into granular tasks.
+description: Task breakdown and dependency analysis. Decomposes features into granular tasks with ordering. Use when a feature needs to be split into ordered subtasks with dependencies.
+whenToUse: |
+  Use when you need detailed task breakdown with dependencies and ordering.
+  More granular than planner - creates ordered subtasks with explicit dependencies.
+  Do NOT use for: simple task lists (use planner), implementing tasks (use coder),
+  or architecture design (use architect).
 model: main
 color: '#FFD700'
 skills:

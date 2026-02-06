@@ -1,5 +1,10 @@
 name: planner-heavy
-description: Deep architectural planning. Complex analysis for large-scale changes and architecture decisions.
+description: Deep architectural planning. Complex analysis for large-scale changes and architecture decisions. Use for multi-component changes affecting 5+ files.
+whenToUse: |
+  Use for complex planning: multi-component features, architectural changes,
+  large-scale refactoring, or features spanning 5+ files.
+  Do NOT use for: simple tasks (use planner-fast), implementation (use coder),
+  or pure architecture design (use architect). Heavy planning with implementation focus.
 extends: planner
 model: heavy
 color: '#32CD32'
