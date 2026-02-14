@@ -3,9 +3,11 @@ package tools
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/openspec"
+	"github.com/victorzhuk/go-ent/internal/workspace"
 )
 
 type OpenSpecInstructionsInput struct {
@@ -43,6 +45,14 @@ func openspecInstructionsHandler(client *openspec.Client) func(ctx context.Conte
 			return nil, nil, fmt.Errorf("instructions: %w", err)
 		}
 
+		wsCtx, err := workspaceContext()
+		if err != nil {
+			slog.Warn("workspace context unavailable", "error", err)
+		}
+		if wsCtx != "" {
+			instructions = instructions + "\n\n" + wsCtx
+		}
+
 		return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{Text: instructions}},
 			}, map[string]string{
@@ -50,4 +60,21 @@ func openspecInstructionsHandler(client *openspec.Client) func(ctx context.Conte
 				"artifact": input.Artifact,
 			}, nil
 	}
+}
+
+func workspaceContext() (string, error) {
+	ws, err := workspace.DetectAndResolve(".")
+	if err != nil {
+		return "", fmt.Errorf("detect workspace: %w", err)
+	}
+	if ws == nil {
+		return "", nil
+	}
+
+	prompt, err := workspace.GenerateContextPrompt(ws)
+	if err != nil {
+		return "", fmt.Errorf("generate workspace context: %w", err)
+	}
+
+	return prompt, nil
 }

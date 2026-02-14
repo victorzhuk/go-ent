@@ -133,7 +133,7 @@ func newModelSetCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&runtime, "runtime", "", "Runtime to configure (claude or opencode)")
-	cmd.Flags().BoolVar(&global, "global", false, "Save to global config (~/.go-ent/models.yaml)")
+	cmd.Flags().BoolVar(&global, "global", false, "Save to global config ($XDG_CONFIG_HOME/go-ent/models.yaml)")
 
 	return cmd
 }
@@ -186,7 +186,7 @@ func newModelResetCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&runtime, "runtime", "", "Runtime to reset (claude or opencode)")
-	cmd.Flags().BoolVar(&global, "global", false, "Reset global config (~/.go-ent/models.yaml)")
+	cmd.Flags().BoolVar(&global, "global", false, "Reset global config ($XDG_CONFIG_HOME/go-ent/models.yaml)")
 
 	return cmd
 }

@@ -48,6 +48,10 @@ func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Re
 	registerConfigShow(s, toolRegistry)
 	registerConfigSet(s, toolRegistry)
 
+	// Workspace tools
+	registerWorkspaceSpecs(s, toolRegistry)
+	registerWorkspaceProjects(s, toolRegistry)
+
 	// Discovery tools
 	registerToolList(s, toolRegistry)
 }

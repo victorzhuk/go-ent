@@ -36,6 +36,7 @@ spec-driven development, and intelligent task execution.`,
 	cmd.AddCommand(newSpecCmd())
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newModelCmd())
+	cmd.AddCommand(newWorkspaceCmd())
 
 	return cmd
 }

@@ -12,7 +12,10 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"log/slog"
+
 	"github.com/victorzhuk/go-ent/internal/config"
+	"github.com/victorzhuk/go-ent/internal/workspace"
 	"github.com/victorzhuk/go-ent/pkg"
 )
 
@@ -604,7 +607,29 @@ func inlineSharedPrompts(mainPrompt string, meta *agentMeta) (string, error) {
 		result.WriteString("\n\n")
 	}
 
+	wsPrompt, err := generateWorkspacePrompt()
+	if err != nil {
+		slog.Warn("workspace prompt unavailable", "error", err)
+	}
+	if wsPrompt != "" {
+		result.WriteString("\n\n## Workspace\n\n")
+		result.WriteString(wsPrompt)
+		result.WriteString("\n")
+	}
+
 	return strings.TrimSpace(result.String()), nil
+}
+
+func generateWorkspacePrompt() (string, error) {
+	ws, err := workspace.DetectAndResolve(".")
+	if err != nil {
+		return "", fmt.Errorf("detect workspace: %w", err)
+	}
+	if ws == nil {
+		return "", nil
+	}
+
+	return workspace.GenerateContextPrompt(ws)
 }
 
 func renderAgent(meta *agentMeta, prompt string, tpl *template.Template) (string, error) {
@@ -823,6 +848,62 @@ func copySkills(tool, prefix string, force, dryRun bool) error {
 	return walk("skills", baseTargetDir)
 }
 
+func copyWorkspaceSkills(tool, prefix string, force, dryRun bool) (int, error) {
+	ws, err := workspace.DetectAndResolve(".")
+	if err != nil {
+		return 0, fmt.Errorf("detect workspace: %w", err)
+	}
+	if ws == nil {
+		return 0, nil
+	}
+
+	skillDirs := workspace.SkillsDirs(ws)
+	if len(skillDirs) == 0 {
+		return 0, nil
+	}
+
+	count := 0
+	baseTargetDir := filepath.Join("."+tool, "skills", prefix)
+
+	for _, skillDir := range skillDirs {
+		entries, err := os.ReadDir(skillDir)
+		if err != nil {
+			slog.Warn("read workspace skills dir", "path", skillDir, "error", err)
+			continue
+		}
+
+		for _, catEntry := range entries {
+			if !catEntry.IsDir() {
+				continue
+			}
+			catDir := filepath.Join(skillDir, catEntry.Name())
+			skills, err := os.ReadDir(catDir)
+			if err != nil {
+				slog.Warn("read skill category", "path", catDir, "error", err)
+				continue
+			}
+
+			for _, skillEntry := range skills {
+				if !skillEntry.IsDir() {
+					continue
+				}
+				skillFile := filepath.Join(catDir, skillEntry.Name(), "SKILL.md")
+				data, err := os.ReadFile(skillFile) // #nosec G304
+				if err != nil {
+					continue
+				}
+
+				dstPath := filepath.Join(baseTargetDir, catEntry.Name(), skillEntry.Name(), "SKILL.md")
+				if err := writeFile(dstPath, string(data), force, dryRun); err == nil {
+					count++
+				}
+			}
+		}
+	}
+
+	return count, nil
+}
+
 func printSummary(agentCount, commandCount, skillCount int, tool, prefix string, dryRun bool) {
 	var toolName string
 	var commandFormat string
@@ -1027,6 +1108,12 @@ Examples:
 				if err := copySkills(tool, flags.prefix, flags.force, flags.dryRun); err != nil {
 					return fmt.Errorf("copy skills: %w", err)
 				}
+
+				wsSkills, wsErr := copyWorkspaceSkills(tool, flags.prefix, flags.force, flags.dryRun)
+				if wsErr != nil {
+					slog.Warn("workspace skills unavailable", "error", wsErr)
+				}
+				skillCount += wsSkills
 
 				printSummary(agentCount, commandCount, skillCount, tool, flags.prefix, flags.dryRun)
 			}

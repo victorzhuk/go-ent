@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/victorzhuk/go-ent/internal/xdg"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,7 +35,7 @@ func (m ModelMapping) Get(cat ModelCategory) string {
 }
 
 func LoadModelConfig(path string) (*ModelConfig, error) {
-	data, err := os.ReadFile(path) // #nosec G304 -- controlled config/template file path
+	data, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -51,11 +52,13 @@ func LoadModelConfig(path string) (*ModelConfig, error) {
 }
 
 func LoadGlobalModelConfig() (*ModelConfig, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("get home dir: %w", err)
+	xdgPath := filepath.Join(xdg.ConfigDir(), "models.yaml")
+	if cfg, err := LoadModelConfig(xdgPath); cfg != nil || err != nil {
+		return cfg, err
 	}
-	return LoadModelConfig(filepath.Join(home, ".go-ent", "models.yaml"))
+
+	legacyPath := filepath.Join(xdg.LegacyDir(), "models.yaml")
+	return LoadModelConfig(legacyPath)
 }
 
 func LoadProjectModelConfig(projectPath string) (*ModelConfig, error) {
@@ -114,11 +117,7 @@ func SaveModelConfig(path string, cfg *ModelConfig) error {
 }
 
 func SaveGlobalModelConfig(cfg *ModelConfig) error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("get home dir: %w", err)
-	}
-	return SaveModelConfig(filepath.Join(home, ".go-ent", "models.yaml"), cfg)
+	return SaveModelConfig(filepath.Join(xdg.ConfigDir(), "models.yaml"), cfg)
 }
 
 func SaveProjectModelConfig(projectPath string, cfg *ModelConfig) error {

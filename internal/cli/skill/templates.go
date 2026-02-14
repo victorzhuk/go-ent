@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/victorzhuk/go-ent/internal/skill"
 	"github.com/victorzhuk/go-ent/internal/template"
+	"github.com/victorzhuk/go-ent/internal/xdg"
 )
 
 // Template management commands: list, add, and show templates.
@@ -166,12 +167,7 @@ func getTemplatesPath() string {
 }
 
 func getCustomTemplatesPath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-
-	return filepath.Join(home, ".go-ent", "templates", "skills")
+	return filepath.Join(xdg.DataDir(), "templates", "skills")
 }
 
 func truncateString(s string, maxLen int) string {
@@ -200,7 +196,7 @@ Validation:
 
 Destination:
   By default, templates are added to the user templates directory
-  (~/.go-ent/templates/skills/). Use --built-in flag to add to the
+  ($XDG_DATA_HOME/go-ent/templates/skills/). Use --built-in flag to add to the
   built-in directory (requires write permissions to pkg/templates/skills/).
 
 Examples:

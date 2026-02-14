@@ -42,6 +42,10 @@ Comprehensive, reference-style documentation for building production-grade Go ap
 - **DEVELOPMENT.md** - Development setup, workflows, and contributing guidelines
 - **tools/** - Tool-specific documentation and configuration
 
+### Workspaces
+
+- **[WORKSPACES.md](WORKSPACES.md)** - Multi-project workspaces, XDG paths, and shared skills/specs
+
 ### Architecture
 
 - **ARCHITECTURE.md** - System design, patterns, and architectural decisions

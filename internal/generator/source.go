@@ -320,3 +320,39 @@ func ListSkills(skillsDir string) (map[string][]string, error) {
 
 	return result, nil
 }
+
+func MergeSkillDirs(primaryDir string, extraDirs ...string) (map[string][]string, error) {
+	seen := make(map[string]bool)
+	result := make(map[string][]string)
+
+	primary, err := ListSkills(primaryDir)
+	if err == nil {
+		for cat, names := range primary {
+			for _, name := range names {
+				key := cat + "/" + name
+				if !seen[key] {
+					seen[key] = true
+					result[cat] = append(result[cat], name)
+				}
+			}
+		}
+	}
+
+	for _, dir := range extraDirs {
+		extra, err := ListSkills(dir)
+		if err != nil {
+			continue
+		}
+		for cat, names := range extra {
+			for _, name := range names {
+				key := cat + "/" + name
+				if !seen[key] {
+					seen[key] = true
+					result[cat] = append(result[cat], name)
+				}
+			}
+		}
+	}
+
+	return result, nil
+}

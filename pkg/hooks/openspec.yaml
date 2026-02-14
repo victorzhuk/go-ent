@@ -31,3 +31,9 @@ openspec:
     command: |
       echo "✓ Change archived: $CHANGE_ID"
       echo "  Specs updated, ready for deployment"
+
+  onWorkspaceSync:
+    type: command
+    command: |
+      echo "✓ Workspace synced: $WORKSPACE_NAME"
+      echo "  Re-run 'ent init' to refresh agent prompts"
