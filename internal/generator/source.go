@@ -201,21 +201,19 @@ func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 		pc.Shared[name] = string(content)
 	}
 
-	// Load main agent prompt
-	// cfg.Main can be:
-	//   - just a name like "coder" (old format) -> prompts/agents/coder.md
-	//   - a path like "agents/coder" (meta format) -> prompts/agents/coder.md
-	mainPath := cfg.Main
-	if !strings.Contains(mainPath, "/") {
-		// Old format: add "agents/" prefix
-		mainPath = filepath.Join("agents", mainPath)
+	// Load main agent prompt (skip if not specified — skills-only agents)
+	if cfg.Main != "" {
+		mainPath := cfg.Main
+		if !strings.Contains(mainPath, "/") {
+			mainPath = filepath.Join("agents", mainPath)
+		}
+		mainPath = filepath.Join(srcDir, "prompts", mainPath+".md")
+		content, err := readFile(mainPath)
+		if err != nil {
+			return nil, fmt.Errorf("read main prompt %s: %w", cfg.Main, err)
+		}
+		pc.Main = string(content)
 	}
-	mainPath = filepath.Join(srcDir, "prompts", mainPath+".md")
-	content, err := readFile(mainPath)
-	if err != nil {
-		return nil, fmt.Errorf("read main prompt %s: %w", cfg.Main, err)
-	}
-	pc.Main = string(content)
 
 	return pc, nil
 }

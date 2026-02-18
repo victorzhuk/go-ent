@@ -1,0 +1,10 @@
+name: planner
+description: Task planning and decomposition agent. Breaks down tasks, creates implementation plans.
+whenToUse: Breaking down tasks, creating implementation plans, architectural decisions, proposal writing
+model: main
+role: planning
+skills:
+  - planning
+  - arch-core
+toolPresets:
+  - planning

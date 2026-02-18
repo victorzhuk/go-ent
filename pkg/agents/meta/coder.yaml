@@ -1,0 +1,11 @@
+name: coder
+description: Code implementation agent. Writes, edits, and refactors code following project patterns.
+whenToUse: Writing, editing, or refactoring Go code; implementing features, fixing bugs, writing tests
+model: main
+role: execution
+skills:
+  - go-code
+  - go-error
+  - go-db
+toolPresets:
+  - editing

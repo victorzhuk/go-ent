@@ -1,0 +1,34 @@
+name: slim
+category: agent
+description: Skills-driven agent template — model tier + role bound to skill content, no custom prompts
+author: go-ent
+version: 1.0.0
+prompts:
+  - key: AGENT_NAME
+    prompt: Agent name (e.g., coder, reviewer, scout)
+    default: my-agent
+    required: true
+  - key: DESCRIPTION
+    prompt: Brief description of agent's purpose
+    default: Skills-driven AI agent
+    required: true
+  - key: WHEN_TO_USE
+    prompt: Routing guidance for orchestrator (e.g., "Writing, editing, refactoring code")
+    default: ""
+    required: false
+  - key: MODEL
+    prompt: Model tier (fast/main/heavy)
+    default: main
+    required: true
+  - key: ROLE
+    prompt: Agent role (planning/execution/review/research)
+    default: execution
+    required: true
+  - key: SKILLS
+    prompt: Comma-separated skill names (e.g., go-code,go-db)
+    default: ""
+    required: false
+  - key: TOOL_PRESETS
+    prompt: Comma-separated tool presets (editing/readonly/planning)
+    default: "editing"
+    required: false

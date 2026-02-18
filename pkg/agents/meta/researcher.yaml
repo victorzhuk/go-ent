@@ -1,0 +1,11 @@
+name: researcher
+description: Deep research and analysis agent. Explores architecture, investigates codebases, designs solutions.
+whenToUse: Architecture research, codebase analysis, design exploration, understanding complex systems
+model: heavy
+role: research
+skills:
+  - research
+  - arch-core
+  - architecture-design
+toolPresets:
+  - readonly

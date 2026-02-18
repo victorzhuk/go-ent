@@ -38,6 +38,25 @@ For everything else, work inline. Inline is faster (no startup overhead) and che
 | Complex debugging (concurrency, perf) | opus | general-purpose | debug-core, go-perf, go-concurrency |
 | Code review | opus | Explore | go-review, security-core |
 | Acceptance validation | opus | Explore | acceptance |
+| API/endpoint testing | sonnet | general-purpose | qa-api |
+| Browser E2E testing | sonnet | general-purpose | qa-browser |
+| Flutter/mobile testing | sonnet | general-purpose | qa-flutter |
+| Performance/load testing | sonnet | general-purpose | qa-performance |
+| Visual regression, a11y | sonnet | general-purpose | qa-visual |
+
+## Slim Agents (OpenCode / Named Agents)
+
+For platforms like OpenCode where agent name determines model+tools, use named slim agents instead of ad-hoc routing:
+
+| Agent | Model Tier | Role | Use For |
+|---|---|---|---|
+| `scout` | fast | research | File search, quick lookup, simple Q&A |
+| `coder` | main | execution | Writing, editing, refactoring code |
+| `planner` | main | planning | Task breakdown, implementation plans |
+| `researcher` | heavy | research | Architecture design, deep codebase analysis |
+| `reviewer` | heavy | review | Code review, security audit, quality check |
+
+In OpenCode, reference agents by name: the agent definition in `pkg/agents/meta/` binds the correct model and skills automatically.
 
 ## Task Tool Invocation Patterns
 

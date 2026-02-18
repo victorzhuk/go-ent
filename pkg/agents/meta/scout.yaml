@@ -1,0 +1,8 @@
+name: scout
+description: Quick exploration and triage agent. Fast file search, code lookup, simple Q&A.
+whenToUse: File search, quick code lookup, simple questions, grep-style exploration
+model: fast
+role: research
+skills: []
+toolPresets:
+  - readonly
