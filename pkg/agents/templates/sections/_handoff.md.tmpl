@@ -1,7 +1,0 @@
-{{- if .Dependencies }}
-## Handoff
-
-{{- range .Dependencies }}
-- @ent/{{ . }} - {{ if eq . "tester" }}For test coverage{{ else if eq . "reviewer" }}For code review{{ else if eq . "debugger" }}If stuck on issue{{ else if eq . "coder" }}For implementation{{ else if eq . "planner" }}For detailed planning{{ else }}For collaboration{{ end }}
-{{- end }}
-{{- end }}

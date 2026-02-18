@@ -1,9 +1,10 @@
 ---
 name: go-review
-description: Code review patterns and quality checks
+description: Code review process, confidence-based filtering, quality checklist, and security review patterns.
 triggers:
   - code review
   - pull request
+  - review
 ---
 
 ## Role
@@ -43,6 +44,58 @@ If duplicates exist: Recommend extracting common patterns and functions; follow 
 If the change is large: Recommend breaking into smaller, reviewable chunks; this improves review quality and reduces risk.
 
 If unclear about team standards: Ask about existing conventions, linter configurations, and code review guidelines used by the team.
+
+## Confidence-Based Filtering
+
+Only report issues with confidence >= 80%.
+
+### Confidence Scoring
+
+- **95-100%**: Definite bugs, security vulnerabilities, violations of Go idioms
+- **85-94%**: Strong code quality issues, clear anti-patterns
+- **75-84%**: Style inconsistencies, minor improvements
+- **<75%**: Subjective preferences — do not report
+
+### Skip These (Let Linter Handle)
+
+- Unused variables, formatting issues (gofmt)
+- Import ordering, simple style violations
+
+## Review Process
+
+1. Run `git diff --name-only HEAD~1` to see changes
+2. Check architecture: `rg "import.*transport" internal/domain/`
+3. Check naming: `rg "applicationConfig|userRepository" internal/`
+4. Check comments: `rg "// Create|// Get|// Set" internal/`
+5. Check errors: `rg 'return err$' internal/`
+6. Filter: Only report findings with confidence >= 80%
+
+## Critical Rules
+
+1. ZERO comments explaining WHAT (fix the name instead)
+2. NO AI-style verbose names
+3. Domain has ZERO external deps
+4. Interfaces at consumer side
+5. Errors wrapped lowercase
+
+## Review Output Format
+
+```markdown
+## Code Review
+
+Only issues with confidence >= 80% are shown.
+
+### [CONFIDENCE: 95%] CRITICAL - {file}:{line}
+**Issue**: {description}
+**Current**: {code}
+**Fix**: {code}
+
+### [CONFIDENCE: 85%] WARNING - {file}:{line}
+**Issue**: {description}
+
+### Well Done
+- {positive observations}
+```
 
 ## Examples
 

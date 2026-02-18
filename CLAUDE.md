@@ -9,39 +9,33 @@ When working on go-ent itself:
 
 - Use `/ent:plan <description>` to create change proposals
 - Use `/ent:apply` to execute tasks from the registry
-- Agents (`/ent:architect`, `/ent:coder`, `/ent:tester`, etc.) are available for specialized assistance
-- Skills (`go-code`, `go-arch`, `go-api`, etc.) auto-activate for Go code work
+- Skills (`go-code`, `go-arch`, `go-api`, `task-router`, etc.) auto-activate based on task content
 
 ### Key Workflow Commands
 
 | Command                    | Purpose                                                 |
 |----------------------------|---------------------------------------------------------|
-| `/ent:plan`                | Full planning workflow (clarify → research → decompose) |
+| `/ent:plan`                | Full planning workflow (clarify -> research -> decompose) |
 | `/ent:apply`               | Execute next task from registry                         |
 | `/ent:status`              | View workflow state and progress                        |
 | `/ent:registry list`       | Show all tasks across proposals                         |
 | `/ent:archive <change-id>` | Archive completed change after deployment               |
 
-### Available Agents
+### Skills Auto-Activate
 
-| Agent                | Purpose                                     | Model  |
-|----------------------|---------------------------------------------|--------|
-| `/ent:architect`     | System design and architecture              | Opus   |
-| `/ent:planner`       | Task breakdown and planning                 | Sonnet |
-| `/ent:planner-fast`  | Quick task assessment and routing           | Haiku  |
-| `/ent:planner-heavy` | Deep architectural planning                 | Opus   |
-| `/ent:coder`         | Go implementation and feature development   | Sonnet |
-| `/ent:tester`        | Test writing and TDD cycles                 | Sonnet |
-| `/ent:debugger`      | Standard debugging and investigation        | Sonnet |
-| `/ent:debugger-fast` | Quick debugging for simple issues           | Haiku  |
-| `/ent:debugger-heavy`| Complex debugging (concurrency, performance)| Opus   |
-| `/ent:reviewer`      | Code review for bugs, quality, adherence    | Opus   |
-| `/ent:researcher`    | Codebase research and deep code analysis    | Sonnet |
-| `/ent:reproducer`    | Create minimal bug reproductions            | Sonnet |
-| `/ent:acceptor`      | Validate acceptance criteria and requirements| Sonnet |
-| `/ent:decomposer`    | Task breakdown and dependency analysis      | Sonnet |
-| `/ent:task-fast`     | Quick task complexity evaluation            | Haiku  |
-| `/ent:task-heavy`    | Complex task analysis with deep reasoning   | Opus   |
+Skills activate automatically based on task content. No manual invocation needed.
+
+### Model Routing (via Task tool)
+
+When spawning subagents for parallel or isolated work:
+
+| Task Class | Model | Agent Type |
+|---|---|---|
+| Exploration, triage | haiku | Explore |
+| Implementation, testing, planning | sonnet | general-purpose |
+| Architecture, review, deep debug | opus | general-purpose or Explore |
+
+See the `task-router` skill for the full routing table and invocation patterns.
 
 ### Quick Start
 
@@ -67,11 +61,8 @@ When working on go-ent itself:
    /ent:archive change-id
    ```
 
-See `docs/DEVELOPMENT.md` for the complete development guide, including:
+See [docs/INDEX.md](docs/INDEX.md) for full documentation including:
 
 - Setup instructions
 - Development workflows
-- Hot-reload vs rebuild guidance
-- Bootstrap problem and fallback layers
-- Troubleshooting
-- Adding new agents, skills, commands, and MCP tools
+- Adding new skills, commands, and MCP tools

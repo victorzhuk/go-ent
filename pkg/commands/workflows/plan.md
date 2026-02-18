@@ -7,18 +7,18 @@ description: Complete planning workflow with research and task breakdown
 
 {{include "context/openspec.md"}}
 
-Complete planning workflow: clarify → research → design → decompose.
+Complete planning workflow: clarify -> research -> design -> decompose.
 
-## Agent Chain
+## Delegation Strategy
 
-| Agent           | Phase                          | Tier     |
-|-----------------|--------------------------------|----------|
-| @ent/planner-fast | Initial assessment            | fast     |
-| @ent/architect  | Architecture and design        | heavy    |
-| @ent/planner    | Detailed planning              | standard |
-| @ent/decomposer | Task breakdown                | standard |
-
-**Escalation**: planner-fast → architect → planner → decomposer
+| Phase | Approach | If Subagent: Model + Type |
+|-------|----------|---------------------------|
+| Initial assessment | Inline (fast triage) | haiku, Explore |
+| Clarification | Inline (ask user) | -- |
+| Research | Inline or subagent | sonnet, Explore |
+| Architecture & design | Subagent for isolation | opus, general-purpose |
+| Specification | Inline or subagent | sonnet, general-purpose |
+| Task decomposition | Inline or subagent | sonnet, general-purpose |
 
 ---
 
@@ -26,7 +26,7 @@ Complete planning workflow: clarify → research → design → decompose.
 
 ### Phase 1: Initial Assessment
 
-**Agent**: @ent/planner-fast
+**Approach**: Inline (quick triage)
 
 **Goal**: Quick feasibility check
 
@@ -86,9 +86,13 @@ For each technology choice:
 
 ### Phase 4: Architecture & Design
 
-**Agent**: @ent/architect
+**Approach**: Subagent for complex designs, inline for simple ones
 
-**Goal**: Create detailed design documents
+For complex architecture work, spawn a subagent:
+```
+Task(model: "opus", subagent_type: "general-purpose",
+  prompt: "Design architecture for {feature}. Create design document with component diagram (Mermaid), layer decisions, data flow, and database schema.")
+```
 
 **Principles**:
 - Follow existing patterns unless there's a reason
@@ -101,7 +105,7 @@ For each technology choice:
 
 ### Phase 5: Specification
 
-**Agent**: @ent/planner
+**Approach**: Inline or subagent
 
 **Goal**: Create detailed requirements
 
@@ -114,7 +118,7 @@ For each technology choice:
 
 ### Phase 6: Task Decomposition
 
-**Agent**: @ent/decomposer
+**Approach**: Inline or subagent
 
 **Goal**: Break down work into executable tasks
 
@@ -153,44 +157,39 @@ For each technology choice:
 ## Output Format
 
 ```
-═══════════════════════════════════════════
 PLANNING: {feature description}
-═══════════════════════════════════════════
 
-📋 Change: {change-id}
+Change: {change-id}
    Type: {feature|enhancement|refactor}
-   Breaking: {yes|no}
    Complexity: {low|medium|high}
 
-🔍 Clarification:
+Clarification:
    Unknowns resolved: {count}
-   Open questions: 0 ✓
+   Open questions: 0
 
-🔬 Research:
+Research:
    Options evaluated: {count}
    Recommendation: {approach}
 
-🏗️ Design:
+Design:
    Components affected: {count}
    New entities: {count}
    API changes: {count}
    Migrations: {yes|no}
 
-📐 Specification:
+Specification:
    Requirements added: {count}
    Requirements modified: {count}
-   Validation: ✅ PASS
 
-🗂️ Task Breakdown:
+Task Breakdown:
    Total tasks: {count}
    Parallelizable: {count}
-   Critical path: T1→T3→T5
+   Critical path: T1->T3->T5
    Estimated effort: {hours}h
 
-<promise>READY FOR EXECUTION</promise>
+READY FOR EXECUTION
 
 Next: Execute tasks
-═══════════════════════════════════════════
 ```
 
 ---

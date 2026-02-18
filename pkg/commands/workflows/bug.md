@@ -7,23 +7,18 @@ description: Debug and fix bugs with reproduction and root cause analysis
 
 {{include "context/generic.md"}}
 
-Systematic debugging: reproduce → analyze → fix → validate.
+Systematic debugging: reproduce -> analyze -> fix -> validate.
 
-## Agent Chain
+## Delegation Strategy
 
-| Agent               | Phase                          | Tier     |
-|---------------------|--------------------------------|----------|
-| @ent/reproducer     | Create minimal failing test    | fast     |
-| @ent/researcher     | Code analysis, investigation   | fast     |
-| @ent/debugger-fast  | Simple bugs, single component  | fast     |
-| @ent/debugger       | Standard debugging             | standard |
-| @ent/debugger-heavy | Complex bugs                   | heavy    |
-| @ent/coder          | Implement fix                  | fast     |
-| @ent/reviewer       | Code review                    | standard |
-| @ent/tester         | Validate fix                   | fast     |
-| @ent/acceptor       | Verify no regression           | fast     |
-
-**Escalation**: reproducer → researcher → debugger-fast/debugger/debugger-heavy → coder → reviewer → tester → acceptor
+| Phase | Approach | If Subagent: Model + Type |
+|-------|----------|---------------------------|
+| Reproduce bug | Inline | -- |
+| Root cause analysis | Inline or subagent | sonnet/opus, Explore |
+| Fix strategy | Inline (debug-core skill) | -- |
+| Implement fix | Inline (go-code skill) | sonnet, general-purpose |
+| Validate fix | Inline (go-test skill) | -- |
+| Acceptance | Inline or subagent | opus, Explore |
 
 ---
 
@@ -31,7 +26,7 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 1: Reproduce Bug
 
-**Agent**: @ent/reproducer
+**Approach**: Inline
 
 **Goal**: Create minimal, reliable reproduction
 
@@ -45,12 +40,18 @@ Systematic debugging: reproduce → analyze → fix → validate.
 
 ### Phase 2: Root Cause Analysis
 
-**Agent**: @ent/researcher
+**Approach**: Inline (or subagent for deep investigation)
 
 **Goal**: Understand the underlying issue
 
+For complex root cause analysis, spawn a read-only subagent:
+```
+Task(model: "opus", subagent_type: "Explore",
+  prompt: "Investigate root cause of {bug description}. Trace execution from {entry point} to failure at {location}. Use find_symbol and find_referencing_symbols to understand call chain.")
+```
+
 **Process**:
-1. Analyze stack trace → find failure point
+1. Analyze stack trace -> find failure point
 2. Understand data flow through relevant code
 3. Form hypothesis about cause
 4. Validate hypothesis
@@ -65,48 +66,42 @@ Systematic debugging: reproduce → analyze → fix → validate.
 | Wrong result | Logic error, incorrect algorithm |
 
 **Use code navigation tools**:
-- Find symbols - locate functions/types
-- Find references - understand call chain
-- Search patterns - find similar code
+- Find symbols — locate functions/types
+- Find references — understand call chain
+- Search patterns — find similar code
 
 ### Phase 3: Determine Fix Strategy
 
-**Agent**: @ent/debugger-fast / @ent/debugger / @ent/debugger-heavy
+**Approach**: Inline (debug-core skill auto-activates)
 
-**Goal**: Design and implement the fix
+**Goal**: Design the fix
 
-**For simple bugs** (fast agent):
+**For simple bugs**:
 - Single file changes
 - Clear root cause
 - Obvious solution
 
-**For complex bugs** (standard/heavy agents):
-- Multi-component issues
-- Concurrency bugs
-- Performance issues
-- Architecture problems
-
-**Implementation**:
-1. Apply minimal fix addressing root cause (not symptoms)
-2. Add defensive checks if needed
-3. Update related code if necessary
-4. Run validation
+**For complex bugs** (spawn subagent if needed):
+```
+Task(model: "opus", subagent_type: "general-purpose",
+  prompt: "Debug {concurrency/performance} issue at {location}. Root cause: {description}. Design and implement fix with proper synchronization/optimization.")
+```
 
 ### Phase 4: Implement Fix
 
-**Agent**: @ent/coder
+**Approach**: Inline
 
 **Goal**: Apply the designed fix
 
 **Steps**:
-1. Implement minimal fix addressing root cause
+1. Implement minimal fix addressing root cause (not symptoms)
 2. Add defensive checks if needed
 3. Update related code if necessary
 4. Run: build and test
 
 ### Phase 5: Validate Fix
 
-**Agent**: @ent/tester
+**Approach**: Inline
 
 **Goal**: Ensure fix works and no regressions
 
@@ -118,18 +113,15 @@ Systematic debugging: reproduce → analyze → fix → validate.
 - [ ] Build succeeds
 - [ ] Linter passes
 
-**Code review**:
-- Fix addresses root cause (not just symptoms)
-- No new bugs introduced
-- Error handling is proper
-- Code is clear and maintainable
-- Tests cover the fix
+**Code review** (for non-trivial fixes, spawn read-only subagent):
+```
+Task(model: "opus", subagent_type: "Explore",
+  prompt: "Review the bug fix in {files}. Check: fix addresses root cause, no new bugs introduced, error handling is proper, tests cover the fix.")
+```
 
 ### Phase 6: Acceptance
 
-**Agent**: @ent/acceptor
-
-**Goal**: Final validation
+**Approach**: Inline or subagent
 
 **Steps**:
 1. Verify all tests pass
@@ -138,8 +130,8 @@ Systematic debugging: reproduce → analyze → fix → validate.
 4. Sign off
 
 **Outcome**:
-- **ACCEPTED** → Mark bug complete
-- **NEEDS_WORK** → Return to @ent/coder
+- **ACCEPTED** -> Mark bug complete
+- **NEEDS_WORK** -> Return to implementation
 
 ### Phase 7: Complete
 
@@ -153,34 +145,31 @@ Update tracking system:
 ## Output Format
 
 ```
-═══════════════════════════════════════════
 BUG FIX: {description}
-═══════════════════════════════════════════
 
-🔍 Reproduction:
+Reproduction:
    Test: {file}:{line}
-   Status: ❌ FAILING (as expected)
+   Status: FAILING (as expected)
 
-🧠 Root Cause:
+Root Cause:
    Location: {file}:{line}
    Cause: {explanation}
    Impact: {scope}
 
-🔨 Fix Applied:
+Fix Applied:
    Files modified: {count}
    Changes: {description}
    Approach: {strategy}
 
-🧪 Validation:
-   Test: ✅ PASS
-   All tests: ✅ PASS ({passed}/{total})
-   Race detector: ✅ PASS
-   Build: ✅ PASS
+Validation:
+   Test: PASS
+   All tests: PASS ({passed}/{total})
+   Race detector: PASS
+   Build: PASS
 
-<promise>COMPLETE</promise>
+COMPLETE
 
 Bug fixed and validated.
-═══════════════════════════════════════════
 ```
 
 ---
@@ -211,33 +200,17 @@ Bug fixed and validated.
 
 ## Best Practices
 
-1. **Always write failing test first**
-   - Proves bug exists
-   - Validates fix works
-   - Prevents regression
-
-2. **Find root cause, don't patch symptoms**
-   - Understand why bug happened
-   - Fix underlying issue
-   - Prevent similar bugs
-
-3. **Keep fix minimal**
-   - Don't refactor while fixing
-   - Fix one bug at a time
-   - Separate concerns
-
-4. **Validate thoroughly**
-   - Run full test suite
-   - Check for regressions
-   - Use race detector
-   - Test edge cases
+1. **Always write failing test first** — proves bug exists, validates fix, prevents regression
+2. **Find root cause, don't patch symptoms** — understand why, fix underlying issue
+3. **Keep fix minimal** — don't refactor while fixing, fix one bug at a time
+4. **Validate thoroughly** — full test suite, race detector, edge cases
 
 ---
 
 ## Guardrails
 
 - ALWAYS write failing test before fixing
-- NEVER guess at root cause - investigate
+- NEVER guess at root cause — investigate
 - ALWAYS run full test suite after fix
 - NEVER skip race detector for concurrency bugs
 - ALWAYS document what caused the bug

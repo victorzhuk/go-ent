@@ -56,11 +56,11 @@ func Default() *Config {
 		Models: ModelAliases{
 			Fast: ToolModels{
 				Claude:   "haiku",
-				OpenCode: "zai-coding-plan/glm-4.5-air",
+				OpenCode: "zai-coding-plan/glm-4.7-flash",
 			},
 			Main: ToolModels{
 				Claude:   "sonnet",
-				OpenCode: "zai-coding-plan/glm-4.7",
+				OpenCode: "zai-coding-plan/glm-5",
 			},
 			Heavy: ToolModels{
 				Claude:   "opus",

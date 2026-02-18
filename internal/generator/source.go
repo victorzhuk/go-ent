@@ -222,11 +222,11 @@ func LoadPrompts(srcDir string, cfg PromptsConfig) (*PromptContent, error) {
 
 // ListAgents returns all agent names in srcDir
 // srcDir should be the agents directory (e.g., "agents" or "agents/meta")
+// Returns empty slice if directory doesn't exist or contains no agent files.
 func ListAgents(srcDir string) ([]string, error) {
-	agentsDir := srcDir
-	entries, err := listDir(agentsDir)
+	entries, err := listDir(srcDir)
 	if err != nil {
-		return nil, fmt.Errorf("read agents dir: %w", err)
+		return nil, nil
 	}
 
 	var agents []string
@@ -236,7 +236,6 @@ func ListAgents(srcDir string) ([]string, error) {
 		}
 		name := entry.Name()
 		if filepath.Ext(name) == ".yaml" {
-			// Remove .yaml extension
 			agentName := name[:len(name)-5]
 			agents = append(agents, agentName)
 		}

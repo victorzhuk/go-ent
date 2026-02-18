@@ -1,9 +1,11 @@
 ---
 name: debug-core
-description: Debugging methodology and techniques
+description: Debugging methodology, complexity-appropriate workflows, and techniques for simple through complex bugs including concurrency and performance issues.
 triggers:
   - debug
   - troubleshoot
+  - bug
+  - fix
 ---
 
 ## Role
@@ -51,6 +53,58 @@ If performance issue is identified: Profile with pprof, analyze bottleneques, an
 If test failure is inconsistent: Look for test order dependencies, shared state, timing issues, or external resource availability.
 
 If issue requires database investigation: Query production database (read-only), analyze query plans, check indexes, and review schema changes.
+
+## Debug Workflows by Complexity
+
+### Simple Bugs (single file, clear root cause)
+
+1. **Reproduce**: `go test -run TestXxx -v ./...`
+2. **Analyze**: Check recent changes with `git diff HEAD~5 -- internal/`
+3. **Isolate**: Add targeted debug logging
+4. **Fix**: Make minimal, targeted change
+5. **Verify**: `go test ./... -race && golangci-lint run`
+
+### Standard Bugs (multi-step, requires investigation)
+
+1. **Reproduce**: Write failing test that captures the issue
+2. **Isolate**: Add targeted logging, use minimal reproductions, test one variable at a time
+3. **Analyze**: Trace execution flow with find_symbol/find_referencing_symbols, check boundary conditions, review error handling paths
+4. **Fix**: Minimal change addressing root cause, add test case for the bug
+5. **Verify**: Full test suite + race detector
+
+### Complex Bugs (concurrency, performance, multi-component)
+
+**Concurrency bugs:**
+- Use race detector: `go test -race`
+- Add logging with goroutine IDs
+- Review locking patterns and channel usage
+- Check for goroutine leaks
+
+**Performance bugs:**
+- Profile with pprof: `go tool pprof`
+- Analyze allocation patterns
+- Check database query plans
+- Measure before/after with benchmarks
+
+**Memory leaks:**
+- Heap profiling
+- Check goroutine leaks (`runtime.NumGoroutine()`)
+- Review resource cleanup, ensure `defer` usage
+- Cancel contexts properly
+
+**Multi-component bugs:**
+- Map the full execution path across components
+- Check integration points and API contracts
+- Verify assumptions at each boundary
+- Test components in isolation first
+
+## Fix Validation
+
+```bash
+go test ./... -race          # All tests + race detector
+golangci-lint run            # Lint check
+go build ./...               # Build check
+```
 
 ## Examples
 

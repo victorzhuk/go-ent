@@ -194,7 +194,7 @@ func loadAgents() (map[string]*agentMeta, error) {
 
 	entries, err := pkg.FS.ReadDir("agents/meta")
 	if err != nil {
-		return nil, fmt.Errorf("read agents/meta directory: %w", err)
+		return agents, nil
 	}
 
 	for _, entry := range entries {
@@ -333,7 +333,7 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 func loadToolPresets() (*toolPresets, error) {
 	data, err := pkg.FS.ReadFile("agents/presets/tools.yaml")
 	if err != nil {
-		return nil, fmt.Errorf("read tool presets: %w", err)
+		return &toolPresets{}, nil
 	}
 
 	var presets toolPresets
@@ -519,7 +519,7 @@ func loadPrompts() (map[string]string, error) {
 
 	entries, err := pkg.FS.ReadDir("agents/prompts/agents")
 	if err != nil {
-		return nil, fmt.Errorf("read agents/prompts/agents directory: %w", err)
+		return prompts, nil
 	}
 
 	for _, entry := range entries {
@@ -999,20 +999,6 @@ Examples:
 				return fmt.Errorf("load agents: %w", err)
 			}
 
-			presets, err := loadToolPresets()
-			if err != nil {
-				return fmt.Errorf("load tool presets: %w", err)
-			}
-
-			for _, meta := range agents {
-				expandToolPresets(meta, presets)
-			}
-
-			prompts, err := loadPrompts()
-			if err != nil {
-				return fmt.Errorf("load prompts: %w", err)
-			}
-
 			agentCount := len(agents)
 
 			tools := strings.Split(flags.tool, ",")
@@ -1026,40 +1012,54 @@ Examples:
 					}
 				}
 
-				tpl, err := loadTemplate(tool)
-				if err != nil {
-					return fmt.Errorf("load template for %s: %w", tool, err)
-				}
-
-				global, _ := config.LoadGlobalModelConfig()
-				project, _ := config.LoadProjectModelConfig(".")
-				cfg := config.MergeModelConfigs(global, project)
-				resolver := config.NewModelResolver(cfg, tool)
-
-				for name, meta := range agents {
-					prompt, ok := prompts[name]
-					if !ok {
-						return fmt.Errorf("prompt not found for agent: %s", name)
-					}
-
-					// Create a copy of meta to avoid modifying the original when processing multiple tools
-					metaCopy := *meta
-					metaCopy.Model = resolver.ResolveAgent(meta.Model)
-
-					// Inline shared prompts
-					fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
+				if agentCount > 0 {
+					presets, err := loadToolPresets()
 					if err != nil {
-						return fmt.Errorf("inline shared prompts for %s: %w", name, err)
+						return fmt.Errorf("load tool presets: %w", err)
 					}
 
-					content, err := renderAgent(&metaCopy, fullPrompt, tpl)
+					for _, meta := range agents {
+						expandToolPresets(meta, presets)
+					}
+
+					prompts, err := loadPrompts()
 					if err != nil {
-						return fmt.Errorf("render agent %s: %w", name, err)
+						return fmt.Errorf("load prompts: %w", err)
 					}
 
-					path := getAgentPath(tool, flags.prefix, name)
-					if err := writeFile(path, content, flags.force, flags.dryRun); err != nil {
-						return err
+					tpl, err := loadTemplate(tool)
+					if err != nil {
+						return fmt.Errorf("load template for %s: %w", tool, err)
+					}
+
+					global, _ := config.LoadGlobalModelConfig()
+					project, _ := config.LoadProjectModelConfig(".")
+					cfg := config.MergeModelConfigs(global, project)
+					resolver := config.NewModelResolver(cfg, tool)
+
+					for name, meta := range agents {
+						prompt, ok := prompts[name]
+						if !ok {
+							return fmt.Errorf("prompt not found for agent: %s", name)
+						}
+
+						metaCopy := *meta
+						metaCopy.Model = resolver.ResolveAgent(meta.Model)
+
+						fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
+						if err != nil {
+							return fmt.Errorf("inline shared prompts for %s: %w", name, err)
+						}
+
+						content, err := renderAgent(&metaCopy, fullPrompt, tpl)
+						if err != nil {
+							return fmt.Errorf("render agent %s: %w", name, err)
+						}
+
+						path := getAgentPath(tool, flags.prefix, name)
+						if err := writeFile(path, content, flags.force, flags.dryRun); err != nil {
+							return err
+						}
 					}
 				}
 

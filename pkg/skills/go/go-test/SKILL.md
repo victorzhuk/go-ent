@@ -1,9 +1,10 @@
 ---
 name: go-test
-description: Testing patterns with testify, testcontainers, table-driven tests
+description: Testing patterns, TDD workflow, test analysis, and common fixes with testify, testcontainers, and table-driven tests.
 triggers:
   - test
   - testing
+  - tdd
 ---
 
 ## Role
@@ -128,6 +129,38 @@ See `references/testcontainers-setup.md` for complete testcontainers setup with 
 See `references/usecase-mocking.md` for complete UseCase testing with gomock, setup functions, and type-safe mocks.
 
 
+
+## Test Execution Workflow
+
+### Commands
+
+```bash
+go test ./... -v                    # All tests
+go test -race ./...                 # Race detection
+go test -run TestXxx -v ./pkg/...   # Specific test
+go test -coverprofile=c.out ./...   # Coverage
+```
+
+### Analysis Process
+
+1. Run tests, capture output
+2. Identify failure pattern
+3. Check recent changes: `git diff`
+4. Trace error to root cause
+5. Provide specific fix
+
+### TDD Cycle
+
+1. **RED**: Write failing test first
+2. **GREEN**: Implement minimal solution to pass
+3. **REFACTOR**: Clean up while tests stay green
+
+### Common Fixes
+
+- **Race**: Add mutex or channels
+- **Flaky**: Replace `time.Sleep` with channels or sync primitives
+- **Pollution**: Add `t.Parallel()`, `t.Cleanup()`
+- **Timeout**: Check for blocking operations, add context cancellation
 
 ## References
 

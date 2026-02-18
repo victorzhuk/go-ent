@@ -226,7 +226,7 @@ depends_on: ["other-skill"]  # optional
 - **Workflows**: `/ent:plan`, `/ent:apply`, `/ent:status`, `/ent:archive`
 - **Registry**: `/ent:registry list`, `/ent:registry next`
 - **Skill Management**: `/ent:skill-sync` (sync to Claude Code)
-- **Agent Invocation**: `/ent:architect`, `/ent:planner`, etc.
+- **Skills**: Auto-activate based on task content (see `task-router` skill for routing)
 
 **OpenSpec Aliases** (added in this refactor):
 - `/opsx:new` → `/ent:plan`

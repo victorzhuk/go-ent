@@ -1,19 +1,18 @@
 ---
 name: ent-workflow
-description: OpenSpec workflow and agent delegation patterns. Spec-driven development with artifact creation, task tracking, handoffs, and validation.
+description: OpenSpec workflow and task delegation patterns. Spec-driven development with artifact creation, task tracking, and validation.
 triggers:
   - ent-workflow
   - openspec
   - change proposal
   - spec workflow
   - artifact workflow
-  - handoffs
   - delegation
 ---
 
 ## Role
 
-Guide agents through OpenSpec CLI workflows and proper agent delegation patterns.
+Guide through OpenSpec CLI workflows and proper task delegation patterns using the Task tool.
 
 ## OpenSpec CLI Workflow
 
@@ -78,11 +77,8 @@ openspec status add-feature-name
 ### Implementation
 
 ```bash
-# Apply/implement tasks (if you have an apply command)
-# Note: Task implementation is typically done manually,
-# guided by tasks.md
-
-# Sync delta specs to main specs (after implementation)
+# Task implementation is guided by tasks.md
+# After implementation, sync delta specs to main specs
 openspec sync add-feature-name
 ```
 
@@ -93,7 +89,6 @@ openspec sync add-feature-name
 openspec validate add-feature-name
 
 # Archive completed change
-# This moves the change to archive/ and can update main specs
 openspec archive add-feature-name
 ```
 
@@ -133,11 +128,9 @@ openspec new change refactor-auth
 
 # 2. Create proposal first
 openspec continue refactor-auth
-# [Edit proposal.md]
 
 # 3. Create tasks
 openspec continue refactor-auth
-# [Review tasks.md]
 
 # 4. Create specs if needed
 openspec continue refactor-auth
@@ -166,57 +159,65 @@ openspec sync update-api-spec
 openspec archive update-api-spec
 ```
 
-## Agent Delegation Patterns
+## Task Delegation Patterns
 
-Guidance for when to delegate between agents, escalation patterns, and safety checkpoints before irreversible operations.
+Most work should happen inline in the main conversation, where skills auto-activate. Spawn subagents via the Task tool when context isolation, parallel work, or a different model tier is needed.
 
-### When to Delegate
+### When to Delegate to Subagents
 
-**By Agent Role:**
-- **Planning agents** → Create tasks, then delegate to execution agents
-- **Execution agents** → Implement code, delegate testing to tester
-- **Validation agents** → Review implementation, report to coordination
+- **Context isolation** — verbose output (large codegen, deep search) that would pollute main context
+- **Parallel work** — multiple independent tasks can run simultaneously
+- **Different model tier** — task needs opus reasoning or haiku speed
+- **Tool restrictions** — read-only exploration (use Explore agent type)
+
+### Delegation by Task Type
+
+| Task Type | Approach | If Subagent: Model + Type |
+|-----------|----------|---------------------------|
+| Write/modify code | Inline (skills auto-activate) | sonnet, general-purpose |
+| Design architecture | Inline or subagent for isolation | opus, general-purpose |
+| Break feature into tasks | Inline | sonnet, general-purpose |
+| Quick triage | Inline | haiku, Explore |
+| Fix a bug | Inline (debug-core skill activates) | sonnet, general-purpose |
+| Debug concurrency/perf | Inline or subagent | opus, general-purpose |
+| Write/fix tests | Inline (go-test skill activates) | sonnet, general-purpose |
+| Review code | Subagent (read-only) | opus, Explore |
+| Code investigation | Subagent (read-only) | haiku/sonnet, Explore |
+| Verify requirements | Subagent (read-only) | opus, Explore |
+
+### Subagent Invocation Examples
+
+```
+# Read-only exploration
+Task(model: "haiku", subagent_type: "Explore", prompt: "...")
+
+# Standard implementation
+Task(model: "sonnet", subagent_type: "general-purpose", prompt: "...")
+
+# Deep analysis or review
+Task(model: "opus", subagent_type: "Explore", prompt: "...")
+```
 
 ### Safety Checkpoints
 
-**Before Irreversible Operations:**
+Before irreversible operations:
 1. Verify backups exist
 2. Confirm user intent for destructive ops
 3. Run validation before deployment
 4. Test rollback procedures
 5. Document decision and reasoning
 
-### Delegation Responsibilities
-
-**Coordinating Agent (Planner/Architect):**
-- Creates comprehensive task breakdown
-- Assigns tasks to appropriate agents
-- Monitors progress and resolves blockers
-- Ensures consistency across agents
-
-**Execution Agent (Coder):**
-- Implements assigned tasks
-- Follows project conventions
-- Delegates testing to tester
-- Reports completion/blockers
-
-**Validation Agent (Reviewer/Tester):**
-- Validates implementation correctness
-- Runs test suites
-- Identifies issues and reports back
-- Approves or requests changes
-
 ## Common Pitfalls
 
 ### OpenSpec
-1. **Don't duplicate OpenSpec functionality** - Always use `openspec` CLI, never reimplement its features
+1. **Don't duplicate OpenSpec functionality** - Always use `openspec` CLI
 2. **Don't skip validation** - Always run `openspec validate` before archiving
-3. **Don't manually move archives** - Use `openspec archive` to ensure proper cleanup
-4. **Don't forget to sync specs** - Use `openspec sync` to update main specs from deltas
+3. **Don't manually move archives** - Use `openspec archive`
+4. **Don't forget to sync specs** - Use `openspec sync` to update main specs
 
-### Agent Delegation
-1. **Don't work in isolation** - Coordinate with other agents via shared task list
-2. **Don't skip handoffs** - Explicitly delegate to next agent with clear context
+### Delegation
+1. **Don't over-delegate** - Prefer inline work; subagents cost ~4x more tokens
+2. **Don't skip handoff context** - When delegating, include clear requirements
 3. **Don't assume state** - Always verify current state before acting
 4. **Don't ignore blockers** - Escalate promptly when stuck
 
@@ -266,51 +267,6 @@ To see artifact completion status for a specific change:
 ```bash
 openspec status change-name
 ```
-
-To view a specific change with all artifacts:
-
-```bash
-openspec show change-name --format markdown
-```
-</output>
-</example>
-
-<example>
-<input>How do I archive a completed change?</input>
-<output>
-First, validate the change has all required artifacts:
-
-```bash
-openspec validate change-name
-```
-
-Then archive it:
-
-```bash
-openspec archive change-name
-```
-
-This will:
-1. Verify all artifacts are complete
-2. Move the change to `openspec/changes/archive/`
-3. Optionally sync delta specs to main specs
-</output>
-</example>
-
-### Agent Delegation
-
-<example>
-<input>Planner has broken down implementation into 5 tasks</input>
-<output>
-As planner, I've created the task breakdown. Now I'll delegate to coder:
-
-Handoff to `/ent:coder`:
-- Context: Implement user authentication feature
-- Tasks: See `openspec/changes/add-auth/tasks.md`
-- Dependencies: None (first implementation phase)
-- Expected outcome: All tasks completed, tests passing
-
-After implementation, delegate to `/ent:tester` for validation.
 </output>
 </example>
 

@@ -327,9 +327,8 @@ A: Update this roadmap weekly. Mark tasks complete in individual `tasks.md` file
 For questions about roadmap or proposal implementation:
 - Review proposal files in `openspec/changes/*/`
 - Check individual `tasks.md` for detailed breakdowns
-- Use `/ent:architect` for design questions
-- Use `/ent:planner` for implementation planning
-- Use `/ent:coder` for implementation work
+- Skills auto-activate for architecture, planning, and implementation tasks
+- See `task-router` skill for model routing guidance
 
 ---
 

@@ -1,13 +1,16 @@
-You are an acceptance testing specialist. Verify implementations meet spec requirements.
+---
+name: acceptance
+description: Acceptance validation process for verifying implementations meet spec requirements, with scenario testing and decision criteria.
+triggers:
+  - acceptance
+  - validate requirements
+  - verify spec
+  - acceptance criteria
+---
 
-## Responsibilities
+## Role
 
-- Validate against spec scenarios
-- Check acceptance criteria
-- Verify behavior matches requirements
-- Ensure test coverage
-- Confirm documentation
-- Sign off on task completion
+Acceptance testing specialist. Verify implementations meet spec requirements through systematic validation.
 
 ## Acceptance Process
 
@@ -15,7 +18,7 @@ You are an acceptance testing specialist. Verify implementations meet spec requi
 
 1. Read spec deltas: `openspec/changes/{id}/specs/`
 2. Extract acceptance criteria
-3. List WHEN/THEN scenarios
+3. List GIVEN/WHEN/THEN scenarios
 4. Identify test requirements
 
 ### 2. Verification Checklist
@@ -62,37 +65,6 @@ Check:
 - [ ] **Integration**: Works with existing system
 - [ ] **Non-regression**: Existing tests still pass
 
-## Output Format
-
-```
-📋 Acceptance Review: {task-id}
-
-Requirements validated: {count}/{total}
-Scenarios covered: {count}/{total}
-
-✅ Passing:
-  - REQ-001: User authentication
-    ✓ Scenario: Valid credentials
-    ✓ Scenario: Invalid credentials
-  - REQ-002: Session management
-    ✓ Scenario: Token expiration
-    ✓ Scenario: Token refresh
-
-⚠️ Issues:
-  - REQ-003: Password reset
-    ✗ Scenario: Expired token not tested
-    → Need test for expired reset token
-
-📊 Coverage:
-  - Functional: 95%
-  - Edge cases: 87%
-  - Integration: 100%
-
-Verdict: {ACCEPTED | NEEDS_WORK}
-
-{If NEEDS_WORK: List specific items to address}
-```
-
 ## Decision Matrix
 
 | Status | Condition |
@@ -101,3 +73,29 @@ Verdict: {ACCEPTED | NEEDS_WORK}
 | **ACCEPTED WITH NOTES** | Minor gaps documented, can be fixed later |
 | **NEEDS WORK** | Missing tests, behavior mismatch, or quality issues |
 | **REJECTED** | Does not meet requirements |
+
+## Output Format
+
+```
+Acceptance Review: {task-id}
+
+Requirements validated: {count}/{total}
+Scenarios covered: {count}/{total}
+
+Passing:
+  - REQ-001: {description}
+    - Scenario: {name} PASS
+    - Scenario: {name} PASS
+
+Issues:
+  - REQ-003: {description}
+    - Scenario: {name} FAIL
+    -> {what needs to be addressed}
+
+Coverage:
+  - Functional: {percent}%
+  - Edge cases: {percent}%
+  - Integration: {percent}%
+
+Verdict: {ACCEPTED | NEEDS_WORK}
+```
