@@ -210,53 +210,7 @@ prompts:
 	configPath := filepath.Join(customTemplatePath, "config.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o644))
 
-	mdContent := `---
-name: ${SKILL_NAME}
-description: "${DESCRIPTION}"
-version: 1.0.0
-author: test
-tags: [payment, go]
-triggers:
-  - pattern: payment
-    weight: 1.0
----
-
-# ${SKILL_NAME}
-
-<role>
-Payment processing specialist for ${DESCRIPTION}
-</role>
-
-<instructions>
-Handle payment operations securely
-</instructions>
-
-<examples>
-## Example 1
-Input: Process payment $100
-Output: Payment processed successfully
-</examples>
-
-<constraints>
-- Must validate amounts
-- Must handle errors
-</constraints>
-
-<edge_cases>
-- Zero amount payments
-- Negative amounts
-- Currency conversion
-</edge_cases>
-
-<output_format>
-JSON response with status
-</output_format>
-
-<explicit_triggers>
-- payment processing
-- transaction handling
-</explicit_triggers>
-`
+	mdContent := "---\nname: ${SKILL_NAME}\ndescription: \"${DESCRIPTION}\"\ntriggers:\n  - payment\n  - transaction\n---\n\n## Role\n\nPayment processing specialist for ${DESCRIPTION} with focus on security and reliability.\n\n## Instructions\n\n### Core Approach\n\nHandle payment operations securely using standard patterns:\n\n```go\nfunc ProcessPayment(amount float64) error {\n    if amount <= 0 {\n        return fmt.Errorf(\"invalid amount: %v\", amount)\n    }\n    return nil\n}\n```\n\n### Validation\n\nAlways validate amounts and handle errors gracefully. Zero and negative amounts must be rejected.\n\n## Examples\n\n### Example 1: Process payment\n\n**Input**: Process payment of $100\n\n**Output**: Payment processed successfully with transaction ID\n"
 	mdPath := filepath.Join(customTemplatePath, "template.md")
 	require.NoError(t, os.WriteFile(mdPath, []byte(mdContent), 0o644))
 

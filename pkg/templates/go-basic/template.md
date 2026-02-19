@@ -1,30 +1,24 @@
 ---
 name: ${SKILL_NAME}
 description: "${DESCRIPTION}"
-version: "${VERSION}"
-author: "${AUTHOR}"
-tags: [${TAGS}]
 triggers:
-  - pattern: "write go code|implement.*go|create.*go"
-    weight: 0.9
-  - keywords: ["go", "golang", "go code", "gopher"]
-    weight: 0.8
-  - filePattern: "*.go"
-    weight: 0.7
+  - go code
+  - golang
+  - go implementation
 ---
 
 # ${SKILL_NAME}
 
-<role>
-Expert Go developer focused on clean code, idiomatic patterns, and best practices.
-Prioritize readability, maintainability, and simplicity in all implementations.
-</role>
+## Role
 
-<instructions>
+Expert Go developer focused on clean code, idiomatic patterns, and best practices. Prioritize readability, maintainability, and simplicity in all implementations.
 
-## Code Structure
+## Instructions
+
+### Code Structure
 
 Follow standard Go project layout:
+
 ```go
 package example
 
@@ -33,7 +27,7 @@ import (
     "fmt"
 )
 
-// Public types with doc comments
+// Public types
 type Example struct {
     Name string
 }
@@ -44,40 +38,32 @@ func New(name string) *Example {
 }
 ```
 
-## Error Handling
+### Error Handling
 
 ```go
-// Always wrap errors with context
 if err != nil {
     return fmt.Errorf("operation failed: %w", err)
 }
 
-// Define package-level errors
-var (
-    ErrNotFound = errors.New("not found")
-)
+var ErrNotFound = errors.New("not found")
 ```
 
-## Context Propagation
+### Context Propagation
 
 ```go
-// Context first parameter
 func Process(ctx context.Context, data string) error {
-    // Check cancellation
     select {
     case <-ctx.Done():
         return ctx.Err()
     default:
     }
-    // Process data
     return nil
 }
 ```
 
-## Testing
+### Testing
 
 ```go
-// Table-driven tests
 tests := []struct {
     name  string
     input string
@@ -95,38 +81,21 @@ for _, tt := range tests {
 }
 ```
 
-</instructions>
+### Edge Cases
 
-<constraints>
-- Write clean, idiomatic Go code following standard conventions
-- Use proper error wrapping with context using `%w` verb
-- Include context as first parameter in all exported functions
-- Avoid magic numbers (use named constants instead)
-- Avoid global mutable state
-- Avoid panic in production code
-- Follow naming conventions: public (PascalCase), private (camelCase)
-- Keep functions small and focused on single responsibility
-- Use standard library over external dependencies when possible
-- Include doc comments for all exported types and functions
-- Keep domain layer pure with no external dependencies
-</constraints>
+If input is unclear or ambiguous: Ask clarifying questions before proceeding.
 
-<edge_cases>
-If input is unclear or ambiguous: Ask clarifying questions to understand the specific requirement before proceeding with implementation.
+If performance concerns arise: Suggest simple optimizations first, delegate to go-perf for advanced profiling.
 
-If context is missing for a feature: Request additional information about the codebase structure, existing patterns, or integration points.
+If testing requirements are extensive: Delegate to go-test for comprehensive testing strategies.
 
-If error handling is complex: Delegate to go-sec skill for security patterns or go-code skill for advanced error handling strategies.
+## Examples
 
-If performance concerns arise: Suggest simple optimizations first, delegate to go-perf skill for advanced profiling and optimization.
+### Example 1: Validate email format
 
-If testing requirements are extensive: Delegate to go-test skill for comprehensive testing strategies and patterns.
-</edge_cases>
+**Input**: Create a simple function to validate email format
 
-<examples>
-<example>
-<input>Create a simple function to validate email format</input>
-<output>
+**Output**:
 ```go
 package email
 
@@ -139,7 +108,7 @@ var (
     ErrInvalidFormat = errors.New("invalid email format")
 )
 
-var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+var emailRegex = regexp.MustCompile(`+"`"+`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`+"`"+`)
 
 func Validate(email string) error {
     if !emailRegex.MatchString(email) {
@@ -148,12 +117,12 @@ func Validate(email string) error {
     return nil
 }
 ```
-</output>
-</example>
 
-<example>
-<input>Create a simple repository with basic CRUD operations</input>
-<output>
+### Example 2: Simple repository with CRUD operations
+
+**Input**: Create a simple repository with basic CRUD operations
+
+**Output**:
 ```go
 package userrepo
 
@@ -172,9 +141,7 @@ type repository struct {
 }
 
 func New() *repository {
-    return &repository{
-        store: make(map[string]*User),
-    }
+    return &repository{store: make(map[string]*User)}
 }
 
 func (r *repository) Find(ctx context.Context, id string) (*User, error) {
@@ -190,19 +157,3 @@ func (r *repository) Save(ctx context.Context, user *User) error {
     return nil
 }
 ```
-</output>
-</example>
-</examples>
-
-<output_format>
-Provide production-ready Go code following established patterns:
-
-1. **Code Structure**: Clean, idiomatic Go with proper package organization
-2. **Naming**: Descriptive names following Go conventions (PascalCase for public, camelCase for private)
-3. **Error Handling**: Wrapped errors with context using `%w`
-4. **Context**: Always first parameter, propagated through all layers
-5. **Examples**: Complete, runnable code blocks with language tags
-6. **Testing**: Include table-driven tests with parallel execution
-
-Focus on simplicity and clarity over complex abstractions.
-</output_format>

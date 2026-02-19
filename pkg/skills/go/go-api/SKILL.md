@@ -120,3 +120,4 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

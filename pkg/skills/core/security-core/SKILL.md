@@ -107,3 +107,4 @@ func VerifyPassword(password, storedHash string) (bool, error) {
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

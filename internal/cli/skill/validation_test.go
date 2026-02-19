@@ -21,42 +21,40 @@ func TestValidateGeneratedSkill_ValidSkill(t *testing.T) {
 
 	validSkill := `---
 name: test-skill
-description: A valid test skill
-version: "1.0.0"
-author: Test Author
-tags: ["test", "validation"]
-structure_version: "v2"
+description: A valid test skill for expert assistance
+triggers:
+  - test skill
+  - testing
 ---
 
-# Test Skill
+## Role
 
-<role>
-You are a test skill expert.
-</role>
+You are a test skill expert focused on providing helpful testing guidance and best practices.
 
-<instructions>
-Provide helpful testing guidance.
-</instructions>
+## Instructions
 
-<constraints>
-- Follow best practices
-- Write clear code
-</constraints>
+### Core Approach
 
-<edge_cases>
-If test fails: investigate root cause
-</edge_cases>
+Provide helpful testing guidance using these patterns:
 
-<examples>
-<example>
-<input>Test input</input>
-<output>Test output</output>
-</example>
-</examples>
+` + "```" + `go
+func TestExample(t *testing.T) {
+    t.Parallel()
+    assert.Equal(t, "expected", "expected")
+}
+` + "```" + `
 
-<output_format>
-Provide clear, actionable guidance.
-</output_format>
+### Edge Cases
+
+If test fails: investigate root cause before applying fix.
+
+## Examples
+
+### Example 1: Basic test
+
+**Input**: Test input
+
+**Output**: Test output
 `
 
 	require.NoError(t, os.WriteFile(skillPath, []byte(validSkill), 0o644))
@@ -85,18 +83,25 @@ func TestValidateGeneratedSkill_InvalidYAML(t *testing.T) {
 name: test
 description: test
 invalid: yaml: content:
-version: "1.0.0"
 ---
-<role>Test</role>
-<instructions>Test</instructions>
-<constraints>- Test</constraints>
-<examples>
-<example>
-<input>test</input>
-<output>test</output>
-</example>
-</examples>
-<output_format>Test</output_format>
+
+## Role
+
+Test role with enough content to be valid here.
+
+## Instructions
+
+### Section
+
+Test instructions content.
+
+## Examples
+
+### Example 1: Test
+
+**Input**: test
+
+**Output**: test
 `
 
 	require.NoError(t, os.WriteFile(skillPath, []byte(invalidYAML), 0o644))
@@ -126,16 +131,21 @@ func TestValidateGeneratedSkill_MissingFrontmatter(t *testing.T) {
 
 	noFrontmatter := `# Test Skill
 
-<role>Test role</role>
-<instructions>Test instructions</instructions>
-<constraints>- Test constraint</constraints>
-<examples>
-<example>
-<input>test</input>
-<output>test</output>
-</example>
-</examples>
-<output_format>Test</output_format>
+## Role
+
+Test role content.
+
+## Instructions
+
+Test instructions.
+
+## Examples
+
+### Example 1: Basic
+
+**Input**: test
+
+**Output**: test
 `
 
 	require.NoError(t, os.WriteFile(skillPath, []byte(noFrontmatter), 0o644))
@@ -152,18 +162,27 @@ func TestValidateGeneratedSkill_MissingName(t *testing.T) {
 
 	missingName := `---
 description: A test skill
-version: "1.0.0"
+triggers:
+  - test
 ---
-<role>Test</role>
-<instructions>Test</instructions>
-<constraints>- Test</constraints>
-<examples>
-<example>
-<input>test</input>
-<output>test</output>
-</example>
-</examples>
-<output_format>Test</output_format>
+
+## Role
+
+Test role content with enough content to be valid here.
+
+## Instructions
+
+### Section
+
+Test instructions content.
+
+## Examples
+
+### Example 1: Test
+
+**Input**: test
+
+**Output**: test
 `
 
 	require.NoError(t, os.WriteFile(skillPath, []byte(missingName), 0o644))
@@ -180,89 +199,100 @@ func TestValidateGeneratedSkill_CompleteValidSkill(t *testing.T) {
 
 	completeSkill := `---
 name: go-database
-description: Database integration patterns with PostgreSQL and pgx
-version: "1.0.0"
-author: go-ent
-tags: ["go", "database", "postgresql", "pgx"]
-structure_version: "v2"
+description: Database integration patterns with PostgreSQL and pgx for production use
+triggers:
+  - database
+  - postgresql
+  - pgx
+  - sql query
 ---
 
-# Go Database Patterns
+## Role
 
-<role>
-You are an expert Go developer specializing in database integration patterns.
-You have extensive experience with PostgreSQL, pgx, and database transaction management.
-You follow best practices for connection pooling, query optimization, and error handling.
-</role>
+Expert Go developer specializing in database integration patterns. Extensive experience with PostgreSQL, pgx, and database transaction management. Follows best practices for connection pooling, query optimization, and error handling.
 
-<instructions>
-Provide guidance on Go database integration including:
+## Instructions
 
-1. **Connection Management**
-   - Set up connection pools with appropriate limits
-   - Configure health checks and timeouts
-   - Handle connection lifecycle properly
+### Connection Management
 
-2. **Query Patterns**
-   - Use parameterized queries to prevent SQL injection
-   - Implement batch operations for efficiency
-   - Use prepared statements for repeated queries
+Set up connection pools with appropriate limits:
 
-3. **Transaction Management**
-   - Handle transactions with proper rollback
-   - Implement retry logic for transient failures
-   - Use context for cancellation
+` + "```" + `go
+pool, err := pgxpool.New(ctx, dsn)
+if err != nil {
+    return fmt.Errorf("create pool: %w", err)
+}
+defer pool.Close()
+` + "```" + `
 
-4. **Error Handling**
-   - Wrap database errors with context
-   - Handle specific pgx error types
-   - Provide meaningful error messages
+### Query Patterns
 
-5. **Performance**
-   - Optimize queries with indexes
-   - Use connection pooling effectively
-   - Implement caching where appropriate
-</instructions>
+Use parameterized queries to prevent SQL injection:
 
-<constraints>
-- Always use context.Context for database operations
-- Never concatenate strings to build SQL queries
-- Always check for errors after database operations
-- Close rows objects to prevent connection leaks
-- Use tx.Commit() only after all operations succeed
-- Implement proper error wrapping with context
-</constraints>
+` + "```" + `go
+query, args, _ := sq.Select("id", "email").
+    From("users").
+    Where(sq.Eq{"id": id}).
+    ToSql()
 
-<edge_cases>
-If connection pool is exhausted: log error and implement retry logic with exponential backoff
-If transaction fails due to serialization error: retry transaction up to 3 times
-If database is unavailable during startup: implement circuit breaker pattern
-</edge_cases>
+row := pool.QueryRow(ctx, query, args...)
+` + "```" + `
 
-<examples>
-<example>
-<input>How do I set up a connection pool with pgx?</input>
-<output>
-Provide a code example showing proper connection pool setup with pgx.
-</output>
-</example>
+### Transaction Management
 
-<example>
-<input>How do I handle transactions properly?</input>
-<output>
-Provide a code example showing proper transaction handling with rollback.
-</output>
-</example>
-</examples>
+Handle transactions with proper rollback:
 
-<output_format>
-Provide production-ready Go code with:
-- Complete, runnable examples
-- Proper error handling with context
-- Usage of pgx best practices
-- Comments explaining key decisions
-- Type safety with struct mapping
-</output_format>
+` + "```" + `go
+tx, err := pool.Begin(ctx)
+if err != nil {
+    return fmt.Errorf("begin tx: %w", err)
+}
+defer func() { _ = tx.Rollback(ctx) }()
+
+if err := tx.Commit(ctx); err != nil {
+    return fmt.Errorf("commit: %w", err)
+}
+` + "```" + `
+
+### Edge Cases
+
+If connection pool is exhausted: implement retry logic with exponential backoff.
+
+If transaction fails due to serialization error: retry up to 3 times.
+
+## Examples
+
+### Example 1: Set up connection pool with pgx
+
+**Input**: How do I set up a connection pool with pgx?
+
+**Output**:
+` + "```" + `go
+pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+if err != nil {
+    return fmt.Errorf("create pool: %w", err)
+}
+defer pool.Close()
+` + "```" + `
+
+### Example 2: Handle transactions properly
+
+**Input**: How do I handle transactions properly?
+
+**Output**:
+` + "```" + `go
+tx, err := pool.Begin(ctx)
+if err != nil {
+    return fmt.Errorf("begin tx: %w", err)
+}
+defer func() { _ = tx.Rollback(ctx) }()
+
+// do work...
+
+if err := tx.Commit(ctx); err != nil {
+    return fmt.Errorf("commit: %w", err)
+}
+` + "```" + `
 `
 
 	require.NoError(t, os.WriteFile(skillPath, []byte(completeSkill), 0o644))

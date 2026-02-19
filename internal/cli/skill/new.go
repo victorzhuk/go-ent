@@ -107,7 +107,7 @@ Environment variables:
 			if envDir := os.Getenv("GO_ENT_SKILLS_DIR"); envDir != "" {
 				skillsDir = envDir
 			}
-			cfg.OutputPath = filepath.Join(skillsDir, filepath.Join(strings.Split(cfg.OutputPath, string(filepath.Separator))[3:]...))
+			cfg.OutputPath = filepath.Join(skillsDir, filepath.Join(strings.Split(cfg.OutputPath, string(filepath.Separator))[2:]...))
 
 			outputPath, err := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
 			if err != nil {

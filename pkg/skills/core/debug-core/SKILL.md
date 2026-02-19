@@ -115,3 +115,4 @@ go build ./...               # Build check
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

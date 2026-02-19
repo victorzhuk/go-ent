@@ -24,7 +24,7 @@ func TestWorkspaceDB(t *testing.T) {
 
 		db, err := OpenDB("test-ws")
 		require.NoError(t, err)
-		defer db.Close()
+		defer func() { require.NoError(t, db.Close()) }()
 
 		meta := &ProjectMeta{
 			Name:        "app-api",
@@ -48,7 +48,7 @@ func TestWorkspaceDB(t *testing.T) {
 
 		db, err := OpenDB("test-ws")
 		require.NoError(t, err)
-		defer db.Close()
+		defer func() { require.NoError(t, db.Close()) }()
 
 		require.NoError(t, db.PutSpec(&SpecMeta{
 			ID:      "auth",

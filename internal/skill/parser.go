@@ -94,14 +94,16 @@ func (p *Parser) detectCategory(path string) string {
 	// Normalize path separators
 	path = strings.ReplaceAll(path, "\\", "/")
 
-	// Look for "skills/" in path
+	// Look for "/skills/" or path starting with "skills/"
 	skillsIdx := strings.LastIndex(path, "/skills/")
-	if skillsIdx == -1 {
+	var afterSkills string
+	if skillsIdx != -1 {
+		afterSkills = path[skillsIdx+len("/skills/"):]
+	} else if strings.HasPrefix(path, "skills/") {
+		afterSkills = path[len("skills/"):]
+	} else {
 		return ""
 	}
-
-	// Extract path after "skills/"
-	afterSkills := path[skillsIdx+len("/skills/"):]
 
 	// Split by "/" and get first component (category)
 	parts := strings.Split(afterSkills, "/")

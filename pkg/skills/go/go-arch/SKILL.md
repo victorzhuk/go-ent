@@ -157,3 +157,4 @@ api-gateway/          # Single entry point, auth, routing
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

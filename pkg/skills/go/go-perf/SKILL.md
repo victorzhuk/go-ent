@@ -224,3 +224,4 @@ func Process(data []byte) error {
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

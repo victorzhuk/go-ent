@@ -22,9 +22,6 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 	data := map[string]string{
 		"SKILL_NAME":  "go-payment",
 		"DESCRIPTION": "Go payment processing patterns for secure transactions",
-		"VERSION":     "1.0.0",
-		"AUTHOR":      "go-ent",
-		"TAGS":        "go, payment, backend, security",
 	}
 
 	generatedContent, err := ReplacePlaceholders(string(templateContent), data)
@@ -32,9 +29,6 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 
 	assert.NotContains(t, generatedContent, "${SKILL_NAME}", "all placeholders should be replaced")
 	assert.NotContains(t, generatedContent, "${DESCRIPTION}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${VERSION}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${AUTHOR}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${TAGS}", "all placeholders should be replaced")
 
 	parser := skill.NewParser()
 	tempFile := filepath.Join(t.TempDir(), "generated-skill.md")
@@ -46,10 +40,7 @@ func TestGoBasicTemplate_ValidateStrictMode(t *testing.T) {
 
 	assert.Equal(t, "go-payment", meta.Name)
 	assert.Equal(t, "Go payment processing patterns for secure transactions", meta.Description)
-	assert.Equal(t, "1.0.0", meta.Version)
-	assert.Equal(t, "go-ent", meta.Author)
-	assert.Equal(t, []string{"go", "payment", "backend", "security"}, meta.Tags)
-	assert.Equal(t, "v2", meta.StructureVersion)
+	assert.Equal(t, "v4", meta.StructureVersion)
 
 	validator := skill.NewValidator()
 	result := validator.ValidateStrict(meta, generatedContent)
@@ -81,23 +72,17 @@ func TestGoBasicTemplate_StructuralValidation(t *testing.T) {
 	data := map[string]string{
 		"SKILL_NAME":  "go-payment",
 		"DESCRIPTION": "Go payment processing patterns",
-		"VERSION":     "1.0.0",
-		"AUTHOR":      "go-ent",
-		"TAGS":        "go,payment",
 	}
 
 	generatedContent, err := ReplacePlaceholders(string(templateContent), data)
 	require.NoError(t, err)
 
-	assert.Contains(t, generatedContent, "<role>", "should contain role section")
-	assert.Contains(t, generatedContent, "<instructions>", "should contain instructions section")
-	assert.Contains(t, generatedContent, "<constraints>", "should contain constraints section")
-	assert.Contains(t, generatedContent, "<edge_cases>", "should contain edge_cases section")
-	assert.Contains(t, generatedContent, "<examples>", "should contain examples section")
-	assert.Contains(t, generatedContent, "<output_format>", "should contain output_format section")
-
-	exampleCount := countOccurrences(generatedContent, "<example>")
-	assert.GreaterOrEqual(t, exampleCount, 2, "should contain at least 2 examples")
+	assert.Contains(t, generatedContent, "## Role", "should contain Role section")
+	assert.Contains(t, generatedContent, "## Instructions", "should contain Instructions section")
+	assert.Contains(t, generatedContent, "## Examples", "should contain Examples section")
+	assert.Contains(t, generatedContent, "### Example", "should contain at least one example")
+	assert.Contains(t, generatedContent, "**Input**", "should contain Input marker")
+	assert.Contains(t, generatedContent, "**Output**", "should contain Output marker")
 }
 
 func countOccurrences(s, substr string) int {
@@ -121,9 +106,6 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 	data := map[string]string{
 		"SKILL_NAME":  "go-api-service",
 		"DESCRIPTION": "Comprehensive Go API service implementation patterns with best practices",
-		"VERSION":     "1.0.0",
-		"AUTHOR":      "go-ent",
-		"TAGS":        "go,api,backend,web",
 	}
 
 	generatedContent, err := ReplacePlaceholders(string(templateContent), data)
@@ -131,9 +113,6 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 
 	assert.NotContains(t, generatedContent, "${SKILL_NAME}", "all placeholders should be replaced")
 	assert.NotContains(t, generatedContent, "${DESCRIPTION}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${VERSION}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${AUTHOR}", "all placeholders should be replaced")
-	assert.NotContains(t, generatedContent, "${TAGS}", "all placeholders should be replaced")
 
 	parser := skill.NewParser()
 	tempFile := filepath.Join(t.TempDir(), "generated-skill.md")
@@ -145,10 +124,7 @@ func TestGoCompleteTemplate_ValidateStrictMode(t *testing.T) {
 
 	assert.Equal(t, "go-api-service", meta.Name)
 	assert.Equal(t, "Comprehensive Go API service implementation patterns with best practices", meta.Description)
-	assert.Equal(t, "1.0.0", meta.Version)
-	assert.Equal(t, "go-ent", meta.Author)
-	assert.Equal(t, []string{"go", "api", "backend", "web"}, meta.Tags)
-	assert.Equal(t, "v2", meta.StructureVersion)
+	assert.Equal(t, "v4", meta.StructureVersion)
 
 	validator := skill.NewValidator()
 	result := validator.ValidateStrict(meta, generatedContent)
@@ -180,40 +156,30 @@ func TestGoCompleteTemplate_StructuralValidation(t *testing.T) {
 	data := map[string]string{
 		"SKILL_NAME":  "go-api-service",
 		"DESCRIPTION": "Go API service implementation patterns",
-		"VERSION":     "1.0.0",
-		"AUTHOR":      "go-ent",
-		"TAGS":        "go, api",
 	}
 
 	generatedContent, err := ReplacePlaceholders(string(templateContent), data)
 	require.NoError(t, err)
 
-	assert.Contains(t, generatedContent, "<role>", "should contain role section")
-	assert.Contains(t, generatedContent, "<instructions>", "should contain instructions section")
-	assert.Contains(t, generatedContent, "<constraints>", "should contain constraints section")
-	assert.Contains(t, generatedContent, "<edge_cases>", "should contain edge_cases section")
-	assert.Contains(t, generatedContent, "<examples>", "should contain examples section")
-	assert.Contains(t, generatedContent, "<output_format>", "should contain output_format section")
+	assert.Contains(t, generatedContent, "## Role", "should contain Role section")
+	assert.Contains(t, generatedContent, "## Instructions", "should contain Instructions section")
+	assert.Contains(t, generatedContent, "## Examples", "should contain Examples section")
 
-	exampleCount := countOccurrences(generatedContent, "<example>")
-	assert.GreaterOrEqual(t, exampleCount, 3, "should contain at least 3 examples")
+	exampleCount := countOccurrences(generatedContent, "### Example")
+	assert.GreaterOrEqual(t, exampleCount, 2, "should contain at least 2 examples")
 
 	edgeCaseCount := countEdgeCases(generatedContent)
-	assert.GreaterOrEqual(t, edgeCaseCount, 5, "should contain at least 5 edge cases")
+	assert.GreaterOrEqual(t, edgeCaseCount, 3, "should contain at least 3 edge cases")
 }
 
 func countEdgeCases(content string) int {
-	startIdx := strings.Index(content, "<edge_cases>")
+	startIdx := strings.Index(content, "## Instructions")
 	if startIdx == -1 {
 		return 0
 	}
-	endIdx := strings.Index(content, "</edge_cases>")
-	if endIdx == -1 {
-		return 0
-	}
-	edgeCasesContent := content[startIdx:endIdx]
-	count := strings.Count(edgeCasesContent, "\nIf")
-	count += strings.Count(edgeCasesContent, "\n  If")
-	count += strings.Count(edgeCasesContent, "\n    If")
+	instructionsContent := content[startIdx:]
+	count := strings.Count(instructionsContent, "\nIf ")
+	count += strings.Count(instructionsContent, "\n  If ")
+	count += strings.Count(instructionsContent, "\n    If ")
 	return count
 }

@@ -179,3 +179,4 @@ func (r *repository) Save(ctx context.Context, user *User) error {
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

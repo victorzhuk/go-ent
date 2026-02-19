@@ -17,7 +17,11 @@ func SyncProject(ws *Workspace, project ProjectRef) (specs, changes, pulled int,
 		slog.Warn("workspace db unavailable, syncing without index", "error", dbErr)
 	}
 	if db != nil {
-		defer db.Close()
+		defer func() {
+			if closeErr := db.Close(); closeErr != nil {
+				slog.Warn("close workspace db", "error", closeErr)
+			}
+		}()
 	}
 
 	specs, err = indexProjectSpecs(ws, project, db)

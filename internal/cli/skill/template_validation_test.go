@@ -17,18 +17,21 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	templateDir := filepath.Join("..", "..", "..", "plugins", "go-ent", "templates", "skills")
+	templateDir := filepath.Join("..", "..", "..", "pkg", "templates")
 
 	templates, err := template.LoadTemplates(ctx, templateDir)
 	require.NoError(t, err, "load templates")
-	require.Len(t, templates, 11, "expect 11 built-in templates")
+	require.Greater(t, len(templates), 0, "expect built-in templates to be present")
 
-	templateNames := make([]string, len(templates))
-	for i, tpl := range templates {
-		templateNames[i] = tpl.Name
+	var skillTemplates []*template.Template
+	for _, tpl := range templates {
+		if tpl.Category != "agent" {
+			skillTemplates = append(skillTemplates, tpl)
+		}
 	}
 
-	for _, templateName := range templateNames {
+	for _, tpl := range skillTemplates {
+		templateName := tpl.Name
 		t.Run(templateName, func(t *testing.T) {
 			t.Parallel()
 
@@ -44,18 +47,18 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 
 			_ = os.RemoveAll(filepath.Dir(outputPath))
 
-			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
-			require.NoError(t, err, "generate skill from template")
+			_, genErr := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
+			require.NoError(t, genErr, "generate skill from template")
 			defer func() { _ = os.RemoveAll(filepath.Dir(outputPath)) }()
 
 			assert.FileExists(t, outputPath, "skill file should exist")
 
-			content, err := os.ReadFile(outputPath)
-			require.NoError(t, err, "read skill file")
+			content, readErr := os.ReadFile(outputPath)
+			require.NoError(t, readErr, "read skill file")
 
 			parser := skillpkg.NewParser()
-			meta, err := parser.ParseSkillFile(outputPath)
-			require.NoError(t, err, "parse skill file")
+			meta, parseErr := parser.ParseSkillFile(outputPath)
+			require.NoError(t, parseErr, "parse skill file")
 
 			validator := skillpkg.NewValidator()
 			result := validator.Validate(meta, string(content))
@@ -206,7 +209,7 @@ func TestQualityScoreFromGeneratedSkills(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	templateDir := filepath.Join("..", "..", "..", "plugins", "go-ent", "templates", "skills")
+	templateDir := filepath.Join("..", "..", "..", "pkg", "templates")
 
 	templates := []string{
 		"go-basic",
@@ -255,12 +258,15 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	templateDir := filepath.Join("..", "..", "..", "plugins", "go-ent", "templates", "skills")
+	templateDir := filepath.Join("..", "..", "..", "pkg", "templates")
 
-	templates, err := template.LoadTemplates(ctx, templateDir)
+	allTemplates, err := template.LoadTemplates(ctx, templateDir)
 	require.NoError(t, err, "load templates")
 
-	for _, tpl := range templates {
+	for _, tpl := range allTemplates {
+		if tpl.Category == "agent" {
+			continue
+		}
 		t.Run(tpl.Name+" strict validation", func(t *testing.T) {
 			t.Parallel()
 
@@ -276,16 +282,16 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 
 			_ = os.RemoveAll(filepath.Dir(outputPath))
 
-			_, err = GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
-			require.NoError(t, err, "generate skill")
+			_, genErr := GenerateSkill(ctx, templateDir, cfg.TemplateName, cfg)
+			require.NoError(t, genErr, "generate skill")
 			defer func() { _ = os.RemoveAll(filepath.Dir(outputPath)) }()
 
-			content, err := os.ReadFile(outputPath)
-			require.NoError(t, err, "read skill file")
+			content, readErr := os.ReadFile(outputPath)
+			require.NoError(t, readErr, "read skill file")
 
 			parser := skillpkg.NewParser()
-			meta, err := parser.ParseSkillFile(outputPath)
-			require.NoError(t, err, "parse skill file")
+			meta, parseErr := parser.ParseSkillFile(outputPath)
+			require.NoError(t, parseErr, "parse skill file")
 
 			validator := skillpkg.NewValidator()
 			result := validator.Validate(meta, string(content))

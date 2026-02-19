@@ -175,6 +175,10 @@ func TestIntegration_NewCommand_5_2_3_NonInteractive(t *testing.T) {
 	})
 
 	t.Run("missing required flags", func(t *testing.T) {
+		templateDir := setupTestTemplates(t)
+		require.NoError(t, os.Setenv("GO_ENT_TEMPLATE_DIR", templateDir))
+		defer func() { _ = os.Unsetenv("GO_ENT_TEMPLATE_DIR") }()
+
 		args := []string{
 			"skill", "new", "test-skill",
 			"--non-interactive",
@@ -535,45 +539,46 @@ prompts:
 	mdContent := `---
 name: ${SKILL_NAME}
 description: "${DESCRIPTION}"
-version: "${VERSION}"
-author: "${AUTHOR}"
-tags: [${TAGS}]
 triggers:
-  - pattern: "test"
-    weight: 1.0
+  - test
+  - testing
 ---
 
 # ${SKILL_NAME}
 
-<role>
-Test role for ${SKILL_NAME}
-</role>
+## Role
 
-<instructions>
+Test role for ${SKILL_NAME}. Expert assistant for ${DESCRIPTION} with focus on quality and best practices.
+
+## Instructions
+
+### Core Patterns
+
 Test instructions for ${DESCRIPTION}.
-</instructions>
 
-<examples>
-## Example 1
-Input: test
-Output: test response
-</examples>
+Follow standard patterns:
 
-<constraints>
-- Must follow test constraints
-</constraints>
+` + "```" + `go
+// Example pattern
+func Process(input string) (string, error) {
+    if input == "" {
+        return "", fmt.Errorf("input required")
+    }
+    return input, nil
+}
+` + "```" + `
 
-<edge_cases>
-- Edge case 1
-</edge_cases>
+### Edge Cases
 
-<output_format>
-Test output format
-</output_format>
+If input is unclear: Ask clarifying questions before proceeding.
 
-<explicit_triggers>
-- test pattern
-</explicit_triggers>
+## Examples
+
+### Example 1: Basic usage
+
+**Input**: test
+
+**Output**: test response
 `
 
 	mdPath := filepath.Join(templateDir, "template.md")

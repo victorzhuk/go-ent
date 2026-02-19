@@ -98,3 +98,4 @@ If documentation is missing for public APIs: Request documentation updates but m
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

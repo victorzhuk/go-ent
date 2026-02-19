@@ -324,46 +324,41 @@ func TestGenerateSkill(t *testing.T) {
 
 		templateContent := `---
 name: ${SKILL_NAME}
-description: "${SKILL_DESCRIPTION}"
-version: "1.0.0"
-author: "Test Author"
-tags: ["test", "template"]
+description: "${DESCRIPTION}"
 triggers:
-  - pattern: "test"
-    weight: 0.9
+  - test
+  - template
 ---
 
-# ${SKILL_NAME}
+## Role
 
-<role>
-You are an expert test skill with extensive experience in testing patterns.
-You follow best practices and write clean, maintainable code.
-</role>
+Expert test skill for ${SKILL_NAME} with extensive experience in testing patterns. Follow best practices and write clean, maintainable code focused on quality.
 
-<instructions>
-This is a test skill for ${SKILL_NAME}.
-${SKILL_DESCRIPTION}
+## Instructions
 
-## Testing Patterns
+### Core Approach
 
-Follow standard testing practices.
-</instructions>
+This is a test skill for ${SKILL_NAME}: ${DESCRIPTION}
 
-<constraints>
-- Write clean test code
-- Follow testing best practices
-</constraints>
+Provide helpful guidance using standard patterns:
 
-<examples>
-<example>
-<input>Test input</input>
-<output>Test output</output>
-</example>
-</examples>
+` + "```" + `go
+func Process() error {
+    return nil
+}
+` + "```" + `
 
-<output_format>
-Provide clean, well-structured test code with examples.
-</output_format>
+### Testing Patterns
+
+Follow standard testing practices and keep tests focused and maintainable.
+
+## Examples
+
+### Example 1: Basic test
+
+**Input**: Test input
+
+**Output**: Test output
 `
 
 		if err := os.WriteFile(templateFile, []byte(templateContent), 0o644); err != nil {
@@ -437,38 +432,38 @@ prompts:
 
 		templateContent := `---
 name: ${SKILL_NAME}
-description: "${SKILL_DESCRIPTION}"
-version: "1.0.0"
-author: "Test Author"
-tags: ["test"]
+description: "${DESCRIPTION}"
+triggers:
+  - test
 ---
 
-# ${SKILL_NAME}
+## Role
 
-<role>
-You are an expert test skill with extensive experience.
-You provide clear guidance and follow best practices.
-</role>
+Expert test skill for ${SKILL_NAME} with extensive experience. Provide clear guidance and follow best practices for quality and maintainability.
 
-<instructions>
-Test instructions for ${SKILL_NAME}.
-</instructions>
+## Instructions
 
-<constraints>
-- Follow best practices
-- Write clean code
-</constraints>
+### Core Approach
 
-<examples>
-<example>
-<input>Test input</input>
-<output>Test output</output>
-</example>
-</examples>
+Test instructions for ${SKILL_NAME}. Follow standard patterns:
 
-<output_format>
-Provide clear, well-documented code examples.
-</output_format>
+` + "```" + `go
+func Process() error {
+    return nil
+}
+` + "```" + `
+
+### Best Practices
+
+Follow best practices and write clean, maintainable code.
+
+## Examples
+
+### Example 1: Basic usage
+
+**Input**: Test input
+
+**Output**: Test output
 `
 
 		if err := os.WriteFile(templatePath+"/template.md", []byte(templateContent), 0o644); err != nil {

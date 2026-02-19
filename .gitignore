@@ -48,3 +48,4 @@ internal/mcp/tools/exports/
 internal/mcp/tools/*.json
 internal/mcp/tools/*.csv
 internal/mcp/tools/*.prom
+.worktrees/

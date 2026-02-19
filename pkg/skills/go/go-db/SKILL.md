@@ -109,3 +109,4 @@ func (r *Repository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, 
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

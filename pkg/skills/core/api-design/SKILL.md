@@ -111,3 +111,4 @@ See `references/graphql-patterns.md` for complete GraphQL schema with Relay conn
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

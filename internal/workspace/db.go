@@ -65,7 +65,9 @@ func OpenDB(name string) (*WorkspaceDB, error) {
 		}
 		return nil
 	}); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			slog.Warn("close db after init failure", "error", closeErr)
+		}
 		return nil, fmt.Errorf("init buckets: %w", err)
 	}
 

@@ -88,6 +88,7 @@ func validateRoleSectionV4(ctx *ValidationContext) []ValidationIssue {
 			Severity:   SeverityError,
 			Message:    fmt.Sprintf("## Role section too short: %d chars (minimum: 50)", roleLen),
 			Suggestion: "Expand persona definition to at least 50 characters",
+			Example:    "## Role\n\nExpert Go engineer with focus on error handling, clean code, and idiomatic patterns.",
 			Line:       findLineNumber(ctx.Lines, "## Role"),
 		}}
 	}
@@ -125,6 +126,7 @@ func validateInstructionsSectionV4(ctx *ValidationContext) []ValidationIssue {
 			Severity:   SeverityError,
 			Message:    fmt.Sprintf("## Instructions section too short: %d chars (minimum: 200)", instrLen),
 			Suggestion: "Expand instructions to at least 200 characters",
+			Example:    "## Instructions\n\n### Core Approach\n\nProvide guidance using standard patterns:\n\n```go\nfunc Process() error {\n    return nil\n}\n```\n\n### Edge Cases\n\nIf unclear: ask clarifying questions.",
 			Line:       findLineNumber(ctx.Lines, "## Instructions"),
 		}}
 	}
@@ -175,6 +177,7 @@ func validateExamplesSectionV4(ctx *ValidationContext) []ValidationIssue {
 			Severity:   SeverityError,
 			Message:    "## Examples section must contain at least one example (### Example N:)",
 			Suggestion: "Add at least one example with ### Example 1: heading",
+			Example:    "### Example 1: Basic usage\n\n**Input**: user request\n\n**Output**: response",
 			Line:       findLineNumber(ctx.Lines, "## Examples"),
 		}}
 	}
@@ -188,6 +191,7 @@ func validateExamplesSectionV4(ctx *ValidationContext) []ValidationIssue {
 			Severity:   SeverityError,
 			Message:    "Each example must have both **Input** and **Output**",
 			Suggestion: "Format examples with: ### Example N: Description\n\n**Input**: ...\n\n**Output**: ...",
+			Example:    "### Example 1: Basic usage\n\n**Input**: user request\n\n**Output**: response",
 			Line:       findLineNumber(ctx.Lines, "## Examples"),
 		}}
 	}

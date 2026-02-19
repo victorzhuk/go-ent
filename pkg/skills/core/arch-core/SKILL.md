@@ -181,3 +181,4 @@ If communication overhead is high between teams: Consider aligning bounded conte
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

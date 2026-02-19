@@ -165,3 +165,4 @@ go test -coverprofile=c.out ./...   # Coverage
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)

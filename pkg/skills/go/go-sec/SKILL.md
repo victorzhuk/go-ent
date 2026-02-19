@@ -173,3 +173,4 @@ func (v *TokenValidator) Validate(tokenStr string) (*Claims, error) {
 ## References
 
 - [Constraints](references/constraints.md)
+- [Community Patterns](references/community-patterns.md)
