@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lack of tool discoverability for agents
 
 ### Migration
-See `docs/archive/MIGRATION_TOOL_NAMES.md` for the complete migration guide.
+Tool names were shortened (e.g. `go_ent_skill_list` → `skill_list`).
 
 ---
 

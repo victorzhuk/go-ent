@@ -1,12 +1,10 @@
-# OpenCode Engineering Guide — Documentation-Verified
+# OpenCode Extension Reference
 
-This guide contains ONLY information verified against official OpenCode documentation at opencode.ai/docs.
+Reference for creating agents, skills, and commands in OpenCode. Verified against opencode.ai/docs.
 
 ---
 
-## 1. Tools (from opencode.ai/docs/tools)
-
-### Built-in Tools
+## 1. Tools
 
 | Tool | Purpose | Permission Key |
 |------|---------|----------------|
@@ -25,30 +23,14 @@ This guide contains ONLY information verified against official OpenCode document
 | `webfetch` | Fetch web content | `webfetch` |
 | `question` | Ask user questions | `question` |
 
-### Key Notes from Documentation
-
+**Notes:**
 - `write` and `patch` are controlled by `edit` permission
-- `todowrite` and `todoread` are **disabled for subagents by default**
-- Tools use ripgrep internally, respecting .gitignore
-
-### Tools That DO NOT Exist
-
-These are commonly assumed but NOT in OpenCode:
-- ~~`websearch`~~ — Use `webfetch` with URLs
-- ~~`task`~~ — Subagents are invoked via Task tool automatically
-- ~~`str_replace`~~ — It's called `edit`
+- `todowrite` and `todoread` are disabled for subagents by default
+- No `websearch` tool — use `webfetch` with URLs
 
 ---
 
-## 2. Agents (from opencode.ai/docs/agents)
-
-### Agent Types
-
-| Type | Description | Invocation |
-|------|-------------|------------|
-| `primary` | Main interaction agents | Tab key cycling |
-| `subagent` | Specialized task agents | @ mention or automatic |
-| `all` | Both modes (default) | Either method |
+## 2. Agents
 
 ### Built-in Agents
 
@@ -59,9 +41,9 @@ These are commonly assumed but NOT in OpenCode:
 | **General** | subagent | Full tools except todo. Multi-step tasks. |
 | **Explore** | subagent | Read-only. Cannot modify files. |
 
-### Configuration Methods
+### Configuration
 
-**Method 1: JSON** (`opencode.json`)
+**JSON** (`opencode.json`):
 
 ```json
 {
@@ -85,25 +67,22 @@ These are commonly assumed but NOT in OpenCode:
 }
 ```
 
-**Method 2: Markdown** (`.opencode/agents/my-agent.md`)
+**Markdown** (`.opencode/agents/my-agent.md`):
 
 ```markdown
 ---
 description: What it does and when to use it
 mode: subagent
 model: anthropic/claude-sonnet-4-20250514
-temperature: 0.3
 tools:
   edit: false
   write: false
-permission:
-  bash: ask
 ---
 
-System prompt content here (natural language).
+System prompt content here.
 ```
 
-### Frontmatter Fields (Documented)
+### Frontmatter Fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -118,33 +97,11 @@ System prompt content here (natural language).
 | `permission` | No | Tool permissions |
 | `hidden` | No | Hide from @ menu (subagents only) |
 
-### Task Permissions
-
-Control which subagents an agent can invoke:
-
-```json
-{
-  "agent": {
-    "orchestrator": {
-      "permission": {
-        "task": {
-          "*": "deny",
-          "helper-*": "allow",
-          "reviewer": "ask"
-        }
-      }
-    }
-  }
-}
-```
-
-Last matching rule wins.
-
 ---
 
-## 3. Skills (from opencode.ai/docs/skills)
+## 3. Skills
 
-### Skill Locations
+### Locations
 
 | Location | Scope |
 |----------|-------|
@@ -164,347 +121,49 @@ metadata:
   domain: go
 ---
 
-Skill content here (natural language instructions).
+Skill content here.
 ```
 
-### Frontmatter Fields (Documented)
+### Frontmatter Fields
 
 | Field | Required | Constraints |
 |-------|----------|-------------|
-| `name` | **Yes** | 1-64 chars, lowercase, hyphen-separated |
+| `name` | **Yes** | 1-64 chars, `^[a-z0-9]+(-[a-z0-9]+)*$`, must match directory name |
 | `description` | **Yes** | 1-1024 chars |
 | `license` | No | String |
 | `compatibility` | No | String |
 | `metadata` | No | String-to-string map |
 
-### Name Validation
-
-```regex
-^[a-z0-9]+(-[a-z0-9]+)*$
-```
-
-Name MUST match the directory name.
-
-### Skill Permissions
-
-```json
-{
-  "permission": {
-    "skill": {
-      "*": "allow",
-      "internal-*": "deny"
-    }
-  }
-}
-```
-
 ---
 
-## 4. Commands (from opencode.ai/docs/commands)
+## 4. Commands
 
-### Command Locations
+### Locations
 
 | Location | Scope |
 |----------|-------|
 | `.opencode/commands/<name>.md` | Project |
 | `~/.config/opencode/commands/<name>.md` | Global |
 
-### Command Format
+### Format
 
 ```markdown
 ---
 description: What this command does
 ---
 
-Prompt content here.
+Prompt content here. Use $ARGUMENTS for the full argument string.
 ```
 
 Filename becomes command name: `test.md` → `/test`
 
-### Arguments
-
-Use `$ARGUMENTS` for the full argument string:
-
-```markdown
----
-description: Create a component
----
-
-Create a new React component named $ARGUMENTS with TypeScript.
-```
-
-Usage: `/component Button`
-
-### Bash Injection
-
-Use `!command` to include bash output:
-
-```markdown
----
-description: Analyze test coverage
----
-
-!go test -cover ./...
-
-Based on these results, suggest improvements.
-```
-
-### File Inclusion
-
-Use `@filename` to include file contents:
-
-```markdown
-Review the changes in @README.md
-```
-
----
-
-## 5. Permissions (from opencode.ai/docs/permissions)
-
-### Permission Values
-
-| Value | Behavior |
-|-------|----------|
-| `allow` | Execute without asking |
-| `ask` | Prompt for approval |
-| `deny` | Block entirely |
-
-### Global Permissions
-
-```json
-{
-  "permission": {
-    "edit": "ask",
-    "bash": "ask",
-    "webfetch": "allow"
-  }
-}
-```
-
-### Granular Bash Permissions
-
-```json
-{
-  "permission": {
-    "bash": {
-      "*": "ask",
-      "go build*": "allow",
-      "go test*": "allow",
-      "rm *": "deny"
-    }
-  }
-}
-```
-
-**Rule**: Last matching pattern wins.
-
-### Per-Agent Permissions
-
-```json
-{
-  "agent": {
-    "build": {
-      "permission": {
-        "bash": {
-          "*": "ask",
-          "git status*": "allow"
-        }
-      }
-    }
-  }
-}
-```
-
----
-
-## 6. File Locations Summary
-
-| Component | Project | Global |
-|-----------|---------|--------|
-| Config | `opencode.json` | `~/.config/opencode/opencode.json` |
-| Rules | `AGENTS.md` | `~/.config/opencode/AGENTS.md` |
-| Agents | `.opencode/agents/*.md` | `~/.config/opencode/agents/*.md` |
-| Skills | `.opencode/skills/*/SKILL.md` | `~/.config/opencode/skills/*/SKILL.md` |
-| Commands | `.opencode/commands/*.md` | `~/.config/opencode/commands/*.md` |
-
----
-
-## 7. Agent Prompt Writing
-
-### What Documentation Shows
-
-Agent prompts are **natural language instructions**. The documentation examples show:
-
-```markdown
----
-description: Reviews code for quality
-mode: subagent
-tools:
-  edit: false
----
-
-You are in code review mode. Focus on:
-
-- Code quality and best practices
-- Potential bugs and edge cases
-- Performance implications
-- Security considerations
-
-Provide constructive feedback without making direct changes.
-```
-
-### What Documentation Does NOT Show
-
-- YAML syntax for tool invocation
-- Parameter formats for tools
-- Tool response formats
-
-Tools are invoked by the LLM based on the conversation context, not by explicit syntax in the prompt.
-
----
-
-## 8. Subagent Invocation
-
-### From Documentation
-
-1. **Automatic**: Primary agents can invoke subagents via Task tool based on descriptions
-2. **Manual**: Users can @ mention subagents: `@explore find auth files`
-
-### Task Permissions
-
-Control automatic invocation:
-
-```json
-{
-  "agent": {
-    "orchestrator": {
-      "permission": {
-        "task": {
-          "*": "deny",
-          "helper-*": "allow"
-        }
-      }
-    }
-  }
-}
-```
-
-### Hidden Subagents
-
-Hide from @ autocomplete but allow programmatic invocation:
-
-```json
-{
-  "agent": {
-    "internal-helper": {
-      "mode": "subagent",
-      "hidden": true
-    }
-  }
-}
-```
-
----
-
-## 9. Common Patterns
-
-### Read-Only Agent
-
-```markdown
----
-description: Analyzes code without making changes
-mode: subagent
-tools:
-  edit: false
-  write: false
-  patch: false
-  bash: false
----
-
-You analyze code and provide insights.
-You cannot modify files.
-```
-
-### Restricted Primary Agent
-
-```markdown
----
-description: Orchestrator with limited bash access
-mode: primary
-tools:
-  edit: false
-  write: false
-permission:
-  bash:
-    "*": deny
-    "ls *": allow
-    "cat *": allow
-    "go build*": allow
-    "go test*": allow
----
-
-You coordinate work by delegating to subagents.
-```
-
-### Full-Access Subagent
-
-```markdown
----
-description: Implementation agent with file access
-mode: subagent
-tools:
-  edit: true
-  write: true
-  bash: true
-  todowrite: false
----
-
-You implement code changes as directed.
-```
-
-Note: `todowrite: false` because it's disabled for subagents by default per docs.
-
----
-
-## 10. What NOT to Do
-
-### Don't Invent Tool Syntax
-
-❌ Wrong (invented):
-```yaml
-read:
-  path: "file.go"
-  
-grep:
-  pattern: "func.*"
-  path: "internal/"
-```
-
-✅ Right (natural language):
-```
-Read the file at internal/service/user.go.
-Search for functions matching "Handler" in the internal directory.
-```
-
-### Don't Assume Tools Exist
-
-❌ Wrong:
-```
-Use websearch to find documentation.
-Use the task tool to delegate work.
-```
-
-✅ Right:
-```
-Use webfetch to retrieve the documentation URL.
-@ mention the subagent to delegate work.
-```
-
-### Don't Invent Frontmatter Fields
-
-Only use fields documented at opencode.ai/docs/agents:
-- description, mode, model, temperature, maxSteps
-- disable, prompt, tools, permission, hidden
+### Argument and Injection Features
+
+| Feature | Syntax | Example |
+|---------|--------|---------|
+| Arguments | `$ARGUMENTS` | `/component Button` |
+| Bash injection | `!command` | `!go test -cover ./...` |
+| File inclusion | `@filename` | `@README.md` |
 
 ---
 

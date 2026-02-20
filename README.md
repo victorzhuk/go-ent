@@ -542,8 +542,6 @@ MIT
 ## References
 
 - **[Documentation Index](docs/INDEX.md)** — Central navigation hub
-- **[Architecture](docs/ARCHITECTURE.md)** — System architecture overview
-- **[Conventions](docs/CONVENTIONS.md)** — Code style, error handling, testing
 - **[Workspaces](docs/WORKSPACES.md)** — Multi-project workspace support
 - **[MCP Specification](https://modelcontextprotocol.io)** — Model Context Protocol
 - **[Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)**
