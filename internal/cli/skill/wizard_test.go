@@ -325,16 +325,14 @@ func TestGenerateSkill(t *testing.T) {
 		templateContent := `---
 name: ${SKILL_NAME}
 description: "${DESCRIPTION}"
-triggers:
-  - test
-  - template
+status: draft
 ---
 
-## Role
+## Overview
 
 Expert test skill for ${SKILL_NAME} with extensive experience in testing patterns. Follow best practices and write clean, maintainable code focused on quality.
 
-## Instructions
+## Implementation
 
 ### Core Approach
 
@@ -351,14 +349,6 @@ func Process() error {
 ### Testing Patterns
 
 Follow standard testing practices and keep tests focused and maintainable.
-
-## Examples
-
-### Example 1: Basic test
-
-**Input**: Test input
-
-**Output**: Test output
 `
 
 		if err := os.WriteFile(templateFile, []byte(templateContent), 0o644); err != nil {

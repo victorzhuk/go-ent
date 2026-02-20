@@ -40,7 +40,7 @@ func TestGenerateAndValidateAllTemplates(t *testing.T) {
 			cfg := &WizardConfig{
 				Name:         "test-" + templateName,
 				TemplateName: templateName,
-				Description:  "Test skill generated from " + templateName + " template",
+				Description:  "This skill should be used when the user asks to use " + templateName + " patterns",
 				Category:     templateName,
 				OutputPath:   outputPath,
 			}
@@ -232,9 +232,9 @@ func TestQualityScoreFromGeneratedSkills(t *testing.T) {
 			outputPath := filepath.Join(os.TempDir(), "go-ent-quality-test", templateName, "SKILL.md")
 
 			cfg := &WizardConfig{
-				Name:         "test-quality-" + templateName,
+				Name:         templateName,
 				TemplateName: templateName,
-				Description:  "Quality score test for " + templateName + " template",
+				Description:  "This skill should be used when the user asks to use " + templateName + " quality patterns",
 				Category:     templateName,
 				OutputPath:   outputPath,
 			}
@@ -273,9 +273,9 @@ func TestStrictValidationForAllTemplates(t *testing.T) {
 			outputPath := filepath.Join(os.TempDir(), "go-ent-strict-test", tpl.Name, "SKILL.md")
 
 			cfg := &WizardConfig{
-				Name:         "test-strict-" + tpl.Name,
+				Name:         tpl.Name,
 				TemplateName: tpl.Name,
-				Description:  "Strict validation test for " + tpl.Name,
+				Description:  "This skill should be used when the user asks to " + tpl.Name + " tasks",
 				Category:     tpl.Name,
 				OutputPath:   outputPath,
 			}

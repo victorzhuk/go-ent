@@ -5,21 +5,20 @@ This project uses its own plugin system for development (dogfooding).
 
 **Documentation**: See [docs/INDEX.md](docs/INDEX.md) for complete documentation index.
 
-When working on go-ent itself:
-
-- Use `/ent:plan <description>` to create change proposals
-- Use `/ent:apply` to execute tasks from the registry
-- Skills (`go-code`, `go-arch`, `go-api`, `task-router`, etc.) auto-activate based on task content
+When working on go-ent itself, use `/opsx:` slash commands — the plugin is loaded via `ent init`.
 
 ### Key Workflow Commands
 
-| Command                    | Purpose                                                 |
-|----------------------------|---------------------------------------------------------|
-| `/ent:plan`                | Full planning workflow (clarify -> research -> decompose) |
-| `/ent:apply`               | Execute next task from registry                         |
-| `/ent:status`              | View workflow state and progress                        |
-| `/ent:registry list`       | Show all tasks across proposals                         |
-| `/ent:archive <change-id>` | Archive completed change after deployment               |
+| Command | Purpose |
+|---------|---------|
+| `/opsx:explore` | Think through ideas, investigate problems |
+| `/opsx:new` | Start a new change |
+| `/opsx:continue` | Continue working on a change |
+| `/opsx:apply` | Execute tasks from change |
+| `/opsx:ff` | Fast-forward all artifacts |
+| `/opsx:sync` | Sync delta specs |
+| `/opsx:archive` | Archive completed change |
+| `/opsx:verify` | Verify implementation |
 
 ### Skills Auto-Activate
 
@@ -35,8 +34,6 @@ When spawning subagents for parallel or isolated work:
 | Implementation, testing, planning | sonnet | general-purpose |
 | Architecture, review, deep debug | opus | general-purpose or Explore |
 
-See the `task-router` skill for the full routing table and invocation patterns.
-
 ### Quick Start
 
 1. **Build the MCP server:**
@@ -44,21 +41,26 @@ See the `task-router` skill for the full routing table and invocation patterns.
    make build
    ```
 
-2. **Restart Claude Code** to load the plugin
-
-3. **Create a new change:**
-   ```
-   /ent:plan Add new feature description
+2. **Install into Claude Code:**
+   ```bash
+   ent init --tools=claude
    ```
 
-4. **Execute tasks:**
+3. **Restart Claude Code** to load the plugin
+
+4. **Create a new change:**
    ```
-   /ent:apply
+   /opsx:new Add new feature description
    ```
 
-5. **Archive when deployed:**
+5. **Execute tasks:**
    ```
-   /ent:archive change-id
+   /opsx:apply
+   ```
+
+6. **Archive when deployed:**
+   ```
+   /opsx:archive change-id
    ```
 
 See [docs/INDEX.md](docs/INDEX.md) for full documentation including:

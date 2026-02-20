@@ -22,26 +22,22 @@
 
 - [Features](#features)
 - [Quick Start](#quick-start)
-- [Architecture v2.0](#architecture-v20)
+- [Architecture](#architecture)
 - [MCP Tools](#mcp-tools)
 - [CLI Commands](#cli-commands)
-- [Skill Template System](#skill-template-system)
 - [Available Commands](#available-commands)
 - [Available Agents](#available-agents)
 - [Skills](#skills-auto-activated)
+- [Skill Template System](#skill-template-system)
 - [Building from Source](#building-from-source)
 - [Project Structure](#project-structure)
 - [Standards Enforced](#standards-enforced)
-- [How It Works](#how-it-works-v20)
-- [Migration from v1.x](#migration-from-v1x)
+- [How It Works](#how-it-works)
 - [Contributing](#contributing)
 - [License](#license)
 - [References](#references)
 
 ---
-
-> [!IMPORTANT]
-> **Architecture v2.0** (Current release: v0.3.0) - MCP server for spec-driven development with multi-agent orchestration.
 
 ## Features
 
@@ -52,101 +48,87 @@
 - 📋 **Spec-driven development** with `openspec` folder management
 - 🤖 **MCP server** for spec/task management tools
 - 🔧 **Hooks** for automatic formatting and safety
-- 🤖 **Specialized agents** (architect, debug, dev, lead, planner, reviewer, tester)
+- 🤖 **Specialized agents** (coder, planner, researcher, reviewer, scout)
 - ⚡ **Slash commands** for common workflows
 
 ## Quick Start
 
-### 1. Install Plugin
+### 1. Build and Install
 
-Add the plugin source to your Claude Code settings:
+```bash
+# Clone repository
+git clone https://github.com/victorzhuk/go-ent.git
+cd go-ent
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "go-ent": {
-      "source": {
-        "source": "directory",
-        "path": "/path/to/go-ent/plugins/go-ent"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "go-ent@go-ent": true
-  }
-}
+# Build the MCP server binary
+make build
+
+# Install into Claude Code (writes to ~/.claude/)
+ent init --tools=claude
 ```
 
-Then restart Claude Code.
+Then restart Claude Code to load the plugin.
 
 ### 2. Using ent
 
-**Via MCP (in Claude Code):**
-
-Use MCP tools to manage your project specs:
+**Via slash commands (in Claude Code):**
 
 ```
-# Initialize openspec folder in your project
-Call go_ent_spec_init tool with path to your project
+# Start a new change
+/opsx:new Add user authentication
 
-# Create a new spec
-Call go_ent_spec_create tool with type="spec", id="user-auth", content="..."
+# Execute tasks from a change
+/opsx:apply
 
-# List all specs
-Call go_ent_spec_list tool with type="spec"
+# Archive when complete
+/opsx:archive change-id
 ```
 
 **Via CLI (standalone):**
 
-The `ent` binary can also be used as a standalone CLI:
-
 ```bash
-# Initialize ent configuration
-ent init --tool=claude
-
 # View configuration
 ent config show
 
 # List available agents
 ent agent list
 
-# Initialize OpenSpec
+# Initialize OpenSpec in your project
 ent spec init
 ```
 
-See [CLI Examples](docs/CLI_EXAMPLES.md) for detailed usage.
+## Architecture
 
-The LLM (Claude Code) will generate code based on specs and templates, not copy-paste them.
-
-## Architecture v2.0
-
-### MCP Server
-
-The `ent` binary is now an MCP server that provides tools for managing `openspec` folders:
+### Project Layout
 
 ```
 go-ent/
-├── cmd/ent/                # MCP server
+├── cmd/ent/                 # MCP server binary entry point
 │   └── main.go             # stdio transport
-├── internal/
-│   ├── mcp/
-│   │   ├── server/         # MCP setup
-│   │   └── tools/          # Tool handlers (25 tools)
-│   ├── spec/               # Spec management domain
-│   ├── templates/          # Reference patterns (embedded)
-│   └── domain/             # Core domain types
-├── plugins/go-ent/          # Claude Code plugin
-│   ├── agents/             # 7 agent definitions
-│   ├── commands/           # 16 slash commands
-│   ├── skills/             # 10 skill definitions
-│   └── .claude-plugin/
-│       ├── plugin.json     # MCP configuration
-│       └── marketplace.json
-└── openspec/               # Self-hosted development
+├── internal/               # Implementation packages
+│   ├── agent/              # Agent types and selection logic
+│   ├── cli/                # CLI application
+│   ├── config/             # Configuration management
+│   ├── hooks/              # Hook registry and execution
+│   ├── mcp/                # MCP server and tool registration
+│   ├── openspec/           # OpenSpec client (change management)
+│   ├── skill/              # Skill registry and parsing
+│   ├── spec/               # Spec store (BoltDB-backed task registry)
+│   ├── template/           # Skill template system
+│   ├── workspace/          # Multi-project workspace support
+│   └── xdg/               # XDG base directory paths
+├── pkg/                    # Embeddable plugin assets
+│   ├── agents/meta/        # 5 agent definitions (YAML)
+│   ├── commands/           # Slash command definitions
+│   ├── skills/             # ~80 skill definitions (SKILL.md)
+│   ├── templates/          # 12 skill templates
+│   ├── hooks/              # Hook configurations
+│   └── schemas/            # Agent schema + examples
+└── openspec/               # Self-hosted development specs
     ├── project.yaml
     ├── specs/
     ├── changes/
-    └── tasks/
+    └── archive/
 ```
 
 ### `openspec` Folder Structure
@@ -163,105 +145,110 @@ project/openspec/
 │       ├── proposal.md
 │       ├── tasks.md
 │       └── design.md
-├── tasks/                  # Standalone tasks
 └── archive/                # Completed changes
 ```
 
 ## MCP Tools
 
-### Spec Management
+### Skill
 
 | Tool | Description |
 |------|-------------|
-| `go_ent_spec_init` | Initialize openspec folder in project |
-| `go_ent_spec_list` | List specs, changes, or tasks |
-| `go_ent_spec_show` | Show detailed content |
-| `go_ent_spec_create` | Create new spec/change/task |
-| `go_ent_spec_update` | Update existing item |
-| `go_ent_spec_delete` | Delete item |
-| `go_ent_spec_validate` | Validate specs against rules |
-| `go_ent_spec_archive` | Archive completed changes |
+| `skill_list` | List all available skills |
+| `skill_info` | Get detailed skill information |
+| `skill_validate` | Validate a skill against quality rules |
+| `skill_match` | Match skills to a task description |
+
+### OpenSpec
+
+| Tool | Description |
+|------|-------------|
+| `openspec_new_change` | Create a new change proposal |
+| `openspec_archive` | Archive a completed change |
+| `openspec_validate` | Validate openspec documents |
+| `openspec_instructions` | Get workflow instructions |
 
 ### Registry
 
 | Tool | Description |
 |------|-------------|
-| `go_ent_registry_init` | Initialize task registry |
-| `go_ent_registry_list` | List all tasks in registry |
-| `go_ent_registry_next` | Get next recommended tasks |
-| `go_ent_registry_update` | Update task status/priority |
-| `go_ent_registry_deps` | Show task dependencies |
-| `go_ent_registry_sync` | Sync tasks across proposals |
+| `registry_list_changes` | List all changes |
+| `registry_list_tasks` | List all tasks across changes |
+| `registry_get_change` | Get detailed change content |
+| `registry_status` | Show registry summary |
+| `registry_next_task` | Get next recommended task |
+| `registry_deps` | Show task dependencies |
+| `registry_mark_done` | Mark a task as completed |
+| `registry_start_task` | Mark a task as in-progress |
+| `registry_sync` | Sync tasks across proposals |
 
-### Workflow
-
-| Tool | Description |
-|------|-------------|
-| `go_ent_workflow_start` | Start planning workflow |
-| `go_ent_workflow_status` | Get workflow status |
-| `go_ent_workflow_approve` | Approve workflow step |
-
-### Loop
+### Agent
 
 | Tool | Description |
 |------|-------------|
-| `go_ent_loop_start` | Start autonomous loop |
-| `go_ent_loop_get` | Get loop status |
-| `go_ent_loop_set` | Update loop parameters |
-| `go_ent_loop_cancel` | Cancel loop |
+| `agent_list` | List all available agents |
+| `agent_info` | Get detailed agent information |
+| `agent_generate` | Generate an agent definition |
+
+### Configuration
+
+| Tool | Description |
+|------|-------------|
+| `config_show` | Show current configuration |
+| `config_set` | Update a configuration value |
+
+### Workspace
+
+| Tool | Description |
+|------|-------------|
+| `workspace_specs` | List specs across workspace projects |
+| `workspace_projects` | List workspace projects |
+
+### Discovery
+
+| Tool | Description |
+|------|-------------|
+| `tool_list` | List all available MCP tools |
 
 ### Generation
 
 | Tool | Description |
 |------|-------------|
-| `go_ent_generate` | Generate code from templates |
-| `go_ent_generate_component` | Generate specific component |
-| `go_ent_generate_from_spec` | Generate from OpenSpec |
-| `go_ent_list_archetypes` | List available archetypes |
+| `generate` | Generate code from templates |
 
 ## CLI Commands
 
-The `ent` binary can run in two modes:
-
-1. **MCP Server Mode** (default): Communicates via stdio with Claude Code
-2. **CLI Mode**: Standalone command-line interface for automation and scripting
+The `ent` binary runs as an MCP server by default (stdio transport) and also supports CLI mode.
 
 ### Initialization
 
 ```bash
-# Initialize ent configuration for Claude Code
-ent init --tool=claude
+# Install into Claude Code
+ent init --tools=claude
 
-# Initialize for OpenCode
-ent init --tool=opencode
+# Install into OpenCode
+ent init --tools=opencode
 
-# Initialize for both platforms
-ent init --tool=claude,opencode
+# Install into both
+ent init --tools=claude,opencode
 
-# Use custom prefix for agent directories
-ent init --tool=claude --prefix=myproject
-
-# Preview changes without writing files
-ent init --tool=claude --dry-run
+# Preview without writing files
+ent init --tools=claude --dry-run
 
 # Force overwrite existing files
-ent init --tool=claude --force
+ent init --tools=claude --force
 ```
 
 ### Configuration Management
 
 ```bash
-# Initialize configuration
-ent config init [path]
-
 # Show current configuration
-ent config show [path]
+ent config show
 ent config show --format summary
 
 # Modify configuration
-ent config set <key> <value> [path]
+ent config set <key> <value>
 ent config set budget.daily 25
-ent config set agents.default architect
 ```
 
 ### Agent Management
@@ -273,7 +260,7 @@ ent agent list --detailed
 
 # Get agent information
 ent agent info <name>
-ent agent info architect
+ent agent info coder
 ```
 
 ### Skill Management
@@ -281,11 +268,9 @@ ent agent info architect
 ```bash
 # List all skills
 ent skill list
-ent skill list --detailed
 
 # Get skill information
-ent skill info <name>
-ent skill info go-arch
+ent skill info go-code
 
 # Create new skill from template
 ent skill new <name>              # Interactive mode
@@ -296,30 +281,25 @@ ent skill new go-payment \
 # List available templates
 ent skill list-templates
 ent skill list-templates --category go
-ent skill list-templates --built-in
 
 # Show template details
-ent skill show-template <name>
 ent skill show-template go-complete
 
 # Add custom template
-ent skill add-template <path>
 ent skill add-template ./my-template
 ```
 
 ### Spec Management
 
 ```bash
-# Initialize OpenSpec
+# Initialize OpenSpec in a project
 ent spec init [path]
 
 # List specs or changes
-ent spec list <type>  # type: spec, change
 ent spec list spec
 ent spec list change
 
 # Show specific spec or change
-ent spec show <type> <id>
 ent spec show spec api
 ent spec show change add-authentication
 ```
@@ -327,91 +307,72 @@ ent spec show change add-authentication
 ### Global Flags
 
 ```bash
-# Use custom config file
 ent --config /path/to/config.yaml <command>
-
-# Verbose output
 ent --verbose <command>
-
-# Show version
 ent version
 ```
 
-**Full CLI documentation:** [CLI Examples](docs/CLI_EXAMPLES.md)
-
 ## Available Commands
 
-> **Note:** The following are **slash commands** for use within Claude Code, not CLI commands.
-
-### Planning & Workflow
+> **Note:** These are **slash commands** for use within Claude Code, installed via `ent init`.
 
 | Command | Description |
 |---------|-------------|
-| `/plan <feature>` | Comprehensive planning workflow with research, design, and task decomposition |
-| `/clarify <change-id>` | Ask focused questions to clarify underspecified requirements |
-| `/research <change-id> [topic]` | Structured research phase for unknowns and technology decisions |
-| `/decompose <change-id>` | Break proposal into dependency-aware, trackable tasks |
-| `/analyze <change-id>` | Cross-document consistency validation (read-only) |
-
-### Execution
-
-| Command | Description |
-|---------|-------------|
-| `/apply` | Execute tasks from OpenSpec change proposal |
-| `/loop <task-description> [--max-iterations=10]` | Start autonomous work loop with self-correction |
-| `/loop-cancel` | Cancel running autonomous loop |
-| `/tdd` | Test-driven development cycle (Red-Green-Refactor) |
-
-### Project Management
-
-| Command | Description |
-|---------|-------------|
-| `/init <project-name> [module-path] [--type=http\|mcp]` | Initialize a new Go enterprise project with Clean Architecture structure |
-| `/scaffold <type> <name> [impl]` | Scaffold Go components (entity, repository, usecase, handler, service) |
-| `/gen` | Generate code from OpenAPI/Proto specs |
-| `/status` | View status of all OpenSpec changes |
-| `/archive` | Archive completed OpenSpec change |
-| `/registry` | Manage OpenSpec task registry |
-
-### Quality
-
-| Command | Description |
-|---------|-------------|
-| `/lint` | Run Go linters and fix issues |
+| `/opsx:explore` | Think through ideas and investigate problems |
+| `/opsx:new` | Start a new change with spec-driven workflow |
+| `/opsx:continue` | Continue working on an existing change |
+| `/opsx:apply` | Execute tasks from a change |
+| `/opsx:ff` | Fast-forward all change artifacts |
+| `/opsx:sync` | Sync delta specs from a change to main specs |
+| `/opsx:archive` | Archive a completed change |
+| `/opsx:bulk-archive` | Archive multiple completed changes at once |
+| `/opsx:verify` | Verify implementation matches change artifacts |
+| `/opsx:onboard` | Guided onboarding walkthrough |
 
 ## Available Agents
 
 | Agent | Description |
 |-------|-------------|
-| `lead` (opus/gold) | Lead developer. Orchestrates workflow, delegates to specialists |
-| `architect` (opus/blue) | System architect. Designs components, layers, data flow |
-| `planner` (sonnet/green) | Task planner. Breaks features into actionable tasks |
-| `dev` (sonnet/green) | Go developer. Implements features, writes code |
-| `reviewer` (opus/blue) | Code reviewer. Reviews code for bugs, security, quality, and adherence to project conventions |
-| `debug` (sonnet/red) | Debugger. Troubleshoots issues, analyzes errors |
-| `tester` (haiku/cyan) | Test engineer. Writes tests, TDD cycles |
+| `coder` | Code implementation agent. Writes, edits, and refactors code following project patterns. |
+| `planner` | Task planning and decomposition agent. Breaks down tasks, creates implementation plans. |
+| `researcher` | Deep research and analysis agent. Explores architecture, investigates codebases. |
+| `reviewer` | Code review and quality analysis agent. Reviews for bugs, security, architecture adherence. |
+| `scout` | Quick exploration and triage agent. Fast file search, code lookup, simple Q&A. |
+
+## Skills (Auto-activated)
+
+Skills activate automatically based on conversation context. No manual invocation needed.
+
+| Category | Description |
+|----------|-------------|
+| `go` | Go development — Clean Architecture, patterns, idioms |
+| `backend` | Backend services, APIs, databases, messaging |
+| `core` | Core development workflows and best practices |
+| `agent` | Agent orchestration, multi-agent patterns |
+| `infra` | Infrastructure, DevOps, deployment |
+| `lang` | Language-specific patterns (TypeScript, Python, etc.) |
+| `qa` | Quality assurance, testing, code review |
+| `ent` | go-ent specific skills and workflows |
 
 ## Skill Template System
 
-go-ent provides a template-based system for creating new skills quickly and consistently. Templates include pre-built patterns, validation, and quality standards for various programming languages and domains.
+go-ent provides a template-based system for creating new skills quickly and consistently.
 
-### Template Types
+### Built-in Templates
 
-**Built-in Templates**: Shipped with go-ent in `plugins/go-ent/templates/skills/`
-- go-basic, go-complete: Go development patterns
-- typescript-basic: TypeScript-specific guidance
-- testing: TDD and testing best practices
-- database: SQL, migrations, and data access
-- api-design: REST, GraphQL, and API patterns
-- core-basic, arch: Architecture and system design
-- debugging-basic: Troubleshooting and debugging
-- security: Authentication, authorization, and security
-- review: Code review practices
+Located in `pkg/templates/skills/`:
+
+- `go-basic`, `go-complete` — Go development patterns
+- `typescript-basic` — TypeScript-specific guidance
+- `testing` — TDD and testing best practices
+- `database` — SQL, migrations, and data access
+- `api-design` — REST, GraphQL, and API patterns
+- `core-basic`, `arch` — Architecture and system design
+- `debugging-basic` — Troubleshooting and debugging
+- `security` — Authentication, authorization, and security
+- `review` — Code review practices
 
 **Custom Templates**: User-defined templates in `~/.go-ent/templates/skills/`
-- Add your own templates for team-specific patterns
-- Share templates across projects
-- Extend built-in functionality
 
 ### Creating Skills from Templates
 
@@ -420,71 +381,25 @@ go-ent provides a template-based system for creating new skills quickly and cons
 ent skill new my-skill
 ```
 
-This prompts for:
-1. Template selection from available options
-2. Skill description and metadata
-3. Category (auto-detected from name prefix)
-
 **Non-interactive mode**:
 ```bash
 ent skill new go-payment \
   --template go-basic \
   --description "Payment processing patterns" \
   --category go \
-  --author "your-name" \
   --tags "payment,api"
 ```
-
-### Managing Templates
-
-**List all available templates**:
-```bash
-ent skill list-templates
-```
-
-Filter by category:
-```bash
-ent skill list-templates --category go
-```
-
-Show only built-in or custom:
-```bash
-ent skill list-templates --built-in
-ent skill list-templates --custom
-```
-
-**Show template details**:
-```bash
-ent skill show-template go-complete
-```
-
-Displays:
-- Template metadata (name, category, version, author)
-- Configuration prompts and defaults
-- Preview of template content (first 20 lines)
-
-**Add custom template**:
-```bash
-ent skill add-template ./my-custom-template
-```
-
-Template directory must contain:
-- `template.md`: Skill template with v2 format
-- `config.yaml`: Template metadata and prompt configuration
-
-By default, templates are added to `~/.go-ent/templates/skills/`. Use `--built-in` flag to add to built-in directory (requires write permissions).
 
 ### Template Structure
 
 Each template consists of two files:
 
-**config.yaml** - Template metadata:
+**config.yaml** — Template metadata:
 ```yaml
 name: go-complete
 category: go
 description: "Comprehensive Go development template"
 version: "1.0.0"
-author: "go-ent"
 prompts:
   - key: NAME
     prompt: "Skill name"
@@ -492,82 +407,35 @@ prompts:
   - key: DESCRIPTION
     prompt: "Skill description"
     required: true
-    default: "Custom Go skill"
 ```
 
-**template.md** - V2 format skill with placeholders:
+**template.md** — Skill with placeholders:
 ```markdown
 ---
 name: ${NAME}
 description: "${DESCRIPTION}"
-version: "2.0.0"
-author: "${AUTHOR}"
-tags: ["go"]
 ---
 
 # ${NAME}
 
 <role>
-Expert Go developer focused on clean architecture and patterns.
+Expert Go developer focused on clean architecture.
 </role>
 
 <instructions>
 ## Pattern 1
-
-Code example...
-
-**Why this pattern**:
-- Reason 1
-- Reason 2
-</instructions>
 ...
+</instructions>
 ```
 
-### Auto-Detection
-
-Category is automatically detected from skill name prefix:
-- `go-payment` → `go` category
-- `typescript-ui` → `typescript` category
-- `db-migration` → `database` category
-
-Output path: `plugins/go-ent/skills/<category>/<skill-name>/SKILL.md`
-
-### Validation
-
-Generated skills are automatically validated against:
-- Frontmatter completeness
-- XML tag structure
-- Required sections (role, instructions, examples, edge_cases)
-- Quality scoring (0-100 scale)
-
-For detailed skill authoring guidance, see [SKILL-AUTHORING.md](docs/SKILL-AUTHORING.md).
-
-## Skills (Auto-activated)
-
-| Skill | Triggers |
-|-------|----------|
-| `go-hub` | Go development, backend services, Clean Architecture, OpenSpec workflow |
-| `go-code` | Writing Go code, implementing features, refactoring, error handling, configuration |
-| `go-arch` | Architecture decisions, system design, layer organization, dependency injection, bounded contexts |
-| `go-api` | API design, OpenAPI specs, code generation, protobuf, REST endpoints, gRPC services |
-| `go-db` | Database work, migrations, queries, repositories, caching |
-| `go-test` | Writing tests, TDD, coverage, integration tests, mocks |
-| `go-review` | Code review, quality checks, PR review, architecture validation |
-| `go-perf` | Performance issues, profiling, optimization, memory leaks, benchmarking |
-| `go-sec` | Security concerns, authentication, authorization, input validation, secrets |
-| `go-ops` | Deployment, containerization, orchestration, CI/CD pipelines, infrastructure |
+Output path: `pkg/skills/<category>/<skill-name>/SKILL.md`
 
 ## Building from Source
 
 ```bash
-# Clone repository
 git clone https://github.com/victorzhuk/go-ent.git
 cd go-ent
-
-# Build MCP server
 make build
-
-# Binary will be in bin/ent
 ./bin/ent  # runs as MCP server on stdio
 ```
 
@@ -576,11 +444,19 @@ make build
 | Target | Description |
 |--------|-------------|
 | `make build` | Build MCP server to `bin/ent` |
+| `make init` | Build and run `ent init` |
+| `make generate` | Generate agent output for configured tools |
+| `make validate` | Validate generated files against tool specs |
 | `make test` | Run tests with race detector and coverage |
+| `make test-templates` | Test all skill templates |
 | `make lint` | Run golangci-lint |
 | `make fmt` | Format code with goimports |
 | `make clean` | Remove build artifacts |
 | `make validate-plugin` | Validate plugin JSON files |
+| `make validate-templates` | Validate all skill templates |
+| `make skill-validate` | Validate all skills with strict mode |
+| `make skill-sync` | Sync skills from pkg/ to .claude/ |
+| `make skill-quality` | Generate quality report for all skills |
 | `make help` | Show all available targets |
 
 ### Development Requirements
@@ -588,65 +464,40 @@ make build
 - Go 1.24 or later
 - make
 - golangci-lint (for `make lint`)
-- jq (for `make validate-plugin`)
 
 ## Project Structure
-
-### go-ent Repository
 
 ```
 go-ent/
 ├── cmd/ent/                 # MCP server binary
 │   └── main.go
-├── internal/
-│   ├── mcp/
-│   │   ├── server/           # MCP server setup
-│   │   └── tools/           # 25 MCP tool handlers
-│   ├── spec/                # OpenSpec domain logic
-│   ├── templates/           # Code generation templates
-│   ├── domain/              # Core domain types
-│   ├── generation/          # Code generation engine
+├── internal/                # Implementation (all unexported)
+│   ├── agent/               # Agent types and selection
+│   ├── cli/                 # CLI application
 │   ├── config/              # Configuration system
-│   └── version/             # Version metadata
-├── plugins/go-ent/          # Claude Code plugin
-│   ├── agents/              # Agent role definitions (7)
-│   ├── commands/            # Slash commands (16)
-│   ├── skills/              # Skill definitions (10)
-│   └── .claude-plugin/      # Plugin config
+│   ├── hooks/               # Hook registry and execution
+│   ├── mcp/                 # MCP server setup and tool handlers
+│   ├── openspec/            # OpenSpec client
+│   ├── skill/               # Skill registry and parsing
+│   ├── spec/                # BoltDB-backed task registry
+│   ├── template/            # Skill template system
+│   ├── workspace/           # Multi-project workspace
+│   └── xdg/                # XDG base directory support
+├── pkg/                     # Plugin assets (embedded, installed by ent init)
+│   ├── agents/meta/         # 5 agent definitions (YAML)
+│   ├── commands/            # Slash command definitions
+│   ├── skills/              # ~80 skill definitions (SKILL.md)
+│   ├── templates/           # 12 skill templates
+│   ├── hooks/               # Hook configurations
+│   └── schemas/             # Agent schema + examples
 ├── openspec/                # Self-hosted development specs
 │   ├── project.yaml
 │   ├── specs/
 │   ├── changes/
-│   └── tasks/
-├── docs/                    # Additional documentation
+│   └── archive/
+├── docs/                    # Documentation
 ├── assets/                  # Logo and branding
-└── Makefile                 # Build targets
-```
-
-### Generated Projects
-
-Generated projects follow Clean Architecture:
-
-```
-project/
-├── cmd/server/main.go
-├── internal/
-│   ├── app/           # Bootstrap, DI
-│   ├── config/        # Configuration
-│   ├── domain/        # Entities, contracts (ZERO external deps)
-│   ├── usecase/       # Business logic
-│   ├── repository/    # Data access
-│   └── transport/     # HTTP handlers
-├── openspec/          # Spec-driven development
-│   ├── project.yaml
-│   ├── specs/
-│   ├── changes/
-│   └── tasks/
-├── database/migrations/
-├── build/Dockerfile
-├── CLAUDE.md
-├── Makefile
-└── .golangci.yml
+└── Makefile
 ```
 
 ## Standards Enforced
@@ -670,22 +521,12 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 - Interfaces: defined at consumer side
 - Repository: private models, mappers
 
-## How It Works (v2.0)
+## How It Works
 
-1. **Specs First**: Create specs in `openspec/specs/`
-2. **LLM Reads Templates**: Uses `internal/templates/` as reference patterns
+1. **Specs First**: Create change proposals in `openspec/changes/`
+2. **LLM Reads Context**: Uses `pkg/skills/` and `pkg/templates/` as reference patterns
 3. **LLM Generates Code**: Writes code adapted to your project context
-4. **Track Progress**: Manages tasks in `openspec/changes/` and `openspec/tasks/`
-
-## Migration from v1.x
-
-v1.x used template-based file generation (`ent init`). v2.0 uses:
-
-- **MCP server** instead of CLI
-- **Spec-driven development** instead of template copying
-- **LLM code generation** instead of string replacement
-
-See [Historical Documentation](docs/archive/README.md) for archived planning documents.
+4. **Track Progress**: Manages tasks via MCP registry tools
 
 ## Contributing
 
@@ -700,30 +541,10 @@ MIT
 
 ## References
 
-### Documentation
-
-- **[Documentation Index](docs/INDEX.md)** - Central navigation hub for all documentation
-- [CLI Reference](docs/CLI_REFERENCE.md) - Complete CLI command reference
-- [CLI Examples](docs/CLI_EXAMPLES.md) - Common usage patterns
-- [Configuration Reference](docs/CONFIGURATION.md) - All configuration options
-- [OpenSpec Workflow](docs/OPENSPEC_WORKFLOW.md) - Spec-driven development guide
-- [Agents and Skills](docs/AGENTS_AND_SKILLS.md) - Agent system and skills
-- [MCP API Reference](docs/MCP_API.md) - MCP tools API documentation
-- [Commands Reference](docs/COMMANDS_REFERENCE.md) - Slash command reference
-- [Architecture](docs/ARCHITECTURE.md) - System architecture overview
-- [Development Guide](docs/DEVELOPMENT.md) - Self-hosted development workflow
-- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute
-- [Skill Authoring](docs/SKILL-AUTHORING.md) - Creating skills v2 format
-
-### Execution Engine v2
-
-- [Execution Engine v2](docs/EXECUTION_ENGINE_V2.md) - Feature documentation
-- [Execution Engine Examples](docs/EXECUTION_ENGINE_EXAMPLES.md) - Practical code examples
-- [Execution Engine API](docs/EXECUTION_ENGINE_API.md) - API reference
-- [Execution Engine Troubleshooting](docs/EXECUTION_ENGINE_TROUBLESHOOTING.md) - Debugging guide
-
-### External Resources
-
-- [MCP Specification](https://modelcontextprotocol.io) - Model Context Protocol
-- [Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)
-- [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) - OpenSpec standard
+- **[Documentation Index](docs/INDEX.md)** — Central navigation hub
+- **[Architecture](docs/ARCHITECTURE.md)** — System architecture overview
+- **[Conventions](docs/CONVENTIONS.md)** — Code style, error handling, testing
+- **[Workspaces](docs/WORKSPACES.md)** — Multi-project workspace support
+- **[MCP Specification](https://modelcontextprotocol.io)** — Model Context Protocol
+- **[Official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)**
+- **[Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)** — OpenSpec standard

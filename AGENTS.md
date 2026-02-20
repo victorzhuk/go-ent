@@ -3,11 +3,7 @@
 
 Agent system reference for go-ent development.
 
-**Complete Documentation**:
-- [Documentation Index](docs/INDEX.md) - All documentation
-- [Agents and Skills](docs/AGENTS_AND_SKILLS.md) - Agent architecture and skills
-- [CLI Reference](docs/CLI_REFERENCE.md) - Complete CLI commands
-- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute
+**Documentation**: See [docs/INDEX.md](docs/INDEX.md) for all documentation.
 
 ## Build Commands
 
@@ -49,8 +45,6 @@ ent skill show-template go-complete
 # Add custom template
 ent skill add-template /path/to/template
 ```
-
-See [CLI Reference](docs/CLI_REFERENCE.md) for complete CLI documentation.
 
 ## Running Single Tests
 
@@ -119,9 +113,19 @@ internal/
 ├── cli/           # CLI application
 ├── config/        # Configuration management
 ├── domain/        # Core domain types
+├── genconfig/     # Code generation configuration
+├── generator/     # Code generation engine
+├── genspec/       # Generation spec parsing
+├── hooks/         # Hook registry and execution
 ├── mcp/           # MCP server and tools
+├── openspec/      # OpenSpec client (change management)
 ├── skill/         # Skill registry and parsing
-└── spec/          # Spec store and validation
+├── spec/          # Spec store (BoltDB-backed task registry)
+├── template/      # Skill template system
+├── testutil/      # Test utilities
+├── version/       # Version metadata
+├── workspace/     # Multi-project workspace support
+└── xdg/           # XDG base directory paths
 ```
 
 ## Quick Reference
