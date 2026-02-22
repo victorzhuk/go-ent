@@ -18,7 +18,7 @@ fi
 # Rebuild MCP server binary
 echo "  Rebuilding MCP server..."
 cd "$(dirname "$0")/.."
-make build-mcp > /dev/null 2>&1
+make build > /dev/null 2>&1
 echo "  ✓ MCP server rebuilt"
 
 echo ""

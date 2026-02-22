@@ -1,4 +1,4 @@
-.PHONY: help build test test-templates lint fmt clean validate-plugin skill-validate skill-sync skill-quality validate-templates release-dry-run snapshot release-check generate init validate
+.PHONY: help build test test-templates lint fmt clean validate-plugin validate-templates release-dry-run snapshot release-check generate init validate changelog
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 VCS_REF ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -44,18 +44,6 @@ validate-plugin: ## Validate plugin JSON files
 	done
 	@echo "All plugin JSON files are valid"
 
-skill-validate: ## Validate all skills with strict mode
-	@echo "Validating skills..."
-	@go run ./cmd/cli validate skills --strict
-
-skill-sync: ## Sync skills from plugins to .claude directory
-	@echo "Syncing skills..."
-	@go run ./cmd/cli sync skills
-
-skill-quality: ## Generate quality report for all skills
-	@echo "Getting skill quality report..."
-	@go run ./cmd/cli quality skills
-
 test-templates: ## Test all skill templates
 	@echo "Testing all skill templates..."
 	@go test -v ./internal/cli/skill/...
@@ -78,3 +66,6 @@ release-check: ## Validate GoReleaser configuration
 	@echo "Validating GoReleaser configuration..."
 	@goreleaser check
 	@echo "GoReleaser configuration is valid"
+
+changelog: ## Generate changelog from conventional commits
+	@git-cliff -o CHANGELOG.md

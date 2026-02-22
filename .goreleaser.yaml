@@ -1,16 +1,17 @@
 version: 2
 
-project_name: go-ent
+project_name: ent
 
 before:
   hooks:
     - go mod tidy
     - go mod verify
+    - go test ./...
 
 builds:
-  - id: go-ent
-    main: ./cmd/go-ent
-    binary: go-ent
+  - id: ent
+    main: ./cmd/ent
+    binary: ent
     env:
       - CGO_ENABLED=0
     goos:
@@ -23,11 +24,10 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/victorzhuk/go-ent/internal/version.version={{.Version}}
-      -     -X github.com/victorzhuk/go-ent/internal/version.vcsRef={{.ShortCommit}}
+      - -X github.com/victorzhuk/go-ent/internal/version.vcsRef={{.ShortCommit}}
 
 archives:
   - id: default
-    formats: [tar.gz, zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
@@ -37,15 +37,8 @@ checksum:
   name_template: checksums.txt
 
 changelog:
+  use: git-cliff
   sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "^ci:"
-      - "^chore:"
-      - Merge pull request
-      - Merge branch
 
 release:
   github:
@@ -53,3 +46,12 @@ release:
     name: go-ent
   prerelease: auto
   name_template: "v{{.Version}}"
+
+homebrew_casks:
+  - repository:
+      owner: victorzhuk
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/victorzhuk/go-ent
+    description: Enterprise Go development toolkit
+    license: MIT

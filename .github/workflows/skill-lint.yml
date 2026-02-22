@@ -3,13 +3,13 @@ name: Skill Lint
 # Trigger on pull requests and pushes to main branch
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'plugins/*/skills/**/*.md'
       - 'plugins/*/commands/**/*.md'
       - '.github/workflows/skill-lint.yml'
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - 'plugins/*/skills/**/*.md'
       - 'plugins/*/commands/**/*.md'
@@ -27,22 +27,28 @@ on:
           - 'false'
           - 'true'
 
+permissions:
+  contents: read
+
 jobs:
   # Validation-only job - runs on every push/PR
   validate:
     runs-on: ubuntu-latest
     if: github.event_name != 'workflow_dispatch' || inputs.fix != 'true'
+    concurrency:
+      group: ${{ github.workflow }}-validate-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       # Checkout repository code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Set up Go environment
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       # Build ent
       - name: Build ent
@@ -94,17 +100,23 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && inputs.fix == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: ${{ github.workflow }}-autofix
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
-      - name: Build go-ent
+      - name: Build ent
         run: make build
 
       # Run lint with auto-fix
@@ -171,7 +183,7 @@ jobs:
       # Create comment on PR or issue if running on PR
       - name: Comment on PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
