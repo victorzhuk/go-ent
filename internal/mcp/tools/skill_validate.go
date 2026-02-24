@@ -73,7 +73,7 @@ func formatValidationOutput(skillName string, output SkillValidateOutput) string
 	var sb strings.Builder
 
 	if skillName != "" {
-		sb.WriteString(fmt.Sprintf("# Validation: %s\n\n", skillName))
+		fmt.Fprintf(&sb, "# Validation: %s\n\n", skillName)
 	} else {
 		sb.WriteString("# Validation: All Skills\n\n")
 	}
@@ -82,7 +82,7 @@ func formatValidationOutput(skillName string, output SkillValidateOutput) string
 	if !output.Valid {
 		status = "✗ INVALID"
 	}
-	sb.WriteString(fmt.Sprintf("**Status**: %s\n\n", status))
+	fmt.Fprintf(&sb, "**Status**: %s\n\n", status)
 
 	if len(output.Issues) == 0 {
 		sb.WriteString("No issues found.\n")
@@ -104,25 +104,25 @@ func formatValidationOutput(skillName string, output SkillValidateOutput) string
 		}
 	}
 
-	sb.WriteString(fmt.Sprintf("**Issues**: %d total (%d errors, %d warnings, %d info)\n\n", len(output.Issues), errors, warnings, infos))
+	fmt.Fprintf(&sb, "**Issues**: %d total (%d errors, %d warnings, %d info)\n\n", len(output.Issues), errors, warnings, infos)
 
 	sb.WriteString("## Issues\n\n")
 
 	for i, issue := range output.Issues {
-		sb.WriteString(fmt.Sprintf("### %d. [%s] %s\n\n", i+1, issue.Severity, issue.Rule))
+		fmt.Fprintf(&sb, "### %d. [%s] %s\n\n", i+1, issue.Severity, issue.Rule)
 
 		if issue.Line > 0 {
-			sb.WriteString(fmt.Sprintf("**Line**: %d\n\n", issue.Line))
+			fmt.Fprintf(&sb, "**Line**: %d\n\n", issue.Line)
 		}
 
-		sb.WriteString(fmt.Sprintf("**Message**: %s\n\n", issue.Message))
+		fmt.Fprintf(&sb, "**Message**: %s\n\n", issue.Message)
 
 		if issue.Suggestion != "" {
-			sb.WriteString(fmt.Sprintf("**Suggestion**: %s\n\n", issue.Suggestion))
+			fmt.Fprintf(&sb, "**Suggestion**: %s\n\n", issue.Suggestion)
 		}
 
 		if issue.Example != "" {
-			sb.WriteString(fmt.Sprintf("**Example**: %s\n\n", issue.Example))
+			fmt.Fprintf(&sb, "**Example**: %s\n\n", issue.Example)
 		}
 
 		sb.WriteString("---\n\n")

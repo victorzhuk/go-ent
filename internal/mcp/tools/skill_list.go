@@ -72,15 +72,15 @@ func skillListHandler(skillRegistry *skill.Registry) func(ctx context.Context, r
 		var sb strings.Builder
 		sb.WriteString("# Available Skills\n\n")
 		if input.Filter != "" {
-			sb.WriteString(fmt.Sprintf("*Filtered by: %s*\n\n", input.Filter))
+			fmt.Fprintf(&sb, "*Filtered by: %s*\n\n", input.Filter)
 		}
-		sb.WriteString(fmt.Sprintf("Found %d skill(s):\n\n", len(filtered)))
+		fmt.Fprintf(&sb, "Found %d skill(s):\n\n", len(filtered))
 
 		skills := make([]SkillSummary, 0, len(filtered))
 
 		for i, s := range filtered {
-			sb.WriteString(fmt.Sprintf("## %d. %s\n\n", i+1, s.Name))
-			sb.WriteString(fmt.Sprintf("**Description**: %s\n\n", s.Description))
+			fmt.Fprintf(&sb, "## %d. %s\n\n", i+1, s.Name)
+			fmt.Fprintf(&sb, "**Description**: %s\n\n", s.Description)
 
 			if len(s.Triggers) > 0 {
 				sb.WriteString("**Triggers**: ")
@@ -88,7 +88,7 @@ func skillListHandler(skillRegistry *skill.Registry) func(ctx context.Context, r
 					if j > 0 {
 						sb.WriteString(", ")
 					}
-					sb.WriteString(fmt.Sprintf("`%s`", trigger))
+					fmt.Fprintf(&sb, "`%s`", trigger)
 				}
 				sb.WriteString("\n\n")
 			}

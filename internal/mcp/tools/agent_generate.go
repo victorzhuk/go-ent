@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/victorzhuk/go-ent/internal/genconfig"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/generator"
 )
 
 type AgentGenerateInput struct {
-	Agent   string   `json:"agent,omitempty"`   // Agent name (optional, generates all if empty)
-	Targets []string `json:"targets,omitempty"` // Target platforms (claude, opencode), default: both
+	Agent   string   `json:"agent,omitempty"`
+	Targets []string `json:"targets,omitempty"`
 }
 
 func registerAgentGenerate(s *mcp.Server, toolRegistry *ToolRegistry, srcDir string) {
@@ -43,19 +43,11 @@ func registerAgentGenerate(s *mcp.Server, toolRegistry *ToolRegistry, srcDir str
 
 func agentGenerateHandler(srcDir string) func(ctx context.Context, req *mcp.CallToolRequest, input AgentGenerateInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input AgentGenerateInput) (*mcp.CallToolResult, any, error) {
-		// Default targets to both if not specified
 		targetNames := input.Targets
 		if len(targetNames) == 0 {
 			targetNames = []string{"claude", "opencode"}
 		}
 
-		// Load config
-		cfg, err := genconfig.Load("ent.yaml")
-		if err != nil {
-			return nil, nil, fmt.Errorf("load config: %w", err)
-		}
-
-		// Create targets
 		targets := make([]generator.Target, 0, len(targetNames))
 		for _, name := range targetNames {
 			switch name {
@@ -68,19 +60,17 @@ func agentGenerateHandler(srcDir string) func(ctx context.Context, req *mcp.Call
 			}
 		}
 
-		// Create generator
+		cfg := config.LoadCombinedRuntimeConfig(".", targetNames)
+
 		gen := generator.New(srcDir, cfg, targets...)
 
-		// Generate
 		var msg string
 		if input.Agent != "" {
-			// Generate single agent
 			if err := gen.GenerateAgent(input.Agent); err != nil {
 				return nil, nil, fmt.Errorf("generate agent: %w", err)
 			}
 			msg = fmt.Sprintf("✓ Generated agent: %s\nTargets: %v", input.Agent, targetNames)
 		} else {
-			// Generate all agents
 			if err := gen.GenerateAll(); err != nil {
 				return nil, nil, fmt.Errorf("generate all: %w", err)
 			}

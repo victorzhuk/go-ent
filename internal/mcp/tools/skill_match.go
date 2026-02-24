@@ -119,14 +119,14 @@ func skillMatchHandler(skillRegistry *skill.Registry) func(ctx context.Context, 
 
 		// Format output
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("# Skills matching: %s\n\n", input.Query))
-		sb.WriteString(fmt.Sprintf("Found %d match(es):\n\n", len(matches)))
+		fmt.Fprintf(&sb, "# Skills matching: %s\n\n", input.Query)
+		fmt.Fprintf(&sb, "Found %d match(es):\n\n", len(matches))
 
 		for i, m := range matches {
-			sb.WriteString(fmt.Sprintf("## %d. %s (score: %.1f)\n\n", i+1, m.Name, m.Score))
-			sb.WriteString(fmt.Sprintf("**Description**: %s\n\n", m.Description))
+			fmt.Fprintf(&sb, "## %d. %s (score: %.1f)\n\n", i+1, m.Name, m.Score)
+			fmt.Fprintf(&sb, "**Description**: %s\n\n", m.Description)
 			if len(m.Triggers) > 0 {
-				sb.WriteString(fmt.Sprintf("**Triggers**: %s\n\n", strings.Join(m.Triggers, ", ")))
+				fmt.Fprintf(&sb, "**Triggers**: %s\n\n", strings.Join(m.Triggers, ", "))
 			}
 		}
 

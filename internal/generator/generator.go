@@ -5,18 +5,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/victorzhuk/go-ent/internal/genconfig"
+	"github.com/victorzhuk/go-ent/internal/config"
 )
 
-// Generator orchestrates agent generation for multiple targets
 type Generator struct {
 	SrcDir  string
 	Targets []Target
-	Config  *genconfig.Config
+	Config  *config.ToolRuntimeConfig
 }
 
-// New creates a new Generator
-func New(srcDir string, cfg *genconfig.Config, targets ...Target) *Generator {
+func New(srcDir string, cfg *config.ToolRuntimeConfig, targets ...Target) *Generator {
 	return &Generator{
 		SrcDir:  srcDir,
 		Targets: targets,
@@ -24,7 +22,6 @@ func New(srcDir string, cfg *genconfig.Config, targets ...Target) *Generator {
 	}
 }
 
-// GenerateAll generates all agents for all targets
 func (g *Generator) GenerateAll() error {
 	agents, err := ListAgents(g.SrcDir)
 	if err != nil {
@@ -40,25 +37,24 @@ func (g *Generator) GenerateAll() error {
 	return nil
 }
 
-// GenerateAgent generates a single agent for all targets
 func (g *Generator) GenerateAgent(name string) error {
-	// Load from meta format
 	metaAgent, prompts, err := LoadAgentMetaSource(g.SrcDir, name)
 	if err != nil {
 		return fmt.Errorf("load source: %w", err)
 	}
 
-	// Convert to old format for generation
-	agent := ConvertMetaToSource(metaAgent)
-
-	// Resolve model aliases
-	if g.Config != nil {
-		agent.Model.Claude = g.ResolveModel(agent.Model.Claude, "claude")
-		agent.Model.OpenCode = g.ResolveModel(agent.Model.OpenCode, "opencode")
-	}
-
-	// Generate for each target
 	for _, target := range g.Targets {
+		agent := ConvertMetaToSource(metaAgent)
+
+		if g.Config != nil {
+			switch target.Runtime() {
+			case "claude":
+				agent.Model.Claude = g.Config.Claude.Resolve(agent.Model.Claude)
+			case "opencode":
+				agent.Model.OpenCode = g.Config.OpenCode.Resolve(agent.Model.OpenCode)
+			}
+		}
+
 		output, err := target.Generate(agent, prompts)
 		if err != nil {
 			return fmt.Errorf("generate %s target: %w", target.Name(), err)
@@ -75,7 +71,6 @@ func (g *Generator) GenerateAgent(name string) error {
 	return nil
 }
 
-// writeOutput writes output to file, creating directories as needed
 func (g *Generator) writeOutput(path string, data []byte) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o750); err != nil {
@@ -87,32 +82,4 @@ func (g *Generator) writeOutput(path string, data []byte) error {
 	}
 
 	return nil
-}
-
-// ResolveModel resolves a model alias to a tool-specific model ID
-func (g *Generator) ResolveModel(alias, tool string) string {
-	if g.Config == nil {
-		return ""
-	}
-
-	var models genconfig.ToolModels
-	switch alias {
-	case "fast":
-		models = g.Config.Models.Fast
-	case "main":
-		models = g.Config.Models.Main
-	case "heavy":
-		models = g.Config.Models.Heavy
-	default:
-		return alias
-	}
-
-	switch tool {
-	case "claude":
-		return models.Claude
-	case "opencode":
-		return models.OpenCode
-	default:
-		return ""
-	}
 }

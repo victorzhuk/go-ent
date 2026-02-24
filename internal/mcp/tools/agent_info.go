@@ -41,26 +41,26 @@ func agentInfoHandler(agentRegistry *agent.Registry) func(ctx context.Context, r
 		}
 
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("# Agent: %s\n\n", meta.Name))
-		sb.WriteString(fmt.Sprintf("**Description**: %s\n\n", meta.Description))
-		sb.WriteString(fmt.Sprintf("**Model**: %s\n\n", meta.Model))
+		fmt.Fprintf(&sb, "# Agent: %s\n\n", meta.Name)
+		fmt.Fprintf(&sb, "**Description**: %s\n\n", meta.Description)
+		fmt.Fprintf(&sb, "**Model**: %s\n\n", meta.Model)
 
 		if meta.Role != "" {
-			sb.WriteString(fmt.Sprintf("**Role**: %s\n\n", meta.Role))
+			fmt.Fprintf(&sb, "**Role**: %s\n\n", meta.Role)
 		}
 
 		if meta.Complexity != "" {
-			sb.WriteString(fmt.Sprintf("**Complexity**: %s\n\n", meta.Complexity))
+			fmt.Fprintf(&sb, "**Complexity**: %s\n\n", meta.Complexity)
 		}
 
 		if meta.Color != "" {
-			sb.WriteString(fmt.Sprintf("**Color**: %s\n\n", meta.Color))
+			fmt.Fprintf(&sb, "**Color**: %s\n\n", meta.Color)
 		}
 
 		if len(meta.Skills) > 0 {
 			sb.WriteString("## Skills\n\n")
 			for _, skill := range meta.Skills {
-				sb.WriteString(fmt.Sprintf("- %s\n", skill))
+				fmt.Fprintf(&sb, "- %s\n", skill)
 			}
 			sb.WriteString("\n")
 		}
@@ -68,7 +68,7 @@ func agentInfoHandler(agentRegistry *agent.Registry) func(ctx context.Context, r
 		if len(meta.ToolPresets) > 0 {
 			sb.WriteString("## Tool Presets\n\n")
 			for _, preset := range meta.ToolPresets {
-				sb.WriteString(fmt.Sprintf("- %s\n", preset))
+				fmt.Fprintf(&sb, "- %s\n", preset)
 			}
 			sb.WriteString("\n")
 		}
@@ -76,7 +76,7 @@ func agentInfoHandler(agentRegistry *agent.Registry) func(ctx context.Context, r
 		if len(meta.DisallowedToolPresets) > 0 {
 			sb.WriteString("## Disallowed Tool Presets\n\n")
 			for _, preset := range meta.DisallowedToolPresets {
-				sb.WriteString(fmt.Sprintf("- %s\n", preset))
+				fmt.Fprintf(&sb, "- %s\n", preset)
 			}
 			sb.WriteString("\n")
 		}
@@ -84,7 +84,7 @@ func agentInfoHandler(agentRegistry *agent.Registry) func(ctx context.Context, r
 		if len(meta.Dependencies) > 0 {
 			sb.WriteString("## Dependencies\n\n")
 			for _, dep := range meta.Dependencies {
-				sb.WriteString(fmt.Sprintf("- %s\n", dep))
+				fmt.Fprintf(&sb, "- %s\n", dep)
 			}
 			sb.WriteString("\n")
 		}

@@ -67,7 +67,7 @@ func listWorkspaceSpecs(ws *workspace.Workspace) (*mcp.CallToolResult, any, erro
 	}
 
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Workspace: %s\nSpecs:\n\n", ws.Name))
+	fmt.Fprintf(&b, "Workspace: %s\nSpecs:\n\n", ws.Name)
 
 	for _, e := range entries {
 		if !e.IsDir() {
@@ -78,9 +78,9 @@ func listWorkspaceSpecs(ws *workspace.Workspace) (*mcp.CallToolResult, any, erro
 		title := workspace.ExtractTitle(specPath)
 
 		if title != "" {
-			b.WriteString(fmt.Sprintf("- %s: %s\n", e.Name(), title))
+			fmt.Fprintf(&b, "- %s: %s\n", e.Name(), title)
 		} else {
-			b.WriteString(fmt.Sprintf("- %s\n", e.Name()))
+			fmt.Fprintf(&b, "- %s\n", e.Name())
 		}
 	}
 
@@ -97,9 +97,9 @@ func readWorkspaceSpec(ws *workspace.Workspace, specID string) (*mcp.CallToolRes
 	}
 
 	return &mcp.CallToolResult{
-		Content: []mcp.Content{&mcp.TextContent{Text: string(data)}},
-	}, map[string]string{
-		"spec_id":   specID,
-		"workspace": ws.Name,
-	}, nil
+			Content: []mcp.Content{&mcp.TextContent{Text: string(data)}},
+		}, map[string]string{
+			"spec_id":   specID,
+			"workspace": ws.Name,
+		}, nil
 }

@@ -120,10 +120,10 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 		sb.WriteString("# Registry Status\n\n")
 
 		sb.WriteString("## Overview\n\n")
-		sb.WriteString(fmt.Sprintf("- Total Changes: %d\n", totalChanges))
-		sb.WriteString(fmt.Sprintf("- Total Tasks: %d\n", totalTasks))
-		sb.WriteString(fmt.Sprintf("- Completed Tasks: %d\n", completedTasks))
-		sb.WriteString(fmt.Sprintf("- Overall Completion: %.1f%%\n\n", completionPercent))
+		fmt.Fprintf(&sb, "- Total Changes: %d\n", totalChanges)
+		fmt.Fprintf(&sb, "- Total Tasks: %d\n", totalTasks)
+		fmt.Fprintf(&sb, "- Completed Tasks: %d\n", completedTasks)
+		fmt.Fprintf(&sb, "- Overall Completion: %.1f%%\n\n", completionPercent)
 
 		sb.WriteString("## Changes by Status\n\n")
 		caser := cases.Title(language.English)
@@ -131,7 +131,7 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 		for _, status := range statuses {
 			count := changesByStatus[string(status)]
 			if count > 0 {
-				sb.WriteString(fmt.Sprintf("- %s: %d\n", caser.String(string(status)), count))
+				fmt.Fprintf(&sb, "- %s: %d\n", caser.String(string(status)), count)
 			}
 		}
 		sb.WriteString("\n")
@@ -148,7 +148,7 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 				case spec.TaskInProgress:
 					icon = "🔄"
 				}
-				sb.WriteString(fmt.Sprintf("- %s %s: %d\n", icon, strings.ReplaceAll(string(status), "_", " "), count))
+				fmt.Fprintf(&sb, "- %s %s: %d\n", icon, strings.ReplaceAll(string(status), "_", " "), count)
 			}
 		}
 		sb.WriteString("\n")
@@ -156,9 +156,9 @@ func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req 
 		if len(activeChanges) > 0 {
 			sb.WriteString("## Active Changes\n\n")
 			for i, change := range activeChanges {
-				sb.WriteString(fmt.Sprintf("%d. **%s** (%s)\n", i+1, change.ID, change.Status))
-				sb.WriteString(fmt.Sprintf("   %s\n   Progress: %.0f%% (%d/%d tasks)\n\n",
-					change.Title, change.Progress, int(change.Progress*float64(change.TaskCount)/100), change.TaskCount))
+				fmt.Fprintf(&sb, "%d. **%s** (%s)\n", i+1, change.ID, change.Status)
+				fmt.Fprintf(&sb, "   %s\n   Progress: %.0f%% (%d/%d tasks)\n\n",
+					change.Title, change.Progress, int(change.Progress*float64(change.TaskCount)/100), change.TaskCount)
 			}
 		}
 

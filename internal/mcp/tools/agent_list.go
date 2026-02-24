@@ -83,30 +83,30 @@ func agentListHandler(agentRegistry *agent.Registry) func(ctx context.Context, r
 		if input.Role != "" || input.Complexity != "" {
 			sb.WriteString("*Filtered*\n\n")
 		}
-		sb.WriteString(fmt.Sprintf("Found %d agent(s):\n\n", len(filtered)))
+		fmt.Fprintf(&sb, "Found %d agent(s):\n\n", len(filtered))
 
 		agents := make([]AgentSummary, 0, len(filtered))
 
 		for i, a := range filtered {
-			sb.WriteString(fmt.Sprintf("## %d. %s\n\n", i+1, a.Name))
-			sb.WriteString(fmt.Sprintf("**Description**: %s\n\n", a.Description))
+			fmt.Fprintf(&sb, "## %d. %s\n\n", i+1, a.Name)
+			fmt.Fprintf(&sb, "**Description**: %s\n\n", a.Description)
 
 			if a.Role != "" {
-				sb.WriteString(fmt.Sprintf("**Role**: %s\n\n", a.Role))
+				fmt.Fprintf(&sb, "**Role**: %s\n\n", a.Role)
 			}
 
 			if a.Complexity != "" {
-				sb.WriteString(fmt.Sprintf("**Complexity**: %s\n\n", a.Complexity))
+				fmt.Fprintf(&sb, "**Complexity**: %s\n\n", a.Complexity)
 			}
 
-			sb.WriteString(fmt.Sprintf("**Model**: %s\n\n", a.Model))
+			fmt.Fprintf(&sb, "**Model**: %s\n\n", a.Model)
 
 			if len(a.Skills) > 0 {
-				sb.WriteString(fmt.Sprintf("**Skills**: %s\n\n", strings.Join(a.Skills, ", ")))
+				fmt.Fprintf(&sb, "**Skills**: %s\n\n", strings.Join(a.Skills, ", "))
 			}
 
 			if len(a.Dependencies) > 0 {
-				sb.WriteString(fmt.Sprintf("**Dependencies**: %s\n\n", strings.Join(a.Dependencies, ", ")))
+				fmt.Fprintf(&sb, "**Dependencies**: %s\n\n", strings.Join(a.Dependencies, ", "))
 			}
 
 			agents = append(agents, AgentSummary{

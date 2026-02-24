@@ -1032,10 +1032,10 @@ Examples:
 						return fmt.Errorf("load template for %s: %w", tool, err)
 					}
 
-					global, _ := config.LoadGlobalModelConfig()
-					project, _ := config.LoadProjectModelConfig(".")
-					cfg := config.MergeModelConfigs(global, project)
-					resolver := config.NewModelResolver(cfg, tool)
+					toolCfg, _ := config.LoadToolRuntimeConfig(".", tool)
+					if toolCfg == nil {
+						toolCfg = config.DefaultToolRuntimeConfig()
+					}
 
 					for name, meta := range agents {
 						prompt, ok := prompts[name]
@@ -1044,7 +1044,12 @@ Examples:
 						}
 
 						metaCopy := *meta
-						metaCopy.Model = resolver.ResolveAgent(meta.Model)
+						switch tool {
+						case "claude":
+							metaCopy.Model = toolCfg.Claude.Resolve(meta.Model)
+						case "opencode":
+							metaCopy.Model = toolCfg.OpenCode.Resolve(meta.Model)
+						}
 
 						fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
 						if err != nil {

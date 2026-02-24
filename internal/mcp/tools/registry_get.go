@@ -130,25 +130,25 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 		}
 
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("# Change: %s\n\n", change.ID))
-		sb.WriteString(fmt.Sprintf("**Title**: %s\n\n", change.Title))
-		sb.WriteString(fmt.Sprintf("**Status**: %s\n\n", change.Status))
+		fmt.Fprintf(&sb, "# Change: %s\n\n", change.ID)
+		fmt.Fprintf(&sb, "**Title**: %s\n\n", change.Title)
+		fmt.Fprintf(&sb, "**Status**: %s\n\n", change.Status)
 
 		progress := float64(0)
 		if change.TaskCount > 0 {
 			progress = float64(change.Completed) / float64(change.TaskCount) * 100
 		}
-		sb.WriteString(fmt.Sprintf("**Progress**: %d/%d tasks (%.0f%%)\n\n", change.Completed, change.TaskCount, progress))
+		fmt.Fprintf(&sb, "**Progress**: %d/%d tasks (%.0f%%)\n\n", change.Completed, change.TaskCount, progress)
 
 		sb.WriteString("## Summary\n\n")
-		sb.WriteString(fmt.Sprintf("- Total Tasks: %d\n", summaryStats.Total))
-		sb.WriteString(fmt.Sprintf("- Pending: %d\n", summaryStats.Pending))
-		sb.WriteString(fmt.Sprintf("- In Progress: %d\n", summaryStats.InProgress))
-		sb.WriteString(fmt.Sprintf("- Completed: %d\n\n", summaryStats.Completed))
+		fmt.Fprintf(&sb, "- Total Tasks: %d\n", summaryStats.Total)
+		fmt.Fprintf(&sb, "- Pending: %d\n", summaryStats.Pending)
+		fmt.Fprintf(&sb, "- In Progress: %d\n", summaryStats.InProgress)
+		fmt.Fprintf(&sb, "- Completed: %d\n\n", summaryStats.Completed)
 
 		sb.WriteString("## Details\n\n")
-		sb.WriteString(fmt.Sprintf("- Created: %s\n", change.CreatedAt.Format("2006-01-02 15:04")))
-		sb.WriteString(fmt.Sprintf("- Updated: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04")))
+		fmt.Fprintf(&sb, "- Created: %s\n", change.CreatedAt.Format("2006-01-02 15:04"))
+		fmt.Fprintf(&sb, "- Updated: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04"))
 
 		sb.WriteString("## Tasks\n\n")
 
@@ -161,12 +161,12 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 				statusIcon = "🔄"
 			}
 
-			sb.WriteString(fmt.Sprintf("### %d. %s\n\n", i+1, task.TaskNum))
-			sb.WriteString(fmt.Sprintf("**Status**: %s %s\n\n", statusIcon, task.Status))
-			sb.WriteString(fmt.Sprintf("**Content**: %s\n\n", task.Content))
+			fmt.Fprintf(&sb, "### %d. %s\n\n", i+1, task.TaskNum)
+			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", statusIcon, task.Status)
+			fmt.Fprintf(&sb, "**Content**: %s\n\n", task.Content)
 
 			if len(task.DependsOn) > 0 {
-				sb.WriteString(fmt.Sprintf("**Depends On**: %s\n\n", strings.Join(task.DependsOn, ", ")))
+				fmt.Fprintf(&sb, "**Depends On**: %s\n\n", strings.Join(task.DependsOn, ", "))
 			}
 		}
 

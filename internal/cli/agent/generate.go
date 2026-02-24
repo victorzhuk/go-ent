@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/victorzhuk/go-ent/internal/genconfig"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/generator"
 )
 
@@ -23,33 +23,31 @@ This command reads agent sources from pkg/agents/ (embedded in the binary)
 and generates tool-specific output in .claude/agents/ or .opencode/agents/.
 
 Examples:
-  ent agent generate                    # Generate all agents for all configured tools
+  ent agent generate                    # Generate all agents for detected runtime
   ent agent generate --tools=claude     # Generate for Claude only
   ent agent generate --name=coder       # Generate specific agent
 `,
 		RunE: runGenerate,
 	}
 
-	cmd.Flags().StringSliceVar(&toolsFlag, "tools", nil, "Override tools from config (claude,opencode)")
+	cmd.Flags().StringSliceVar(&toolsFlag, "tools", nil, "Target tools (claude,opencode)")
 	cmd.Flags().StringVar(&nameFlag, "name", "", "Generate specific agent by name")
 
 	return cmd
 }
 
 func runGenerate(cmd *cobra.Command, args []string) error {
-	// Load config
-	cfg, err := genconfig.Load("ent.yaml")
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+	tools := toolsFlag
+	if len(tools) == 0 {
+		if detected := config.DetectRuntime("."); detected != "" {
+			tools = []string{detected}
+		}
 	}
 
-	// Override tools if specified
-	tools := cfg.Tools
-	if len(toolsFlag) > 0 {
-		tools = toolsFlag
+	if len(tools) == 0 {
+		tools = []string{"claude"}
 	}
 
-	// Build targets
 	var targets []generator.Target
 	for _, tool := range tools {
 		switch tool {
@@ -58,7 +56,6 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		case "opencode":
 			targets = append(targets, generator.NewOpenCodeTarget(".opencode/agents/ent"))
 		case "openspec":
-			// OpenSpec is a workflow tool, not an agent generation target - skip
 			continue
 		default:
 			return fmt.Errorf("unknown tool: %s", tool)
@@ -69,17 +66,15 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no valid tools configured")
 	}
 
-	// Run generator using meta format
-	// Meta format is in agents/meta/ subdirectory
+	cfg := config.LoadCombinedRuntimeConfig(".", tools)
+
 	gen := generator.New("agents/meta", cfg, targets...)
 
 	if nameFlag != "" {
-		// Generate specific agent
 		if err := gen.GenerateAgent(nameFlag); err != nil {
 			return fmt.Errorf("generate agent %s: %w", nameFlag, err)
 		}
 	} else {
-		// Generate all agents
 		if err := gen.GenerateAll(); err != nil {
 			return fmt.Errorf("generate: %w", err)
 		}

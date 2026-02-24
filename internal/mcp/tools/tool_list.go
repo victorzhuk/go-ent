@@ -43,7 +43,7 @@ func toolListHandler(toolRegistry *ToolRegistry) func(ctx context.Context, req *
 
 		var sb strings.Builder
 		sb.WriteString("# Available MCP Tools\n\n")
-		sb.WriteString(fmt.Sprintf("Total: %d tools\n\n", len(tools)))
+		fmt.Fprintf(&sb, "Total: %d tools\n\n", len(tools))
 
 		// Group by category
 		categories := make(map[string][]ToolSummary)
@@ -53,9 +53,9 @@ func toolListHandler(toolRegistry *ToolRegistry) func(ctx context.Context, req *
 
 		caser := cases.Title(language.English)
 		for cat, catTools := range categories {
-			sb.WriteString(fmt.Sprintf("## %s (%d)\n\n", caser.String(cat), len(catTools)))
+			fmt.Fprintf(&sb, "## %s (%d)\n\n", caser.String(cat), len(catTools))
 			for _, t := range catTools {
-				sb.WriteString(fmt.Sprintf("- **%s**: %s\n", t.Name, t.Description))
+				fmt.Fprintf(&sb, "- **%s**: %s\n", t.Name, t.Description)
 			}
 			sb.WriteString("\n")
 		}

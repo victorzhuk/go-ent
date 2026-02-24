@@ -45,15 +45,15 @@ func workspaceProjectsHandler() func(ctx context.Context, req *mcp.CallToolReque
 		}
 
 		var b strings.Builder
-		b.WriteString(fmt.Sprintf("Workspace: %s\n\n", ws.Name))
+		fmt.Fprintf(&b, "Workspace: %s\n\n", ws.Name)
 
 		if input.Project != "" {
 			for _, p := range ws.Projects {
 				if p.Name == input.Project {
-					b.WriteString(fmt.Sprintf("Project: %s\n", p.Name))
-					b.WriteString(fmt.Sprintf("Path: %s\n", p.Path))
+					fmt.Fprintf(&b, "Project: %s\n", p.Name)
+					fmt.Fprintf(&b, "Path: %s\n", p.Path)
 					if p.Description != "" {
-						b.WriteString(fmt.Sprintf("Description: %s\n", p.Description))
+						fmt.Fprintf(&b, "Description: %s\n", p.Description)
 					}
 					break
 				}
@@ -65,7 +65,7 @@ func workspaceProjectsHandler() func(ctx context.Context, req *mcp.CallToolReque
 				if p.Description != "" {
 					desc = " — " + p.Description
 				}
-				b.WriteString(fmt.Sprintf("- %s (%s)%s\n", p.Name, p.Path, desc))
+				fmt.Fprintf(&b, "- %s (%s)%s\n", p.Name, p.Path, desc)
 			}
 		}
 

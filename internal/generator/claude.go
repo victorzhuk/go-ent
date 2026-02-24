@@ -33,6 +33,10 @@ func (t *ClaudeTarget) Name() string {
 	return "claude"
 }
 
+func (t *ClaudeTarget) Runtime() string {
+	return "claude"
+}
+
 func (t *ClaudeTarget) OutputPath(agentName string) string {
 	return filepath.Join(t.OutputDir, agentName+".md")
 }

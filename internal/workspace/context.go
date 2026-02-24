@@ -14,8 +14,8 @@ func GenerateContextPrompt(ws *Workspace) (string, error) {
 
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("## Workspace Context: %s\n\n", ws.Name))
-	b.WriteString(fmt.Sprintf("This project is part of the **%s** workspace", ws.Name))
+	fmt.Fprintf(&b, "## Workspace Context: %s\n\n", ws.Name)
+	fmt.Fprintf(&b, "This project is part of the **%s** workspace", ws.Name)
 
 	if len(ws.Projects) > 0 {
 		b.WriteString(" with these projects:\n")
@@ -24,7 +24,7 @@ func GenerateContextPrompt(ws *Workspace) (string, error) {
 			if desc == "" {
 				desc = p.Name
 			}
-			b.WriteString(fmt.Sprintf("- %s (%s)\n", p.Name, desc))
+			fmt.Fprintf(&b, "- %s (%s)\n", p.Name, desc)
 		}
 	} else {
 		b.WriteString(".\n")
@@ -34,11 +34,11 @@ func GenerateContextPrompt(ws *Workspace) (string, error) {
 	if err == nil && len(specs) > 0 {
 		b.WriteString("\n### Shared Architecture Specs\n")
 		for _, s := range specs {
-			b.WriteString(fmt.Sprintf("- **%s**: %s\n", s.id, s.title))
+			fmt.Fprintf(&b, "- **%s**: %s\n", s.id, s.title)
 		}
 	}
 
-	b.WriteString(fmt.Sprintf("\nWorkspace specs are at: %s\n", filepath.Join(ws.Path, "openspec", "specs")))
+	fmt.Fprintf(&b, "\nWorkspace specs are at: %s\n", filepath.Join(ws.Path, "openspec", "specs"))
 
 	return b.String(), nil
 }

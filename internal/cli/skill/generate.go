@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/victorzhuk/go-ent/internal/genconfig"
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/generator"
 )
 
@@ -28,33 +28,31 @@ For Claude: keeps all fields (version, author, tags, etc.)
 For OpenCode: strips Claude-specific fields, keeping only name, description, and triggers
 
 Examples:
-  ent skill generate                       # Generate all skills for all configured tools
+  ent skill generate                       # Generate all skills for detected runtime
   ent skill generate --tools=claude        # Generate for Claude only
   ent skill generate --name=go/go-code     # Generate specific skill
 `,
 		RunE: runSkillGenerate,
 	}
 
-	cmd.Flags().StringSliceVar(&generateToolsFlag, "tools", nil, "Override tools from config (claude,opencode)")
+	cmd.Flags().StringSliceVar(&generateToolsFlag, "tools", nil, "Target tools (claude,opencode)")
 	cmd.Flags().StringVar(&generateNameFlag, "name", "", "Generate specific skill by category/name (e.g., go/go-code)")
 
 	return cmd
 }
 
 func runSkillGenerate(cmd *cobra.Command, args []string) error {
-	// Load config
-	cfg, err := genconfig.Load("ent.yaml")
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+	tools := generateToolsFlag
+	if len(tools) == 0 {
+		if detected := config.DetectRuntime("."); detected != "" {
+			tools = []string{detected}
+		}
 	}
 
-	// Override tools if specified
-	tools := cfg.Tools
-	if len(generateToolsFlag) > 0 {
-		tools = generateToolsFlag
+	if len(tools) == 0 {
+		tools = []string{"claude"}
 	}
 
-	// Build targets
 	var targets []generator.Target
 	for _, tool := range tools {
 		switch tool {
@@ -63,7 +61,6 @@ func runSkillGenerate(cmd *cobra.Command, args []string) error {
 		case "opencode":
 			targets = append(targets, generator.NewOpenCodeTarget(".opencode/skills"))
 		case "openspec":
-			// OpenSpec is a workflow tool, not a skill generation target - skip
 			continue
 		default:
 			return fmt.Errorf("unknown tool: %s", tool)
@@ -75,11 +72,8 @@ func runSkillGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	if generateNameFlag != "" {
-		// Generate specific skill
-		// Parse category/name from flag (e.g., "go/go-code")
 		parts := filepath.SplitList(generateNameFlag)
 		if len(parts) != 2 {
-			// Try with slash separator
 			category := filepath.Dir(generateNameFlag)
 			name := filepath.Base(generateNameFlag)
 			if category == "." || category == "" {
@@ -93,7 +87,6 @@ func runSkillGenerate(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("generate skill %s/%s: %w", category, name, err)
 		}
 	} else {
-		// Generate all skills
 		if err := generateAllSkills(targets); err != nil {
 			return fmt.Errorf("generate skills: %w", err)
 		}
@@ -104,7 +97,6 @@ func runSkillGenerate(cmd *cobra.Command, args []string) error {
 }
 
 func generateAllSkills(targets []generator.Target) error {
-	// List all skills
 	skills, err := generator.ListSkills("skills")
 	if err != nil {
 		return fmt.Errorf("list skills: %w", err)
@@ -125,13 +117,11 @@ func generateAllSkills(targets []generator.Target) error {
 }
 
 func generateSkill(targets []generator.Target, category, name string) error {
-	// Load skill source
 	skill, err := generator.LoadSkillSource("skills", category, name)
 	if err != nil {
 		return fmt.Errorf("load skill: %w", err)
 	}
 
-	// Generate for each target
 	for _, target := range targets {
 		output, err := target.GenerateSkill(skill)
 		if err != nil {

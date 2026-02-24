@@ -56,7 +56,7 @@ func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context,
 
 		var sb strings.Builder
 		sb.WriteString("# Registry Changes\n\n")
-		sb.WriteString(fmt.Sprintf("Found %d change(s):\n\n", len(changes)))
+		fmt.Fprintf(&sb, "Found %d change(s):\n\n", len(changes))
 
 		summaryList := make([]ChangeSummary, 0, len(changes))
 
@@ -66,21 +66,21 @@ func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context,
 				progress = float64(change.Completed) / float64(change.TaskCount) * 100
 			}
 
-			sb.WriteString(fmt.Sprintf("## %d. %s\n\n", i+1, change.ID))
-			sb.WriteString(fmt.Sprintf("**Title**: %s\n\n", change.Title))
-			sb.WriteString(fmt.Sprintf("**Status**: %s\n\n", change.Status))
-			sb.WriteString(fmt.Sprintf("**Progress**: %d/%d tasks (%.0f%%)\n\n",
-				change.Completed, change.TaskCount, progress))
+			fmt.Fprintf(&sb, "## %d. %s\n\n", i+1, change.ID)
+			fmt.Fprintf(&sb, "**Title**: %s\n\n", change.Title)
+			fmt.Fprintf(&sb, "**Status**: %s\n\n", change.Status)
+			fmt.Fprintf(&sb, "**Progress**: %d/%d tasks (%.0f%%)\n\n",
+				change.Completed, change.TaskCount, progress)
 
 			if change.InProgress > 0 {
-				sb.WriteString(fmt.Sprintf("**In Progress**: %d\n\n", change.InProgress))
+				fmt.Fprintf(&sb, "**In Progress**: %d\n\n", change.InProgress)
 			}
 
 			if change.Blocked > 0 {
-				sb.WriteString(fmt.Sprintf("**Blocked**: %d\n\n", change.Blocked))
+				fmt.Fprintf(&sb, "**Blocked**: %d\n\n", change.Blocked)
 			}
 
-			sb.WriteString(fmt.Sprintf("**Updated**: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04")))
+			fmt.Fprintf(&sb, "**Updated**: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04"))
 			sb.WriteString("---\n\n")
 
 			summaryList = append(summaryList, ChangeSummary{
@@ -168,20 +168,20 @@ func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, r
 		if input.ChangeID != "" || input.Status != "" {
 			sb.WriteString("*Filtered*\n\n")
 			if input.ChangeID != "" {
-				sb.WriteString(fmt.Sprintf("- Change ID: %s\n", input.ChangeID))
+				fmt.Fprintf(&sb, "- Change ID: %s\n", input.ChangeID)
 			}
 			if input.Status != "" {
-				sb.WriteString(fmt.Sprintf("- Status: %s\n", input.Status))
+				fmt.Fprintf(&sb, "- Status: %s\n", input.Status)
 			}
 			sb.WriteString("\n")
 		}
 
-		sb.WriteString(fmt.Sprintf("Found %d task(s):\n\n", len(tasks)))
+		fmt.Fprintf(&sb, "Found %d task(s):\n\n", len(tasks))
 
 		summaryList := make([]TaskSummary, 0, len(tasks))
 
 		for i, task := range tasks {
-			sb.WriteString(fmt.Sprintf("## %d. %s - %s\n\n", i+1, task.ChangeID, task.TaskNum))
+			fmt.Fprintf(&sb, "## %d. %s - %s\n\n", i+1, task.ChangeID, task.TaskNum)
 
 			statusIcon := "⏳"
 			switch task.Status {
@@ -191,15 +191,15 @@ func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, r
 				statusIcon = "🔄"
 			}
 
-			sb.WriteString(fmt.Sprintf("**Status**: %s %s\n\n", statusIcon, task.Status))
-			sb.WriteString(fmt.Sprintf("**Content**: %s\n\n", task.Content))
+			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", statusIcon, task.Status)
+			fmt.Fprintf(&sb, "**Content**: %s\n\n", task.Content)
 
 			if task.Priority != 0 {
-				sb.WriteString(fmt.Sprintf("**Priority**: %d\n\n", task.Priority))
+				fmt.Fprintf(&sb, "**Priority**: %d\n\n", task.Priority)
 			}
 
 			if len(task.DependsOn) > 0 {
-				sb.WriteString(fmt.Sprintf("**Depends On**: %s\n\n", strings.Join(task.DependsOn, ", ")))
+				fmt.Fprintf(&sb, "**Depends On**: %s\n\n", strings.Join(task.DependsOn, ", "))
 			}
 
 			sb.WriteString("---\n\n")

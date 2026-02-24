@@ -32,6 +32,10 @@ func (t *OpenCodeTarget) Name() string {
 	return "opencode"
 }
 
+func (t *OpenCodeTarget) Runtime() string {
+	return "opencode"
+}
+
 func (t *OpenCodeTarget) OutputPath(agentName string) string {
 	return filepath.Join(t.OutputDir, agentName+".md")
 }

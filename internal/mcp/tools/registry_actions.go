@@ -231,16 +231,16 @@ func registryStartTaskHandler(store *spec.BoltStore, hookRegistry *hooks.Registr
 
 		var content strings.Builder
 		content.WriteString("# Task Started\n\n")
-		content.WriteString(fmt.Sprintf("**Task**: %s/%s\n\n", input.ChangeID, input.TaskNum))
+		fmt.Fprintf(&content, "**Task**: %s/%s\n\n", input.ChangeID, input.TaskNum)
 		content.WriteString("**Status**: In Progress 🔄\n\n")
-		content.WriteString(fmt.Sprintf("**Started**: %s\n\n", state.StartedAt.Format("2006-01-02 15:04:05")))
+		fmt.Fprintf(&content, "**Started**: %s\n\n", state.StartedAt.Format("2006-01-02 15:04:05"))
 
 		if input.Assignee != "" {
-			content.WriteString(fmt.Sprintf("**Assignee**: %s\n\n", input.Assignee))
+			fmt.Fprintf(&content, "**Assignee**: %s\n\n", input.Assignee)
 		}
 
 		if input.Notes != "" {
-			content.WriteString(fmt.Sprintf("**Notes**: %s\n\n", input.Notes))
+			fmt.Fprintf(&content, "**Notes**: %s\n\n", input.Notes)
 		}
 
 		content.WriteString("*Runtime state stored in BoltDB. Not persisted to markdown.*\n")
@@ -302,9 +302,9 @@ func registrySyncHandler(store *spec.BoltStore) func(ctx context.Context, req *m
 		var content strings.Builder
 		content.WriteString("# Registry Sync Complete\n\n")
 		content.WriteString("✅ BoltDB cache rebuilt from markdown files.\n\n")
-		content.WriteString(fmt.Sprintf("**Changes synced**: %d\n\n", len(changes)))
-		content.WriteString(fmt.Sprintf("**Tasks synced**: %d\n\n", len(tasks)))
-		content.WriteString(fmt.Sprintf("**Duration**: %v\n\n", duration))
+		fmt.Fprintf(&content, "**Changes synced**: %d\n\n", len(changes))
+		fmt.Fprintf(&content, "**Tasks synced**: %d\n\n", len(tasks))
+		fmt.Fprintf(&content, "**Duration**: %v\n\n", duration)
 
 		return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{Text: content.String()}},

@@ -426,8 +426,8 @@ func convertExamplesToMarkdown(content string) string {
 		input := strings.TrimSpace(match[1])
 		output := strings.TrimSpace(match[2])
 
-		result.WriteString(fmt.Sprintf("### Example %d\n\n", exampleNum))
-		result.WriteString(fmt.Sprintf("**Input**: %s\n\n", input))
+		fmt.Fprintf(&result, "### Example %d\n\n", exampleNum)
+		fmt.Fprintf(&result, "**Input**: %s\n\n", input)
 
 		result.WriteString("**Output**:\n")
 		result.WriteString(output)
@@ -549,11 +549,11 @@ func generateV4Output(v4 *V4Skill) map[string]string {
 	var sb strings.Builder
 
 	sb.WriteString("---\n")
-	sb.WriteString(fmt.Sprintf("name: %s\n", v4.Name))
-	sb.WriteString(fmt.Sprintf("description: %s\n", v4.Description))
+	fmt.Fprintf(&sb, "name: %s\n", v4.Name)
+	fmt.Fprintf(&sb, "description: %s\n", v4.Description)
 	sb.WriteString("triggers:\n")
 	for _, t := range v4.Triggers {
-		sb.WriteString(fmt.Sprintf("  - %s\n", t))
+		fmt.Fprintf(&sb, "  - %s\n", t)
 	}
 	sb.WriteString("---\n\n")
 
@@ -571,7 +571,7 @@ func generateV4Output(v4 *V4Skill) map[string]string {
 	if len(v4.References) > 0 {
 		sb.WriteString("\n\n## References\n\n")
 		for _, ref := range v4.References {
-			sb.WriteString(fmt.Sprintf("- [%s](%s)\n", ref.Title, ref.Path))
+			fmt.Fprintf(&sb, "- [%s](%s)\n", ref.Title, ref.Path)
 		}
 	}
 
@@ -579,7 +579,7 @@ func generateV4Output(v4 *V4Skill) map[string]string {
 
 	for _, ref := range v4.References {
 		var refContent strings.Builder
-		refContent.WriteString(fmt.Sprintf("# %s\n\n", ref.Title))
+		fmt.Fprintf(&refContent, "# %s\n\n", ref.Title)
 		refContent.WriteString(ref.Content)
 		files[ref.Path] = refContent.String()
 	}
