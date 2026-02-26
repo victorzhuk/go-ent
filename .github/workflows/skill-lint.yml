@@ -133,20 +133,16 @@ jobs:
 
           # Display formatted results
           echo "$LINT_OUTPUT" | jq -r '
-            if .fixed != null and (.fixed | length) > 0 then
+            (if .fixed != null and (.fixed | length) > 0 then
               "\n✅ Auto-fixed issues:\n" + (.fixed | map("  - " + .) | join("\n"))
-            else "" end
-          ' +
-          (
-            if .errors != [] then
+            else "" end) +
+            (if .errors != [] then
               "\n❌ Remaining errors:\n" + (.errors | map("  - " + .) | join("\n"))
-            else "" end
-          ) +
-          (
-            if .warnings != [] then
+            else "" end) +
+            (if .warnings != [] then
               "\n⚠️  Warnings:\n" + (.warnings | map("  - " + .) | join("\n"))
-            else "" end
-          )
+            else "" end)
+          '
 
           # Exit with code from lint command
           # Exit code 0: all issues fixed

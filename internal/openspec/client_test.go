@@ -2,6 +2,7 @@ package openspec
 
 import (
 	"context"
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,6 +11,10 @@ import (
 
 func TestClient_List(t *testing.T) {
 	t.Parallel()
+
+	if _, err := exec.LookPath("openspec"); err != nil {
+		t.Skip("openspec not in PATH")
+	}
 
 	client := New("../..")
 	ctx := context.Background()
