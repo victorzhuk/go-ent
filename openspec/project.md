@@ -4,7 +4,7 @@
 
 **go-ent** is an enterprise Go development toolkit that implements the OpenSpec workflow methodology. It provides:
 
-1. **MCP Server**: Model Context Protocol server exposing 30+ tools for AI assistants
+1. **MCP Server**: Model Context Protocol server exposing 26 tools for AI assistants
 2. **Claude Code Plugin**: Full integration with Claude Code CLI (agents, commands, skills)
 3. **OpenCode Plugin**: Compatible with OpenCode AI IDE
 4. **OpenSpec Workflow**: Spec-driven development with change proposals, delta specs, and artifact management
@@ -144,10 +144,10 @@ func TestFoo(t *testing.T) {
   - `refactor(agent): simplify prompt template logic`
 
 **OpenSpec Workflow**:
-1. Create change: `/ent:plan "description"`
+1. Create change: `/opsx:new "description"`
 2. Iterate on artifacts: proposal → design → tasks
-3. Execute tasks: `/ent:apply`
-4. Archive when deployed: `/ent:archive change-id`
+3. Execute tasks: `/opsx:apply`
+4. Archive when deployed: `/opsx:archive change-id`
 
 **Changes live in**: `openspec/changes/<change-id>/`
 
@@ -177,24 +177,24 @@ active/ → (implementation) → archive/
 
 ### Agent System
 
-**Agent Types** (17 total):
-- **Meta Agents**: Core roles (architect, planner, coder, tester, debugger, reviewer)
-- **Specialized**: Domain-specific (acceptor, decomposer, researcher, reproducer)
-- **Variants**: Fast/heavy versions for latency vs depth tradeoffs
+**Agent Types** (5 total): `coder`, `planner`, `researcher`, `reviewer`, `scout`
 
-**Agent Configuration** (YAML):
+**Agent Configuration** (YAML in `pkg/agents/meta/`):
 ```yaml
 name: coder
 description: "..."
-model: sonnet
-tools: [Read, Write, Edit, Bash, ...]
-system_prompt: "prompts/agents/coder.md"
+whenToUse: "..."
+model: main          # fast | main | heavy
+role: execution
+skills:
+  - go-code
+toolPresets:
+  - all
 ```
 
 **Prompt Structure**:
-- Base prompts in `agents/prompts/agents/<name>.md`
-- Shared fragments in `agents/prompts/shared/_*.md`
-- Template rendering for plugin format (Claude vs OpenCode)
+- Agent prompts in `pkg/agents/prompts/`
+- Template rendering for platform differences (Claude Code vs OpenCode)
 
 ### Skill System
 
@@ -202,20 +202,14 @@ system_prompt: "prompts/agents/coder.md"
 - **Core**: Universal patterns (arch, api-design, security, review, debug)
 - **Go**: Language-specific (go-code, go-arch, go-test, go-api, go-db, etc.)
 
-**Skill Frontmatter** (YAML):
+**Skill Frontmatter** (YAML, v4 format):
 ```yaml
 name: go-code
 description: "..."
-version: "2.0.0"
-author: "go-ent"
-license: "MIT"
-compatibility:
-  claude_code: ">=1.0"
-  opencode: ">=0.1"
-tags: ["go", "code"]
-quality_score: 94
-category: "go"
-depends_on: ["other-skill"]  # optional
+triggers:
+  - go code
+  - golang
+  - implementation
 ```
 
 **Auto-Activation**: Skills define triggers for automatic loading based on context
@@ -223,15 +217,15 @@ depends_on: ["other-skill"]  # optional
 ### Command System
 
 **Command Types**:
-- **Workflows**: `/ent:plan`, `/ent:apply`, `/ent:status`, `/ent:archive`
-- **Registry**: `/ent:registry list`, `/ent:registry next`
-- **Skill Management**: `/ent:skill-sync` (sync to Claude Code)
-- **Skills**: Auto-activate based on task content (see `task-router` skill for routing)
+- **Workflows**: `/ent:plan-flow`, `/ent:task-flow`, `/ent:bug-flow`
+- **Aliases**: `/opsx:new`, `/opsx:apply`, `/opsx:archive`
+- **Skill Management**: `/ent:skill-sync` (sync skills to Claude Code)
+- **Skills**: Auto-activate based on task content (triggers in frontmatter)
 
-**OpenSpec Aliases** (added in this refactor):
-- `/opsx:new` → `/ent:plan`
-- `/opsx:apply` → `/ent:apply`
-- `/opsx:archive` → `/ent:archive`
+**OpenSpec Workflow**:
+1. Create change: `/opsx:new "description"`
+2. Execute tasks: `/opsx:apply`
+3. Archive when done: `/opsx:archive change-id`
 
 ## Important Constraints
 

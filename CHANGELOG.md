@@ -7,18 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- Dead code: Remove `internal/marketplace/` package (unused, zero production references)
-- Dead code: Remove `pkg/skills/plugins/` subtree (unused duplicate)
-- Cleanup: Remove MCP tool test artifacts (exports/, *.json, *.csv, *.prom)
-- Cleanup: Remove unused testdata/fallback directory
+---
 
-### Added
-- Complete documentation refactoring with INDEX.md navigation hub
-- CLI_REFERENCE.md with complete command documentation
-- CONFIGURATION.md with all configuration options
-- OPENSPEC_WORKFLOW.md aligned with Fission-AI/OpenSpec standards
-- ARCHITECTURE.md explaining project structure and three-directory pattern
+## [0.5.0] - 2026-02-27
+
+### Changed
+- Change license from MIT to Apache 2.0
+- Consolidate model configuration into runtime-specific files
+- Actualize and clean up all project documentation
+
+### Build
+- Improve build and test process in CI
 
 ---
 
@@ -140,7 +139,8 @@ Tool names were shortened (e.g. `go_ent_skill_list` → `skill_list`).
 
 ---
 
-[Unreleased]: https://github.com/victorzhuk/go-ent/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/victorzhuk/go-ent/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/victorzhuk/go-ent/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/victorzhuk/go-ent/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/victorzhuk/go-ent/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/victorzhuk/go-ent/compare/v0.2.0...v0.2.1

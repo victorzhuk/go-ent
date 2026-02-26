@@ -18,7 +18,9 @@ When working on go-ent itself, use `/opsx:` slash commands — the plugin is loa
 | `/opsx:ff` | Fast-forward all artifacts |
 | `/opsx:sync` | Sync delta specs |
 | `/opsx:archive` | Archive completed change |
+| `/opsx:bulk-archive` | Archive multiple completed changes |
 | `/opsx:verify` | Verify implementation |
+| `/opsx:onboard` | Guided workflow onboarding |
 
 ### Skills Auto-Activate
 

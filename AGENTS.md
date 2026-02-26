@@ -113,7 +113,6 @@ internal/
 ├── cli/           # CLI application
 ├── config/        # Configuration management
 ├── domain/        # Core domain types
-├── genconfig/     # Code generation configuration
 ├── generator/     # Code generation engine
 ├── genspec/       # Generation spec parsing
 ├── hooks/         # Hook registry and execution

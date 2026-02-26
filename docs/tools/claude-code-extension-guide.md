@@ -120,51 +120,24 @@ allowed-tools: Bash(git:*), Bash(npm:*)
 
 ---
 
-## OpenSpec Integration
+## OpenSpec Integration (go-ent)
 
-OpenSpec is a spec-driven development framework for AI coding assistants. It provides structure before code through proposals, specs, designs, and tasks.
-
-### Installation
-
-```bash
-npm install -g @fission-ai/openspec@latest
-```
-
-Requires Node.js 20.19.0+
-
-### Initialize in Project
-
-```bash
-openspec init
-```
-
-Select your AI tool (Claude Code, Cursor, etc.) during setup.
+go-ent ships its own OpenSpec workflow via the `ent` plugin. No external tools required — install with `ent init`.
 
 ### Slash Commands
 
 | Command | Purpose |
 |---------|---------|
 | `/opsx:explore` | Think through ideas before committing to a change |
-| `/opsx:new id` | Start a new change, create folder structure |
+| `/opsx:new` | Start a new change, create folder structure |
 | `/opsx:continue` | Create next artifact in dependency chain |
-| `/opsx:ff id` | Fast-forward: create all planning artifacts at once |
-| `/opsx:apply id` | Implement tasks from tasks.md |
-| `/opsx:verify id` | Validate implementation matches artifacts |
+| `/opsx:ff` | Fast-forward: create all planning artifacts at once |
+| `/opsx:apply` | Implement tasks from tasks.md |
+| `/opsx:verify` | Validate implementation matches artifacts |
 | `/opsx:sync` | Merge delta specs into main specs |
-| `/opsx:archive id` | Archive completed change |
+| `/opsx:archive` | Archive completed change |
 | `/opsx:bulk-archive` | Archive multiple completed changes |
 | `/opsx:onboard` | Guided tutorial through complete workflow |
-
-### CLI Commands (Read-Only Queries)
-
-```bash
-openspec list
-openspec status --change change-id
-openspec status --change change-id --json
-openspec show change-id
-openspec validate change-id
-openspec instructions artifact --change change-id
-```
 
 ### Artifact Flow
 
@@ -183,10 +156,7 @@ openspec instructions artifact --change change-id
 ```
 openspec/
 ├── project.md
-├── AGENTS.md
-├── specs/
-│   └── capability/
-│       └── spec.md
+├── ROADMAP.md
 ├── changes/
 │   └── change-id/
 │       ├── proposal.md
@@ -206,17 +176,17 @@ openspec/
 | 6-7 (complex) | Recommended |
 | 8-10 (architecture) | Required |
 
-### Integration with Subagents
+### Agent Roles
 
-Orchestrator pattern with OpenSpec:
+go-ent defines 5 agents for parallel/isolated work via the Task tool:
 
-1. **ent-driver** (orchestrator) assesses task, scores complexity
-2. **ent-planner** researches and creates plan
-3. If complexity 6+: recommend OpenSpec
-4. **ent-coder** uses `/opsx:new`, `/opsx:ff` to create artifacts
-5. **ent-coder** uses `/opsx:apply` to implement
-6. **ent-driver** verifies with read-only inspection
-7. **ent-coder** uses `/opsx:archive` to complete
+| Agent | Role | Model tier |
+|-------|------|------------|
+| `scout` | Exploration, triage | fast (haiku) |
+| `planner` | Research, planning | main (sonnet) |
+| `coder` | Implementation, tests | main (sonnet) |
+| `researcher` | Deep investigation | heavy (opus) |
+| `reviewer` | Architecture review | heavy (opus) |
 
 ---
 
@@ -303,10 +273,9 @@ allowed-tools: Read, Edit, Bash(git:*)
 
 ### OpenSpec Quick Commands
 
-```bash
+```
 /opsx:new my-feature
 /opsx:ff my-feature
 /opsx:apply my-feature
 /opsx:archive my-feature
-openspec status --change my-feature
 ```

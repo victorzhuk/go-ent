@@ -12,7 +12,7 @@
   <a href="https://pkg.go.dev/github.com/victorzhuk/go-ent"><img src="https://pkg.go.dev/badge/github.com/victorzhuk/go-ent.svg" alt="Go Reference"></a>
   <a href="https://goreportcard.com/report/github.com/victorzhuk/go-ent"><img src="https://goreportcard.com/badge/github.com/victorzhuk/go-ent" alt="Go Report Card"></a>
   <a href="https://github.com/victorzhuk/go-ent/actions/workflows/validate.yml"><img src="https://github.com/victorzhuk/go-ent/actions/workflows/validate.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/go-%3E%3D1.24-blue" alt="Go 1.24+">
 </p>
 
@@ -537,7 +537,7 @@ Transport → UseCase → Domain ← Repository ← Infrastructure
 
 ## License
 
-MIT
+Apache 2.0
 
 ## References
 
