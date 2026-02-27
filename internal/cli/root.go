@@ -29,14 +29,11 @@ spec-driven development, and intelligent task execution.`,
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 	cmd.PersistentFlags().StringVar(&configFile, "config", "", "config file path")
 
-	// Add subcommands
 	cmd.AddCommand(newVersionCmd())
-	// TODO: Phase 5 - Re-enable after ACP integration
-	// cmd.AddCommand(newRunCmd())
 	cmd.AddCommand(newInitCmd())
 	cmd.AddCommand(newValidateCmd())
-	cmd.AddCommand(agent.NewCmd()) // NEW: agent subcommand
-	cmd.AddCommand(skill.NewCmd()) // UPDATED: skill subcommand with generate
+	cmd.AddCommand(agent.NewCmd())
+	cmd.AddCommand(skill.NewCmd())
 	cmd.AddCommand(newSpecCmd())
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newWorkspaceCmd())
@@ -58,9 +55,6 @@ func newVersionCmd() *cobra.Command {
 		},
 	}
 }
-
-// TODO: Phase 5 - Implement using ACP client
-// func newRunCmd() *cobra.Command { ... }
 
 // Execute runs the root command.
 func Execute() error {

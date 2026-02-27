@@ -66,9 +66,8 @@ type agentMeta struct {
 	Complexity            string            `yaml:"complexity"`
 	ComplexityHints       map[string]string `yaml:"complexityHints"`
 	ModelMapping          map[string]string `yaml:"modelMapping"`
-	Mode                  string            `yaml:"mode"`   // primary, subagent, hidden
-	Hidden                *bool             `yaml:"hidden"` // DEPRECATED: backward compat
-	Skills                []string          `yaml:"skills"`
+	Mode                  string   `yaml:"mode"` // primary, subagent, hidden
+	Skills                []string `yaml:"skills"`
 	Tools                 []string          `yaml:"tools"`
 	ToolPresets           []string          `yaml:"toolPresets"`
 	DisallowedToolPresets []string          `yaml:"disallowedToolPresets"`
@@ -77,11 +76,6 @@ type agentMeta struct {
 	Prompts               promptsConfig     `yaml:"prompts"`
 }
 
-// ModelClaude converts internal model name to Claude Code format
-// For agents with complexity="auto" and modelMapping, this supports dynamic model selection:
-// - Runtime complexity assessment would use complexityHints to pick simple/standard/complex
-// - modelMapping maps complexity level to model tier (e.g., simple→haiku, complex→opus)
-// For now, uses the explicit Model field as set in agent metadata.
 func (m *agentMeta) ModelClaude() string {
 	switch m.Model {
 	case "main":
@@ -100,28 +94,15 @@ func (m *agentMeta) ModelOpenCode() string {
 	return m.Model
 }
 
-// EffectiveMode returns the mode to use, handling backward compatibility with Hidden field
 func (m *agentMeta) EffectiveMode() string {
 	if m.Mode != "" {
 		return m.Mode
 	}
-	if m.Hidden != nil && *m.Hidden {
-		return "hidden"
-	}
 	return "subagent"
 }
 
-// ModeOpenCode returns the mode for OpenCode template
 func (m *agentMeta) ModeOpenCode() string {
 	return m.EffectiveMode()
-}
-
-// HiddenForOpenCode returns true if the agent should be hidden in OpenCode
-func (m *agentMeta) HiddenForOpenCode() bool {
-	if m.Hidden == nil {
-		return false
-	}
-	return *m.Hidden
 }
 
 // GeneratedSkills returns skills including those mapped from shared prompts
@@ -308,10 +289,6 @@ func mergeAgents(base, variant *agentMeta) *agentMeta {
 	if variant.Mode != "" {
 		merged.Mode = variant.Mode
 	}
-	if variant.Hidden != nil {
-		merged.Hidden = variant.Hidden
-	}
-
 	merged.Skills = mergeSlices(base.Skills, variant.Skills)
 	merged.Tools = mergeSlices(base.Tools, variant.Tools)
 	merged.ToolPresets = mergeSlices(base.ToolPresets, variant.ToolPresets)
@@ -466,10 +443,6 @@ func validateAgent(meta *agentMeta, filename string) error {
 			return fmt.Errorf("%s: mode must be one of [primary, subagent, hidden] (got: %s)", filename, meta.Mode)
 		}
 	}
-	if meta.Hidden != nil && meta.Mode != "" {
-		return fmt.Errorf("%s: cannot use both 'mode' and deprecated 'hidden' fields", filename)
-	}
-
 	if meta.Role != "" {
 		validRoles := map[string]bool{"planning": true, "execution": true, "validation": true, "research": true, "orchestration": true}
 		if !validRoles[meta.Role] {
@@ -989,11 +962,6 @@ Examples:
 				return errors.New("--tools is required")
 			}
 
-			// Plugin FS is now always available via pkg.FS
-			if false {
-				return errors.New("plugin filesystem not initialized")
-			}
-
 			agents, err := loadAgents()
 			if err != nil {
 				return fmt.Errorf("load agents: %w", err)
@@ -1156,11 +1124,6 @@ Examples:
   ent validate`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Plugin FS is now always available via pkg.FS
-			if false {
-				return errors.New("plugin filesystem not initialized")
-			}
-
 			agents, err := loadAgents()
 			if err != nil {
 				return fmt.Errorf("validation failed: %w", err)

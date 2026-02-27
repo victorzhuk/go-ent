@@ -304,18 +304,6 @@ func TestValidateAgent(t *testing.T) {
 			errMsg:  "mode must be one of [primary, subagent, hidden]",
 		},
 		{
-			name: "cannot use both mode and hidden",
-			agent: agentMeta{
-				Name:        "test",
-				Description: "Valid description",
-				Model:       "main",
-				Mode:        "primary",
-				Hidden:      boolPtr(true),
-			},
-			wantErr: true,
-			errMsg:  "cannot use both 'mode' and deprecated 'hidden'",
-		},
-		{
 			name: "valid orchestration role",
 			agent: agentMeta{
 				Name:        "driver",
@@ -341,10 +329,6 @@ func TestValidateAgent(t *testing.T) {
 			}
 		})
 	}
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }
 
 func TestCleanDirs(t *testing.T) {
@@ -446,16 +430,6 @@ func TestEffectiveMode(t *testing.T) {
 			name:     "mode takes precedence",
 			agent:    agentMeta{Mode: "primary"},
 			expected: "primary",
-		},
-		{
-			name:     "hidden true becomes hidden mode",
-			agent:    agentMeta{Hidden: boolPtr(true)},
-			expected: "hidden",
-		},
-		{
-			name:     "hidden false becomes subagent mode",
-			agent:    agentMeta{Hidden: boolPtr(false)},
-			expected: "subagent",
 		},
 		{
 			name:     "default is subagent",
