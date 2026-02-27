@@ -20,9 +20,9 @@ func TestDetectWorkspace(t *testing.T) {
 	t.Run("reads workspace name from ref file", func(t *testing.T) {
 		t.Parallel()
 		dir := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, ".go-ent"), 0o750))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, ".claude"), 0o750))
 		require.NoError(t, os.WriteFile(
-			filepath.Join(dir, ".go-ent", "workspace.yaml"),
+			filepath.Join(dir, ".claude", "workspace.yaml"),
 			[]byte("workspace: my-workspace\n"),
 			0o600,
 		))

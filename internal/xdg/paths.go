@@ -28,10 +28,6 @@ func CacheDir() string {
 	return filepath.Join(homeDir(), ".cache", appName)
 }
 
-func LegacyDir() string {
-	return filepath.Join(homeDir(), ".go-ent")
-}
-
 func homeDir() string {
 	if h, err := os.UserHomeDir(); err == nil {
 		return h

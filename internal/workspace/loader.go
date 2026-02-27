@@ -9,7 +9,7 @@ import (
 )
 
 func DetectWorkspace(projectPath string) (string, error) {
-	refPath := filepath.Join(projectPath, ".go-ent", "workspace.yaml")
+	refPath := filepath.Join(projectPath, ".claude", "workspace.yaml")
 
 	data, err := os.ReadFile(refPath) // #nosec G304
 	if err != nil {
@@ -80,9 +80,9 @@ func WriteWorkspaceRef(projectPath, workspaceName string) error {
 		return fmt.Errorf("marshal workspace ref: %w", err)
 	}
 
-	dir := filepath.Join(projectPath, ".go-ent")
+	dir := filepath.Join(projectPath, ".claude")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
-		return fmt.Errorf("create .go-ent dir: %w", err)
+		return fmt.Errorf("create .claude dir: %w", err)
 	}
 
 	path := filepath.Join(dir, "workspace.yaml")

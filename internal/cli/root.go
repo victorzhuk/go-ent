@@ -9,10 +9,7 @@ import (
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
-var (
-	verbose    bool
-	configFile string
-)
+var verbose bool
 
 // NewRootCmd creates the root command for the go-ent CLI.
 func NewRootCmd() *cobra.Command {
@@ -25,9 +22,7 @@ spec-driven development, and intelligent task execution.`,
 		SilenceErrors: true,
 	}
 
-	// Global flags
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	cmd.PersistentFlags().StringVar(&configFile, "config", "", "config file path")
 
 	cmd.AddCommand(newVersionCmd())
 	cmd.AddCommand(newInitCmd())

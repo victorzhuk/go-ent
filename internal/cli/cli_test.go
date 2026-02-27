@@ -218,7 +218,7 @@ func TestConfigCommands(t *testing.T) {
 			assert.Empty(t, stderr)
 
 			// Verify config directory was created
-			cfgDir := filepath.Join(tmpDir, ".go-ent")
+			cfgDir := filepath.Join(tmpDir, ".claude")
 			assert.DirExists(t, cfgDir)
 		}
 	})
@@ -240,19 +240,9 @@ func TestConfigCommands(t *testing.T) {
 	})
 }
 
-// TODO: Phase 5 - Re-enable after run command restored
-// func TestRunCommand(t *testing.T) { ... }
-
 func TestGlobalFlags(t *testing.T) {
 	t.Run("verbose flag", func(t *testing.T) {
 		stdout, stderr, err := executeCommandWithCapture(t, "--verbose", "version")
-		require.NoError(t, err)
-		assert.Contains(t, stdout, "ent")
-		assert.Empty(t, stderr)
-	})
-
-	t.Run("config flag", func(t *testing.T) {
-		stdout, stderr, err := executeCommandWithCapture(t, "--config", "/tmp/test-config.yaml", "version")
 		require.NoError(t, err)
 		assert.Contains(t, stdout, "ent")
 		assert.Empty(t, stderr)

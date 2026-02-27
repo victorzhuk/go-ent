@@ -115,7 +115,7 @@ func newWorkspaceAddCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add [project-path]",
 		Short: "Add a project to a workspace",
-		Long: `Links a project to a workspace. Creates .go-ent/workspace.yaml in the project
+		Long: `Links a project to a workspace. Creates .claude/workspace.yaml in the project
 and registers it in the workspace's project registry.
 
 The project path defaults to the current directory.

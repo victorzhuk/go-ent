@@ -1,9 +1,5 @@
 package spec
 
-import (
-	_ "github.com/victorzhuk/go-ent/internal/domain" // Domain types for agent system
-)
-
 // Domain Boundaries:
 //
 // This package (internal/spec) defines types for the OpenSpec system:
