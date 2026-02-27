@@ -77,16 +77,7 @@ type agentMeta struct {
 }
 
 func (m *agentMeta) ModelClaude() string {
-	switch m.Model {
-	case "main":
-		return "sonnet"
-	case "fast":
-		return "haiku"
-	case "heavy":
-		return "opus"
-	default:
-		return m.Model
-	}
+	return config.CategoryToAlias(m.Model)
 }
 
 // ModelOpenCode returns internal model name as-is for OpenCode

@@ -49,7 +49,7 @@ func TestModel_Claude(t *testing.T) {
 		{"fast category", "fast", "haiku"},
 		{"main category", "main", "sonnet"},
 		{"heavy category", "heavy", "opus"},
-		{"unknown category defaults to main", "unknown", "sonnet"},
+		{"unknown category returns as-is", "unknown", "unknown"},
 	}
 
 	for _, tt := range tests {
@@ -71,10 +71,10 @@ func TestModel_OpenCode(t *testing.T) {
 		category string
 		want     string
 	}{
-		{"fast category", "fast", "gpt-4o-mini"},
-		{"main category", "main", "gpt-4"},
-		{"heavy category", "heavy", "o1-preview"},
-		{"unknown category defaults to main", "unknown", "gpt-4"},
+		{"fast category", "fast", "zai-coding-plan/glm-4.7-flash"},
+		{"main category", "main", "zai-coding-plan/glm-5"},
+		{"heavy category", "heavy", "kimi-for-coding/k2p5"},
+		{"unknown category returns as-is", "unknown", "unknown"},
 	}
 
 	for _, tt := range tests {

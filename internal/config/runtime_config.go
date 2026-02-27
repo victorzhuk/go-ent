@@ -68,6 +68,20 @@ func DefaultToolRuntimeConfig() *ToolRuntimeConfig {
 	}
 }
 
+// CategoryToAlias maps a model category (fast/main/heavy) to a Claude model alias (haiku/sonnet/opus).
+func CategoryToAlias(category string) string {
+	switch category {
+	case "fast":
+		return "haiku"
+	case "main":
+		return "sonnet"
+	case "heavy":
+		return "opus"
+	default:
+		return category
+	}
+}
+
 func (c *ClaudeModels) Resolve(alias string) string {
 	switch alias {
 	case "fast", "haiku":

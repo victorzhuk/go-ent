@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
+
+	"github.com/victorzhuk/go-ent/internal/config"
 )
 
 // TemplateEngine wraps Go's text/template with custom functions.
@@ -49,29 +51,12 @@ func (e *TemplateEngine) ifTool(tool string) bool {
 // Category: fast, main, heavy
 // Tool: claude, opencode
 func (e *TemplateEngine) model(category, tool string) string {
-	claudeModels := map[string]string{
-		"fast":  "haiku",
-		"main":  "sonnet",
-		"heavy": "opus",
-	}
-
-	openCodeModels := map[string]string{
-		"fast":  "gpt-4o-mini",
-		"main":  "gpt-4",
-		"heavy": "o1-preview",
-	}
-
 	switch tool {
 	case "claude":
-		if m, ok := claudeModels[category]; ok {
-			return m
-		}
-		return "sonnet"
+		return config.CategoryToAlias(category)
 	case "opencode":
-		if m, ok := openCodeModels[category]; ok {
-			return m
-		}
-		return "gpt-4"
+		defaults := config.DefaultToolRuntimeConfig()
+		return defaults.OpenCode.Resolve(category)
 	default:
 		return ""
 	}

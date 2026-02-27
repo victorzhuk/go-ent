@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/pkg"
 	"gopkg.in/yaml.v3"
 )
@@ -83,16 +84,9 @@ func LoadAgentMetaSource(srcDir, name string) (*AgentMetaSource, *PromptContent,
 
 // ConvertMetaToSource converts meta format to old AgentSource format for generation
 func ConvertMetaToSource(meta *AgentMetaSource) *AgentSource {
-	// Map model names: main->sonnet, fast->haiku, heavy->opus
-	modelMap := map[string]string{
-		"main":  "sonnet",
-		"fast":  "haiku",
-		"heavy": "opus",
-	}
-
-	claudeModel := modelMap[meta.Model]
+	claudeModel := config.CategoryToAlias(meta.Model)
 	if claudeModel == "" {
-		claudeModel = "sonnet" // default
+		claudeModel = "sonnet"
 	}
 
 	// Build extended description if whenToUse is provided
