@@ -11,6 +11,8 @@ import (
 )
 
 func newValidateCmd() *cobra.Command {
+	var tools []string
+
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate generated agent files",
@@ -21,15 +23,18 @@ This command checks that generated agent files in .claude/agents/ and
 
 Examples:
   ent agent validate
+  ent agent validate --tools=claude
 `,
-		RunE: runValidate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runValidate(tools)
+		},
 	}
 
+	cmd.Flags().StringSliceVar(&tools, "tools", nil, "Tools to validate (claude, opencode)")
 	return cmd
 }
 
-func runValidate(cmd *cobra.Command, args []string) error {
-	tools := toolsFlag
+func runValidate(tools []string) error {
 	if len(tools) == 0 {
 		if detected := config.DetectRuntime("."); detected != "" {
 			tools = []string{detected}

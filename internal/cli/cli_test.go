@@ -119,11 +119,6 @@ func TestHelpCommand(t *testing.T) {
 			[]string{"skill", "list", "info"},
 		},
 		{
-			"spec help",
-			[]string{"spec", "--help"},
-			[]string{"spec", "init", "list", "show"},
-		},
-		{
 			"config help",
 			[]string{"config", "--help"},
 			[]string{"config", "init", "show", "set"},

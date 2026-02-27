@@ -55,46 +55,6 @@ func TestErrorHandling(t *testing.T) {
 		})
 	})
 
-	t.Run("spec errors", func(t *testing.T) {
-		t.Run("show requires spec id", func(t *testing.T) {
-			cmd := cli.NewRootCmd()
-			cmd.SetArgs([]string{"spec", "show"})
-			err := cmd.Execute()
-			require.Error(t, err)
-		})
-
-		t.Run("show with non-existent spec", func(t *testing.T) {
-			cmd := cli.NewRootCmd()
-			cmd.SetArgs([]string{"spec", "show", "nonexistent-spec"})
-			err := cmd.Execute()
-			require.Error(t, err)
-		})
-
-		t.Run("list in non-existent directory", func(t *testing.T) {
-			nonExistentDir := filepath.Join(os.TempDir(), "nonexistent-12345")
-			cmd := cli.NewRootCmd()
-			cmd.SetArgs([]string{"spec", "list", nonExistentDir})
-			err := cmd.Execute()
-			require.Error(t, err)
-		})
-
-		t.Run("init in existing openspec", func(t *testing.T) {
-			tmpDir := t.TempDir()
-
-			// Create openspec first time
-			cmd1 := cli.NewRootCmd()
-			cmd1.SetArgs([]string{"spec", "init", tmpDir})
-			require.NoError(t, cmd1.Execute())
-
-			// Try again - should warn but not fail
-			cmd2 := cli.NewRootCmd()
-			cmd2.SetArgs([]string{"spec", "init", tmpDir})
-			err := cmd2.Execute()
-			// May not error, just warn
-			_ = err
-		})
-	})
-
 	t.Run("config errors", func(t *testing.T) {
 		t.Run("set requires both key and value", func(t *testing.T) {
 			cmd := cli.NewRootCmd()
@@ -184,14 +144,6 @@ func TestErrorHandling(t *testing.T) {
 			require.Error(t, err)
 		})
 
-		t.Run("config flag with non-existent file", func(t *testing.T) {
-			cmd := cli.NewRootCmd()
-			cmd.SetArgs([]string{"--config", "/nonexistent/path/config.yaml", "version"})
-			err := cmd.Execute()
-			// Version command should still work even with invalid config flag
-			// since it doesn't use config
-			_ = err
-		})
 	})
 
 	t.Run("command errors", func(t *testing.T) {
@@ -237,12 +189,6 @@ func TestErrorMessages(t *testing.T) {
 			{
 				"skill info missing name",
 				[]string{"skill", "info"},
-				true,
-				"arg",
-			},
-			{
-				"spec show missing id",
-				[]string{"spec", "show"},
 				true,
 				"arg",
 			},

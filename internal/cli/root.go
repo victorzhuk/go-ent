@@ -29,7 +29,6 @@ spec-driven development, and intelligent task execution.`,
 	cmd.AddCommand(newValidateCmd())
 	cmd.AddCommand(agent.NewCmd())
 	cmd.AddCommand(skill.NewCmd())
-	cmd.AddCommand(newSpecCmd())
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newWorkspaceCmd())
 
