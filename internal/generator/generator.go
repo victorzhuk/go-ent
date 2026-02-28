@@ -50,9 +50,9 @@ func (g *Generator) GenerateAgent(name string) error {
 		if g.Config != nil {
 			switch target.Runtime() {
 			case "claude":
-				agent.Model.Claude = g.Config.Claude.Resolve(agent.Model.Claude)
+				agent.Model.Claude = g.Config.Claude.ResolveForAgent(name, agent.Model.Claude)
 			case "opencode":
-				agent.Model.OpenCode = g.Config.OpenCode.Resolve(agent.Model.OpenCode)
+				agent.Model.OpenCode = g.Config.OpenCode.ResolveForAgent(name, agent.Model.OpenCode)
 			}
 		}
 

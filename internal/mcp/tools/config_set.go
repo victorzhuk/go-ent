@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,17 +22,17 @@ type ConfigSetInput struct {
 func registerConfigSet(s *mcp.Server, toolRegistry *ToolRegistry) {
 	tool := &mcp.Tool{
 		Name:        "config_set",
-		Description: "Update a model alias in ent runtime configuration",
+		Description: "Update a model tier or per-agent override in ent runtime configuration",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
 				"key": map[string]any{
 					"type":        "string",
-					"description": "Config key (e.g. claude.sonnet, opencode.fast)",
+					"description": "Config key (e.g. claude.main, claude.agents.coder, opencode.fast)",
 				},
 				"value": map[string]any{
 					"type":        "string",
-					"description": "Model ID to set",
+					"description": "Tier value or model ID to set",
 				},
 				"project_dir": map[string]any{
 					"type":        "string",
@@ -67,14 +68,20 @@ func configSetHandler() func(ctx context.Context, req *mcp.CallToolRequest, inpu
 
 		cfg, err := config.LoadToolRuntimeConfig(projectDir, rt)
 		if err != nil {
-			return nil, nil, fmt.Errorf("load config: %w", err)
+			if !errors.Is(err, os.ErrNotExist) {
+				return nil, nil, fmt.Errorf("load config: %w", err)
+			}
+			cfg = &config.ToolRuntimeConfig{}
 		}
 
-		if err := mcpApplyConfigKey(cfg, input.Key, input.Value); err != nil {
+		if err := config.ApplyKey(cfg, input.Key, input.Value); err != nil {
 			return nil, nil, err
 		}
 
-		cfgPath := mcpRuntimeConfigPath(rt, projectDir)
+		cfgPath, err := config.RuntimeConfigPath(rt, projectDir)
+		if err != nil {
+			return nil, nil, err
+		}
 		if err := os.MkdirAll(filepath.Dir(cfgPath), 0o750); err != nil {
 			return nil, nil, fmt.Errorf("create config directory: %w", err)
 		}
@@ -92,34 +99,5 @@ func configSetHandler() func(ctx context.Context, req *mcp.CallToolRequest, inpu
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{&mcp.TextContent{Text: msg}},
 		}, nil, nil
-	}
-}
-
-func mcpApplyConfigKey(cfg *config.ToolRuntimeConfig, key, value string) error {
-	switch key {
-	case "claude.sonnet":
-		cfg.Claude.Sonnet = value
-	case "claude.opus":
-		cfg.Claude.Opus = value
-	case "claude.haiku":
-		cfg.Claude.Haiku = value
-	case "opencode.fast":
-		cfg.OpenCode.Fast = value
-	case "opencode.main":
-		cfg.OpenCode.Main = value
-	case "opencode.heavy":
-		cfg.OpenCode.Heavy = value
-	default:
-		return fmt.Errorf("unknown config key: %s", key)
-	}
-	return nil
-}
-
-func mcpRuntimeConfigPath(runtime, projectDir string) string {
-	switch runtime {
-	case "opencode":
-		return filepath.Join(projectDir, ".opencode", "ent.yaml")
-	default:
-		return filepath.Join(projectDir, ".claude", "ent.yaml")
 	}
 }

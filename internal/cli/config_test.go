@@ -24,7 +24,9 @@ func TestConfigInit(t *testing.T) {
 		data, err := os.ReadFile(cfgPath) //nolint:gosec // test file
 		require.NoError(t, err)
 		assert.Contains(t, string(data), "claude:")
-		assert.Contains(t, string(data), "opencode:")
+		assert.Contains(t, string(data), "fast: haiku")
+		assert.Contains(t, string(data), "main: sonnet")
+		assert.Contains(t, string(data), "heavy: opus")
 	})
 
 	t.Run("creates opencode ent.yaml with --runtime=opencode", func(t *testing.T) {
@@ -72,13 +74,14 @@ func TestConfigInit(t *testing.T) {
 }
 
 func TestConfigShow(t *testing.T) {
-	t.Run("shows default config when no file exists", func(t *testing.T) {
+	t.Run("errors when no config file exists", func(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		cmd := cli.NewRootCmd()
 		cmd.SetArgs([]string{"config", "show", tmpDir})
 		err := cmd.Execute()
-		require.NoError(t, err)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "ent config init")
 	})
 
 	t.Run("shows existing config", func(t *testing.T) {
@@ -95,7 +98,7 @@ func TestConfigShow(t *testing.T) {
 }
 
 func TestConfigSet(t *testing.T) {
-	t.Run("sets claude.sonnet alias", func(t *testing.T) {
+	t.Run("sets claude.main tier", func(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		cmd1 := cli.NewRootCmd()
@@ -103,12 +106,41 @@ func TestConfigSet(t *testing.T) {
 		require.NoError(t, cmd1.Execute())
 
 		cmd2 := cli.NewRootCmd()
-		cmd2.SetArgs([]string{"config", "set", "claude.sonnet", "claude-sonnet-4-6-20260101", tmpDir})
+		cmd2.SetArgs([]string{"config", "set", "claude.main", "claude-sonnet-4-6-20260101", tmpDir})
 		require.NoError(t, cmd2.Execute())
 
 		data, err := os.ReadFile(filepath.Join(tmpDir, ".claude", "ent.yaml")) //nolint:gosec // test file
 		require.NoError(t, err)
 		assert.Contains(t, string(data), "claude-sonnet-4-6-20260101")
+	})
+
+	t.Run("sets per-agent override", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cmd1 := cli.NewRootCmd()
+		cmd1.SetArgs([]string{"config", "init", tmpDir})
+		require.NoError(t, cmd1.Execute())
+
+		cmd2 := cli.NewRootCmd()
+		cmd2.SetArgs([]string{"config", "set", "claude.agents.coder", "heavy", tmpDir})
+		require.NoError(t, cmd2.Execute())
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, ".claude", "ent.yaml")) //nolint:gosec // test file
+		require.NoError(t, err)
+		assert.Contains(t, string(data), "agents:")
+		assert.Contains(t, string(data), "coder: heavy")
+	})
+
+	t.Run("creates config when no file exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cmd := cli.NewRootCmd()
+		cmd.SetArgs([]string{"config", "set", "claude.main", "claude-sonnet-x", tmpDir})
+		require.NoError(t, cmd.Execute())
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, ".claude", "ent.yaml")) //nolint:gosec // test file
+		require.NoError(t, err)
+		assert.Contains(t, string(data), "claude-sonnet-x")
 	})
 
 	t.Run("rejects unknown key", func(t *testing.T) {
@@ -120,6 +152,20 @@ func TestConfigSet(t *testing.T) {
 
 		cmd2 := cli.NewRootCmd()
 		cmd2.SetArgs([]string{"config", "set", "budget.daily", "50", tmpDir})
+		err := cmd2.Execute()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown config key")
+	})
+
+	t.Run("rejects old claude.sonnet key", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cmd1 := cli.NewRootCmd()
+		cmd1.SetArgs([]string{"config", "init", tmpDir})
+		require.NoError(t, cmd1.Execute())
+
+		cmd2 := cli.NewRootCmd()
+		cmd2.SetArgs([]string{"config", "set", "claude.sonnet", "some-model", tmpDir})
 		err := cmd2.Execute()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "unknown config key")

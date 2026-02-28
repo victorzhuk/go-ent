@@ -46,7 +46,7 @@ func TestNew(t *testing.T) {
 		{
 			name:    "creates generator with all fields",
 			srcDir:  "/src/agents",
-			cfg:     config.DefaultToolRuntimeConfig(),
+			cfg:     &config.ToolRuntimeConfig{},
 			targets: []Target{NewClaudeTarget("/output")},
 		},
 		{
@@ -58,13 +58,13 @@ func TestNew(t *testing.T) {
 		{
 			name:    "creates generator with empty targets",
 			srcDir:  "/src/agents",
-			cfg:     config.DefaultToolRuntimeConfig(),
+			cfg:     &config.ToolRuntimeConfig{},
 			targets: []Target{},
 		},
 		{
 			name:    "creates generator with multiple targets",
 			srcDir:  "/src/agents",
-			cfg:     config.DefaultToolRuntimeConfig(),
+			cfg:     &config.ToolRuntimeConfig{},
 			targets: []Target{NewClaudeTarget("/claude"), NewOpenCodeTarget("/opencode")},
 		},
 	}
@@ -408,12 +408,14 @@ prompts:
 			},
 		}
 
-		cfg := config.DefaultToolRuntimeConfig()
+		cfg := &config.ToolRuntimeConfig{
+			Claude: config.ModelTiers{Fast: "haiku-model", Main: "sonnet-model", Heavy: "opus-model"},
+		}
 		g := New(agentsMetaDir, cfg, mock)
 		err := g.GenerateAgent("config-agent")
 
 		require.NoError(t, err)
-		assert.Equal(t, "claude-sonnet-4-5-20250929", receivedModel)
+		assert.Equal(t, "sonnet-model", receivedModel)
 	})
 
 	t.Run("resolves opencode model with config", func(t *testing.T) {
@@ -448,11 +450,13 @@ prompts:
 			},
 		}
 
-		cfg := config.DefaultToolRuntimeConfig()
+		cfg := &config.ToolRuntimeConfig{
+			OpenCode: config.ModelTiers{Fast: "fast-opencode", Main: "main-opencode", Heavy: "heavy-opencode"},
+		}
 		g := New(agentsMetaDir, cfg, mock)
 		err := g.GenerateAgent("opencode-agent")
 
 		require.NoError(t, err)
-		assert.Equal(t, "zai-coding-plan/glm-4.7-flash", receivedModel)
+		assert.Equal(t, "fast-opencode", receivedModel)
 	})
 }

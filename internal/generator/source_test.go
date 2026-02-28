@@ -27,7 +27,7 @@ func TestConvertMetaToSource(t *testing.T) {
 			validate: func(t *testing.T, agent *AgentSource) {
 				assert.Equal(t, "test-agent", agent.Name)
 				assert.Equal(t, "Test agent", agent.Description)
-				assert.Equal(t, "sonnet", agent.Model.Claude)
+				assert.Equal(t, "main", agent.Model.Claude)
 				assert.Equal(t, "main", agent.Model.OpenCode)
 			},
 		},
@@ -39,7 +39,7 @@ func TestConvertMetaToSource(t *testing.T) {
 				Model:       "fast",
 			},
 			validate: func(t *testing.T, agent *AgentSource) {
-				assert.Equal(t, "haiku", agent.Model.Claude)
+				assert.Equal(t, "fast", agent.Model.Claude)
 				assert.Equal(t, "fast", agent.Model.OpenCode)
 			},
 		},
@@ -51,7 +51,7 @@ func TestConvertMetaToSource(t *testing.T) {
 				Model:       "heavy",
 			},
 			validate: func(t *testing.T, agent *AgentSource) {
-				assert.Equal(t, "opus", agent.Model.Claude)
+				assert.Equal(t, "heavy", agent.Model.Claude)
 				assert.Equal(t, "heavy", agent.Model.OpenCode)
 			},
 		},

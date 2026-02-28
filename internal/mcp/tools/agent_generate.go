@@ -60,7 +60,15 @@ func agentGenerateHandler(srcDir string) func(ctx context.Context, req *mcp.Call
 			}
 		}
 
-		cfg := config.LoadCombinedRuntimeConfig(".", targetNames)
+		cfg, err := config.LoadCombinedRuntimeConfig(".", targetNames)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load runtime config: %w", err)
+		}
+		for _, name := range targetNames {
+			if err := config.ValidateForRuntime(cfg, name); err != nil {
+				return nil, nil, fmt.Errorf("invalid %s config: %w", name, err)
+			}
+		}
 
 		gen := generator.New(srcDir, cfg, targets...)
 

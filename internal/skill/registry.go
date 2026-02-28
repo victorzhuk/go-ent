@@ -371,13 +371,16 @@ func (r *Registry) Get(name string) (*SkillMeta, error) {
 	return r.domainToSkillMeta(skill), nil
 }
 
-// All returns all loaded skills.
+// All returns all loaded skills sorted by name.
 func (r *Registry) All() []SkillMeta {
 	skills, _ := r.repo.ListAll()
 	result := make([]SkillMeta, len(skills))
 	for i, skill := range skills {
 		result[i] = *r.domainToSkillMeta(skill)
 	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
 	return result
 }
 

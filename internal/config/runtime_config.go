@@ -4,126 +4,172 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
+type ModelTiers struct {
+	Fast   string            `yaml:"fast"`
+	Main   string            `yaml:"main"`
+	Heavy  string            `yaml:"heavy"`
+	Agents map[string]string `yaml:"agents,omitempty"`
+}
+
 type ToolRuntimeConfig struct {
-	Claude   ClaudeModels   `yaml:"claude"`
-	OpenCode OpenCodeModels `yaml:"opencode"`
+	Claude   ModelTiers `yaml:"claude"`
+	OpenCode ModelTiers `yaml:"opencode"`
 }
 
-type ClaudeModels struct {
-	Sonnet string `yaml:"sonnet"`
-	Opus   string `yaml:"opus"`
-	Haiku  string `yaml:"haiku"`
+func (m *ModelTiers) Resolve(tier string) string {
+	switch tier {
+	case "fast":
+		return m.Fast
+	case "main":
+		return m.Main
+	case "heavy":
+		return m.Heavy
+	default:
+		return tier
+	}
 }
 
-type OpenCodeModels struct {
-	Fast  string `yaml:"fast"`
-	Main  string `yaml:"main"`
-	Heavy string `yaml:"heavy"`
+func (m *ModelTiers) ResolveForAgent(agentName, defaultTier string) string {
+	if m.Agents != nil {
+		if override, ok := m.Agents[agentName]; ok {
+			return m.Resolve(override)
+		}
+	}
+	return m.Resolve(defaultTier)
 }
 
 func LoadToolRuntimeConfig(projectDir, runtime string) (*ToolRuntimeConfig, error) {
-	var configPath string
-	switch runtime {
-	case "claude":
-		configPath = filepath.Join(projectDir, ".claude", "ent.yaml")
-	case "opencode":
-		configPath = filepath.Join(projectDir, ".opencode", "ent.yaml")
-	default:
-		return nil, fmt.Errorf("unknown runtime: %s", runtime)
+	configPath, err := RuntimeConfigPath(runtime, projectDir)
+	if err != nil {
+		return nil, err
 	}
-
-	cfg := DefaultToolRuntimeConfig()
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return cfg, nil
+			return nil, fmt.Errorf("config not found at %s: run 'ent config init --runtime=%s': %w", configPath, runtime, os.ErrNotExist)
 		}
 		return nil, fmt.Errorf("read config: %w", err)
 	}
 
-	if err := yaml.Unmarshal(data, cfg); err != nil {
+	var cfg ToolRuntimeConfig
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
-func DefaultToolRuntimeConfig() *ToolRuntimeConfig {
-	return &ToolRuntimeConfig{
-		Claude: ClaudeModels{
-			Sonnet: "claude-sonnet-4-5-20250929",
-			Opus:   "claude-opus-4-5-20251101",
-			Haiku:  "claude-haiku-4-5-20251001",
-		},
-		OpenCode: OpenCodeModels{
-			Fast:  "zai-coding-plan/glm-4.7-flash",
-			Main:  "zai-coding-plan/glm-5",
-			Heavy: "kimi-for-coding/k2p5",
-		},
-	}
-}
-
-// CategoryToAlias maps a model category (fast/main/heavy) to a Claude model alias (haiku/sonnet/opus).
-func CategoryToAlias(category string) string {
-	switch category {
-	case "fast":
-		return "haiku"
-	case "main":
-		return "sonnet"
-	case "heavy":
-		return "opus"
+func ValidateForRuntime(cfg *ToolRuntimeConfig, runtime string) error {
+	var missing []string
+	switch runtime {
+	case "claude":
+		if cfg.Claude.Fast == "" {
+			missing = append(missing, "claude.fast")
+		}
+		if cfg.Claude.Main == "" {
+			missing = append(missing, "claude.main")
+		}
+		if cfg.Claude.Heavy == "" {
+			missing = append(missing, "claude.heavy")
+		}
+	case "opencode":
+		if cfg.OpenCode.Fast == "" {
+			missing = append(missing, "opencode.fast")
+		}
+		if cfg.OpenCode.Main == "" {
+			missing = append(missing, "opencode.main")
+		}
+		if cfg.OpenCode.Heavy == "" {
+			missing = append(missing, "opencode.heavy")
+		}
 	default:
-		return category
+		return fmt.Errorf("unknown runtime: %s", runtime)
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("missing required config values: %s", strings.Join(missing, ", "))
+	}
+	return nil
+}
+
+func ApplyKey(cfg *ToolRuntimeConfig, key, value string) error {
+	parts := strings.SplitN(key, ".", 3)
+	switch {
+	case len(parts) == 2 && parts[0] == "claude":
+		switch parts[1] {
+		case "fast":
+			cfg.Claude.Fast = value
+		case "main":
+			cfg.Claude.Main = value
+		case "heavy":
+			cfg.Claude.Heavy = value
+		default:
+			return fmt.Errorf("unknown config key: %s (use claude.fast, claude.main, claude.heavy, claude.agents.<name>)", key)
+		}
+	case len(parts) == 3 && parts[0] == "claude" && parts[1] == "agents":
+		if !isValidTier(value) {
+			return fmt.Errorf("invalid tier %q: use fast, main, or heavy", value)
+		}
+		if cfg.Claude.Agents == nil {
+			cfg.Claude.Agents = make(map[string]string)
+		}
+		cfg.Claude.Agents[parts[2]] = value
+	case len(parts) == 2 && parts[0] == "opencode":
+		switch parts[1] {
+		case "fast":
+			cfg.OpenCode.Fast = value
+		case "main":
+			cfg.OpenCode.Main = value
+		case "heavy":
+			cfg.OpenCode.Heavy = value
+		default:
+			return fmt.Errorf("unknown config key: %s (use opencode.fast, opencode.main, opencode.heavy, opencode.agents.<name>)", key)
+		}
+	case len(parts) == 3 && parts[0] == "opencode" && parts[1] == "agents":
+		if !isValidTier(value) {
+			return fmt.Errorf("invalid tier %q: use fast, main, or heavy", value)
+		}
+		if cfg.OpenCode.Agents == nil {
+			cfg.OpenCode.Agents = make(map[string]string)
+		}
+		cfg.OpenCode.Agents[parts[2]] = value
+	default:
+		return fmt.Errorf("unknown config key: %s", key)
+	}
+	return nil
+}
+
+func RuntimeConfigPath(runtime, projectRoot string) (string, error) {
+	switch runtime {
+	case "claude":
+		return filepath.Join(projectRoot, ".claude", "ent.yaml"), nil
+	case "opencode":
+		return filepath.Join(projectRoot, ".opencode", "ent.yaml"), nil
+	default:
+		return "", fmt.Errorf("unknown runtime: %s", runtime)
 	}
 }
 
-func (c *ClaudeModels) Resolve(alias string) string {
-	switch alias {
-	case "fast", "haiku":
-		if c.Haiku != "" {
-			return c.Haiku
+func LoadCombinedRuntimeConfig(projectDir string, tools []string) (*ToolRuntimeConfig, error) {
+	var combined ToolRuntimeConfig
+	for _, tool := range tools {
+		toolCfg, err := LoadToolRuntimeConfig(projectDir, tool)
+		if err != nil {
+			return nil, fmt.Errorf("load %s config: %w", tool, err)
 		}
-		return "claude-haiku-4-5-20251001"
-	case "main", "sonnet":
-		if c.Sonnet != "" {
-			return c.Sonnet
+		switch tool {
+		case "claude":
+			combined.Claude = toolCfg.Claude
+		case "opencode":
+			combined.OpenCode = toolCfg.OpenCode
 		}
-		return "claude-sonnet-4-5-20250929"
-	case "heavy", "opus":
-		if c.Opus != "" {
-			return c.Opus
-		}
-		return "claude-opus-4-5-20251101"
-	default:
-		return alias
 	}
-}
-
-func (c *OpenCodeModels) Resolve(alias string) string {
-	switch alias {
-	case "fast", "haiku":
-		if c.Fast != "" {
-			return c.Fast
-		}
-		return "zai-coding-plan/glm-4.7-flash"
-	case "main", "sonnet":
-		if c.Main != "" {
-			return c.Main
-		}
-		return "zai-coding-plan/glm-5"
-	case "heavy", "opus":
-		if c.Heavy != "" {
-			return c.Heavy
-		}
-		return "kimi-for-coding/k2p5"
-	default:
-		return alias
-	}
+	return &combined, nil
 }
 
 func DetectRuntime(projectDir string) string {
@@ -157,21 +203,6 @@ func dirExists(path string) bool {
 	return err == nil && info.IsDir()
 }
 
-func LoadCombinedRuntimeConfig(projectDir string, tools []string) *ToolRuntimeConfig {
-	cfg := DefaultToolRuntimeConfig()
-
-	for _, tool := range tools {
-		toolCfg, err := LoadToolRuntimeConfig(projectDir, tool)
-		if err != nil {
-			continue
-		}
-		switch tool {
-		case "claude":
-			cfg.Claude = toolCfg.Claude
-		case "opencode":
-			cfg.OpenCode = toolCfg.OpenCode
-		}
-	}
-
-	return cfg
+func isValidTier(s string) bool {
+	return s == "fast" || s == "main" || s == "heavy"
 }

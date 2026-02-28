@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,18 +11,16 @@ import (
 )
 
 func TestLoadToolRuntimeConfig(t *testing.T) {
-	t.Run("returns default when config missing", func(t *testing.T) {
+	t.Run("errors when config missing", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
 
 		cfg, err := LoadToolRuntimeConfig(tmpDir, "claude")
-		require.NoError(t, err)
-		require.NotNil(t, cfg)
-
-		assert.Equal(t, "claude-sonnet-4-5-20250929", cfg.Claude.Sonnet)
-		assert.Equal(t, "claude-opus-4-5-20251101", cfg.Claude.Opus)
-		assert.Equal(t, "claude-haiku-4-5-20251001", cfg.Claude.Haiku)
+		require.Error(t, err)
+		assert.Nil(t, cfg)
+		assert.Contains(t, err.Error(), "ent config init")
+		assert.True(t, errors.Is(err, os.ErrNotExist))
 	})
 
 	t.Run("loads claude config from .claude/ent.yaml", func(t *testing.T) {
@@ -32,9 +31,9 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 		require.NoError(t, os.MkdirAll(cfgDir, 0o750))
 
 		yamlContent := `claude:
-  sonnet: custom-sonnet-model
-  opus: custom-opus-model
-  haiku: custom-haiku-model
+  fast: custom-haiku
+  main: custom-sonnet
+  heavy: custom-opus
 `
 		cfgPath := filepath.Join(cfgDir, "ent.yaml")
 		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0o600))
@@ -43,9 +42,9 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
 
-		assert.Equal(t, "custom-sonnet-model", cfg.Claude.Sonnet)
-		assert.Equal(t, "custom-opus-model", cfg.Claude.Opus)
-		assert.Equal(t, "custom-haiku-model", cfg.Claude.Haiku)
+		assert.Equal(t, "custom-haiku", cfg.Claude.Fast)
+		assert.Equal(t, "custom-sonnet", cfg.Claude.Main)
+		assert.Equal(t, "custom-opus", cfg.Claude.Heavy)
 	})
 
 	t.Run("loads opencode config from .opencode/ent.yaml", func(t *testing.T) {
@@ -83,176 +82,290 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 	})
 }
 
-func TestClaudeModelsResolve(t *testing.T) {
+func TestModelTiersResolve(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name     string
-		config   ClaudeModels
-		alias    string
+		tiers    ModelTiers
+		tier     string
 		expected string
 	}{
 		{
-			name:     "resolve fast alias",
-			config:   ClaudeModels{Haiku: "my-haiku"},
-			alias:    "fast",
-			expected: "my-haiku",
+			name:     "resolve fast tier",
+			tiers:    ModelTiers{Fast: "my-fast-model"},
+			tier:     "fast",
+			expected: "my-fast-model",
 		},
 		{
-			name:     "resolve haiku alias",
-			config:   ClaudeModels{Haiku: "my-haiku"},
-			alias:    "haiku",
-			expected: "my-haiku",
+			name:     "resolve main tier",
+			tiers:    ModelTiers{Main: "my-main-model"},
+			tier:     "main",
+			expected: "my-main-model",
 		},
 		{
-			name:     "resolve main alias",
-			config:   ClaudeModels{Sonnet: "my-sonnet"},
-			alias:    "main",
-			expected: "my-sonnet",
+			name:     "resolve heavy tier",
+			tiers:    ModelTiers{Heavy: "my-heavy-model"},
+			tier:     "heavy",
+			expected: "my-heavy-model",
 		},
 		{
-			name:     "resolve sonnet alias",
-			config:   ClaudeModels{Sonnet: "my-sonnet"},
-			alias:    "sonnet",
-			expected: "my-sonnet",
-		},
-		{
-			name:     "resolve heavy alias",
-			config:   ClaudeModels{Opus: "my-opus"},
-			alias:    "heavy",
-			expected: "my-opus",
-		},
-		{
-			name:     "resolve opus alias",
-			config:   ClaudeModels{Opus: "my-opus"},
-			alias:    "opus",
-			expected: "my-opus",
-		},
-		{
-			name:     "return unknown alias as-is",
-			config:   ClaudeModels{},
-			alias:    "custom-model-id",
+			name:     "unknown tier passes through",
+			tiers:    ModelTiers{},
+			tier:     "custom-model-id",
 			expected: "custom-model-id",
 		},
 		{
-			name:     "use default when haiku empty",
-			config:   ClaudeModels{},
-			alias:    "haiku",
-			expected: "claude-haiku-4-5-20251001",
-		},
-		{
-			name:     "use default when sonnet empty",
-			config:   ClaudeModels{},
-			alias:    "sonnet",
-			expected: "claude-sonnet-4-5-20250929",
-		},
-		{
-			name:     "use default when opus empty",
-			config:   ClaudeModels{},
-			alias:    "opus",
-			expected: "claude-opus-4-5-20251101",
+			name:     "empty fast returns empty string",
+			tiers:    ModelTiers{},
+			tier:     "fast",
+			expected: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := tt.config.Resolve(tt.alias)
+			result := tt.tiers.Resolve(tt.tier)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-func TestOpenCodeModelsResolve(t *testing.T) {
+func TestModelTiersResolveForAgent(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		config   OpenCodeModels
-		alias    string
-		expected string
+		name        string
+		tiers       ModelTiers
+		agentName   string
+		defaultTier string
+		expected    string
 	}{
 		{
-			name:     "resolve fast alias",
-			config:   OpenCodeModels{Fast: "my-fast"},
-			alias:    "fast",
-			expected: "my-fast",
+			name: "agent override present",
+			tiers: ModelTiers{
+				Fast:   "fast-val",
+				Main:   "main-val",
+				Heavy:  "heavy-val",
+				Agents: map[string]string{"coder": "heavy"},
+			},
+			agentName:   "coder",
+			defaultTier: "main",
+			expected:    "heavy-val",
 		},
 		{
-			name:     "resolve haiku alias",
-			config:   OpenCodeModels{Fast: "my-fast"},
-			alias:    "haiku",
-			expected: "my-fast",
+			name: "agent override absent falls back to default tier",
+			tiers: ModelTiers{
+				Fast:   "fast-val",
+				Main:   "main-val",
+				Heavy:  "heavy-val",
+				Agents: map[string]string{"scout": "fast"},
+			},
+			agentName:   "coder",
+			defaultTier: "main",
+			expected:    "main-val",
 		},
 		{
-			name:     "resolve main alias",
-			config:   OpenCodeModels{Main: "my-main"},
-			alias:    "main",
-			expected: "my-main",
+			name: "nil agents falls back to default tier",
+			tiers: ModelTiers{
+				Fast:  "fast-val",
+				Main:  "main-val",
+				Heavy: "heavy-val",
+			},
+			agentName:   "coder",
+			defaultTier: "heavy",
+			expected:    "heavy-val",
 		},
 		{
-			name:     "resolve sonnet alias",
-			config:   OpenCodeModels{Main: "my-main"},
-			alias:    "sonnet",
-			expected: "my-main",
-		},
-		{
-			name:     "resolve heavy alias",
-			config:   OpenCodeModels{Heavy: "my-heavy"},
-			alias:    "heavy",
-			expected: "my-heavy",
-		},
-		{
-			name:     "resolve opus alias",
-			config:   OpenCodeModels{Heavy: "my-heavy"},
-			alias:    "opus",
-			expected: "my-heavy",
-		},
-		{
-			name:     "return unknown alias as-is",
-			config:   OpenCodeModels{},
-			alias:    "custom-model-id",
-			expected: "custom-model-id",
-		},
-		{
-			name:     "use default when fast empty",
-			config:   OpenCodeModels{},
-			alias:    "fast",
-			expected: "zai-coding-plan/glm-4.7-flash",
-		},
-		{
-			name:     "use default when main empty",
-			config:   OpenCodeModels{},
-			alias:    "main",
-			expected: "zai-coding-plan/glm-5",
-		},
-		{
-			name:     "use default when heavy empty",
-			config:   OpenCodeModels{},
-			alias:    "heavy",
-			expected: "kimi-for-coding/k2p5",
+			name:        "empty agents map falls back to default tier",
+			tiers:       ModelTiers{Main: "main-val", Agents: map[string]string{}},
+			agentName:   "coder",
+			defaultTier: "main",
+			expected:    "main-val",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := tt.config.Resolve(tt.alias)
+			result := tt.tiers.ResolveForAgent(tt.agentName, tt.defaultTier)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-func TestDefaultToolRuntimeConfig(t *testing.T) {
+func TestApplyKey(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultToolRuntimeConfig()
-	require.NotNil(t, cfg)
+	tests := []struct {
+		name    string
+		key     string
+		value   string
+		verify  func(t *testing.T, cfg *ToolRuntimeConfig)
+		wantErr bool
+	}{
+		{
+			name:  "claude.fast",
+			key:   "claude.fast",
+			value: "my-fast",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				assert.Equal(t, "my-fast", cfg.Claude.Fast)
+			},
+		},
+		{
+			name:  "claude.main",
+			key:   "claude.main",
+			value: "my-main",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				assert.Equal(t, "my-main", cfg.Claude.Main)
+			},
+		},
+		{
+			name:  "claude.heavy",
+			key:   "claude.heavy",
+			value: "my-heavy",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				assert.Equal(t, "my-heavy", cfg.Claude.Heavy)
+			},
+		},
+		{
+			name:  "claude.agents.coder",
+			key:   "claude.agents.coder",
+			value: "heavy",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				require.NotNil(t, cfg.Claude.Agents)
+				assert.Equal(t, "heavy", cfg.Claude.Agents["coder"])
+			},
+		},
+		{
+			name:  "opencode.fast",
+			key:   "opencode.fast",
+			value: "fast-model",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				assert.Equal(t, "fast-model", cfg.OpenCode.Fast)
+			},
+		},
+		{
+			name:  "opencode.agents.scout",
+			key:   "opencode.agents.scout",
+			value: "main",
+			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+				t.Helper()
+				require.NotNil(t, cfg.OpenCode.Agents)
+				assert.Equal(t, "main", cfg.OpenCode.Agents["scout"])
+			},
+		},
+		{
+			name:    "unknown key errors",
+			key:     "budget.daily",
+			value:   "50",
+			wantErr: true,
+		},
+		{
+			name:    "claude.sonnet errors (old key)",
+			key:     "claude.sonnet",
+			value:   "some-model",
+			wantErr: true,
+		},
+		{
+			name:    "claude.agents.<name> with invalid tier errors",
+			key:     "claude.agents.coder",
+			value:   "typo-tier",
+			wantErr: true,
+		},
+		{
+			name:    "opencode.agents.<name> with invalid tier errors",
+			key:     "opencode.agents.scout",
+			value:   "not-a-tier",
+			wantErr: true,
+		},
+	}
 
-	assert.NotEmpty(t, cfg.Claude.Sonnet)
-	assert.NotEmpty(t, cfg.Claude.Opus)
-	assert.NotEmpty(t, cfg.Claude.Haiku)
-	assert.NotEmpty(t, cfg.OpenCode.Fast)
-	assert.NotEmpty(t, cfg.OpenCode.Main)
-	assert.NotEmpty(t, cfg.OpenCode.Heavy)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &ToolRuntimeConfig{}
+			err := ApplyKey(cfg, tt.key, tt.value)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			tt.verify(t, cfg)
+		})
+	}
+}
+
+func TestValidateForRuntime(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		cfg     *ToolRuntimeConfig
+		runtime string
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid claude config",
+			cfg: &ToolRuntimeConfig{
+				Claude: ModelTiers{Fast: "haiku", Main: "sonnet", Heavy: "opus"},
+			},
+			runtime: "claude",
+			wantErr: false,
+		},
+		{
+			name: "claude missing fast",
+			cfg: &ToolRuntimeConfig{
+				Claude: ModelTiers{Main: "sonnet", Heavy: "opus"},
+			},
+			runtime: "claude",
+			wantErr: true,
+			errMsg:  "claude.fast",
+		},
+		{
+			name: "claude all missing",
+			cfg: &ToolRuntimeConfig{
+				Claude: ModelTiers{},
+			},
+			runtime: "claude",
+			wantErr: true,
+			errMsg:  "claude.fast",
+		},
+		{
+			name: "valid opencode config",
+			cfg: &ToolRuntimeConfig{
+				OpenCode: ModelTiers{Fast: "fast-m", Main: "main-m", Heavy: "heavy-m"},
+			},
+			runtime: "opencode",
+			wantErr: false,
+		},
+		{
+			name:    "unknown runtime errors",
+			cfg:     &ToolRuntimeConfig{},
+			runtime: "unknown",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := ValidateForRuntime(tt.cfg, tt.runtime)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
 }

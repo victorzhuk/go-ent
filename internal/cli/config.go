@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ func newConfigInitCmd() *cobra.Command {
 				rt = "claude"
 			}
 
-			cfgPath, err := runtimeConfigPath(rt, projectRoot)
+			cfgPath, err := config.RuntimeConfigPath(rt, projectRoot)
 			if err != nil {
 				return err
 			}
@@ -59,7 +60,7 @@ func newConfigInitCmd() *cobra.Command {
 				return fmt.Errorf("create config directory: %w", err)
 			}
 
-			cfg := config.DefaultToolRuntimeConfig()
+			cfg := defaultConfigForRuntime(rt)
 			data, err := yaml.Marshal(cfg)
 			if err != nil {
 				return fmt.Errorf("marshal config: %w", err)
@@ -78,11 +79,23 @@ func newConfigInitCmd() *cobra.Command {
 	return cmd
 }
 
+func defaultConfigForRuntime(runtime string) *config.ToolRuntimeConfig {
+	cfg := &config.ToolRuntimeConfig{}
+	if runtime == "claude" {
+		cfg.Claude = config.ModelTiers{
+			Fast:  "haiku",
+			Main:  "sonnet",
+			Heavy: "opus",
+		}
+	}
+	return cfg
+}
+
 func newConfigShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show [path]",
 		Short: "Show runtime configuration",
-		Long:  "Display model aliases from .claude/ent.yaml or .opencode/ent.yaml",
+		Long:  "Display model tiers from .claude/ent.yaml or .opencode/ent.yaml",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			projectRoot := "."
@@ -118,16 +131,20 @@ func newConfigSetCmd() *cobra.Command {
 
 	return &cobra.Command{
 		Use:   "set <key> <value> [path]",
-		Short: "Set a model alias",
-		Long: `Set a model alias in the runtime config.
+		Short: "Set a model tier or per-agent override",
+		Long: `Set a model tier or per-agent override in the runtime config.
 
 Examples:
-  ent config set claude.sonnet claude-sonnet-4-6-20260101
+  ent config set claude.main claude-sonnet-4-6-20260101
+  ent config set claude.agents.coder heavy
   ent config set opencode.fast zai-coding-plan/glm-4.7-flash
+  ent config set opencode.agents.coder heavy
 
 Supported keys:
-  - claude.sonnet, claude.opus, claude.haiku
-  - opencode.fast, opencode.main, opencode.heavy`,
+  - claude.fast, claude.main, claude.heavy
+  - claude.agents.<name>
+  - opencode.fast, opencode.main, opencode.heavy
+  - opencode.agents.<name>`,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
@@ -148,14 +165,17 @@ Supported keys:
 
 			cfg, err := config.LoadToolRuntimeConfig(projectRoot, rt)
 			if err != nil {
-				return fmt.Errorf("load config: %w", err)
+				if !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("load config: %w", err)
+				}
+				cfg = &config.ToolRuntimeConfig{}
 			}
 
-			if err := applyConfigKey(cfg, key, value); err != nil {
+			if err := config.ApplyKey(cfg, key, value); err != nil {
 				return err
 			}
 
-			cfgPath, err := runtimeConfigPath(rt, projectRoot)
+			cfgPath, err := config.RuntimeConfigPath(rt, projectRoot)
 			if err != nil {
 				return err
 			}
@@ -176,36 +196,5 @@ Supported keys:
 			fmt.Printf("Updated %s = %s\n", key, value)
 			return nil
 		},
-	}
-}
-
-func applyConfigKey(cfg *config.ToolRuntimeConfig, key, value string) error {
-	switch key {
-	case "claude.sonnet":
-		cfg.Claude.Sonnet = value
-	case "claude.opus":
-		cfg.Claude.Opus = value
-	case "claude.haiku":
-		cfg.Claude.Haiku = value
-	case "opencode.fast":
-		cfg.OpenCode.Fast = value
-	case "opencode.main":
-		cfg.OpenCode.Main = value
-	case "opencode.heavy":
-		cfg.OpenCode.Heavy = value
-	default:
-		return fmt.Errorf("unknown config key: %s (use claude.sonnet, claude.opus, claude.haiku, opencode.fast, opencode.main, opencode.heavy)", key)
-	}
-	return nil
-}
-
-func runtimeConfigPath(runtime, projectRoot string) (string, error) {
-	switch runtime {
-	case "claude":
-		return filepath.Join(projectRoot, ".claude", "ent.yaml"), nil
-	case "opencode":
-		return filepath.Join(projectRoot, ".opencode", "ent.yaml"), nil
-	default:
-		return "", fmt.Errorf("unknown runtime: %s (use claude or opencode)", runtime)
 	}
 }

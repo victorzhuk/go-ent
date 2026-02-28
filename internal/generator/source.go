@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/pkg"
 	"gopkg.in/yaml.v3"
 )
@@ -60,24 +59,17 @@ func LoadAgentMetaSource(srcDir, name string) (*AgentMetaSource, *PromptContent,
 
 // ConvertMetaToSource converts meta format to old AgentSource format for generation
 func ConvertMetaToSource(meta *AgentMetaSource) *AgentSource {
-	claudeModel := config.CategoryToAlias(meta.Model)
-	if claudeModel == "" {
-		claudeModel = "sonnet"
-	}
-
-	// Build extended description if whenToUse is provided
 	description := meta.Description
 	if meta.WhenToUse != "" {
 		description = meta.Description + "\n\n" + meta.WhenToUse
 	}
 
-	// For old format, both Claude and OpenCode use same model string
 	agent := &AgentSource{
 		Name:        meta.Name,
 		Description: description,
 		Model: ModelConfig{
-			Claude:   claudeModel,
-			OpenCode: meta.Model, // OpenCode uses main/fast/heavy directly
+			Claude:   meta.Model,
+			OpenCode: meta.Model,
 		},
 		Skills:          meta.Skills,
 		Prompts:         meta.Prompts,

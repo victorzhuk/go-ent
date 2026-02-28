@@ -36,7 +36,7 @@ func TestIfTool(t *testing.T) {
 	assert.False(t, result)
 }
 
-func TestModel_Claude(t *testing.T) {
+func TestModel(t *testing.T) {
 	t.Parallel()
 
 	engine := NewTemplateEngine(testFS)
@@ -44,55 +44,23 @@ func TestModel_Claude(t *testing.T) {
 	tests := []struct {
 		name     string
 		category string
+		tool     string
 		want     string
 	}{
-		{"fast category", "fast", "haiku"},
-		{"main category", "main", "sonnet"},
-		{"heavy category", "heavy", "opus"},
-		{"unknown category returns as-is", "unknown", "unknown"},
+		{"fast tier returns fast", "fast", "claude", "fast"},
+		{"main tier returns main", "main", "claude", "main"},
+		{"heavy tier returns heavy", "heavy", "opencode", "heavy"},
+		{"unknown tier passes through", "custom-id", "claude", "custom-id"},
+		{"tool arg is ignored", "main", "unknown", "main"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := engine.model(tt.category, "claude")
+			result := engine.model(tt.category, tt.tool)
 			assert.Equal(t, tt.want, result)
 		})
 	}
-}
-
-func TestModel_OpenCode(t *testing.T) {
-	t.Parallel()
-
-	engine := NewTemplateEngine(testFS)
-
-	tests := []struct {
-		name     string
-		category string
-		want     string
-	}{
-		{"fast category", "fast", "zai-coding-plan/glm-4.7-flash"},
-		{"main category", "main", "zai-coding-plan/glm-5"},
-		{"heavy category", "heavy", "kimi-for-coding/k2p5"},
-		{"unknown category returns as-is", "unknown", "unknown"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			result := engine.model(tt.category, "opencode")
-			assert.Equal(t, tt.want, result)
-		})
-	}
-}
-
-func TestModel_UnknownTool(t *testing.T) {
-	t.Parallel()
-
-	engine := NewTemplateEngine(testFS)
-
-	result := engine.model("main", "unknown")
-	assert.Empty(t, result)
 }
 
 func TestList(t *testing.T) {

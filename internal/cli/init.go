@@ -76,10 +76,9 @@ type agentMeta struct {
 }
 
 func (m *agentMeta) ModelClaude() string {
-	return config.CategoryToAlias(m.Model)
+	return m.Model
 }
 
-// ModelOpenCode returns internal model name as-is for OpenCode
 func (m *agentMeta) ModelOpenCode() string {
 	return m.Model
 }
@@ -990,9 +989,12 @@ Examples:
 						return fmt.Errorf("load template for %s: %w", tool, err)
 					}
 
-					toolCfg, _ := config.LoadToolRuntimeConfig(".", tool)
-					if toolCfg == nil {
-						toolCfg = config.DefaultToolRuntimeConfig()
+					toolCfg, err := config.LoadToolRuntimeConfig(".", tool)
+					if err != nil {
+						return fmt.Errorf("load runtime config: %w", err)
+					}
+					if err := config.ValidateForRuntime(toolCfg, tool); err != nil {
+						return fmt.Errorf("invalid runtime config: %w", err)
 					}
 
 					for name, meta := range agents {
@@ -1004,9 +1006,9 @@ Examples:
 						metaCopy := *meta
 						switch tool {
 						case "claude":
-							metaCopy.Model = toolCfg.Claude.Resolve(meta.Model)
+							metaCopy.Model = toolCfg.Claude.ResolveForAgent(name, meta.Model)
 						case "opencode":
-							metaCopy.Model = toolCfg.OpenCode.Resolve(meta.Model)
+							metaCopy.Model = toolCfg.OpenCode.ResolveForAgent(name, meta.Model)
 						}
 
 						fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
