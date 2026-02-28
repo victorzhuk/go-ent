@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
 type RegistryDepsInput struct {
@@ -29,7 +30,7 @@ type DependencyRelation struct {
 	Status   spec.TaskStatus `json:"status"`
 }
 
-func registerRegistryDeps(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryDeps(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_deps",
 		Description: "Show dependency graph for a task or change",
@@ -53,7 +54,7 @@ func registerRegistryDeps(s *mcp.Server, toolRegistry *ToolRegistry, store *spec
 	toolRegistry.Register("registry_deps", tool.Description, "registry")
 }
 
-func registryDepsHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryDepsInput) (*mcp.CallToolResult, any, error) {
+func registryDepsHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryDepsInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryDepsInput) (*mcp.CallToolResult, any, error) {
 		if input.ChangeID == "" {
 			return nil, nil, fmt.Errorf("change_id is required")
@@ -107,7 +108,7 @@ func registryDepsHandler(store *spec.BoltStore) func(ctx context.Context, req *m
 	}
 }
 
-func buildTaskDeps(store *spec.BoltStore, task *spec.Task) (*RegistryDepsResponse, error) {
+func buildTaskDeps(store *storage.BoltStore, task *spec.Task) (*RegistryDepsResponse, error) {
 	deps, err := store.GetDeps(task.ChangeID, task.TaskNum)
 	if err != nil {
 		return nil, fmt.Errorf("get deps: %w", err)
@@ -167,7 +168,7 @@ func buildTaskDeps(store *spec.BoltStore, task *spec.Task) (*RegistryDepsRespons
 	return resp, nil
 }
 
-func buildChangeDeps(store *spec.BoltStore, changeID string) (*RegistryDepsResponse, error) {
+func buildChangeDeps(store *storage.BoltStore, changeID string) (*RegistryDepsResponse, error) {
 	tasks, err := store.GetTasksByChange(changeID)
 	if err != nil {
 		return nil, fmt.Errorf("get tasks: %w", err)
@@ -228,14 +229,7 @@ func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *Registry
 	if len(resp.Dependencies) > 0 {
 		content += "### Dependencies (this task depends on)\n\n"
 		for i, dep := range resp.Dependencies {
-			statusIcon := "✅"
-			switch dep.Status {
-			case spec.TaskPending:
-				statusIcon = "⏳"
-			case spec.TaskInProgress:
-				statusIcon = "🔄"
-			}
-			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, statusIcon)
+			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, spec.StatusIconForStatus(dep.Status))
 			content += fmt.Sprintf("- Status: %s\n", dep.Status)
 			content += fmt.Sprintf("- Content: %s\n\n", dep.Content)
 		}
@@ -246,14 +240,7 @@ func formatTaskDeps(change *spec.ChangeMetadata, task *spec.Task, resp *Registry
 	if len(resp.Dependents) > 0 {
 		content += "### Dependents (tasks waiting on this one)\n\n"
 		for i, dep := range resp.Dependents {
-			statusIcon := "✅"
-			switch dep.Status {
-			case spec.TaskPending:
-				statusIcon = "⏳"
-			case spec.TaskInProgress:
-				statusIcon = "🔄"
-			}
-			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, statusIcon)
+			content += fmt.Sprintf("**%d. %s** %s\n", i+1, dep.TaskNum, spec.StatusIconForStatus(dep.Status))
 			content += fmt.Sprintf("- Status: %s\n", dep.Status)
 			content += fmt.Sprintf("- Content: %s\n\n", dep.Content)
 		}
@@ -314,7 +301,7 @@ func formatChangeDeps(change *spec.ChangeMetadata, resp *RegistryDepsResponse) s
 	return content
 }
 
-func getTaskByID(store *spec.BoltStore, taskID string) (*spec.Task, error) {
+func getTaskByID(store *storage.BoltStore, taskID string) (*spec.Task, error) {
 	changeID, taskNum, err := parseTaskID(taskID)
 	if err != nil {
 		return nil, err

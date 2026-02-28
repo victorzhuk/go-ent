@@ -15,10 +15,22 @@ import (
 	skillruntime "github.com/victorzhuk/go-ent/internal/skill/runtime"
 )
 
+// Repository defines the interface for skill persistence.
+// Defined at the consumer side following Clean Architecture.
+type Repository interface {
+	Save(skill *skilldomain.Skill) error
+	FindByID(id string) (*skilldomain.Skill, error)
+	FindByName(name string) (*skilldomain.Skill, error)
+	ListAll() ([]*skilldomain.Skill, error)
+	Delete(id string) error
+	Update(skill *skilldomain.Skill) error
+	Exists(name string) bool
+}
+
 // Registry manages skill metadata and matching.
 // It composes repository, matcher, and runtime components.
 type Registry struct {
-	repo      skillrepository.Repository
+	repo      Repository
 	matcher   skillmatcher.Matcher
 	runtime   skillruntime.Runtime
 	parser    *Parser

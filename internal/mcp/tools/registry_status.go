@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -35,7 +36,7 @@ type ChangeQuickInfo struct {
 	TaskCount int     `json:"task_count"`
 }
 
-func registerRegistryStatus(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryStatus(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_status",
 		Description: "Get aggregated stats from the OpenSpec registry",
@@ -49,7 +50,7 @@ func registerRegistryStatus(s *mcp.Server, toolRegistry *ToolRegistry, store *sp
 	toolRegistry.Register("registry_status", tool.Description, "registry")
 }
 
-func registryStatusHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStatusInput) (*mcp.CallToolResult, any, error) {
+func registryStatusHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStatusInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStatusInput) (*mcp.CallToolResult, any, error) {
 		changes, err := store.ListAllChanges()
 		if err != nil {

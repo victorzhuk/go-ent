@@ -1,4 +1,4 @@
-package spec
+package storage
 
 import (
 	"testing"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 func TestNewBoltStore(t *testing.T) {
@@ -45,12 +47,12 @@ func TestPutTask_GetTask(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		task := &Task{
+		task := &spec.Task{
 			ID:         "change-1:1.1",
 			ChangeID:   "change-1",
 			TaskNum:    "1.1",
 			Content:    "Test task content",
-			Status:     TaskPending,
+			Status:     spec.TaskPending,
 			Priority:   1,
 			DependsOn:  []string{"1.0"},
 			SourceLine: 10,
@@ -110,12 +112,12 @@ func TestDeleteTask(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		task := &Task{
+		task := &spec.Task{
 			ID:       "change-1:1.1",
 			ChangeID: "change-1",
 			TaskNum:  "1.1",
 			Content:  "Test task",
-			Status:   TaskPending,
+			Status:   spec.TaskPending,
 		}
 
 		err = store.PutTask(task)
@@ -151,10 +153,10 @@ func TestPutChange_GetChange(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		change := &ChangeMetadata{
+		change := &spec.ChangeMetadata{
 			ID:         "change-1",
 			Title:      "Test Change",
-			Status:     StatusDraft,
+			Status:     spec.StatusDraft,
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
 			TaskCount:  5,
@@ -215,7 +217,7 @@ func TestPutDeps_GetDeps(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		deps := &DependencyInfo{
+		deps := &spec.DependencyInfo{
 			TaskID:        "change-1:1.2",
 			DependsOn:     []string{"1.1"},
 			DependedBy:    []string{"1.3"},
@@ -273,16 +275,16 @@ func TestListAllChanges(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		change1 := &ChangeMetadata{
+		change1 := &spec.ChangeMetadata{
 			ID:     "change-1",
 			Title:  "First Change",
-			Status: StatusDraft,
+			Status: spec.StatusDraft,
 		}
 
-		change2 := &ChangeMetadata{
+		change2 := &spec.ChangeMetadata{
 			ID:     "change-2",
 			Title:  "Second Change",
-			Status: StatusActive,
+			Status: spec.StatusActive,
 		}
 
 		err = store.PutChange(change1)
@@ -318,28 +320,28 @@ func TestListTasks(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		task1 := &Task{
+		task1 := &spec.Task{
 			ID:       "change-1:1.1",
 			ChangeID: "change-1",
 			TaskNum:  "1.1",
 			Content:  "Task 1",
-			Status:   TaskPending,
+			Status:   spec.TaskPending,
 		}
 
-		task2 := &Task{
+		task2 := &spec.Task{
 			ID:       "change-1:1.2",
 			ChangeID: "change-1",
 			TaskNum:  "1.2",
 			Content:  "Task 2",
-			Status:   TaskCompleted,
+			Status:   spec.TaskCompleted,
 		}
 
-		task3 := &Task{
+		task3 := &spec.Task{
 			ID:       "change-2:1.1",
 			ChangeID: "change-2",
 			TaskNum:  "1.1",
 			Content:  "Other change task",
-			Status:   TaskPending,
+			Status:   spec.TaskPending,
 		}
 
 		err = store.PutTask(task1)
@@ -362,28 +364,28 @@ func TestListTasks(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = store.Close() }()
 
-		task1 := &Task{
+		task1 := &spec.Task{
 			ID:       "change-1:1.1",
 			ChangeID: "change-1",
 			TaskNum:  "1.1",
 			Content:  "Task 1",
-			Status:   TaskPending,
+			Status:   spec.TaskPending,
 		}
 
-		task2 := &Task{
+		task2 := &spec.Task{
 			ID:       "change-1:1.2",
 			ChangeID: "change-1",
 			TaskNum:  "1.2",
 			Content:  "Task 2",
-			Status:   TaskCompleted,
+			Status:   spec.TaskCompleted,
 		}
 
-		task3 := &Task{
+		task3 := &spec.Task{
 			ID:       "change-1:1.3",
 			ChangeID: "change-1",
 			TaskNum:  "1.3",
 			Content:  "Task 3",
-			Status:   TaskCompleted,
+			Status:   spec.TaskCompleted,
 		}
 
 		err = store.PutTask(task1)
@@ -393,7 +395,7 @@ func TestListTasks(t *testing.T) {
 		err = store.PutTask(task3)
 		require.NoError(t, err)
 
-		tasks, err := store.ListTasks("", string(TaskCompleted))
+		tasks, err := store.ListTasks("", string(spec.TaskCompleted))
 		require.NoError(t, err)
 		assert.Len(t, tasks, 2)
 	})

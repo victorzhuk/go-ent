@@ -34,7 +34,7 @@ type SkillCapability struct {
 // NewSkillCapability creates a new SkillCapability instance.
 func NewSkillCapability(cType CapabilityType, description string, confidence float64) (*SkillCapability, error) {
 	if description == "" {
-		return nil, ErrInvalidCapabilityDescription
+		return nil, ErrInvalidCapabilityDesc
 	}
 	if confidence < 0 || confidence > 1 {
 		return nil, ErrInvalidConfidence

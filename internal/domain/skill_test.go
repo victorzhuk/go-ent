@@ -95,7 +95,7 @@ func TestSkill_Execute_Success(t *testing.T) {
 
 	req := SkillRequest{
 		Input: "test input",
-		Parameters: map[string]interface{}{
+		Parameters: map[string]any{
 			"param1": "value1",
 		},
 	}
@@ -144,7 +144,7 @@ func TestSkillContext(t *testing.T) {
 		Action: SpecActionImplement,
 		Phase:  ActionPhaseExecution,
 		Agent:  AgentRoleDeveloper,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"change_id": "add-feature",
 			"priority":  "high",
 		},
@@ -160,7 +160,7 @@ func TestSkillContext(t *testing.T) {
 func TestSkillRequest(t *testing.T) {
 	req := SkillRequest{
 		Input: "implement user authentication",
-		Parameters: map[string]interface{}{
+		Parameters: map[string]any{
 			"method": "jwt",
 			"expiry": 3600,
 		},
@@ -181,7 +181,7 @@ func TestSkillResult_Success(t *testing.T) {
 	result := SkillResult{
 		Success: true,
 		Output:  "user authentication implemented",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"files_created": []string{"auth.go", "auth_test.go"},
 			"lines_of_code": 250,
 		},
@@ -203,7 +203,7 @@ func TestSkillResult_Failure(t *testing.T) {
 	result := SkillResult{
 		Success: false,
 		Error:   "compilation failed",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"error_type": "syntax_error",
 			"line":       42,
 		},

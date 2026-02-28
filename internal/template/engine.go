@@ -33,26 +33,26 @@ func NewEngine(fs embed.FS) *Engine {
 func (e *Engine) Process(templatePath string, vars TemplateVars, outputPath string) error {
 	content, err := e.fs.ReadFile(templatePath)
 	if err != nil {
-		return fmt.Errorf("failed to read template %s: %w", templatePath, err)
+		return fmt.Errorf("read template %s: %w", templatePath, err)
 	}
 
 	tmpl, err := template.New(filepath.Base(templatePath)).Parse(string(content))
 	if err != nil {
-		return fmt.Errorf("failed to parse template %s: %w", templatePath, err)
+		return fmt.Errorf("parse template %s: %w", templatePath, err)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0o750); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
+		return fmt.Errorf("create output directory: %w", err)
 	}
 
 	outFile, err := os.Create(outputPath) // #nosec G304 -- controlled file path
 	if err != nil {
-		return fmt.Errorf("failed to create output file %s: %w", outputPath, err)
+		return fmt.Errorf("create output file %s: %w", outputPath, err)
 	}
 	defer func() { _ = outFile.Close() }()
 
 	if err := tmpl.Execute(outFile, vars); err != nil {
-		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)
+		return fmt.Errorf("execute template %s: %w", templatePath, err)
 	}
 
 	return nil
@@ -80,7 +80,7 @@ func (e *Engine) ProcessAll(templateDir string, vars TemplateVars, outputDir str
 		// Calculate relative path from templateDir
 		relPath, err := filepath.Rel(templateDir, path)
 		if err != nil {
-			return fmt.Errorf("failed to get relative path: %w", err)
+			return fmt.Errorf("get relative path: %w", err)
 		}
 
 		// Strip .tmpl extension for output

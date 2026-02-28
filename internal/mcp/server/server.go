@@ -12,7 +12,7 @@ import (
 	"github.com/victorzhuk/go-ent/internal/hooks"
 	"github.com/victorzhuk/go-ent/internal/mcp/tools"
 	"github.com/victorzhuk/go-ent/internal/skill"
-	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 	"github.com/victorzhuk/go-ent/internal/version"
 )
 
@@ -66,7 +66,7 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	}
 
 	// Initialize BoltStore for registry
-	store, err := spec.NewBoltStore(cwd)
+	store, err := storage.NewBoltStore(cwd)
 	if err != nil {
 		slog.Warn("failed to initialize BoltStore", "error", err)
 		store = nil
@@ -75,9 +75,9 @@ func NewWithSkillsPath(skillsPath string) *mcp.Server {
 	}
 
 	// Initialize file watcher for BoltStore
-	var watcher *spec.Watcher
+	var watcher *storage.Watcher
 	if store != nil {
-		watcher, err = spec.NewWatcher(store, 0)
+		watcher, err = storage.NewWatcher(store, 0)
 		if err != nil {
 			slog.Warn("failed to create watcher", "error", err)
 			watcher = nil

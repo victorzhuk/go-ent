@@ -82,7 +82,7 @@ func TestInMemoryRepository_Save(t *testing.T) {
 		err := repo.Save(s2)
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrDuplicateSkill)
+		assert.ErrorIs(t, err, skilldomain.ErrDuplicate)
 	})
 
 	t.Run("duplicate skill by name", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestInMemoryRepository_Save(t *testing.T) {
 		err := repo.Save(s2)
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrDuplicateSkill)
+		assert.ErrorIs(t, err, skilldomain.ErrDuplicate)
 	})
 }
 
@@ -124,7 +124,7 @@ func TestInMemoryRepository_FindByID(t *testing.T) {
 		_, err := repo.FindByID("nonexistent@1.0.0")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 
 	t.Run("empty ID", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestInMemoryRepository_FindByID(t *testing.T) {
 		_, err := repo.FindByID("")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 }
 
@@ -162,7 +162,7 @@ func TestInMemoryRepository_FindByName(t *testing.T) {
 		_, err := repo.FindByName("nonexistent")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 
 	t.Run("empty name", func(t *testing.T) {
@@ -172,7 +172,7 @@ func TestInMemoryRepository_FindByName(t *testing.T) {
 		_, err := repo.FindByName("")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 }
 
@@ -226,7 +226,7 @@ func TestInMemoryRepository_Delete(t *testing.T) {
 
 		_, err = repo.FindByID("test-skill@1.0.0")
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 
 	t.Run("delete non-existent", func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestInMemoryRepository_Delete(t *testing.T) {
 		err := repo.Delete("nonexistent@1.0.0")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 
 	t.Run("delete empty ID", func(t *testing.T) {
@@ -246,7 +246,7 @@ func TestInMemoryRepository_Delete(t *testing.T) {
 		err := repo.Delete("")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 }
 
@@ -279,7 +279,7 @@ func TestInMemoryRepository_Update(t *testing.T) {
 		err := repo.Update(s)
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, skilldomain.ErrSkillNotFound)
+		assert.ErrorIs(t, err, skilldomain.ErrNotFound)
 	})
 
 	t.Run("update with nil skill", func(t *testing.T) {

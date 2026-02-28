@@ -54,7 +54,7 @@ type SkillContext struct {
 	Agent AgentRole
 
 	// Metadata holds additional context information.
-	Metadata map[string]interface{}
+	Metadata map[string]any
 }
 
 // SkillRequest represents a request to execute a skill.
@@ -63,7 +63,7 @@ type SkillRequest struct {
 	Input string
 
 	// Parameters holds skill-specific parameters.
-	Parameters map[string]interface{}
+	Parameters map[string]any
 
 	// Context provides execution context.
 	Context SkillContext
@@ -81,5 +81,5 @@ type SkillResult struct {
 	Error string
 
 	// Metadata holds additional result information.
-	Metadata map[string]interface{}
+	Metadata map[string]any
 }

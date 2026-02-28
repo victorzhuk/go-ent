@@ -11,6 +11,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/hooks"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
 func splitLines(s string) []string {
@@ -154,7 +155,7 @@ type RegistryStartTaskResponse struct {
 	StartedAt string `json:"started_at"`
 }
 
-func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore, hookRegistry *hooks.Registry) {
+func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore, hookRegistry *hooks.Registry) {
 	tool := &mcp.Tool{
 		Name:        "registry_start_task",
 		Description: "Set a task as in-progress in runtime state (BoltDB only, not persisted to markdown)",
@@ -186,7 +187,7 @@ func registerRegistryStartTask(s *mcp.Server, toolRegistry *ToolRegistry, store 
 	toolRegistry.Register("registry_start_task", tool.Description, "registry")
 }
 
-func registryStartTaskHandler(store *spec.BoltStore, hookRegistry *hooks.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
+func registryStartTaskHandler(store *storage.BoltStore, hookRegistry *hooks.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryStartTaskInput) (*mcp.CallToolResult, any, error) {
 		task, err := store.GetTask(input.ChangeID, input.TaskNum)
 		if err != nil {
@@ -265,7 +266,7 @@ type RegistrySyncResponse struct {
 	Duration    string `json:"duration"`
 }
 
-func registerRegistrySync(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistrySync(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_sync",
 		Description: "Force a full rebuild of BoltDB cache from markdown files",
@@ -279,7 +280,7 @@ func registerRegistrySync(s *mcp.Server, toolRegistry *ToolRegistry, store *spec
 	toolRegistry.Register("registry_sync", tool.Description, "registry")
 }
 
-func registrySyncHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistrySyncInput) (*mcp.CallToolResult, any, error) {
+func registrySyncHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistrySyncInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistrySyncInput) (*mcp.CallToolResult, any, error) {
 		start := time.Now()
 

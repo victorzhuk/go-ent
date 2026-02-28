@@ -54,4 +54,3 @@ func TestCacheDir(t *testing.T) {
 		assert.Equal(t, "/tmp/test-cache/go-ent", dir)
 	})
 }
-

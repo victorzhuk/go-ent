@@ -3,7 +3,6 @@ package workspace
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -65,9 +64,7 @@ func OpenDB(name string) (*WorkspaceDB, error) {
 		}
 		return nil
 	}); err != nil {
-		if closeErr := db.Close(); closeErr != nil {
-			slog.Warn("close db after init failure", "error", closeErr)
-		}
+		_ = db.Close()
 		return nil, fmt.Errorf("init buckets: %w", err)
 	}
 
@@ -114,40 +111,4 @@ func (w *WorkspaceDB) PutChange(meta *ChangeMeta) error {
 		}
 		return b.Put([]byte(key), data)
 	})
-}
-
-func (w *WorkspaceDB) ListProjects() ([]ProjectMeta, error) {
-	var result []ProjectMeta
-	err := w.db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(projectsBucket))
-		return b.ForEach(func(k, v []byte) error {
-			var meta ProjectMeta
-			if err := json.Unmarshal(v, &meta); err != nil {
-				slog.Warn("corrupt project entry, skipping", "key", string(k), "error", err)
-				return nil
-			}
-			result = append(result, meta)
-			return nil
-		})
-	})
-	return result, err
-}
-
-func (w *WorkspaceDB) ListSpecs(project string) ([]SpecMeta, error) {
-	var result []SpecMeta
-	prefix := project + ":"
-	err := w.db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(projectSpecsBucket))
-		c := b.Cursor()
-		for k, v := c.Seek([]byte(prefix)); k != nil && len(k) >= len(prefix) && string(k[:len(prefix)]) == prefix; k, v = c.Next() {
-			var meta SpecMeta
-			if err := json.Unmarshal(v, &meta); err != nil {
-				slog.Warn("corrupt spec entry, skipping", "key", string(k), "error", err)
-				continue
-			}
-			result = append(result, meta)
-		}
-		return nil
-	})
-	return result, err
 }

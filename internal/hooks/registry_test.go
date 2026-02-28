@@ -8,6 +8,7 @@ import (
 )
 
 func TestRegistry_LoadFromEmbed(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	reg, err := NewRegistry("", exec)
 	if err != nil {
@@ -26,6 +27,7 @@ func TestRegistry_LoadFromEmbed(t *testing.T) {
 }
 
 func TestRegistry_LoadFromFile_JSON(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "hooks.json")
 
@@ -71,6 +73,7 @@ func TestRegistry_LoadFromFile_JSON(t *testing.T) {
 }
 
 func TestRegistry_LoadFromFile_YAML(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "hooks.yaml")
 
@@ -111,6 +114,7 @@ openspec:
 }
 
 func TestRegistry_ThreadSafety(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	reg, err := NewRegistry("", exec)
 	if err != nil {

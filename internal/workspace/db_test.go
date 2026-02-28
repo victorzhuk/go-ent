@@ -3,7 +3,6 @@ package workspace
 import (
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +18,7 @@ func TestWorkspaceDB(t *testing.T) {
 		require.NoError(t, db.Close())
 	})
 
-	t.Run("project CRUD", func(t *testing.T) {
+	t.Run("put project", func(t *testing.T) {
 		t.Setenv("XDG_CACHE_HOME", t.TempDir())
 
 		db, err := OpenDB("test-ws")
@@ -29,21 +28,14 @@ func TestWorkspaceDB(t *testing.T) {
 		meta := &ProjectMeta{
 			Name:        "app-api",
 			Path:        "/path/to/api",
-			SyncedAt:    time.Now(),
 			SpecCount:   5,
 			ChangeCount: 2,
 		}
 
 		require.NoError(t, db.PutProject(meta))
-
-		projects, err := db.ListProjects()
-		require.NoError(t, err)
-		require.Len(t, projects, 1)
-		assert.Equal(t, "app-api", projects[0].Name)
-		assert.Equal(t, 5, projects[0].SpecCount)
 	})
 
-	t.Run("spec indexing", func(t *testing.T) {
+	t.Run("put spec", func(t *testing.T) {
 		t.Setenv("XDG_CACHE_HOME", t.TempDir())
 
 		db, err := OpenDB("test-ws")
@@ -55,20 +47,6 @@ func TestWorkspaceDB(t *testing.T) {
 			Project: "app-api",
 			Title:   "Authentication",
 		}))
-		require.NoError(t, db.PutSpec(&SpecMeta{
-			ID:      "data-model",
-			Project: "app-api",
-			Title:   "Data Model",
-		}))
-		require.NoError(t, db.PutSpec(&SpecMeta{
-			ID:      "billing",
-			Project: "app-billing",
-			Title:   "Billing",
-		}))
-
-		specs, err := db.ListSpecs("app-api")
-		require.NoError(t, err)
-		assert.Len(t, specs, 2)
 	})
 }
 

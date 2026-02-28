@@ -184,7 +184,7 @@ func TestSkillRuntime_Execute(t *testing.T) {
 
 		req := domain.SkillRequest{
 			Input:      "test input",
-			Parameters: map[string]interface{}{},
+			Parameters: map[string]any{},
 			Context:    domain.SkillContext{},
 		}
 

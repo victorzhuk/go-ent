@@ -18,26 +18,6 @@ func New(cwd string) *Client {
 	return &Client{cwd: cwd}
 }
 
-// List lists changes or specs and returns JSON output.
-// what can be "changes" or "specs".
-func (c *Client) List(ctx context.Context, what string) ([]byte, error) {
-	args := []string{"list", "--json"}
-	if what == "specs" {
-		args = append(args, "--specs")
-	}
-	return c.run(ctx, args...)
-}
-
-// Show shows a change or spec by name and returns JSON output.
-// itemType can be "change" or "spec", name is the identifier.
-func (c *Client) Show(ctx context.Context, itemType, name string) ([]byte, error) {
-	args := []string{"show", name, "--json"}
-	if itemType != "" {
-		args = append(args, "--type", itemType)
-	}
-	return c.run(ctx, args...)
-}
-
 // Archive archives a completed change and updates main specs.
 func (c *Client) Archive(ctx context.Context, change string) error {
 	_, err := c.run(ctx, "archive", change)
@@ -77,15 +57,6 @@ func (c *Client) NewChange(ctx context.Context, name string) error {
 	return err
 }
 
-// Status displays artifact completion status for a change and returns JSON output.
-func (c *Client) Status(ctx context.Context, change string) ([]byte, error) {
-	args := []string{"status", "--json"}
-	if change != "" {
-		args = append(args, change)
-	}
-	return c.run(ctx, args...)
-}
-
 // run executes the openspec CLI command and returns stdout.
 func (c *Client) run(ctx context.Context, args ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, "openspec", args...)
@@ -115,29 +86,11 @@ func ParseList(data []byte) ([]ListItem, error) {
 	return resp.Specs, nil
 }
 
-// ParseShow parses the JSON output from Show into a map.
-func ParseShow(data []byte) (map[string]interface{}, error) {
-	var result map[string]interface{}
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("parse show: %w", err)
-	}
-	return result, nil
-}
-
 // ParseValidate parses the JSON output from Validate.
-func ParseValidate(data []byte) (map[string]interface{}, error) {
-	var result map[string]interface{}
+func ParseValidate(data []byte) (map[string]any, error) {
+	var result map[string]any
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("parse validate: %w", err)
-	}
-	return result, nil
-}
-
-// ParseStatus parses the JSON output from Status.
-func ParseStatus(data []byte) (map[string]interface{}, error) {
-	var result map[string]interface{}
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("parse status: %w", err)
 	}
 	return result, nil
 }

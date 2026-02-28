@@ -12,6 +12,7 @@ import (
 )
 
 func TestGetAgentPath(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		tool     string
@@ -51,6 +52,7 @@ func TestGetAgentPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := getAgentPath(tt.tool, tt.prefix, tt.agentID)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -58,6 +60,7 @@ func TestGetAgentPath(t *testing.T) {
 }
 
 func TestRenderAgent_NoDoubleDashes(t *testing.T) {
+	t.Parallel()
 	// Setup test template (mimics claude.yaml.tmpl)
 	tplContent := `---
 name: {{.Name}}
@@ -111,6 +114,7 @@ model: {{.Model}}
 }
 
 func TestValidateAgent(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		agent   agentMeta
@@ -317,6 +321,7 @@ func TestValidateAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := validateAgent(&tt.agent, "test.yaml")
 
 			if tt.wantErr {
@@ -332,6 +337,7 @@ func TestValidateAgent(t *testing.T) {
 }
 
 func TestCleanDirs(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		setup   func(t *testing.T, tmpDir string)
@@ -396,6 +402,7 @@ func TestCleanDirs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tmpDir := t.TempDir()
 			tt.setup(t, tmpDir)
 
@@ -421,6 +428,7 @@ func TestCleanDirs(t *testing.T) {
 }
 
 func TestEffectiveMode(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		agent    agentMeta
@@ -445,6 +453,7 @@ func TestEffectiveMode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.agent.EffectiveMode()
 			assert.Equal(t, tt.expected, result)
 		})

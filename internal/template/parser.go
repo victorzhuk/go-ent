@@ -28,10 +28,10 @@ type TemplateConfig struct {
 // Validate checks that required config fields are present.
 func (c *TemplateConfig) Validate() error {
 	if c.Name == "" {
-		return fmt.Errorf("required field 'name' is empty")
+		return fmt.Errorf("name is required")
 	}
 	if c.Category == "" {
-		return fmt.Errorf("required field 'category' is empty")
+		return fmt.Errorf("category is required")
 	}
 	return nil
 }

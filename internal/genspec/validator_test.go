@@ -7,6 +7,7 @@ import (
 )
 
 func TestValidatorBasic(t *testing.T) {
+	t.Parallel()
 	// Create validator
 	v, err := NewValidator("claude")
 	if err != nil {
@@ -40,6 +41,7 @@ Test content`
 }
 
 func TestValidatorInvalidModel(t *testing.T) {
+	t.Parallel()
 	v, err := NewValidator("claude")
 	if err != nil {
 		t.Fatalf("NewValidator: %v", err)
@@ -80,6 +82,7 @@ Test content`
 }
 
 func TestValidatorMissingRequired(t *testing.T) {
+	t.Parallel()
 	v, err := NewValidator("claude")
 	if err != nil {
 		t.Fatalf("NewValidator: %v", err)
@@ -119,6 +122,7 @@ Test content`
 }
 
 func TestValidatorUnknownField(t *testing.T) {
+	t.Parallel()
 	v, err := NewValidator("claude")
 	if err != nil {
 		t.Fatalf("NewValidator: %v", err)

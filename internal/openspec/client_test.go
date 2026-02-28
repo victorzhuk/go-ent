@@ -46,24 +46,6 @@ func TestParseList_InvalidJSON(t *testing.T) {
 	assert.Contains(t, err.Error(), "parse list")
 }
 
-func TestParseShow(t *testing.T) {
-	t.Parallel()
-
-	data := []byte(`{"name":"my-change","status":"active","tasks":[]}`)
-	result, err := ParseShow(data)
-	require.NoError(t, err)
-	assert.Equal(t, "my-change", result["name"])
-	assert.Equal(t, "active", result["status"])
-}
-
-func TestParseShow_InvalidJSON(t *testing.T) {
-	t.Parallel()
-
-	_, err := ParseShow([]byte(`{broken`))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "parse show")
-}
-
 func TestParseValidate(t *testing.T) {
 	t.Parallel()
 
@@ -81,46 +63,12 @@ func TestParseValidate_InvalidJSON(t *testing.T) {
 	assert.Contains(t, err.Error(), "parse validate")
 }
 
-func TestParseStatus(t *testing.T) {
-	t.Parallel()
-
-	data := []byte(`{"change":"my-change","completed":3,"total":5}`)
-	result, err := ParseStatus(data)
-	require.NoError(t, err)
-	assert.Equal(t, "my-change", result["change"])
-}
-
-func TestParseStatus_InvalidJSON(t *testing.T) {
-	t.Parallel()
-
-	_, err := ParseStatus([]byte(`{bad}`))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "parse status")
-}
-
 func TestNew(t *testing.T) {
 	t.Parallel()
 
 	c := New("/some/path")
 	assert.NotNil(t, c)
 	assert.Equal(t, "/some/path", c.cwd)
-}
-
-func TestClient_List(t *testing.T) {
-	t.Parallel()
-
-	if _, err := exec.LookPath("openspec"); err != nil {
-		t.Skip("openspec not in PATH")
-	}
-
-	c := New("../..")
-	data, err := c.List(context.Background(), "changes")
-	require.NoError(t, err)
-
-	// JSON may represent empty or populated list — both are valid
-	items, err := ParseList(data)
-	require.NoError(t, err)
-	_ = items
 }
 
 func TestClient_Validate(t *testing.T) {

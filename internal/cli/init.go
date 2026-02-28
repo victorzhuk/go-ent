@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -11,8 +12,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-
-	"log/slog"
 
 	"github.com/victorzhuk/go-ent/internal/config"
 	"github.com/victorzhuk/go-ent/internal/workspace"
@@ -66,8 +65,8 @@ type agentMeta struct {
 	Complexity            string            `yaml:"complexity"`
 	ComplexityHints       map[string]string `yaml:"complexityHints"`
 	ModelMapping          map[string]string `yaml:"modelMapping"`
-	Mode                  string   `yaml:"mode"` // primary, subagent, hidden
-	Skills                []string `yaml:"skills"`
+	Mode                  string            `yaml:"mode"` // primary, subagent, hidden
+	Skills                []string          `yaml:"skills"`
 	Tools                 []string          `yaml:"tools"`
 	ToolPresets           []string          `yaml:"toolPresets"`
 	DisallowedToolPresets []string          `yaml:"disallowedToolPresets"`

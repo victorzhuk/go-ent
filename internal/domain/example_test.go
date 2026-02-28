@@ -88,7 +88,7 @@ func ExampleSkill() {
 	ctx := domain.SkillContext{
 		Action: domain.SpecActionImplement,
 		Agent:  domain.AgentRoleDeveloper,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"language": "go",
 		},
 	}
@@ -99,7 +99,7 @@ func ExampleSkill() {
 
 	req := domain.SkillRequest{
 		Input: "package main",
-		Parameters: map[string]interface{}{
+		Parameters: map[string]any{
 			"file": "main.go",
 		},
 		Context: ctx,
@@ -140,7 +140,7 @@ func (s *customSkill) Execute(ctx context.Context, req domain.SkillRequest) (dom
 	return domain.SkillResult{
 		Success: true,
 		Output:  "formatted code",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"formatted": true,
 		},
 	}, nil

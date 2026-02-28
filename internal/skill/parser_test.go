@@ -10,6 +10,7 @@ import (
 )
 
 func TestParser_detectVersion(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	tests := []struct {
@@ -45,6 +46,7 @@ Example 1`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := p.detectVersion(tt.content, tt.frontmatter)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -52,6 +54,7 @@ Example 1`,
 }
 
 func TestParser_parseFrontmatterV4(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	tests := []struct {
@@ -115,6 +118,7 @@ triggers:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := p.parseFrontmatterV4(tt.frontmatter)
 
 			if tt.wantErr {
@@ -132,6 +136,7 @@ triggers:
 }
 
 func TestParser_ParseSkillFile_V4(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	content := `---
@@ -195,6 +200,7 @@ Follow Go best practices:
 }
 
 func TestParser_ParseSkillFile_V4_UnsupportedFormat(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	// Old v2 format with XML tags
@@ -226,6 +232,7 @@ Old instructions format
 }
 
 func TestParser_extractMarkdownSection(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	content := `# Title
@@ -277,6 +284,7 @@ Examples go here.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := p.extractMarkdownSection(content, tt.section)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -284,6 +292,7 @@ Examples go here.
 }
 
 func TestParser_extractReferencesSection(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	content := `## References
@@ -304,6 +313,7 @@ func TestParser_extractReferencesSection(t *testing.T) {
 }
 
 func TestParser_detectCategory(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	tests := []struct {
@@ -340,6 +350,7 @@ func TestParser_detectCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := p.detectCategory(tt.path)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -347,6 +358,7 @@ func TestParser_detectCategory(t *testing.T) {
 }
 
 func TestParser_stringsToTriggers(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	strings := []string{"testing", "tdd", "go code"}
@@ -362,6 +374,7 @@ func TestParser_stringsToTriggers(t *testing.T) {
 }
 
 func TestParser_triggersToStrings(t *testing.T) {
+	t.Parallel()
 	p := NewParser()
 
 	triggers := []Trigger{

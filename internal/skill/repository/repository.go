@@ -7,47 +7,23 @@ import (
 	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
-// Repository defines the interface for skill persistence operations.
-type Repository interface {
-	// Save stores a new skill in the repository.
-	Save(skill *skilldomain.Skill) error
-
-	// FindByID retrieves a skill by its ID.
-	FindByID(id string) (*skilldomain.Skill, error)
-
-	// FindByName retrieves a skill by its name.
-	FindByName(name string) (*skilldomain.Skill, error)
-
-	// ListAll returns all skills in the repository.
-	ListAll() ([]*skilldomain.Skill, error)
-
-	// Delete removes a skill by ID.
-	Delete(id string) error
-
-	// Update updates an existing skill.
-	Update(skill *skilldomain.Skill) error
-
-	// Exists checks if a skill with the given name exists.
-	Exists(name string) bool
-}
-
-// inMemoryRepository implements Repository using in-memory storage with thread-safe operations.
-type inMemoryRepository struct {
+// InMemoryRepository provides thread-safe in-memory storage for skills.
+type InMemoryRepository struct {
 	mu     sync.RWMutex
 	skills map[string]*skilldomain.Skill
 	names  map[string]string // name -> id mapping
 }
 
 // NewInMemoryRepository creates a new in-memory repository.
-func NewInMemoryRepository() Repository {
-	return &inMemoryRepository{
+func NewInMemoryRepository() *InMemoryRepository {
+	return &InMemoryRepository{
 		skills: make(map[string]*skilldomain.Skill),
 		names:  make(map[string]string),
 	}
 }
 
 // Save stores a new skill in the repository.
-func (r *inMemoryRepository) Save(skill *skilldomain.Skill) error {
+func (r *InMemoryRepository) Save(skill *skilldomain.Skill) error {
 	if skill == nil {
 		return fmt.Errorf("skill cannot be nil")
 	}
@@ -62,11 +38,11 @@ func (r *inMemoryRepository) Save(skill *skilldomain.Skill) error {
 	defer r.mu.Unlock()
 
 	if _, exists := r.skills[skill.ID]; exists {
-		return fmt.Errorf("%w: %s", skilldomain.ErrDuplicateSkill, skill.Name)
+		return fmt.Errorf("%w: %s", skilldomain.ErrDuplicate, skill.Name)
 	}
 
 	if _, exists := r.names[skill.Name]; exists {
-		return fmt.Errorf("%w: %s", skilldomain.ErrDuplicateSkill, skill.Name)
+		return fmt.Errorf("%w: %s", skilldomain.ErrDuplicate, skill.Name)
 	}
 
 	r.skills[skill.ID] = skill
@@ -75,31 +51,31 @@ func (r *inMemoryRepository) Save(skill *skilldomain.Skill) error {
 }
 
 // FindByID retrieves a skill by its ID.
-func (r *inMemoryRepository) FindByID(id string) (*skilldomain.Skill, error) {
+func (r *InMemoryRepository) FindByID(id string) (*skilldomain.Skill, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	skill, exists := r.skills[id]
 	if !exists {
-		return nil, fmt.Errorf("%w: %s", skilldomain.ErrSkillNotFound, id)
+		return nil, fmt.Errorf("%w: %s", skilldomain.ErrNotFound, id)
 	}
 	return skill, nil
 }
 
 // FindByName retrieves a skill by its name.
-func (r *inMemoryRepository) FindByName(name string) (*skilldomain.Skill, error) {
+func (r *InMemoryRepository) FindByName(name string) (*skilldomain.Skill, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	id, exists := r.names[name]
 	if !exists {
-		return nil, fmt.Errorf("%w: %s", skilldomain.ErrSkillNotFound, name)
+		return nil, fmt.Errorf("%w: %s", skilldomain.ErrNotFound, name)
 	}
 	return r.skills[id], nil
 }
 
 // ListAll returns all skills in the repository.
-func (r *inMemoryRepository) ListAll() ([]*skilldomain.Skill, error) {
+func (r *InMemoryRepository) ListAll() ([]*skilldomain.Skill, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -111,13 +87,13 @@ func (r *inMemoryRepository) ListAll() ([]*skilldomain.Skill, error) {
 }
 
 // Delete removes a skill by ID.
-func (r *inMemoryRepository) Delete(id string) error {
+func (r *InMemoryRepository) Delete(id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	skill, exists := r.skills[id]
 	if !exists {
-		return fmt.Errorf("%w: %s", skilldomain.ErrSkillNotFound, id)
+		return fmt.Errorf("%w: %s", skilldomain.ErrNotFound, id)
 	}
 
 	delete(r.skills, id)
@@ -126,7 +102,7 @@ func (r *inMemoryRepository) Delete(id string) error {
 }
 
 // Update updates an existing skill.
-func (r *inMemoryRepository) Update(skill *skilldomain.Skill) error {
+func (r *InMemoryRepository) Update(skill *skilldomain.Skill) error {
 	if skill == nil {
 		return fmt.Errorf("skill cannot be nil")
 	}
@@ -141,7 +117,7 @@ func (r *inMemoryRepository) Update(skill *skilldomain.Skill) error {
 	defer r.mu.Unlock()
 
 	if _, exists := r.skills[skill.ID]; !exists {
-		return fmt.Errorf("%w: %s", skilldomain.ErrSkillNotFound, skill.ID)
+		return fmt.Errorf("%w: %s", skilldomain.ErrNotFound, skill.ID)
 	}
 
 	oldName := ""
@@ -162,7 +138,7 @@ func (r *inMemoryRepository) Update(skill *skilldomain.Skill) error {
 }
 
 // Exists checks if a skill with the given name exists.
-func (r *inMemoryRepository) Exists(name string) bool {
+func (r *InMemoryRepository) Exists(name string) bool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

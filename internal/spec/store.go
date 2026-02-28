@@ -286,4 +286,3 @@ func (s *Store) SaveRegistry(reg *Registry) error {
 
 	return nil
 }
-

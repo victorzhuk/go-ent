@@ -6,10 +6,10 @@ import (
 	"github.com/victorzhuk/go-ent/internal/hooks"
 	"github.com/victorzhuk/go-ent/internal/openspec"
 	"github.com/victorzhuk/go-ent/internal/skill"
-	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
-func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *spec.BoltStore, hookRegistry *hooks.Registry) {
+func Register(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry *skill.Registry, agentRegistry *agent.Registry, cwd string, store *storage.BoltStore, hookRegistry *hooks.Registry) {
 	// Skill tools
 	registerSkillList(s, toolRegistry, skillRegistry)
 	registerSkillInfo(s, toolRegistry, skillRegistry)

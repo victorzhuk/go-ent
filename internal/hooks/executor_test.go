@@ -8,6 +8,7 @@ import (
 )
 
 func TestExecutor_MatchTool(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 
 	tests := []struct {
@@ -35,6 +36,7 @@ func TestExecutor_MatchTool(t *testing.T) {
 }
 
 func TestExecutor_RunOpenSpecHook_Command(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	ctx := context.Background()
 
@@ -52,6 +54,7 @@ func TestExecutor_RunOpenSpecHook_Command(t *testing.T) {
 }
 
 func TestExecutor_RunOpenSpecHook_Agent(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	ctx := context.Background()
 
@@ -71,6 +74,7 @@ func TestExecutor_RunOpenSpecHook_Agent(t *testing.T) {
 }
 
 func TestExecutor_RunOpenSpecHook_EmptyHook(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	ctx := context.Background()
 
@@ -84,6 +88,7 @@ func TestExecutor_RunOpenSpecHook_EmptyHook(t *testing.T) {
 }
 
 func TestExecutor_ExecuteCommand_Timeout(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	ctx := context.Background()
 
@@ -97,6 +102,7 @@ func TestExecutor_ExecuteCommand_Timeout(t *testing.T) {
 }
 
 func TestExecutor_ExecuteCommand_WithEnv(t *testing.T) {
+	t.Parallel()
 	exec := NewExecutor(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	ctx := context.Background()
 

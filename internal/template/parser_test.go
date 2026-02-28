@@ -10,6 +10,7 @@ import (
 )
 
 func TestParseConfig_WithPrompts(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: go
 description: Basic Go skill template
@@ -61,6 +62,7 @@ prompts:
 }
 
 func TestParseConfig_EmptyPrompts(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: go
 description: Basic Go skill template
@@ -78,6 +80,7 @@ prompts: []`
 }
 
 func TestParseConfig_MissingPrompts(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: go
 description: Basic Go skill template`
@@ -94,6 +97,7 @@ description: Basic Go skill template`
 }
 
 func TestParseConfig_Validate_MissingName(t *testing.T) {
+	t.Parallel()
 	content := `category: go
 description: Basic Go skill template`
 
@@ -106,10 +110,11 @@ description: Basic Go skill template`
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "required field 'name' is empty")
+	assert.Contains(t, err.Error(), "name is required")
 }
 
 func TestParseConfig_Validate_MissingCategory(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 description: Basic Go skill template`
 
@@ -122,10 +127,11 @@ description: Basic Go skill template`
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "required field 'category' is empty")
+	assert.Contains(t, err.Error(), "category is required")
 }
 
 func TestParseConfig_Validate_EmptyName(t *testing.T) {
+	t.Parallel()
 	content := `name: ""
 category: go
 description: Basic Go skill template`
@@ -139,10 +145,11 @@ description: Basic Go skill template`
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "required field 'name' is empty")
+	assert.Contains(t, err.Error(), "name is required")
 }
 
 func TestParseConfig_Validate_EmptyCategory(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: ""
 description: Basic Go skill template`
@@ -156,10 +163,11 @@ description: Basic Go skill template`
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "required field 'category' is empty")
+	assert.Contains(t, err.Error(), "category is required")
 }
 
 func TestTemplateConfig_Validate_Valid(t *testing.T) {
+	t.Parallel()
 	cfg := &TemplateConfig{
 		Name:        "go-basic",
 		Category:    "go",
@@ -172,6 +180,7 @@ func TestTemplateConfig_Validate_Valid(t *testing.T) {
 }
 
 func TestTemplateConfig_Validate_OptionalFields(t *testing.T) {
+	t.Parallel()
 	cfg := &TemplateConfig{
 		Name:     "go-basic",
 		Category: "go",
@@ -183,6 +192,7 @@ func TestTemplateConfig_Validate_OptionalFields(t *testing.T) {
 }
 
 func TestParseConfig_NonExistentFile(t *testing.T) {
+	t.Parallel()
 	nonExistentPath := "/tmp/non-existent-config-12345.yaml"
 
 	result, err := ParseConfig(nonExistentPath)
@@ -193,6 +203,7 @@ func TestParseConfig_NonExistentFile(t *testing.T) {
 }
 
 func TestParseConfig_InvalidYAML(t *testing.T) {
+	t.Parallel()
 	invalidYAML := `name: go-basic
 category: go
 description: This is invalid
@@ -212,6 +223,7 @@ yaml: [unclosed`
 }
 
 func TestParseConfig_MinimalConfig(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: go`
 
@@ -232,6 +244,7 @@ category: go`
 }
 
 func TestParseConfig_AllFields(t *testing.T) {
+	t.Parallel()
 	content := `name: go-complete
 category: go
 description: Complete Go skill template
@@ -264,6 +277,7 @@ prompts:
 }
 
 func TestTemplateConfig_Validate_MissingName(t *testing.T) {
+	t.Parallel()
 	cfg := &TemplateConfig{
 		Category:    "go",
 		Description: "Basic Go skill template",
@@ -272,10 +286,11 @@ func TestTemplateConfig_Validate_MissingName(t *testing.T) {
 	err := cfg.Validate()
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "required field 'name' is empty")
+	assert.Contains(t, err.Error(), "name is required")
 }
 
 func TestTemplateConfig_Validate_MissingCategory(t *testing.T) {
+	t.Parallel()
 	cfg := &TemplateConfig{
 		Name:        "go-basic",
 		Description: "Basic Go skill template",
@@ -284,10 +299,11 @@ func TestTemplateConfig_Validate_MissingCategory(t *testing.T) {
 	err := cfg.Validate()
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "required field 'category' is empty")
+	assert.Contains(t, err.Error(), "category is required")
 }
 
 func TestParseConfig_SinglePrompt(t *testing.T) {
+	t.Parallel()
 	content := `name: go-basic
 category: go
 prompts:
@@ -311,6 +327,7 @@ prompts:
 }
 
 func TestParseConfig_MultiplePrompts(t *testing.T) {
+	t.Parallel()
 	content := `name: go-complete
 category: go
 prompts:

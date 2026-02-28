@@ -143,7 +143,6 @@ func TestErrorHandling(t *testing.T) {
 			err := cmd.Execute()
 			require.Error(t, err)
 		})
-
 	})
 
 	t.Run("command errors", func(t *testing.T) {

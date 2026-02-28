@@ -11,48 +11,48 @@ import (
 func TestErrorTypeChecking(t *testing.T) {
 	t.Parallel()
 
-	t.Run("ErrInvalidSkillName", func(t *testing.T) {
+	t.Run("ErrInvalidName", func(t *testing.T) {
 		t.Parallel()
 
 		// Test error wrapping
 		err := errors.New("empty skill name")
-		wrapped := fmt.Errorf("%w: %v", ErrInvalidSkillName, err)
+		wrapped := fmt.Errorf("%w: %v", ErrInvalidName, err)
 
-		// Test that we can unwrap and check for ErrInvalidSkillName
-		assert.True(t, errors.Is(wrapped, ErrInvalidSkillName))
+		// Test that we can unwrap and check for ErrInvalidName
+		assert.True(t, errors.Is(wrapped, ErrInvalidName))
 	})
 
-	t.Run("ErrInvalidSkillDescription", func(t *testing.T) {
+	t.Run("ErrInvalidDescription", func(t *testing.T) {
 		t.Parallel()
 
 		// Test error wrapping
 		err := errors.New("empty description")
-		wrapped := fmt.Errorf("%w: %v", ErrInvalidSkillDescription, err)
+		wrapped := fmt.Errorf("%w: %v", ErrInvalidDescription, err)
 
-		// Test that we can unwrap and check for ErrInvalidSkillDescription
-		assert.True(t, errors.Is(wrapped, ErrInvalidSkillDescription))
+		// Test that we can unwrap and check for ErrInvalidDescription
+		assert.True(t, errors.Is(wrapped, ErrInvalidDescription))
 	})
 
-	t.Run("ErrSkillNotFound", func(t *testing.T) {
+	t.Run("ErrNotFound", func(t *testing.T) {
 		t.Parallel()
 
 		// Test error wrapping
 		err := errors.New("skill not found in registry")
-		wrapped := fmt.Errorf("%w: %v", ErrSkillNotFound, err)
+		wrapped := fmt.Errorf("%w: %v", ErrNotFound, err)
 
-		// Test that we can unwrap and check for ErrSkillNotFound
-		assert.True(t, errors.Is(wrapped, ErrSkillNotFound))
+		// Test that we can unwrap and check for ErrNotFound
+		assert.True(t, errors.Is(wrapped, ErrNotFound))
 	})
 
-	t.Run("ErrDuplicateSkill", func(t *testing.T) {
+	t.Run("ErrDuplicate", func(t *testing.T) {
 		t.Parallel()
 
 		// Test error wrapping
 		err := errors.New("skill already registered")
-		wrapped := fmt.Errorf("%w: %v", ErrDuplicateSkill, err)
+		wrapped := fmt.Errorf("%w: %v", ErrDuplicate, err)
 
-		// Test that we can unwrap and check for ErrDuplicateSkill
-		assert.True(t, errors.Is(wrapped, ErrDuplicateSkill))
+		// Test that we can unwrap and check for ErrDuplicate
+		assert.True(t, errors.Is(wrapped, ErrDuplicate))
 	})
 
 	t.Run("ErrInvalidTrigger", func(t *testing.T) {
@@ -77,15 +77,15 @@ func TestErrorTypeChecking(t *testing.T) {
 		assert.True(t, errors.Is(wrapped, ErrInvalidVersion))
 	})
 
-	t.Run("ErrInvalidCapabilityDescription", func(t *testing.T) {
+	t.Run("ErrInvalidCapabilityDesc", func(t *testing.T) {
 		t.Parallel()
 
 		// Test error wrapping
 		err := errors.New("capability description empty")
-		wrapped := fmt.Errorf("%w: %v", ErrInvalidCapabilityDescription, err)
+		wrapped := fmt.Errorf("%w: %v", ErrInvalidCapabilityDesc, err)
 
-		// Test that we can unwrap and check for ErrInvalidCapabilityDescription
-		assert.True(t, errors.Is(wrapped, ErrInvalidCapabilityDescription))
+		// Test that we can unwrap and check for ErrInvalidCapabilityDesc
+		assert.True(t, errors.Is(wrapped, ErrInvalidCapabilityDesc))
 	})
 
 	t.Run("ErrInvalidConfidence", func(t *testing.T) {
@@ -115,19 +115,19 @@ func TestErrorTypeChecking(t *testing.T) {
 		t.Parallel()
 
 		// Test that error messages are lowercase
-		assert.Equal(t, "invalid skill name", ErrInvalidSkillName.Error())
-		assert.Equal(t, "invalid skill description", ErrInvalidSkillDescription.Error())
-		assert.Equal(t, "skill not found", ErrSkillNotFound.Error())
-		assert.Equal(t, "duplicate skill", ErrDuplicateSkill.Error())
+		assert.Equal(t, "invalid name", ErrInvalidName.Error())
+		assert.Equal(t, "invalid description", ErrInvalidDescription.Error())
+		assert.Equal(t, "not found", ErrNotFound.Error())
+		assert.Equal(t, "duplicate", ErrDuplicate.Error())
 		assert.Equal(t, "invalid trigger", ErrInvalidTrigger.Error())
 		assert.Equal(t, "invalid version", ErrInvalidVersion.Error())
-		assert.Equal(t, "invalid capability description", ErrInvalidCapabilityDescription.Error())
+		assert.Equal(t, "invalid capability description", ErrInvalidCapabilityDesc.Error())
 		assert.Equal(t, "confidence must be between 0 and 1", ErrInvalidConfidence.Error())
 
 		// Test no trailing punctuation
-		assert.False(t, hasTrailingPunctuation(ErrInvalidSkillName.Error()))
-		assert.False(t, hasTrailingPunctuation(ErrSkillNotFound.Error()))
-		assert.False(t, hasTrailingPunctuation(ErrDuplicateSkill.Error()))
+		assert.False(t, hasTrailingPunctuation(ErrInvalidName.Error()))
+		assert.False(t, hasTrailingPunctuation(ErrNotFound.Error()))
+		assert.False(t, hasTrailingPunctuation(ErrDuplicate.Error()))
 	})
 }
 

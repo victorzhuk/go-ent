@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
 type RegistryGetChangeInput struct {
@@ -49,7 +50,7 @@ type TaskSummaryStats struct {
 	Completed  int `json:"completed"`
 }
 
-func registerRegistryGetChange(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryGetChange(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_get_change",
 		Description: "Get detailed change info with all tasks",
@@ -69,7 +70,7 @@ func registerRegistryGetChange(s *mcp.Server, toolRegistry *ToolRegistry, store 
 	toolRegistry.Register("registry_get_change", tool.Description, "registry")
 }
 
-func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryGetChangeInput) (*mcp.CallToolResult, any, error) {
+func registryGetChangeHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryGetChangeInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryGetChangeInput) (*mcp.CallToolResult, any, error) {
 		if input.ChangeID == "" {
 			return nil, nil, fmt.Errorf("change_id is required")
@@ -113,7 +114,7 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 				Status:    task.Status,
 				Priority:  task.Priority,
 				DependsOn: task.DependsOn,
-				SyncedAt:  task.SyncedAt.Format("2006-01-02 15:04"),
+				SyncedAt:  task.SyncedAt.Format(spec.DateTimeFormat),
 			})
 		}
 
@@ -125,8 +126,8 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 			Completed:  change.Completed,
 			InProgress: change.InProgress,
 			Blocked:    change.Blocked,
-			CreatedAt:  change.CreatedAt.Format("2006-01-02 15:04"),
-			UpdatedAt:  change.UpdatedAt.Format("2006-01-02 15:04"),
+			CreatedAt:  change.CreatedAt.Format(spec.DateTimeFormat),
+			UpdatedAt:  change.UpdatedAt.Format(spec.DateTimeFormat),
 		}
 
 		var sb strings.Builder
@@ -147,22 +148,14 @@ func registryGetChangeHandler(store *spec.BoltStore) func(ctx context.Context, r
 		fmt.Fprintf(&sb, "- Completed: %d\n\n", summaryStats.Completed)
 
 		sb.WriteString("## Details\n\n")
-		fmt.Fprintf(&sb, "- Created: %s\n", change.CreatedAt.Format("2006-01-02 15:04"))
-		fmt.Fprintf(&sb, "- Updated: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04"))
+		fmt.Fprintf(&sb, "- Created: %s\n", change.CreatedAt.Format(spec.DateTimeFormat))
+		fmt.Fprintf(&sb, "- Updated: %s\n\n", change.UpdatedAt.Format(spec.DateTimeFormat))
 
 		sb.WriteString("## Tasks\n\n")
 
 		for i, task := range tasks {
-			statusIcon := "⏳"
-			switch task.Status {
-			case spec.TaskCompleted:
-				statusIcon = "✅"
-			case spec.TaskInProgress:
-				statusIcon = "🔄"
-			}
-
 			fmt.Fprintf(&sb, "### %d. %s\n\n", i+1, task.TaskNum)
-			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", statusIcon, task.Status)
+			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", task.StatusIcon(), task.Status)
 			fmt.Fprintf(&sb, "**Content**: %s\n\n", task.Content)
 
 			if len(task.DependsOn) > 0 {

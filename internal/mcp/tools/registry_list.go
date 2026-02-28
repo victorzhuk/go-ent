@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/spec"
+	"github.com/victorzhuk/go-ent/internal/spec/storage"
 )
 
 type RegistryListChangesInput struct{}
@@ -27,7 +28,7 @@ type ChangeSummary struct {
 	UpdatedAt  string            `json:"updated_at"`
 }
 
-func registerRegistryListChanges(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryListChanges(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_list_changes",
 		Description: "List all changes from the OpenSpec registry",
@@ -41,7 +42,7 @@ func registerRegistryListChanges(s *mcp.Server, toolRegistry *ToolRegistry, stor
 	toolRegistry.Register("registry_list_changes", tool.Description, "registry")
 }
 
-func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListChangesInput) (*mcp.CallToolResult, any, error) {
+func registryListChangesHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListChangesInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListChangesInput) (*mcp.CallToolResult, any, error) {
 		changes, err := store.ListAllChanges()
 		if err != nil {
@@ -80,7 +81,7 @@ func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context,
 				fmt.Fprintf(&sb, "**Blocked**: %d\n\n", change.Blocked)
 			}
 
-			fmt.Fprintf(&sb, "**Updated**: %s\n\n", change.UpdatedAt.Format("2006-01-02 15:04"))
+			fmt.Fprintf(&sb, "**Updated**: %s\n\n", change.UpdatedAt.Format(spec.DateTimeFormat))
 			sb.WriteString("---\n\n")
 
 			summaryList = append(summaryList, ChangeSummary{
@@ -91,7 +92,7 @@ func registryListChangesHandler(store *spec.BoltStore) func(ctx context.Context,
 				Completed:  change.Completed,
 				InProgress: change.InProgress,
 				Blocked:    change.Blocked,
-				UpdatedAt:  change.UpdatedAt.Format("2006-01-02 15:04"),
+				UpdatedAt:  change.UpdatedAt.Format(spec.DateTimeFormat),
 			})
 		}
 
@@ -121,7 +122,7 @@ type TaskSummary struct {
 	DependsOn []string        `json:"depends_on,omitempty"`
 }
 
-func registerRegistryListTasks(s *mcp.Server, toolRegistry *ToolRegistry, store *spec.BoltStore) {
+func registerRegistryListTasks(s *mcp.Server, toolRegistry *ToolRegistry, store *storage.BoltStore) {
 	tool := &mcp.Tool{
 		Name:        "registry_list_tasks",
 		Description: "List tasks from the OpenSpec registry with optional filtering",
@@ -145,7 +146,7 @@ func registerRegistryListTasks(s *mcp.Server, toolRegistry *ToolRegistry, store 
 	toolRegistry.Register("registry_list_tasks", tool.Description, "registry")
 }
 
-func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListTasksInput) (*mcp.CallToolResult, any, error) {
+func registryListTasksHandler(store *storage.BoltStore) func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListTasksInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input RegistryListTasksInput) (*mcp.CallToolResult, any, error) {
 		tasks, err := store.ListTasks(input.ChangeID, input.Status)
 		if err != nil {
@@ -183,15 +184,7 @@ func registryListTasksHandler(store *spec.BoltStore) func(ctx context.Context, r
 		for i, task := range tasks {
 			fmt.Fprintf(&sb, "## %d. %s - %s\n\n", i+1, task.ChangeID, task.TaskNum)
 
-			statusIcon := "⏳"
-			switch task.Status {
-			case spec.TaskCompleted:
-				statusIcon = "✅"
-			case spec.TaskInProgress:
-				statusIcon = "🔄"
-			}
-
-			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", statusIcon, task.Status)
+			fmt.Fprintf(&sb, "**Status**: %s %s\n\n", task.StatusIcon(), task.Status)
 			fmt.Fprintf(&sb, "**Content**: %s\n\n", task.Content)
 
 			if task.Priority != 0 {

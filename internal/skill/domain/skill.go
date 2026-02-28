@@ -36,10 +36,10 @@ type Trigger struct {
 // NewSkill creates a new Skill instance.
 func NewSkill(name, description, version string) (*Skill, error) {
 	if name == "" {
-		return nil, ErrInvalidSkillName
+		return nil, ErrInvalidName
 	}
 	if description == "" {
-		return nil, ErrInvalidSkillDescription
+		return nil, ErrInvalidDescription
 	}
 	if version == "" {
 		version = "1.0.0"

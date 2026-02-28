@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/victorzhuk/go-ent/internal/config"
 )
@@ -82,4 +83,14 @@ func (g *Generator) writeOutput(path string, data []byte) error {
 	}
 
 	return nil
+}
+
+func wrapWithFrontmatter(frontmatter []byte, content string) []byte {
+	var sb strings.Builder
+	sb.Grow(len(frontmatter) + len(content) + 8)
+	sb.WriteString("---\n")
+	sb.Write(frontmatter)
+	sb.WriteString("---\n\n")
+	sb.WriteString(content)
+	return []byte(sb.String())
 }

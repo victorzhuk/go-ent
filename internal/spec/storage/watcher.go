@@ -1,7 +1,6 @@
-package spec
+package storage
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -12,7 +11,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"go.etcd.io/bbolt"
+
+	"github.com/victorzhuk/go-ent/internal/spec"
 )
 
 const (
@@ -220,7 +220,7 @@ func (w *Watcher) syncChange(changeID string) error {
 	changeDir := filepath.Join(w.rootPath, "openspec", "changes", changeID)
 
 	if _, err := os.Stat(changeDir); os.IsNotExist(err) {
-		if err := w.deleteChangeFromDB(changeID); err != nil {
+		if err := w.boltStore.DeleteChange(changeID); err != nil {
 			return fmt.Errorf("delete change %s: %w", changeID, err)
 		}
 		slog.Info("removed change from database", "change", changeID)
@@ -249,17 +249,17 @@ func (w *Watcher) syncChange(changeID string) error {
 
 	completed, inProgress, blocked := w.boltStore.CountTaskStatuses(tasks)
 
-	var status ChangeStatus
+	var status spec.ChangeStatus
 	switch {
 	case completed == len(tasks) && len(tasks) > 0:
-		status = StatusApproved
+		status = spec.StatusApproved
 	case completed > 0:
-		status = StatusActive
+		status = spec.StatusActive
 	default:
-		status = StatusDraft
+		status = spec.StatusDraft
 	}
 
-	change := &ChangeMetadata{
+	change := &spec.ChangeMetadata{
 		ID:         changeID,
 		Title:      title,
 		Status:     status,
@@ -292,45 +292,6 @@ func (w *Watcher) syncChange(changeID string) error {
 	}
 
 	slog.Debug("synced change", "change", changeID, "tasks", len(tasks))
-	return nil
-}
-
-func (w *Watcher) deleteChangeFromDB(changeID string) error {
-	if err := w.boltStore.db.Update(func(tx *bbolt.Tx) error {
-		changeBucket := tx.Bucket([]byte(changesBucket))
-		if changeBucket != nil {
-			if err := changeBucket.Delete([]byte(changeID)); err != nil {
-				return fmt.Errorf("delete change %s: %w", changeID, err)
-			}
-		}
-
-		tasksBucket := tx.Bucket([]byte(tasksBucket))
-		if tasksBucket != nil {
-			c := tasksBucket.Cursor()
-			prefix := []byte(changeID + ":")
-			for k, _ := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-				if err := c.Delete(); err != nil {
-					return fmt.Errorf("delete task %s: %w", string(k), err)
-				}
-			}
-		}
-
-		depsBucket := tx.Bucket([]byte(depsBucket))
-		if depsBucket != nil {
-			taskPrefix := changeID + ":"
-			c := depsBucket.Cursor()
-			for k, _ := c.Seek([]byte(taskPrefix)); k != nil && strings.HasPrefix(string(k), taskPrefix); k, _ = c.Next() {
-				if err := c.Delete(); err != nil {
-					return fmt.Errorf("delete deps %s: %w", string(k), err)
-				}
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("delete change from db %s: %w", changeID, err)
-	}
-
 	return nil
 }
 

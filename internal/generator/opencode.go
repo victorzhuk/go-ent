@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -61,14 +60,7 @@ func (t *OpenCodeTarget) Generate(agent *AgentSource, prompts *PromptContent) ([
 	// Inline prompts
 	content := InlinePrompts(prompts, agent)
 
-	// Build final markdown with frontmatter
-	var sb strings.Builder
-	sb.WriteString("---\n")
-	sb.Write(fmData)
-	sb.WriteString("---\n\n")
-	sb.WriteString(content)
-
-	return []byte(sb.String()), nil
+	return wrapWithFrontmatter(fmData, content), nil
 }
 
 func (t *OpenCodeTarget) SkillOutputPath(category, name string) string {
@@ -95,12 +87,5 @@ func (t *OpenCodeTarget) GenerateSkill(skill *SkillSource) ([]byte, error) {
 		return nil, fmt.Errorf("marshal skill frontmatter: %w", err)
 	}
 
-	// Build final markdown with frontmatter
-	var sb strings.Builder
-	sb.WriteString("---\n")
-	sb.Write(fmData)
-	sb.WriteString("---\n\n")
-	sb.WriteString(skill.Content)
-
-	return []byte(sb.String()), nil
+	return wrapWithFrontmatter(fmData, skill.Content), nil
 }

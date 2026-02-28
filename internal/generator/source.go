@@ -33,30 +33,6 @@ func listDir(path string) ([]fs.DirEntry, error) {
 	return pkg.FS.ReadDir(path)
 }
 
-// LoadAgentSource loads an agent from srcDir/{name}.yaml
-// srcDir should be the agents directory (e.g., "agents" or "agents/meta")
-func LoadAgentSource(srcDir, name string) (*AgentSource, *PromptContent, error) {
-	// Load agent metadata
-	metaPath := filepath.Join(srcDir, name+".yaml")
-	data, err := readFile(metaPath)
-	if err != nil {
-		return nil, nil, fmt.Errorf("read agent meta %s: %w", metaPath, err)
-	}
-
-	var agent AgentSource
-	if err := yaml.Unmarshal(data, &agent); err != nil {
-		return nil, nil, fmt.Errorf("unmarshal agent meta: %w", err)
-	}
-
-	// Load prompts
-	prompts, err := LoadPrompts(srcDir, agent.Prompts)
-	if err != nil {
-		return nil, nil, fmt.Errorf("load prompts: %w", err)
-	}
-
-	return &agent, prompts, nil
-}
-
 // LoadAgentMetaSource loads an agent from the meta format (srcDir should be agents/meta)
 func LoadAgentMetaSource(srcDir, name string) (*AgentMetaSource, *PromptContent, error) {
 	// Load agent metadata
