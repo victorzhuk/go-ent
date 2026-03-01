@@ -45,7 +45,7 @@ When spawning subagents for parallel or isolated work:
 
 2. **Install into Claude Code:**
    ```bash
-   ent init --tools=claude
+   ent init --runtime=claude
    ```
 
 3. **Restart Claude Code** to load the plugin

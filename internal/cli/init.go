@@ -916,11 +916,11 @@ func printSummary(agentCount, commandCount, skillCount int, tool, prefix string,
 }
 
 type initFlags struct {
-	tool   string
-	prefix string
-	force  bool
-	dryRun bool
-	clean  bool
+	runtime string
+	prefix  string
+	force   bool
+	dryRun  bool
+	clean   bool
 }
 
 func newInitCmd() *cobra.Command {
@@ -939,16 +939,16 @@ Supported tools:
   opencode   - Configure for OpenCode
 
 Examples:
-  ent init --tools=claude
-  ent init --tools=opencode
-  ent init --tools=claude,opencode
-  ent init --tools=claude --prefix=myproject
-  ent init --tools=claude --dry-run
-  ent init --tools=claude --clean`,
+  ent init --runtime=claude
+  ent init --runtime=opencode
+  ent init --runtime=claude,opencode
+  ent init --runtime=claude --prefix=myproject
+  ent init --runtime=claude --dry-run
+  ent init --runtime=claude --clean`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if flags.tool == "" {
-				return errors.New("--tools is required")
+			if flags.runtime == "" {
+				return errors.New("--runtime is required")
 			}
 
 			agents, err := loadAgents()
@@ -958,8 +958,8 @@ Examples:
 
 			agentCount := len(agents)
 
-			tools := strings.Split(flags.tool, ",")
-			for _, tool := range tools {
+			runtimes := strings.Split(flags.runtime, ",")
+			for _, tool := range runtimes {
 				tool = strings.TrimSpace(tool)
 
 				if flags.clean {
@@ -989,11 +989,11 @@ Examples:
 						return fmt.Errorf("load template for %s: %w", tool, err)
 					}
 
-					toolCfg, err := config.LoadToolRuntimeConfig(".", tool)
+					toolCfg, err := config.LoadRuntimeConfig(".", tool)
 					if err != nil {
 						return fmt.Errorf("load runtime config: %w", err)
 					}
-					if err := config.ValidateForRuntime(toolCfg, tool); err != nil {
+					if err := toolCfg.Validate(); err != nil {
 						return fmt.Errorf("invalid runtime config: %w", err)
 					}
 
@@ -1004,12 +1004,7 @@ Examples:
 						}
 
 						metaCopy := *meta
-						switch tool {
-						case "claude":
-							metaCopy.Model = toolCfg.Claude.ResolveForAgent(name, meta.Model)
-						case "opencode":
-							metaCopy.Model = toolCfg.OpenCode.ResolveForAgent(name, meta.Model)
-						}
+						metaCopy.Model = toolCfg.Models.ResolveForAgent(name, meta.Model)
 
 						fullPrompt, err := inlineSharedPrompts(prompt, &metaCopy)
 						if err != nil {
@@ -1087,8 +1082,8 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.tool, "tools", "", "Target tool(s) (required, comma-separated: claude,opencode)")
-	_ = cmd.MarkFlagRequired("tools")
+	cmd.Flags().StringVar(&flags.runtime, "runtime", "", "Target runtime(s) (required, comma-separated: claude,opencode)")
+	_ = cmd.MarkFlagRequired("runtime")
 
 	cmd.Flags().StringVar(&flags.prefix, "prefix", "ent", "Prefix for configuration directories")
 	cmd.Flags().BoolVar(&flags.force, "force", false, "Overwrite existing files")

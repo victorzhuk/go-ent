@@ -28,7 +28,7 @@ func registerConfigSet(s *mcp.Server, toolRegistry *ToolRegistry) {
 			"properties": map[string]any{
 				"key": map[string]any{
 					"type":        "string",
-					"description": "Config key (e.g. claude.main, claude.agents.coder, opencode.fast)",
+					"description": "Config key (e.g. models.main, models.agents.coder, models.fast)",
 				},
 				"value": map[string]any{
 					"type":        "string",
@@ -66,12 +66,12 @@ func configSetHandler() func(ctx context.Context, req *mcp.CallToolRequest, inpu
 			rt = "claude"
 		}
 
-		cfg, err := config.LoadToolRuntimeConfig(projectDir, rt)
+		cfg, err := config.LoadRuntimeConfig(projectDir, rt)
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {
 				return nil, nil, fmt.Errorf("load config: %w", err)
 			}
-			cfg = &config.ToolRuntimeConfig{}
+			cfg = &config.RuntimeConfig{}
 		}
 
 		if err := config.ApplyKey(cfg, input.Key, input.Value); err != nil {

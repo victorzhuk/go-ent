@@ -60,7 +60,9 @@ func newConfigInitCmd() *cobra.Command {
 				return fmt.Errorf("create config directory: %w", err)
 			}
 
-			cfg := defaultConfigForRuntime(rt)
+			cfg := &config.RuntimeConfig{
+				Models: config.DefaultModelsForRuntime(rt),
+			}
 			data, err := yaml.Marshal(cfg)
 			if err != nil {
 				return fmt.Errorf("marshal config: %w", err)
@@ -79,19 +81,9 @@ func newConfigInitCmd() *cobra.Command {
 	return cmd
 }
 
-func defaultConfigForRuntime(runtime string) *config.ToolRuntimeConfig {
-	cfg := &config.ToolRuntimeConfig{}
-	if runtime == "claude" {
-		cfg.Claude = config.ModelTiers{
-			Fast:  "haiku",
-			Main:  "sonnet",
-			Heavy: "opus",
-		}
-	}
-	return cfg
-}
-
 func newConfigShowCmd() *cobra.Command {
+	var runtime string
+
 	cmd := &cobra.Command{
 		Use:   "show [path]",
 		Short: "Show runtime configuration",
@@ -103,12 +95,15 @@ func newConfigShowCmd() *cobra.Command {
 				projectRoot = args[0]
 			}
 
-			rt := config.DetectRuntime(projectRoot)
+			rt := runtime
+			if rt == "" {
+				rt = config.DetectRuntime(projectRoot)
+			}
 			if rt == "" {
 				rt = "claude"
 			}
 
-			cfg, err := config.LoadToolRuntimeConfig(projectRoot, rt)
+			cfg, err := config.LoadRuntimeConfig(projectRoot, rt)
 			if err != nil {
 				return fmt.Errorf("load config: %w", err)
 			}
@@ -123,6 +118,7 @@ func newConfigShowCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringVar(&runtime, "runtime", "", "target runtime (claude|opencode, auto-detected if omitted)")
 	return cmd
 }
 
@@ -135,16 +131,13 @@ func newConfigSetCmd() *cobra.Command {
 		Long: `Set a model tier or per-agent override in the runtime config.
 
 Examples:
-  ent config set claude.main claude-sonnet-4-6-20260101
-  ent config set claude.agents.coder heavy
-  ent config set opencode.fast zai-coding-plan/glm-4.7-flash
-  ent config set opencode.agents.coder heavy
+  ent config set models.main claude-sonnet-4-6-20260101
+  ent config set models.agents.coder heavy
+  ent config set models.fast anthropic/claude-haiku-4-5
 
 Supported keys:
-  - claude.fast, claude.main, claude.heavy
-  - claude.agents.<name>
-  - opencode.fast, opencode.main, opencode.heavy
-  - opencode.agents.<name>`,
+  - models.fast, models.main, models.heavy
+  - models.agents.<name>`,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
@@ -163,12 +156,12 @@ Supported keys:
 				rt = "claude"
 			}
 
-			cfg, err := config.LoadToolRuntimeConfig(projectRoot, rt)
+			cfg, err := config.LoadRuntimeConfig(projectRoot, rt)
 			if err != nil {
 				if !errors.Is(err, os.ErrNotExist) {
 					return fmt.Errorf("load config: %w", err)
 				}
-				cfg = &config.ToolRuntimeConfig{}
+				cfg = &config.RuntimeConfig{}
 			}
 
 			if err := config.ApplyKey(cfg, key, value); err != nil {

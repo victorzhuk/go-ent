@@ -16,9 +16,8 @@ type ModelTiers struct {
 	Agents map[string]string `yaml:"agents,omitempty"`
 }
 
-type ToolRuntimeConfig struct {
-	Claude   ModelTiers `yaml:"claude"`
-	OpenCode ModelTiers `yaml:"opencode"`
+type RuntimeConfig struct {
+	Models ModelTiers `yaml:"models"`
 }
 
 func (m *ModelTiers) Resolve(tier string) string {
@@ -43,13 +42,13 @@ func (m *ModelTiers) ResolveForAgent(agentName, defaultTier string) string {
 	return m.Resolve(defaultTier)
 }
 
-func LoadToolRuntimeConfig(projectDir, runtime string) (*ToolRuntimeConfig, error) {
+func LoadRuntimeConfig(projectDir, runtime string) (*RuntimeConfig, error) {
 	configPath, err := RuntimeConfigPath(runtime, projectDir)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(configPath) // #nosec G304
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("config not found at %s: run 'ent config init --runtime=%s': %w", configPath, runtime, os.ErrNotExist)
@@ -57,7 +56,7 @@ func LoadToolRuntimeConfig(projectDir, runtime string) (*ToolRuntimeConfig, erro
 		return nil, fmt.Errorf("read config: %w", err)
 	}
 
-	var cfg ToolRuntimeConfig
+	var cfg RuntimeConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
@@ -65,31 +64,16 @@ func LoadToolRuntimeConfig(projectDir, runtime string) (*ToolRuntimeConfig, erro
 	return &cfg, nil
 }
 
-func ValidateForRuntime(cfg *ToolRuntimeConfig, runtime string) error {
+func (cfg *RuntimeConfig) Validate() error {
 	var missing []string
-	switch runtime {
-	case "claude":
-		if cfg.Claude.Fast == "" {
-			missing = append(missing, "claude.fast")
-		}
-		if cfg.Claude.Main == "" {
-			missing = append(missing, "claude.main")
-		}
-		if cfg.Claude.Heavy == "" {
-			missing = append(missing, "claude.heavy")
-		}
-	case "opencode":
-		if cfg.OpenCode.Fast == "" {
-			missing = append(missing, "opencode.fast")
-		}
-		if cfg.OpenCode.Main == "" {
-			missing = append(missing, "opencode.main")
-		}
-		if cfg.OpenCode.Heavy == "" {
-			missing = append(missing, "opencode.heavy")
-		}
-	default:
-		return fmt.Errorf("unknown runtime: %s", runtime)
+	if cfg.Models.Fast == "" {
+		missing = append(missing, "models.fast")
+	}
+	if cfg.Models.Main == "" {
+		missing = append(missing, "models.main")
+	}
+	if cfg.Models.Heavy == "" {
+		missing = append(missing, "models.heavy")
 	}
 	if len(missing) > 0 {
 		return fmt.Errorf("missing required config values: %s", strings.Join(missing, ", "))
@@ -97,47 +81,28 @@ func ValidateForRuntime(cfg *ToolRuntimeConfig, runtime string) error {
 	return nil
 }
 
-func ApplyKey(cfg *ToolRuntimeConfig, key, value string) error {
+func ApplyKey(cfg *RuntimeConfig, key, value string) error {
 	parts := strings.SplitN(key, ".", 3)
 	switch {
-	case len(parts) == 2 && parts[0] == "claude":
+	case len(parts) == 2 && parts[0] == "models":
 		switch parts[1] {
 		case "fast":
-			cfg.Claude.Fast = value
+			cfg.Models.Fast = value
 		case "main":
-			cfg.Claude.Main = value
+			cfg.Models.Main = value
 		case "heavy":
-			cfg.Claude.Heavy = value
+			cfg.Models.Heavy = value
 		default:
-			return fmt.Errorf("unknown config key: %s (use claude.fast, claude.main, claude.heavy, claude.agents.<name>)", key)
+			return fmt.Errorf("unknown config key: %s (use models.fast, models.main, models.heavy, models.agents.<name>)", key)
 		}
-	case len(parts) == 3 && parts[0] == "claude" && parts[1] == "agents":
+	case len(parts) == 3 && parts[0] == "models" && parts[1] == "agents":
 		if !isValidTier(value) {
 			return fmt.Errorf("invalid tier %q: use fast, main, or heavy", value)
 		}
-		if cfg.Claude.Agents == nil {
-			cfg.Claude.Agents = make(map[string]string)
+		if cfg.Models.Agents == nil {
+			cfg.Models.Agents = make(map[string]string)
 		}
-		cfg.Claude.Agents[parts[2]] = value
-	case len(parts) == 2 && parts[0] == "opencode":
-		switch parts[1] {
-		case "fast":
-			cfg.OpenCode.Fast = value
-		case "main":
-			cfg.OpenCode.Main = value
-		case "heavy":
-			cfg.OpenCode.Heavy = value
-		default:
-			return fmt.Errorf("unknown config key: %s (use opencode.fast, opencode.main, opencode.heavy, opencode.agents.<name>)", key)
-		}
-	case len(parts) == 3 && parts[0] == "opencode" && parts[1] == "agents":
-		if !isValidTier(value) {
-			return fmt.Errorf("invalid tier %q: use fast, main, or heavy", value)
-		}
-		if cfg.OpenCode.Agents == nil {
-			cfg.OpenCode.Agents = make(map[string]string)
-		}
-		cfg.OpenCode.Agents[parts[2]] = value
+		cfg.Models.Agents[parts[2]] = value
 	default:
 		return fmt.Errorf("unknown config key: %s", key)
 	}
@@ -153,23 +118,6 @@ func RuntimeConfigPath(runtime, projectRoot string) (string, error) {
 	default:
 		return "", fmt.Errorf("unknown runtime: %s", runtime)
 	}
-}
-
-func LoadCombinedRuntimeConfig(projectDir string, tools []string) (*ToolRuntimeConfig, error) {
-	var combined ToolRuntimeConfig
-	for _, tool := range tools {
-		toolCfg, err := LoadToolRuntimeConfig(projectDir, tool)
-		if err != nil {
-			return nil, fmt.Errorf("load %s config: %w", tool, err)
-		}
-		switch tool {
-		case "claude":
-			combined.Claude = toolCfg.Claude
-		case "opencode":
-			combined.OpenCode = toolCfg.OpenCode
-		}
-	}
-	return &combined, nil
 }
 
 func DetectRuntime(projectDir string) string {

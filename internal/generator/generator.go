@@ -12,14 +12,14 @@ import (
 type Generator struct {
 	SrcDir  string
 	Targets []Target
-	Config  *config.ToolRuntimeConfig
+	Configs map[string]*config.RuntimeConfig
 }
 
-func New(srcDir string, cfg *config.ToolRuntimeConfig, targets ...Target) *Generator {
+func New(srcDir string, configs map[string]*config.RuntimeConfig, targets ...Target) *Generator {
 	return &Generator{
 		SrcDir:  srcDir,
 		Targets: targets,
-		Config:  cfg,
+		Configs: configs,
 	}
 }
 
@@ -47,12 +47,14 @@ func (g *Generator) GenerateAgent(name string) error {
 	for _, target := range g.Targets {
 		agent := ConvertMetaToSource(metaAgent)
 
-		if g.Config != nil {
-			switch target.Runtime() {
-			case "claude":
-				agent.Model.Claude = g.Config.Claude.ResolveForAgent(name, agent.Model.Claude)
-			case "opencode":
-				agent.Model.OpenCode = g.Config.OpenCode.ResolveForAgent(name, agent.Model.OpenCode)
+		if g.Configs != nil {
+			if cfg, ok := g.Configs[target.Runtime()]; ok {
+				switch target.Runtime() {
+				case "claude":
+					agent.Model.Claude = cfg.Models.ResolveForAgent(name, agent.Model.Claude)
+				case "opencode":
+					agent.Model.OpenCode = cfg.Models.ResolveForAgent(name, agent.Model.OpenCode)
+				}
 			}
 		}
 

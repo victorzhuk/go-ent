@@ -40,31 +40,31 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name    string
 		srcDir  string
-		cfg     *config.ToolRuntimeConfig
+		configs map[string]*config.RuntimeConfig
 		targets []Target
 	}{
 		{
 			name:    "creates generator with all fields",
 			srcDir:  "/src/agents",
-			cfg:     &config.ToolRuntimeConfig{},
+			configs: map[string]*config.RuntimeConfig{"claude": {}},
 			targets: []Target{NewClaudeTarget("/output")},
 		},
 		{
-			name:    "creates generator with nil config",
+			name:    "creates generator with nil configs",
 			srcDir:  "/src/agents",
-			cfg:     nil,
+			configs: nil,
 			targets: []Target{NewClaudeTarget("/output")},
 		},
 		{
 			name:    "creates generator with empty targets",
 			srcDir:  "/src/agents",
-			cfg:     &config.ToolRuntimeConfig{},
+			configs: map[string]*config.RuntimeConfig{},
 			targets: []Target{},
 		},
 		{
 			name:    "creates generator with multiple targets",
 			srcDir:  "/src/agents",
-			cfg:     &config.ToolRuntimeConfig{},
+			configs: map[string]*config.RuntimeConfig{"claude": {}, "opencode": {}},
 			targets: []Target{NewClaudeTarget("/claude"), NewOpenCodeTarget("/opencode")},
 		},
 	}
@@ -73,10 +73,10 @@ func TestNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			g := New(tt.srcDir, tt.cfg, tt.targets...)
+			g := New(tt.srcDir, tt.configs, tt.targets...)
 
 			assert.Equal(t, tt.srcDir, g.SrcDir)
-			assert.Equal(t, tt.cfg, g.Config)
+			assert.Equal(t, tt.configs, g.Configs)
 			assert.Len(t, g.Targets, len(tt.targets))
 		})
 	}
@@ -408,10 +408,10 @@ prompts:
 			},
 		}
 
-		cfg := &config.ToolRuntimeConfig{
-			Claude: config.ModelTiers{Fast: "haiku-model", Main: "sonnet-model", Heavy: "opus-model"},
+		configs := map[string]*config.RuntimeConfig{
+			"claude": {Models: config.ModelTiers{Fast: "haiku-model", Main: "sonnet-model", Heavy: "opus-model"}},
 		}
-		g := New(agentsMetaDir, cfg, mock)
+		g := New(agentsMetaDir, configs, mock)
 		err := g.GenerateAgent("config-agent")
 
 		require.NoError(t, err)
@@ -450,10 +450,10 @@ prompts:
 			},
 		}
 
-		cfg := &config.ToolRuntimeConfig{
-			OpenCode: config.ModelTiers{Fast: "fast-opencode", Main: "main-opencode", Heavy: "heavy-opencode"},
+		configs := map[string]*config.RuntimeConfig{
+			"opencode": {Models: config.ModelTiers{Fast: "fast-opencode", Main: "main-opencode", Heavy: "heavy-opencode"}},
 		}
-		g := New(agentsMetaDir, cfg, mock)
+		g := New(agentsMetaDir, configs, mock)
 		err := g.GenerateAgent("opencode-agent")
 
 		require.NoError(t, err)

@@ -10,27 +10,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLoadToolRuntimeConfig(t *testing.T) {
+func TestLoadRuntimeConfig(t *testing.T) {
 	t.Run("errors when config missing", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
 
-		cfg, err := LoadToolRuntimeConfig(tmpDir, "claude")
+		cfg, err := LoadRuntimeConfig(tmpDir, "claude")
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 		assert.Contains(t, err.Error(), "ent config init")
 		assert.True(t, errors.Is(err, os.ErrNotExist))
 	})
 
-	t.Run("loads claude config from .claude/ent.yaml", func(t *testing.T) {
+	t.Run("loads config from .claude/ent.yaml", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
 		cfgDir := filepath.Join(tmpDir, ".claude")
 		require.NoError(t, os.MkdirAll(cfgDir, 0o750))
 
-		yamlContent := `claude:
+		yamlContent := `models:
   fast: custom-haiku
   main: custom-sonnet
   heavy: custom-opus
@@ -38,23 +38,23 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 		cfgPath := filepath.Join(cfgDir, "ent.yaml")
 		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0o600))
 
-		cfg, err := LoadToolRuntimeConfig(tmpDir, "claude")
+		cfg, err := LoadRuntimeConfig(tmpDir, "claude")
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
 
-		assert.Equal(t, "custom-haiku", cfg.Claude.Fast)
-		assert.Equal(t, "custom-sonnet", cfg.Claude.Main)
-		assert.Equal(t, "custom-opus", cfg.Claude.Heavy)
+		assert.Equal(t, "custom-haiku", cfg.Models.Fast)
+		assert.Equal(t, "custom-sonnet", cfg.Models.Main)
+		assert.Equal(t, "custom-opus", cfg.Models.Heavy)
 	})
 
-	t.Run("loads opencode config from .opencode/ent.yaml", func(t *testing.T) {
+	t.Run("loads config from .opencode/ent.yaml", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
 		cfgDir := filepath.Join(tmpDir, ".opencode")
 		require.NoError(t, os.MkdirAll(cfgDir, 0o750))
 
-		yamlContent := `opencode:
+		yamlContent := `models:
   fast: custom-fast-model
   main: custom-main-model
   heavy: custom-heavy-model
@@ -62,13 +62,13 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 		cfgPath := filepath.Join(cfgDir, "ent.yaml")
 		require.NoError(t, os.WriteFile(cfgPath, []byte(yamlContent), 0o600))
 
-		cfg, err := LoadToolRuntimeConfig(tmpDir, "opencode")
+		cfg, err := LoadRuntimeConfig(tmpDir, "opencode")
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
 
-		assert.Equal(t, "custom-fast-model", cfg.OpenCode.Fast)
-		assert.Equal(t, "custom-main-model", cfg.OpenCode.Main)
-		assert.Equal(t, "custom-heavy-model", cfg.OpenCode.Heavy)
+		assert.Equal(t, "custom-fast-model", cfg.Models.Fast)
+		assert.Equal(t, "custom-main-model", cfg.Models.Main)
+		assert.Equal(t, "custom-heavy-model", cfg.Models.Heavy)
 	})
 
 	t.Run("returns error for unknown runtime", func(t *testing.T) {
@@ -76,7 +76,7 @@ func TestLoadToolRuntimeConfig(t *testing.T) {
 
 		tmpDir := t.TempDir()
 
-		cfg, err := LoadToolRuntimeConfig(tmpDir, "unknown")
+		cfg, err := LoadRuntimeConfig(tmpDir, "unknown")
 		assert.Error(t, err)
 		assert.Nil(t, cfg)
 	})
@@ -202,63 +202,44 @@ func TestApplyKey(t *testing.T) {
 		name    string
 		key     string
 		value   string
-		verify  func(t *testing.T, cfg *ToolRuntimeConfig)
+		verify  func(t *testing.T, cfg *RuntimeConfig)
 		wantErr bool
 	}{
 		{
-			name:  "claude.fast",
-			key:   "claude.fast",
+			name:  "models.fast",
+			key:   "models.fast",
 			value: "my-fast",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+			verify: func(t *testing.T, cfg *RuntimeConfig) {
 				t.Helper()
-				assert.Equal(t, "my-fast", cfg.Claude.Fast)
+				assert.Equal(t, "my-fast", cfg.Models.Fast)
 			},
 		},
 		{
-			name:  "claude.main",
-			key:   "claude.main",
+			name:  "models.main",
+			key:   "models.main",
 			value: "my-main",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+			verify: func(t *testing.T, cfg *RuntimeConfig) {
 				t.Helper()
-				assert.Equal(t, "my-main", cfg.Claude.Main)
+				assert.Equal(t, "my-main", cfg.Models.Main)
 			},
 		},
 		{
-			name:  "claude.heavy",
-			key:   "claude.heavy",
+			name:  "models.heavy",
+			key:   "models.heavy",
 			value: "my-heavy",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+			verify: func(t *testing.T, cfg *RuntimeConfig) {
 				t.Helper()
-				assert.Equal(t, "my-heavy", cfg.Claude.Heavy)
+				assert.Equal(t, "my-heavy", cfg.Models.Heavy)
 			},
 		},
 		{
-			name:  "claude.agents.coder",
-			key:   "claude.agents.coder",
+			name:  "models.agents.coder",
+			key:   "models.agents.coder",
 			value: "heavy",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
+			verify: func(t *testing.T, cfg *RuntimeConfig) {
 				t.Helper()
-				require.NotNil(t, cfg.Claude.Agents)
-				assert.Equal(t, "heavy", cfg.Claude.Agents["coder"])
-			},
-		},
-		{
-			name:  "opencode.fast",
-			key:   "opencode.fast",
-			value: "fast-model",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
-				t.Helper()
-				assert.Equal(t, "fast-model", cfg.OpenCode.Fast)
-			},
-		},
-		{
-			name:  "opencode.agents.scout",
-			key:   "opencode.agents.scout",
-			value: "main",
-			verify: func(t *testing.T, cfg *ToolRuntimeConfig) {
-				t.Helper()
-				require.NotNil(t, cfg.OpenCode.Agents)
-				assert.Equal(t, "main", cfg.OpenCode.Agents["scout"])
+				require.NotNil(t, cfg.Models.Agents)
+				assert.Equal(t, "heavy", cfg.Models.Agents["coder"])
 			},
 		},
 		{
@@ -268,21 +249,15 @@ func TestApplyKey(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "claude.sonnet errors (old key)",
-			key:     "claude.sonnet",
+			name:    "old claude.fast key errors",
+			key:     "claude.fast",
 			value:   "some-model",
 			wantErr: true,
 		},
 		{
-			name:    "claude.agents.<name> with invalid tier errors",
-			key:     "claude.agents.coder",
+			name:    "models.agents.<name> with invalid tier errors",
+			key:     "models.agents.coder",
 			value:   "typo-tier",
-			wantErr: true,
-		},
-		{
-			name:    "opencode.agents.<name> with invalid tier errors",
-			key:     "opencode.agents.scout",
-			value:   "not-a-tier",
 			wantErr: true,
 		},
 	}
@@ -290,7 +265,7 @@ func TestApplyKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg := &ToolRuntimeConfig{}
+			cfg := &RuntimeConfig{}
 			err := ApplyKey(cfg, tt.key, tt.value)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -302,62 +277,42 @@ func TestApplyKey(t *testing.T) {
 	}
 }
 
-func TestValidateForRuntime(t *testing.T) {
+func TestValidate(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name    string
-		cfg     *ToolRuntimeConfig
-		runtime string
+		cfg     *RuntimeConfig
 		wantErr bool
 		errMsg  string
 	}{
 		{
-			name: "valid claude config",
-			cfg: &ToolRuntimeConfig{
-				Claude: ModelTiers{Fast: "haiku", Main: "sonnet", Heavy: "opus"},
+			name: "valid config with all tiers",
+			cfg: &RuntimeConfig{
+				Models: ModelTiers{Fast: "haiku", Main: "sonnet", Heavy: "opus"},
 			},
-			runtime: "claude",
 			wantErr: false,
 		},
 		{
-			name: "claude missing fast",
-			cfg: &ToolRuntimeConfig{
-				Claude: ModelTiers{Main: "sonnet", Heavy: "opus"},
+			name: "missing fast",
+			cfg: &RuntimeConfig{
+				Models: ModelTiers{Main: "sonnet", Heavy: "opus"},
 			},
-			runtime: "claude",
 			wantErr: true,
-			errMsg:  "claude.fast",
+			errMsg:  "models.fast",
 		},
 		{
-			name: "claude all missing",
-			cfg: &ToolRuntimeConfig{
-				Claude: ModelTiers{},
-			},
-			runtime: "claude",
+			name:    "all missing",
+			cfg:     &RuntimeConfig{},
 			wantErr: true,
-			errMsg:  "claude.fast",
-		},
-		{
-			name: "valid opencode config",
-			cfg: &ToolRuntimeConfig{
-				OpenCode: ModelTiers{Fast: "fast-m", Main: "main-m", Heavy: "heavy-m"},
-			},
-			runtime: "opencode",
-			wantErr: false,
-		},
-		{
-			name:    "unknown runtime errors",
-			cfg:     &ToolRuntimeConfig{},
-			runtime: "unknown",
-			wantErr: true,
+			errMsg:  "models.fast",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := ValidateForRuntime(tt.cfg, tt.runtime)
+			err := tt.cfg.Validate()
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.errMsg != "" {

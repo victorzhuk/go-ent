@@ -402,7 +402,7 @@ func TestCleanDirs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// No t.Parallel() here: os.Chdir is process-global and races with other subtests.
 			tmpDir := t.TempDir()
 			tt.setup(t, tmpDir)
 

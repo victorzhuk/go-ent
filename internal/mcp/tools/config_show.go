@@ -52,7 +52,7 @@ func configShowHandler() func(ctx context.Context, req *mcp.CallToolRequest, inp
 			rt = "claude"
 		}
 
-		cfg, err := config.LoadToolRuntimeConfig(projectDir, rt)
+		cfg, err := config.LoadRuntimeConfig(projectDir, rt)
 		if err != nil {
 			return nil, nil, fmt.Errorf("load config: %w", err)
 		}
