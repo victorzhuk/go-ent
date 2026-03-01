@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 func TestSkillInfoHandler(t *testing.T) {
@@ -15,7 +16,7 @@ func TestSkillInfoHandler(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		skills        []skill.SkillMeta
+		skills        []skilldomain.Info
 		input         SkillInfoInput
 		wantErr       bool
 		wantTextInMsg string
@@ -36,7 +37,7 @@ func TestSkillInfoHandler(t *testing.T) {
 		},
 		{
 			name: "valid skill",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding patterns", Triggers: []string{"go"}},
 			},
 			input:         SkillInfoInput{Name: "go-code"},
@@ -45,7 +46,7 @@ func TestSkillInfoHandler(t *testing.T) {
 		},
 		{
 			name: "skill with full metadata",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{
 					Name:        "go-code",
 					Description: "Go coding patterns",
@@ -137,7 +138,7 @@ func TestSkillInfoHandler_MarkdownFormat(t *testing.T) {
 	t.Parallel()
 
 	registry := skill.NewRegistry()
-	populateSkillRegistry(t, registry, []skill.SkillMeta{
+	populateSkillRegistry(t, registry, []skilldomain.Info{
 		{Name: "go-code", Description: "Go patterns", Triggers: []string{"go"}},
 	})
 

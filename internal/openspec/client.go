@@ -21,7 +21,10 @@ func New(cwd string) *Client {
 // Archive archives a completed change and updates main specs.
 func (c *Client) Archive(ctx context.Context, change string) error {
 	_, err := c.run(ctx, "archive", change)
-	return err
+	if err != nil {
+		return fmt.Errorf("archive change %s: %w", change, err)
+	}
+	return nil
 }
 
 // Validate validates changes and specs and returns JSON output.
@@ -54,7 +57,10 @@ func (c *Client) Instructions(ctx context.Context, change, artifact string) (str
 // NewChange creates a new change proposal.
 func (c *Client) NewChange(ctx context.Context, name string) error {
 	_, err := c.run(ctx, "new", "change", name)
-	return err
+	if err != nil {
+		return fmt.Errorf("create change %s: %w", name, err)
+	}
+	return nil
 }
 
 // run executes the openspec CLI command and returns stdout.

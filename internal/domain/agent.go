@@ -29,65 +29,21 @@ type AgentRole string
 //   - ent:task-fast    → AgentRoleTask
 //   - ent:task-heavy   → AgentRoleTask
 const (
-	// AgentRoleProduct handles user needs, requirements, and product decisions.
-	// Focuses on understanding what needs to be built and why.
-	AgentRoleProduct AgentRole = "product"
-
-	// AgentRoleArchitect handles system design, architecture, and technical decisions.
-	// Responsible for high-level design, technology choices, and architectural patterns.
-	AgentRoleArchitect AgentRole = "architect"
-
-	// AgentRoleSenior handles complex implementation, debugging, and code review.
-	// Takes on challenging technical problems requiring deep expertise.
-	AgentRoleSenior AgentRole = "senior"
-
-	// AgentRoleDeveloper handles standard implementation and testing.
-	// Executes well-defined tasks and writes tests for new functionality.
-	AgentRoleDeveloper AgentRole = "developer"
-
-	// AgentRoleReviewer handles code quality and standards enforcement.
-	// Reviews code for correctness, style, security, and best practices.
-	AgentRoleReviewer AgentRole = "reviewer"
-
-	// AgentRoleOps handles deployment, monitoring, and production issues.
-	// Manages infrastructure, observability, and operational concerns.
-	AgentRoleOps AgentRole = "ops"
-
-	// AgentRoleCoder is an alias for AgentRoleDeveloper.
-	// Used by the plugin system (ent:coder) for code implementation.
-	AgentRoleCoder AgentRole = "coder"
-
-	// AgentRolePlanner handles task planning and breakdown.
-	// Breaks features into actionable, dependency-aware tasks.
-	AgentRolePlanner AgentRole = "planner"
-
-	// AgentRoleTester handles test coverage and TDD cycles.
-	// Writes tests, analyzes failures, ensures quality.
-	AgentRoleTester AgentRole = "tester"
-
-	// AgentRoleDebugger handles bug investigation and resolution.
-	// Systematic debugging across multiple files and components.
-	AgentRoleDebugger AgentRole = "debugger"
-
-	// AgentRoleResearcher handles deep code analysis and investigation.
-	// Investigates root causes, analyzes patterns, researches solutions.
+	AgentRoleProduct    AgentRole = "product"
+	AgentRoleArchitect  AgentRole = "architect"
+	AgentRoleSenior     AgentRole = "senior"
+	AgentRoleDeveloper  AgentRole = "developer"
+	AgentRoleReviewer   AgentRole = "reviewer"
+	AgentRoleOps        AgentRole = "ops"
+	AgentRoleCoder      AgentRole = "coder"
+	AgentRolePlanner    AgentRole = "planner"
+	AgentRoleTester     AgentRole = "tester"
+	AgentRoleDebugger   AgentRole = "debugger"
 	AgentRoleResearcher AgentRole = "researcher"
-
-	// AgentRoleAcceptor validates acceptance criteria and spec compliance.
-	// Ensures implementations meet requirements before completion.
-	AgentRoleAcceptor AgentRole = "acceptor"
-
-	// AgentRoleReproducer creates minimal bug reproductions.
-	// Writes failing tests first to establish baseline.
+	AgentRoleAcceptor   AgentRole = "acceptor"
 	AgentRoleReproducer AgentRole = "reproducer"
-
-	// AgentRoleDecomposer breaks down complex tasks into implementable graphs.
-	// Creates dependency-aware task breakdowns.
 	AgentRoleDecomposer AgentRole = "decomposer"
-
-	// AgentRoleTask handles task assessment and routing.
-	// Fast or heavy variants for complexity-based routing.
-	AgentRoleTask AgentRole = "task"
+	AgentRoleTask       AgentRole = "task"
 )
 
 // String returns the string representation of the agent role.

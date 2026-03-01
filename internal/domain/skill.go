@@ -20,66 +20,31 @@ type Skill interface {
 	Execute(ctx context.Context, req SkillRequest) (SkillResult, error)
 }
 
-// SkillMetadata holds information about a skill.
 type SkillMetadata struct {
-	// Name is the unique skill identifier.
-	Name string
-
-	// Description explains what the skill does.
-	Description string
-
-	// Version is the skill version (e.g., "1.0.0").
-	Version string
-
-	// Author is the skill creator.
-	Author string
-
-	// Tags are keywords for skill discovery.
-	Tags []string
-
-	// AllowedTools restricts which MCP tools this skill can access.
-	// Empty means no restrictions.
+	Name         string
+	Description  string
+	Version      string
+	Author       string
+	Tags         []string
 	AllowedTools []string
 }
 
-// SkillContext provides context for skill execution decisions.
 type SkillContext struct {
-	// Action is the type of action being performed.
-	Action SpecAction
-
-	// Phase is the current development phase.
-	Phase ActionPhase
-
-	// Agent is the role of the executing agent.
-	Agent AgentRole
-
-	// Metadata holds additional context information.
+	Action   SpecAction
+	Phase    ActionPhase
+	Agent    AgentRole
 	Metadata map[string]any
 }
 
-// SkillRequest represents a request to execute a skill.
 type SkillRequest struct {
-	// Input contains the input data for the skill.
-	Input string
-
-	// Parameters holds skill-specific parameters.
+	Input      string
 	Parameters map[string]any
-
-	// Context provides execution context.
-	Context SkillContext
+	Context    SkillContext
 }
 
-// SkillResult represents the outcome of skill execution.
 type SkillResult struct {
-	// Success indicates if the skill executed successfully.
-	Success bool
-
-	// Output contains the skill's output data.
-	Output string
-
-	// Error contains the error message if execution failed.
-	Error string
-
-	// Metadata holds additional result information.
+	Success  bool
+	Output   string
+	Error    string
 	Metadata map[string]any
 }

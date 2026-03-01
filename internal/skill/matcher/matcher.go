@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
+	skdomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 var (
@@ -37,31 +37,30 @@ type DelegationHint struct {
 
 // MatchResult represents a skill match with its confidence score and reasons.
 type MatchResult struct {
-	Skill       *skilldomain.Skill // The matched skill
-	Score       float64            // 0.0-1.0 confidence score
-	MatchedBy   []MatchReason      // List of what triggered the match
-	Delegations []DelegationHint   // Hints for skill delegation
+	Skill       *skdomain.Info   // The matched skill
+	Score       float64          // 0.0-1.0 confidence score
+	MatchedBy   []MatchReason    // List of what triggered the match
+	Delegations []DelegationHint // Hints for skill delegation
 }
 
-// Matcher defines the interface for skill matching operations.
-type Matcher interface {
-	// MatchByQuery finds skills that match a simple query string.
+// QueryMatcher finds skills by text query.
+type QueryMatcher interface {
 	MatchByQuery(query string) ([]MatchResult, error)
-
-	// MatchByContext finds skills that match a query with additional context.
 	MatchByContext(query string, ctx *MatchContext) ([]MatchResult, error)
-
-	// MatchWithScoring finds skills with detailed scoring and reasons.
 	MatchWithScoring(query string, ctx *MatchContext) ([]MatchResult, error)
+}
 
-	// MatchByCapability finds skills that match specific capabilities.
-	MatchByCapability(cType skilldomain.CapabilityType) ([]*skilldomain.Skill, error)
+// CapabilityMatcher finds skills by capability requirements.
+type CapabilityMatcher interface {
+	MatchByCapability(cType skdomain.CapabilityType) ([]*skdomain.Info, error)
+	MatchMultipleCapabilities(types []skdomain.CapabilityType) ([]*skdomain.Info, error)
+	MatchToTaskRequirements(requirements map[skdomain.CapabilityType]float64) ([]*skdomain.Info, error)
+}
 
-	// MatchMultipleCapabilities finds skills that match multiple capabilities.
-	MatchMultipleCapabilities(types []skilldomain.CapabilityType) ([]*skilldomain.Skill, error)
-
-	// MatchToTaskRequirements matches skills to task requirements.
-	MatchToTaskRequirements(requirements map[skilldomain.CapabilityType]float64) ([]*skilldomain.Skill, error)
+// Matcher combines query and capability matching.
+type Matcher interface {
+	QueryMatcher
+	CapabilityMatcher
 }
 
 // skillMatcher implements Matcher.
@@ -71,7 +70,7 @@ type skillMatcher struct {
 
 // MatcherRepository defines the repository interface needed by the matcher.
 type MatcherRepository interface {
-	ListAll() ([]*skilldomain.Skill, error)
+	ListAll() ([]*skdomain.Info, error)
 }
 
 // NewMatcher creates a new Matcher.
@@ -138,13 +137,13 @@ func (m *skillMatcher) MatchWithScoring(query string, ctx *MatchContext) ([]Matc
 }
 
 // MatchByCapability finds skills that match specific capabilities.
-func (m *skillMatcher) MatchByCapability(cType skilldomain.CapabilityType) ([]*skilldomain.Skill, error) {
+func (m *skillMatcher) MatchByCapability(cType skdomain.CapabilityType) ([]*skdomain.Info, error) {
 	skills, err := m.repo.ListAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var matched []*skilldomain.Skill
+	var matched []*skdomain.Info
 	for _, skill := range skills {
 		for _, trigger := range skill.Triggers {
 			if strings.Contains(strings.ToLower(trigger), strings.ToLower(string(cType))) {
@@ -158,13 +157,13 @@ func (m *skillMatcher) MatchByCapability(cType skilldomain.CapabilityType) ([]*s
 }
 
 // MatchMultipleCapabilities finds skills that match multiple capabilities.
-func (m *skillMatcher) MatchMultipleCapabilities(types []skilldomain.CapabilityType) ([]*skilldomain.Skill, error) {
+func (m *skillMatcher) MatchMultipleCapabilities(types []skdomain.CapabilityType) ([]*skdomain.Info, error) {
 	skills, err := m.repo.ListAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var matched []*skilldomain.Skill
+	var matched []*skdomain.Info
 	for _, skill := range skills {
 		matchCount := 0
 		for _, cType := range types {
@@ -184,13 +183,13 @@ func (m *skillMatcher) MatchMultipleCapabilities(types []skilldomain.CapabilityT
 }
 
 // MatchToTaskRequirements matches skills to task requirements.
-func (m *skillMatcher) MatchToTaskRequirements(requirements map[skilldomain.CapabilityType]float64) ([]*skilldomain.Skill, error) {
+func (m *skillMatcher) MatchToTaskRequirements(requirements map[skdomain.CapabilityType]float64) ([]*skdomain.Info, error) {
 	skills, err := m.repo.ListAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var matched []*skilldomain.Skill
+	var matched []*skdomain.Info
 	for _, skill := range skills {
 		totalScore := 0.0
 		for cType, minScore := range requirements {
@@ -210,7 +209,7 @@ func (m *skillMatcher) MatchToTaskRequirements(requirements map[skilldomain.Capa
 }
 
 // scoreSkill calculates match score for a single skill based on query and context.
-func (m *skillMatcher) scoreSkill(skill *skilldomain.Skill, query string, ctx *MatchContext) MatchResult {
+func (m *skillMatcher) scoreSkill(skill *skdomain.Info, query string, ctx *MatchContext) MatchResult {
 	result := MatchResult{
 		Skill:       skill,
 		Score:       0,
@@ -249,7 +248,7 @@ func (m *skillMatcher) scoreSkill(skill *skilldomain.Skill, query string, ctx *M
 }
 
 // matchTrigger checks if a single explicit trigger matches the query and context.
-func (m *skillMatcher) matchTrigger(trigger skilldomain.Trigger, query string, ctx *MatchContext) []MatchReason {
+func (m *skillMatcher) matchTrigger(trigger skdomain.Trigger, query string, ctx *MatchContext) []MatchReason {
 	var reasons []MatchReason
 	queryLower := strings.ToLower(query)
 
@@ -292,7 +291,7 @@ func (m *skillMatcher) matchTrigger(trigger skilldomain.Trigger, query string, c
 }
 
 // matchDescription extracts keywords from skill description for fallback matching.
-func (m *skillMatcher) matchDescription(skill *skilldomain.Skill, query string) []MatchReason {
+func (m *skillMatcher) matchDescription(skill *skdomain.Info, query string) []MatchReason {
 	var reasons []MatchReason
 	queryLower := strings.ToLower(query)
 
@@ -331,7 +330,7 @@ func (m *skillMatcher) matchDescription(skill *skilldomain.Skill, query string) 
 }
 
 // applyContextBoosts calculates total boost for a skill based on context.
-func (m *skillMatcher) applyContextBoosts(skill *skilldomain.Skill, ctx *MatchContext) float64 {
+func (m *skillMatcher) applyContextBoosts(skill *skdomain.Info, ctx *MatchContext) float64 {
 	if ctx == nil {
 		return 0
 	}
@@ -346,7 +345,7 @@ func (m *skillMatcher) applyContextBoosts(skill *skilldomain.Skill, ctx *MatchCo
 }
 
 // fileTypeBoost adds +0.2 if skill has file_pattern triggers matching context FileTypes.
-func (m *skillMatcher) fileTypeBoost(skill *skilldomain.Skill, ctx *MatchContext) float64 {
+func (m *skillMatcher) fileTypeBoost(skill *skdomain.Info, ctx *MatchContext) float64 {
 	if len(ctx.FileTypes) == 0 {
 		return 0
 	}
@@ -369,7 +368,7 @@ func (m *skillMatcher) fileTypeBoost(skill *skilldomain.Skill, ctx *MatchContext
 }
 
 // taskTypeBoost adds +0.15 if skill triggers match task type from query or context.
-func (m *skillMatcher) taskTypeBoost(skill *skilldomain.Skill, ctx *MatchContext) float64 {
+func (m *skillMatcher) taskTypeBoost(skill *skdomain.Info, ctx *MatchContext) float64 {
 	taskType := ctx.TaskType
 	if taskType == "" {
 		taskType = m.extractTaskType(ctx.Query)
@@ -403,7 +402,7 @@ func (m *skillMatcher) taskTypeBoost(skill *skilldomain.Skill, ctx *MatchContext
 }
 
 // affinityBoost adds +0.1 if skill is already active (avoid context switching).
-func (m *skillMatcher) affinityBoost(skill *skilldomain.Skill, ctx *MatchContext) float64 {
+func (m *skillMatcher) affinityBoost(skill *skdomain.Info, ctx *MatchContext) float64 {
 	for _, activeSkill := range ctx.ActiveSkills {
 		if skill.Name == activeSkill {
 			return 0.1
@@ -473,7 +472,7 @@ func (m *skillMatcher) matchFilePattern(pattern, fileType string) bool {
 }
 
 // extractDelegations extracts delegation hints from a skill.
-func (m *skillMatcher) extractDelegations(skill *skilldomain.Skill) []DelegationHint {
+func (m *skillMatcher) extractDelegations(skill *skdomain.Info) []DelegationHint {
 	if len(skill.DelegatesTo) == 0 {
 		return nil
 	}

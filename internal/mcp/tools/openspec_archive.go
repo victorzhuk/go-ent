@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/hooks"
@@ -42,7 +43,7 @@ func openspecArchiveHandler(client *openspec.Client, hookRegistry *hooks.Registr
 				"CHANGE_ID": input.Change,
 			}); err != nil {
 				// Log but don't fail the operation
-				fmt.Printf("Warning: beforeArchive hook failed: %v\n", err)
+				slog.Warn("beforeArchive hook failed", "error", err)
 			}
 		}
 
@@ -57,7 +58,7 @@ func openspecArchiveHandler(client *openspec.Client, hookRegistry *hooks.Registr
 				"CHANGE_ID": input.Change,
 			}); err != nil {
 				// Log but don't fail the operation
-				fmt.Printf("Warning: afterArchive hook failed: %v\n", err)
+				slog.Warn("afterArchive hook failed", "error", err)
 			}
 		}
 

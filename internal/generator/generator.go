@@ -68,7 +68,6 @@ func (g *Generator) GenerateAgent(name string) error {
 			return fmt.Errorf("write %s output: %w", target.Name(), err)
 		}
 
-		fmt.Printf("Generated %s → %s\n", name, outputPath)
 	}
 
 	return nil

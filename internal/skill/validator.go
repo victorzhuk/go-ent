@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 // Severity indicates the severity of a validation issue.
@@ -74,7 +76,7 @@ type ValidationContext struct {
 	FilePath string
 	Content  string
 	Lines    []string
-	Meta     *SkillMeta
+	Meta     *domain.Info
 	Strict   bool
 }
 
@@ -101,7 +103,7 @@ func NewValidator() *Validator {
 }
 
 // Validate validates a skill's metadata and content.
-func (v *Validator) Validate(meta *SkillMeta, content string) *ValidationResult {
+func (v *Validator) Validate(meta *domain.Info, content string) *ValidationResult {
 	ctx := &ValidationContext{
 		FilePath: meta.FilePath,
 		Content:  content,
@@ -130,7 +132,7 @@ func (v *Validator) Validate(meta *SkillMeta, content string) *ValidationResult 
 }
 
 // ValidateStrict validates a skill in strict mode.
-func (v *Validator) ValidateStrict(meta *SkillMeta, content string) *ValidationResult {
+func (v *Validator) ValidateStrict(meta *domain.Info, content string) *ValidationResult {
 	ctx := &ValidationContext{
 		FilePath: meta.FilePath,
 		Content:  content,
@@ -161,28 +163,7 @@ func findLineNumber(lines []string, pattern string) int {
 	return 0
 }
 
-// findLineNumberForTag finds the line number of an opening XML tag.
-func findLineNumberForTag(lines []string, tag string) int {
-	openTag := "<" + tag + ">"
-	for i, line := range lines {
-		if strings.Contains(line, openTag) {
-			return i + 1
-		}
-	}
-	return 0
-}
-
-// hasErrors checks if there are any error-level issues.
-func hasErrors(issues []ValidationIssue) bool {
-	for _, issue := range issues {
-		if issue.Severity == SeverityError {
-			return true
-		}
-	}
-	return false
-}
-
 // ValidateWithContext validates a skill with additional context (e.g., registry for redundancy detection).
-func (v *Validator) ValidateWithContext(meta *SkillMeta, content string, registry *Registry) *ValidationResult {
+func (v *Validator) ValidateWithContext(meta *domain.Info, content string, registry *Registry) *ValidationResult {
 	return v.Validate(meta, content)
 }

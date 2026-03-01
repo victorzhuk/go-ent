@@ -3,11 +3,14 @@ package tools
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/skill"
 )
+
+const defaultMatchLimit = 5
 
 type SkillMatchInput struct {
 	Query string `json:"query"` // Search query
@@ -54,7 +57,7 @@ func registerSkillMatch(s *mcp.Server, toolRegistry *ToolRegistry, skillRegistry
 func skillMatchHandler(skillRegistry *skill.Registry) func(ctx context.Context, req *mcp.CallToolRequest, input SkillMatchInput) (*mcp.CallToolResult, any, error) {
 	return func(ctx context.Context, req *mcp.CallToolRequest, input SkillMatchInput) (*mcp.CallToolResult, any, error) {
 		if input.Limit == 0 {
-			input.Limit = 5
+			input.Limit = defaultMatchLimit
 		}
 
 		queryLower := strings.ToLower(input.Query)
@@ -103,14 +106,9 @@ func skillMatchHandler(skillRegistry *skill.Registry) func(ctx context.Context, 
 			}
 		}
 
-		// Sort by score (simple bubble sort for small lists)
-		for i := 0; i < len(matches)-1; i++ {
-			for j := 0; j < len(matches)-i-1; j++ {
-				if matches[j].Score < matches[j+1].Score {
-					matches[j], matches[j+1] = matches[j+1], matches[j]
-				}
-			}
-		}
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
 
 		// Limit results
 		if len(matches) > input.Limit {

@@ -35,7 +35,7 @@ func LoadTemplates(ctx context.Context, dir string) ([]*Template, error) {
 	var templates []*Template
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk template directory: %w", err)
 		}
 
 		if !info.IsDir() {

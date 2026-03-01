@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 type SkillListInput struct {
@@ -47,7 +48,7 @@ func skillListHandler(skillRegistry *skill.Registry) func(ctx context.Context, r
 	return func(ctx context.Context, req *mcp.CallToolRequest, input SkillListInput) (*mcp.CallToolResult, any, error) {
 		allSkills := skillRegistry.All()
 
-		var filtered []skill.SkillMeta
+		var filtered []*skilldomain.Info
 		if input.Filter != "" {
 			filterLower := strings.ToLower(input.Filter)
 			for _, s := range allSkills {

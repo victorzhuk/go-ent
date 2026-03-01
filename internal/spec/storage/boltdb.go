@@ -23,6 +23,10 @@ const (
 	blockersBucket = "blockers"
 	runtimeBucket  = "runtime"
 	metaBucket     = "meta"
+
+	boltOpenTimeout = 5 * time.Second
+	filePerms       = 0o600
+	dirPerms        = 0o750
 )
 
 type BoltStore struct {
@@ -39,11 +43,11 @@ func NewBoltStore(rootPath string) (*BoltStore, error) {
 func NewBoltStoreWithParser(rootPath string, p parser.TaskParser) (*BoltStore, error) {
 	cachePath := filepath.Join(rootPath, ".cache", "openspec.db")
 
-	if err := os.MkdirAll(filepath.Dir(cachePath), 0o750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(cachePath), dirPerms); err != nil {
 		return nil, fmt.Errorf("create cache dir: %w", err)
 	}
 
-	db, err := bbolt.Open(cachePath, 0o600, &bbolt.Options{Timeout: 5 * time.Second})
+	db, err := bbolt.Open(cachePath, filePerms, &bbolt.Options{Timeout: boltOpenTimeout})
 	if err != nil {
 		return nil, fmt.Errorf("open boltdb: %w", err)
 	}
@@ -67,7 +71,7 @@ func (s *BoltStore) Open() error {
 	defer s.mu.Unlock()
 
 	var err error
-	s.db, err = bbolt.Open(s.path, 0o600, &bbolt.Options{Timeout: 5 * time.Second})
+	s.db, err = bbolt.Open(s.path, filePerms, &bbolt.Options{Timeout: boltOpenTimeout})
 	if err != nil {
 		return fmt.Errorf("open boltdb: %w", err)
 	}

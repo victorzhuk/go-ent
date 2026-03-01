@@ -64,7 +64,7 @@ func (e *Engine) Process(templatePath string, vars TemplateVars, outputPath stri
 func (e *Engine) ProcessAll(templateDir string, vars TemplateVars, outputDir string) error {
 	return fs.WalkDir(e.fs, templateDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk template directory: %w", err)
 		}
 
 		// Skip directories
@@ -88,7 +88,7 @@ func (e *Engine) ProcessAll(templateDir string, vars TemplateVars, outputDir str
 		outputPath := filepath.Join(outputDir, outputRelPath)
 
 		if err := e.Process(path, vars, outputPath); err != nil {
-			return err
+			return fmt.Errorf("process template %s: %w", path, err)
 		}
 
 		return nil
@@ -101,7 +101,7 @@ func (e *Engine) ListTemplates(templateDir string) ([]string, error) {
 
 	err := fs.WalkDir(e.fs, templateDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk template directory: %w", err)
 		}
 
 		if !d.IsDir() && strings.HasSuffix(path, ".tmpl") {

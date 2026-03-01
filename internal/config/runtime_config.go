@@ -10,9 +10,9 @@ import (
 )
 
 type ModelTiers struct {
-	Fast   string            `yaml:"fast"`
-	Main   string            `yaml:"main"`
-	Heavy  string            `yaml:"heavy"`
+	Fast   string            `yaml:"fast" env:"ENT_MODELS_FAST"`
+	Main   string            `yaml:"main" env:"ENT_MODELS_MAIN"`
+	Heavy  string            `yaml:"heavy" env:"ENT_MODELS_HEAVY"`
 	Agents map[string]string `yaml:"agents,omitempty"`
 }
 
@@ -61,7 +61,38 @@ func LoadRuntimeConfig(projectDir, runtime string) (*RuntimeConfig, error) {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
+	envCfg, _ := LoadFromEnv(os.Getenv)
+	cfg.Merge(envCfg)
+
 	return &cfg, nil
+}
+
+func LoadFromEnv(getenv func(string) string) (*RuntimeConfig, error) {
+	cfg := &RuntimeConfig{}
+
+	if v := getenv("ENT_MODELS_FAST"); v != "" {
+		cfg.Models.Fast = v
+	}
+	if v := getenv("ENT_MODELS_MAIN"); v != "" {
+		cfg.Models.Main = v
+	}
+	if v := getenv("ENT_MODELS_HEAVY"); v != "" {
+		cfg.Models.Heavy = v
+	}
+
+	return cfg, nil
+}
+
+func (cfg *RuntimeConfig) Merge(envCfg *RuntimeConfig) {
+	if envCfg.Models.Fast != "" {
+		cfg.Models.Fast = envCfg.Models.Fast
+	}
+	if envCfg.Models.Main != "" {
+		cfg.Models.Main = envCfg.Models.Main
+	}
+	if envCfg.Models.Heavy != "" {
+		cfg.Models.Heavy = envCfg.Models.Heavy
+	}
 }
 
 func (cfg *RuntimeConfig) Validate() error {

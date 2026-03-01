@@ -10,20 +10,20 @@ import (
 // InMemoryRepository provides thread-safe in-memory storage for skills.
 type InMemoryRepository struct {
 	mu     sync.RWMutex
-	skills map[string]*skilldomain.Skill
+	skills map[string]*skilldomain.Info
 	names  map[string]string // name -> id mapping
 }
 
 // NewInMemoryRepository creates a new in-memory repository.
 func NewInMemoryRepository() *InMemoryRepository {
 	return &InMemoryRepository{
-		skills: make(map[string]*skilldomain.Skill),
+		skills: make(map[string]*skilldomain.Info),
 		names:  make(map[string]string),
 	}
 }
 
 // Save stores a new skill in the repository.
-func (r *InMemoryRepository) Save(skill *skilldomain.Skill) error {
+func (r *InMemoryRepository) Save(skill *skilldomain.Info) error {
 	if skill == nil {
 		return fmt.Errorf("skill cannot be nil")
 	}
@@ -51,7 +51,7 @@ func (r *InMemoryRepository) Save(skill *skilldomain.Skill) error {
 }
 
 // FindByID retrieves a skill by its ID.
-func (r *InMemoryRepository) FindByID(id string) (*skilldomain.Skill, error) {
+func (r *InMemoryRepository) FindByID(id string) (*skilldomain.Info, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -63,7 +63,7 @@ func (r *InMemoryRepository) FindByID(id string) (*skilldomain.Skill, error) {
 }
 
 // FindByName retrieves a skill by its name.
-func (r *InMemoryRepository) FindByName(name string) (*skilldomain.Skill, error) {
+func (r *InMemoryRepository) FindByName(name string) (*skilldomain.Info, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -75,11 +75,11 @@ func (r *InMemoryRepository) FindByName(name string) (*skilldomain.Skill, error)
 }
 
 // ListAll returns all skills in the repository.
-func (r *InMemoryRepository) ListAll() ([]*skilldomain.Skill, error) {
+func (r *InMemoryRepository) ListAll() ([]*skilldomain.Info, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	skills := make([]*skilldomain.Skill, 0, len(r.skills))
+	skills := make([]*skilldomain.Info, 0, len(r.skills))
 	for _, skill := range r.skills {
 		skills = append(skills, skill)
 	}
@@ -102,7 +102,7 @@ func (r *InMemoryRepository) Delete(id string) error {
 }
 
 // Update updates an existing skill.
-func (r *InMemoryRepository) Update(skill *skilldomain.Skill) error {
+func (r *InMemoryRepository) Update(skill *skilldomain.Info) error {
 	if skill == nil {
 		return fmt.Errorf("skill cannot be nil")
 	}

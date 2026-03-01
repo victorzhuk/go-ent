@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const defaultHookTimeout = 10 * time.Second
+
 // Executor runs hook commands and manages hook execution.
 type Executor struct {
 	logger *slog.Logger
@@ -27,7 +29,7 @@ func NewExecutor(logger *slog.Logger) *Executor {
 
 // ExecuteCommand runs a shell command with environment variables and timeout.
 func (e *Executor) ExecuteCommand(ctx context.Context, command string, env map[string]string) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, defaultHookTimeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "bash", "-c", command)
@@ -78,8 +80,7 @@ func (e *Executor) RunPreToolHooks(ctx context.Context, hooks []HookMatcher, too
 
 		for _, hook := range matcher.Hooks {
 			if err := e.executeHook(ctx, hook, toolName, input, nil, nil); err != nil {
-				// Pre-hooks can block execution
-				return err
+				return fmt.Errorf("execute %s hook for %s: %w", hook.Type, toolName, err)
 			}
 		}
 	}

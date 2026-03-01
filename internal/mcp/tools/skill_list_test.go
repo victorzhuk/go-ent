@@ -7,6 +7,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 func TestSkillListHandler(t *testing.T) {
@@ -14,7 +15,7 @@ func TestSkillListHandler(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		skills        []skill.SkillMeta
+		skills        []skilldomain.Info
 		input         SkillListInput
 		wantSkills    int
 		wantTextInMsg string
@@ -30,7 +31,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "single skill",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding patterns", Triggers: []string{"go", "golang"}},
 			},
 			input:         SkillListInput{},
@@ -39,7 +40,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "multiple skills",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding patterns", Triggers: []string{"go"}},
 				{Name: "go-test", Description: "Go testing patterns", Triggers: []string{"test", "testing"}},
 				{Name: "python-core", Description: "Python patterns", Triggers: []string{"python"}},
@@ -50,7 +51,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "filter by name",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding", Triggers: []string{"go"}},
 				{Name: "python-core", Description: "Python core", Triggers: []string{"python"}},
 			},
@@ -61,7 +62,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "filter no match",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding", Triggers: []string{"go"}},
 			},
 			input:         SkillListInput{Filter: "rust"},
@@ -70,7 +71,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "case insensitive filter",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "Go-Code", Description: "Go coding", Triggers: []string{"go"}},
 			},
 			input:         SkillListInput{Filter: "GO"},
@@ -79,7 +80,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "skill with triggers displayed",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "go-code", Description: "Go coding", Triggers: []string{"go", "golang", "testing"}},
 			},
 			input:         SkillListInput{},
@@ -88,7 +89,7 @@ func TestSkillListHandler(t *testing.T) {
 		},
 		{
 			name: "skill without triggers",
-			skills: []skill.SkillMeta{
+			skills: []skilldomain.Info{
 				{Name: "generic", Description: "Generic skill", Triggers: nil},
 			},
 			input:         SkillListInput{},
@@ -143,7 +144,7 @@ func TestSkillListHandler_ResponseStructure(t *testing.T) {
 	t.Parallel()
 
 	registry := skill.NewRegistry()
-	populateSkillRegistry(t, registry, []skill.SkillMeta{
+	populateSkillRegistry(t, registry, []skilldomain.Info{
 		{Name: "go-code", Description: "Go coding patterns", Triggers: []string{"go", "golang"}},
 		{Name: "go-test", Description: "Testing patterns", Triggers: []string{"test"}},
 	})
@@ -168,7 +169,7 @@ func TestSkillListHandler_MarkdownFormatting(t *testing.T) {
 	t.Parallel()
 
 	registry := skill.NewRegistry()
-	populateSkillRegistry(t, registry, []skill.SkillMeta{
+	populateSkillRegistry(t, registry, []skilldomain.Info{
 		{Name: "test-skill", Description: "Test description", Triggers: []string{"test"}},
 	})
 
@@ -190,7 +191,7 @@ func TestSkillListHandler_FilteredMarkdown(t *testing.T) {
 	t.Parallel()
 
 	registry := skill.NewRegistry()
-	populateSkillRegistry(t, registry, []skill.SkillMeta{
+	populateSkillRegistry(t, registry, []skilldomain.Info{
 		{Name: "go-code", Description: "Go coding", Triggers: []string{"go"}},
 	})
 
@@ -205,7 +206,7 @@ func TestSkillListHandler_FilteredMarkdown(t *testing.T) {
 	assert.Contains(t, text, "*Filtered by: go*")
 }
 
-func populateSkillRegistry(tb testing.TB, registry *skill.Registry, skills []skill.SkillMeta) {
+func populateSkillRegistry(tb testing.TB, registry *skill.Registry, skills []skilldomain.Info) {
 	tb.Helper()
 
 	for _, s := range skills {

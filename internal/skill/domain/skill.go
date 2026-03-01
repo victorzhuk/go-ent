@@ -2,9 +2,7 @@ package domain
 
 import "fmt"
 
-// Skill represents a skill's metadata and capabilities.
-// This is the core domain entity for skill registry operations.
-type Skill struct {
+type Info struct {
 	ID               string
 	Name             string
 	Description      string
@@ -25,7 +23,6 @@ type Skill struct {
 	References       []string
 }
 
-// Trigger represents an explicit trigger for skill activation.
 type Trigger struct {
 	Patterns     []string
 	Keywords     []string
@@ -33,8 +30,7 @@ type Trigger struct {
 	Weight       float64
 }
 
-// NewSkill creates a new Skill instance.
-func NewSkill(name, description, version string) (*Skill, error) {
+func NewInfo(name, description, version string) (*Info, error) {
 	if name == "" {
 		return nil, ErrInvalidName
 	}
@@ -45,7 +41,7 @@ func NewSkill(name, description, version string) (*Skill, error) {
 		version = "1.0.0"
 	}
 
-	return &Skill{
+	return &Info{
 		ID:               fmt.Sprintf("%s@%s", name, version),
 		Name:             name,
 		Description:      description,
@@ -58,42 +54,4 @@ func NewSkill(name, description, version string) (*Skill, error) {
 		References:       make([]string, 0),
 		DelegatesTo:      make(map[string]string),
 	}, nil
-}
-
-// AddTrigger adds a trigger string to the skill.
-func (s *Skill) AddTrigger(trigger string) {
-	s.Triggers = append(s.Triggers, trigger)
-}
-
-// AddExplicitTrigger adds an explicit trigger to the skill.
-func (s *Skill) AddExplicitTrigger(trigger Trigger) {
-	s.ExplicitTriggers = append(s.ExplicitTriggers, trigger)
-}
-
-// AddTag adds a tag to the skill.
-func (s *Skill) AddTag(tag string) {
-	s.Tags = append(s.Tags, tag)
-}
-
-// AddAllowedTool adds an allowed tool to the skill.
-func (s *Skill) AddAllowedTool(tool string) {
-	s.AllowedTools = append(s.AllowedTools, tool)
-}
-
-// AddDependency adds a skill dependency.
-func (s *Skill) AddDependency(skillName string) {
-	s.DependsOn = append(s.DependsOn, skillName)
-}
-
-// AddReference adds a reference file path.
-func (s *Skill) AddReference(ref string) {
-	s.References = append(s.References, ref)
-}
-
-// AddDelegation adds a delegation mapping to another skill.
-func (s *Skill) AddDelegation(toSkill, reason string) {
-	if s.DelegatesTo == nil {
-		s.DelegatesTo = make(map[string]string)
-	}
-	s.DelegatesTo[toSkill] = reason
 }

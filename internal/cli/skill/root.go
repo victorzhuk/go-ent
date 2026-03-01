@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/victorzhuk/go-ent/internal/skill"
+	skilldomain "github.com/victorzhuk/go-ent/internal/skill/domain"
 )
 
 func NewCmd() *cobra.Command {
@@ -126,7 +127,7 @@ func getSkillsPath() string {
 	return "pkg/skills"
 }
 
-func printSkillsTable(skills []skill.SkillMeta) error {
+func printSkillsTable(skills []*skilldomain.Info) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	_ = w.Flush()
 
@@ -141,7 +142,7 @@ func printSkillsTable(skills []skill.SkillMeta) error {
 	return nil
 }
 
-func printSkillsDetailed(skills []skill.SkillMeta) error {
+func printSkillsDetailed(skills []*skilldomain.Info) error {
 	for i, s := range skills {
 		if i > 0 {
 			fmt.Println()
@@ -160,7 +161,7 @@ func printSkillsDetailed(skills []skill.SkillMeta) error {
 	return nil
 }
 
-func printSkillInfo(meta *skill.SkillMeta) error {
+func printSkillInfo(meta *skilldomain.Info) error {
 	fmt.Printf("# Skill: %s\n\n", meta.Name)
 	fmt.Printf("## Description\n\n%s\n", meta.Description)
 
